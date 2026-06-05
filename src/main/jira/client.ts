@@ -6,6 +6,12 @@ import { existsSync, mkdirSync, readFileSync, unlinkSync, writeFileSync } from '
 import { homedir } from 'os'
 import { join } from 'path'
 import { safeStorage } from 'electron'
+import {
+  CredentialDecryptionError,
+  readStoredCredentialToken,
+  type StoredCredentialToken
+} from '../integration-credential-file'
+import type { CredentialTokenProvenance } from '../../shared/integration-credential-errors'
 import type {
   JiraConnectArgs,
   JiraConnectionStatus,
@@ -49,6 +55,7 @@ type JiraSiteFile = {
 export type JiraClientForSite = {
   site: JiraSite
   authorization: string
+  credentialProvenance: CredentialTokenProvenance
 }
 
 export class JiraApiError extends Error {
@@ -62,7 +69,7 @@ export class JiraApiError extends Error {
 
 let cachedSiteFile: JiraSiteFile | null = null
 let siteFileLoaded = false
-const cachedTokens = new Map<string, string>()
+const cachedTokens = new Map<string, StoredCredentialToken>()
 
 function getOrcaDir(): string {
   return join(homedir(), '.orca')
@@ -195,18 +202,22 @@ function writeSiteFile(file: JiraSiteFile): void {
   })
 }
 
-function writeEncryptedToken(path: string, apiToken: string): void {
+function writeEncryptedToken(path: string, apiToken: string): CredentialTokenProvenance {
   if (safeStorage.isEncryptionAvailable()) {
     writeFileSync(path, safeStorage.encryptString(apiToken), { mode: 0o600 })
-    return
+    return 'decrypted'
   }
   console.warn('[jira] safeStorage encryption unavailable — storing token in plaintext')
   writeFileSync(path, apiToken, { encoding: 'utf-8', mode: 0o600 })
+  return 'plaintext-safeStorage-unavailable'
 }
 
-function readToken(siteId: string): string | null {
+function readToken(
+  siteId: string,
+  options: { force?: boolean } = {}
+): StoredCredentialToken | null {
   const cached = cachedTokens.get(siteId)
-  if (cached) {
+  if (cached !== undefined && (!options.force || cached.provenance === 'decrypted')) {
     return cached
   }
   const path = getTokenPath(siteId)
@@ -215,12 +226,15 @@ function readToken(siteId: string): string | null {
   }
   try {
     const raw = readFileSync(path)
-    const token = safeStorage.isEncryptionAvailable()
-      ? safeStorage.decryptString(raw)
-      : raw.toString('utf-8')
-    cachedTokens.set(siteId, token)
+    const token = readStoredCredentialToken('Jira', raw)
+    if (token) {
+      cachedTokens.set(siteId, token)
+    }
     return token
-  } catch {
+  } catch (error) {
+    if (error instanceof CredentialDecryptionError) {
+      throw error
+    }
     return null
   }
 }
@@ -228,8 +242,8 @@ function readToken(siteId: string): string | null {
 function saveToken(siteId: string, apiToken: string): void {
   ensureOrcaDir()
   ensureTokenDir()
-  writeEncryptedToken(getTokenPath(siteId), apiToken)
-  cachedTokens.set(siteId, apiToken)
+  const provenance = writeEncryptedToken(getTokenPath(siteId), apiToken)
+  cachedTokens.set(siteId, { token: apiToken, provenance })
 }
 
 function deleteToken(siteId: string): void {
@@ -364,9 +378,21 @@ export function getClients(selection?: JiraSiteSelection | null): JiraClientForS
       : file.sites.filter((site) => site.id === (selected ?? file.activeSiteId))
 
   return sites.flatMap((site) => {
-    const token = readToken(site.id)
-    return token ? [{ site, authorization: authHeader(site.email, token) }] : []
+    const credential = readToken(site.id, { force: true })
+    return credential
+      ? [
+          {
+            site,
+            authorization: authHeader(site.email, credential.token),
+            credentialProvenance: credential.provenance
+          }
+        ]
+      : []
   })
+}
+
+export function shouldClearTokenAfterAuthError(entry: JiraClientForSite): boolean {
+  return entry.credentialProvenance === 'decrypted'
 }
 
 export function getStatus(): JiraConnectionStatus {
@@ -461,7 +487,12 @@ export function selectSite(siteId: JiraSiteSelection): JiraConnectionStatus {
 export async function testConnection(
   siteId?: string
 ): Promise<{ ok: true; viewer: JiraViewer } | { ok: false; error: string }> {
-  const client = getClients(siteId)[0]
+  let client: JiraClientForSite | undefined
+  try {
+    client = getClients(siteId)[0]
+  } catch (error) {
+    return { ok: false, error: error instanceof Error ? error.message : 'Connection failed.' }
+  }
   if (!client) {
     return { ok: false, error: 'Not connected to Jira.' }
   }

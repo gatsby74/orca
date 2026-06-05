@@ -19,6 +19,7 @@ import type {
 } from '../../../../shared/types'
 import type { CacheEntry } from './github'
 import { clampLinearIssueListLimit } from '../../../../shared/linear-issue-read-limits'
+import { isIntegrationCredentialDecryptionError } from '../../../../shared/integration-credential-errors'
 import { clearLinearMetadataCache } from '../../hooks/useIssueMetadata'
 import {
   linearConnect,
@@ -710,6 +711,9 @@ export const createLinearSlice: StateCreator<AppState, [], [], LinearSlice> = (s
       })
       .catch((error) => {
         console.warn('[linear] fetchLinearIssue failed:', error)
+        if (isIntegrationCredentialDecryptionError(error)) {
+          throw error
+        }
         if (looksLikeAuthError(error)) {
           void get().checkLinearConnection(true)
         }
@@ -793,6 +797,9 @@ export const createLinearSlice: StateCreator<AppState, [], [], LinearSlice> = (s
       })
       .catch((error) => {
         console.warn('[linear] searchLinearIssues failed:', error)
+        if (isIntegrationCredentialDecryptionError(error)) {
+          throw error
+        }
         if (looksLikeAuthError(error)) {
           if (!shouldRefreshStatusAfterRead(workspaceId)) {
             void get().checkLinearConnection(true)
@@ -857,6 +864,9 @@ export const createLinearSlice: StateCreator<AppState, [], [], LinearSlice> = (s
       })
       .catch((error) => {
         console.warn('[linear] listLinearIssues failed:', error)
+        if (isIntegrationCredentialDecryptionError(error)) {
+          throw error
+        }
         if (looksLikeAuthError(error)) {
           if (!shouldRefreshStatusAfterRead(workspaceId)) {
             void get().checkLinearConnection(true)
@@ -920,6 +930,9 @@ export const createLinearSlice: StateCreator<AppState, [], [], LinearSlice> = (s
       })
       .catch((error) => {
         console.warn('[linear] listLinearTeams failed:', error)
+        if (isIntegrationCredentialDecryptionError(error)) {
+          throw error
+        }
         if (looksLikeAuthError(error)) {
           if (!shouldRefreshStatusAfterRead(resolvedWorkspaceId)) {
             void get().checkLinearConnection(true)
@@ -986,6 +999,9 @@ export const createLinearSlice: StateCreator<AppState, [], [], LinearSlice> = (s
       })
       .catch((error) => {
         console.warn('[linear] listLinearProjects failed:', error)
+        if (isIntegrationCredentialDecryptionError(error)) {
+          throw error
+        }
         if (looksLikeAuthError(error)) {
           set({ linearStatus: { connected: false, viewer: null } })
         }
@@ -1039,6 +1055,9 @@ export const createLinearSlice: StateCreator<AppState, [], [], LinearSlice> = (s
       })
       .catch((error) => {
         console.warn('[linear] fetchLinearProject failed:', error)
+        if (isIntegrationCredentialDecryptionError(error)) {
+          throw error
+        }
         if (looksLikeAuthError(error)) {
           set({ linearStatus: { connected: false, viewer: null } })
         }
@@ -1107,6 +1126,9 @@ export const createLinearSlice: StateCreator<AppState, [], [], LinearSlice> = (s
       })
       .catch((error) => {
         console.warn('[linear] listLinearProjectIssues failed:', error)
+        if (isIntegrationCredentialDecryptionError(error)) {
+          throw error
+        }
         if (looksLikeAuthError(error)) {
           set({ linearStatus: { connected: false, viewer: null } })
         }
@@ -1173,6 +1195,9 @@ export const createLinearSlice: StateCreator<AppState, [], [], LinearSlice> = (s
       })
       .catch((error) => {
         console.warn('[linear] listLinearCustomViews failed:', error)
+        if (isIntegrationCredentialDecryptionError(error)) {
+          throw error
+        }
         if (looksLikeAuthError(error)) {
           set({ linearStatus: { connected: false, viewer: null } })
         }
@@ -1227,6 +1252,9 @@ export const createLinearSlice: StateCreator<AppState, [], [], LinearSlice> = (s
       })
       .catch((error) => {
         console.warn('[linear] fetchLinearCustomView failed:', error)
+        if (isIntegrationCredentialDecryptionError(error)) {
+          throw error
+        }
         if (looksLikeAuthError(error)) {
           set({ linearStatus: { connected: false, viewer: null } })
         }
@@ -1295,6 +1323,9 @@ export const createLinearSlice: StateCreator<AppState, [], [], LinearSlice> = (s
       })
       .catch((error) => {
         console.warn('[linear] listLinearCustomViewIssues failed:', error)
+        if (isIntegrationCredentialDecryptionError(error)) {
+          throw error
+        }
         if (looksLikeAuthError(error)) {
           set({ linearStatus: { connected: false, viewer: null } })
         }
@@ -1354,6 +1385,9 @@ export const createLinearSlice: StateCreator<AppState, [], [], LinearSlice> = (s
       })
       .catch((error) => {
         console.warn('[linear] listLinearCustomViewProjects failed:', error)
+        if (isIntegrationCredentialDecryptionError(error)) {
+          throw error
+        }
         if (looksLikeAuthError(error)) {
           set({ linearStatus: { connected: false, viewer: null } })
         }

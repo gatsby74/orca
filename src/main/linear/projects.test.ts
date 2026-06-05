@@ -1,15 +1,19 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 import type { LinearClientForWorkspace } from './client'
+import { credentialDecryptionMessage } from '../../shared/integration-credential-errors'
 
 const rawRequest = vi.fn()
 const getClients = vi.fn()
 const clearToken = vi.fn()
+const isAuthError = vi.fn()
 
 vi.mock('./client', () => ({
   acquire: vi.fn().mockResolvedValue(undefined),
   release: vi.fn(),
   getClients: (...args: unknown[]) => getClients(...args),
-  isAuthError: vi.fn().mockReturnValue(false),
+  isAuthError: (...args: unknown[]) => isAuthError(...args),
+  shouldClearTokenAfterAuthError: (entry: LinearClientForWorkspace) =>
+    entry.credentialProvenance === 'decrypted',
   clearToken: (...args: unknown[]) => clearToken(...args)
 }))
 
@@ -22,6 +26,7 @@ function makeEntry(): LinearClientForWorkspace {
       displayName: 'Ada',
       email: 'ada@example.com'
     },
+    credentialProvenance: 'decrypted',
     client: {
       client: { rawRequest }
     }
@@ -144,7 +149,18 @@ describe('Linear project queries', () => {
   beforeEach(() => {
     vi.resetModules()
     vi.clearAllMocks()
+    isAuthError.mockReturnValue(false)
     getClients.mockReturnValue([makeEntry()])
+  })
+
+  it('surfaces Linear credential decrypt errors on active project metadata reads', async () => {
+    const error = new Error(credentialDecryptionMessage('Linear'))
+    getClients.mockImplementation(() => {
+      throw error
+    })
+    const { listProjects } = await import('./projects')
+
+    await expect(listProjects(undefined, 20, 'workspace-1', true)).rejects.toThrow(error.message)
   })
 
   it('lets manual project issue refresh bypass older in-flight reads', async () => {

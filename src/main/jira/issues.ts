@@ -27,6 +27,7 @@ import {
   isAuthError,
   jiraRequest,
   release,
+  shouldClearTokenAfterAuthError,
   type JiraClientForSite
 } from './client'
 
@@ -412,7 +413,9 @@ export async function searchIssues(
         return await searchIssuesForClient(entry, jql.trim(), safeLimit)
       } catch (error) {
         if (isAuthError(error)) {
-          clearToken(entry.site.id)
+          if (shouldClearTokenAfterAuthError(entry)) {
+            clearToken(entry.site.id)
+          }
           if (shouldThrowAuthError(siteId)) {
             throw error
           }
@@ -447,7 +450,9 @@ export async function getIssue(
       return mapJiraIssue(entry.site, issue)
     } catch (error) {
       if (isAuthError(error)) {
-        clearToken(entry.site.id)
+        if (shouldClearTokenAfterAuthError(entry)) {
+          clearToken(entry.site.id)
+        }
         if (shouldThrowAuthError(siteId)) {
           throw error
         }
@@ -498,7 +503,9 @@ export async function createIssue(args: JiraCreateIssueArgs): Promise<JiraCreate
     return { ok: true, id: created.id, key: created.key, url: issueUrl(entry.site, created.key) }
   } catch (error) {
     if (isAuthError(error)) {
-      clearToken(entry.site.id)
+      if (shouldClearTokenAfterAuthError(entry)) {
+        clearToken(entry.site.id)
+      }
       throw error
     }
     return { ok: false, error: error instanceof Error ? error.message : 'Failed to create issue.' }
@@ -549,7 +556,9 @@ export async function updateIssue(
     return { ok: true }
   } catch (error) {
     if (isAuthError(error)) {
-      clearToken(entry.site.id)
+      if (shouldClearTokenAfterAuthError(entry)) {
+        clearToken(entry.site.id)
+      }
       throw error
     }
     return { ok: false, error: error instanceof Error ? error.message : 'Failed to update issue.' }
@@ -580,7 +589,9 @@ export async function addIssueComment(
     return { ok: true, id: comment.id }
   } catch (error) {
     if (isAuthError(error)) {
-      clearToken(entry.site.id)
+      if (shouldClearTokenAfterAuthError(entry)) {
+        clearToken(entry.site.id)
+      }
       throw error
     }
     return { ok: false, error: error instanceof Error ? error.message : 'Failed to add comment.' }
@@ -620,7 +631,9 @@ export async function getIssueComments(
     return comments.map(mapComment)
   } catch (error) {
     if (isAuthError(error)) {
-      clearToken(entry.site.id)
+      if (shouldClearTokenAfterAuthError(entry)) {
+        clearToken(entry.site.id)
+      }
       throw error
     }
     console.warn('[jira] getIssueComments failed:', error)
@@ -649,7 +662,9 @@ export async function listProjects(siteId?: JiraSiteSelection | null): Promise<J
         return projects.map((project) => mapProject(project, entry.site))
       } catch (error) {
         if (isAuthError(error)) {
-          clearToken(entry.site.id)
+          if (shouldClearTokenAfterAuthError(entry)) {
+            clearToken(entry.site.id)
+          }
           if (shouldThrowAuthError(siteId)) {
             throw error
           }
@@ -687,7 +702,9 @@ export async function listIssueTypes(
     return issueTypes.map(mapIssueType)
   } catch (error) {
     if (isAuthError(error)) {
-      clearToken(entry.site.id)
+      if (shouldClearTokenAfterAuthError(entry)) {
+        clearToken(entry.site.id)
+      }
       throw error
     }
     console.warn('[jira] listIssueTypes failed:', error)
@@ -736,7 +753,9 @@ export async function listCreateFields(
     return fields
   } catch (error) {
     if (isAuthError(error)) {
-      clearToken(entry.site.id)
+      if (shouldClearTokenAfterAuthError(entry)) {
+        clearToken(entry.site.id)
+      }
       throw error
     }
     console.warn('[jira] listCreateFields failed:', error)
@@ -757,7 +776,9 @@ export async function listPriorities(siteId?: string | null): Promise<JiraPriori
     return response.map(mapPriority).filter((priority): priority is JiraPriority => !!priority)
   } catch (error) {
     if (isAuthError(error)) {
-      clearToken(entry.site.id)
+      if (shouldClearTokenAfterAuthError(entry)) {
+        clearToken(entry.site.id)
+      }
       throw error
     }
     console.warn('[jira] listPriorities failed:', error)
@@ -789,7 +810,9 @@ export async function listAssignableUsers(
     return response.map(mapUser).filter((user): user is JiraUser => !!user)
   } catch (error) {
     if (isAuthError(error)) {
-      clearToken(entry.site.id)
+      if (shouldClearTokenAfterAuthError(entry)) {
+        clearToken(entry.site.id)
+      }
       throw error
     }
     console.warn('[jira] listAssignableUsers failed:', error)
@@ -820,7 +843,9 @@ export async function listTransitions(
     }))
   } catch (error) {
     if (isAuthError(error)) {
-      clearToken(entry.site.id)
+      if (shouldClearTokenAfterAuthError(entry)) {
+        clearToken(entry.site.id)
+      }
       throw error
     }
     console.warn('[jira] listTransitions failed:', error)

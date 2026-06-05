@@ -11,6 +11,7 @@ import type {
   JiraViewer
 } from '../../../../shared/types'
 import type { CacheEntry } from './github'
+import { isIntegrationCredentialDecryptionError } from '../../../../shared/integration-credential-errors'
 import {
   jiraConnect,
   jiraDisconnect,
@@ -187,6 +188,9 @@ export const createJiraSlice: StateCreator<AppState, [], [], JiraSlice> = (set, 
       })
       .catch((error) => {
         console.warn('[jira] fetchJiraIssue failed:', error)
+        if (isIntegrationCredentialDecryptionError(error)) {
+          throw error
+        }
         if (looksLikeAuthError(error)) {
           set({ jiraStatus: { connected: false, viewer: null } })
         }
@@ -222,6 +226,9 @@ export const createJiraSlice: StateCreator<AppState, [], [], JiraSlice> = (set, 
       })
       .catch((error) => {
         console.warn('[jira] searchJiraIssues failed:', error)
+        if (isIntegrationCredentialDecryptionError(error)) {
+          throw error
+        }
         if (looksLikeAuthError(error)) {
           set({ jiraStatus: { connected: false, viewer: null } })
         }
@@ -257,6 +264,9 @@ export const createJiraSlice: StateCreator<AppState, [], [], JiraSlice> = (set, 
       })
       .catch((error) => {
         console.warn('[jira] listJiraIssues failed:', error)
+        if (isIntegrationCredentialDecryptionError(error)) {
+          throw error
+        }
         if (looksLikeAuthError(error)) {
           set({ jiraStatus: { connected: false, viewer: null } })
         }

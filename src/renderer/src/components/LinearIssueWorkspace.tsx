@@ -40,6 +40,7 @@ import { buildLinearIssueContextSnapshot } from '@/lib/linear-issue-context-snap
 import { buildContainedLinkedContextBlock } from '@/lib/linked-work-item-context'
 import { useMountedRef } from '@/hooks/useMountedRef'
 import { useAppStore } from '@/store'
+import { integrationCredentialDecryptionErrorMessage } from '../../../shared/integration-credential-errors'
 import {
   buildLinearIssueBranchName,
   formatLinearIssueRelativeTime
@@ -544,8 +545,11 @@ export default function LinearIssueWorkspace({
           }
         }
       })
-      .catch(() => {
-        /* The list issue remains useful if detail hydration is temporarily unavailable. */
+      .catch((error) => {
+        const message = integrationCredentialDecryptionErrorMessage(error)
+        if (mountedRef.current && requestId === requestIdRef.current && message) {
+          toast.error(message)
+        }
       })
       .finally(() => {
         if (mountedRef.current && requestId === requestIdRef.current) {

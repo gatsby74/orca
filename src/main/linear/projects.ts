@@ -22,6 +22,7 @@ import {
   getClients,
   isAuthError,
   release,
+  shouldClearTokenAfterAuthError,
   type LinearClientForWorkspace
 } from './client'
 
@@ -760,7 +761,9 @@ async function readCollection<T>(
             return await load(entry)
           } catch (error) {
             if (isAuthError(error)) {
-              clearToken(entry.workspace.id)
+              if (shouldClearTokenAfterAuthError(entry)) {
+                clearToken(entry.workspace.id)
+              }
             } else {
               console.warn('[linear] project/view read failed:', error)
             }
@@ -854,7 +857,9 @@ export async function getProject(
           : null
       } catch (error) {
         if (isAuthError(error)) {
-          clearToken(entry.workspace.id)
+          if (shouldClearTokenAfterAuthError(entry)) {
+            clearToken(entry.workspace.id)
+          }
         }
         throw error
       } finally {
@@ -957,7 +962,9 @@ export async function getCustomView(
         return mapped?.model === model ? mapped : null
       } catch (error) {
         if (isAuthError(error)) {
-          clearToken(entry.workspace.id)
+          if (shouldClearTokenAfterAuthError(entry)) {
+            clearToken(entry.workspace.id)
+          }
         }
         throw error
       } finally {

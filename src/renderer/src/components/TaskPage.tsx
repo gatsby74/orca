@@ -101,6 +101,7 @@ import {
   getLinearStatePillStyle
 } from '@/components/linear-state-pill-style'
 import { parseTaskQuery, stripRepoQualifiers, withQualifier } from '../../../shared/task-query'
+import { integrationCredentialDecryptionErrorMessage } from '../../../shared/integration-credential-errors'
 import {
   buildLinearTeamUrl,
   getLinearOrganizationUrlKeyFromIssueUrl
@@ -576,12 +577,14 @@ function LinearStateCell({
             toast.error(result.error ?? 'Failed to update Linear state')
           }
         })
-        .catch(() => {
+        .catch((error) => {
           if (reqId !== reqRef.current) {
             return
           }
           patchLinearIssue(issue.id, { state: previousState })
-          toast.error('Failed to update Linear state')
+          toast.error(
+            integrationCredentialDecryptionErrorMessage(error) ?? 'Failed to update Linear state'
+          )
         })
         .finally(() => {
           if (reqId === reqRef.current) {
@@ -3477,8 +3480,12 @@ export default function TaskPage(): React.JSX.Element {
           setAvailableTeams(teams)
         }
       })
-      .catch(() => {
+      .catch((error) => {
         if (!cancelled) {
+          const message = integrationCredentialDecryptionErrorMessage(error)
+          if (message) {
+            toast.error(message)
+          }
           console.warn('[TaskPage] Failed to fetch Linear teams')
         }
       })
@@ -3517,8 +3524,12 @@ export default function TaskPage(): React.JSX.Element {
           setAvailableJiraProjects(projects)
         }
       })
-      .catch(() => {
+      .catch((error) => {
         if (!cancelled) {
+          const message = integrationCredentialDecryptionErrorMessage(error)
+          if (message) {
+            toast.error(message)
+          }
           console.warn('[TaskPage] Failed to fetch Jira projects')
         }
       })
@@ -4159,11 +4170,13 @@ export default function TaskPage(): React.JSX.Element {
           applyFallbackState(previousState)
           toast.error(result.error ?? 'Failed to update Linear state')
         }
-      } catch {
+      } catch (error) {
         patchLinearIssue(issue.id, { state: previousState })
         patchScopedLinearIssue(issue.id, { state: previousState })
         applyFallbackState(previousState)
-        toast.error('Failed to update Linear state')
+        toast.error(
+          integrationCredentialDecryptionErrorMessage(error) ?? 'Failed to update Linear state'
+        )
       } finally {
         setLinearBoardUpdatingIssueIds((prev) => {
           const next = new Set(prev)
@@ -4249,7 +4262,12 @@ export default function TaskPage(): React.JSX.Element {
           setNewLinearIssueProjects(p.items)
         }
       })
-      .catch(() => {})
+      .catch((error) => {
+        const message = integrationCredentialDecryptionErrorMessage(error)
+        if (!cancelled && message) {
+          toast.error(message)
+        }
+      })
       .finally(() => {
         if (!cancelled) {
           setNewLinearIssueProjectsLoading(false)
@@ -4494,9 +4512,11 @@ export default function TaskPage(): React.JSX.Element {
         setAvailableJiraIssueTypes(issueTypes)
         setNewJiraIssueTypeId(issueTypes[0]?.id ?? null)
       })
-      .catch(() => {
+      .catch((error) => {
         if (!cancelled) {
-          toast.error('Failed to load Jira issue types.')
+          toast.error(
+            integrationCredentialDecryptionErrorMessage(error) ?? 'Failed to load Jira issue types.'
+          )
         }
       })
       .finally(() => {
@@ -4533,9 +4553,12 @@ export default function TaskPage(): React.JSX.Element {
           setJiraCreateFields(fields)
         }
       })
-      .catch(() => {
+      .catch((error) => {
         if (!cancelled) {
-          setJiraCreateFieldsError('Failed to load required Jira fields.')
+          setJiraCreateFieldsError(
+            integrationCredentialDecryptionErrorMessage(error) ??
+              'Failed to load required Jira fields.'
+          )
         }
       })
       .finally(() => {
@@ -5375,6 +5398,8 @@ export default function TaskPage(): React.JSX.Element {
           }
         })
         .catch(() => {})
+    } catch (error) {
+      toast.error(integrationCredentialDecryptionErrorMessage(error) ?? 'Failed to create issue.')
     } finally {
       setNewLinearIssueSubmitting(false)
     }
@@ -5443,6 +5468,10 @@ export default function TaskPage(): React.JSX.Element {
           }
         })
         .catch(() => {})
+    } catch (error) {
+      toast.error(
+        integrationCredentialDecryptionErrorMessage(error) ?? 'Failed to create Jira issue.'
+      )
     } finally {
       setNewJiraIssueSubmitting(false)
     }
@@ -6161,7 +6190,11 @@ export default function TaskPage(): React.JSX.Element {
       .then((teams) => {
         setAvailableTeams(teams)
       })
-      .catch(() => {
+      .catch((error) => {
+        const message = integrationCredentialDecryptionErrorMessage(error)
+        if (message) {
+          toast.error(message)
+        }
         console.warn('[TaskPage] Failed to refresh Linear teams')
       })
   }, [checkLinearConnection, listLinearTeams, selectedLinearWorkspaceId])

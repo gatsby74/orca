@@ -16,21 +16,34 @@ let tempHome = ''
 let fixtures = new Map<string, ViewerFixture>()
 let linearClientMock: ReturnType<typeof vi.fn>
 
+type SafeStorageMockOptions = {
+  encryptionAvailable?: boolean
+  decryptString?: (value: Buffer) => string
+  authFailureTokens?: string[]
+}
+
 function writeLegacyLinearFiles(token: string, viewer: Record<string, unknown>): void {
+  writeLegacyLinearToken(token, viewer)
+}
+
+function writeLegacyLinearToken(token: string | Buffer, viewer: Record<string, unknown>): void {
   const orcaDir = join(tempHome, '.orca')
   mkdirSync(orcaDir, { recursive: true })
-  writeFileSync(join(orcaDir, 'linear-token.enc'), token, { encoding: 'utf-8' })
+  writeFileSync(join(orcaDir, 'linear-token.enc'), token)
   writeFileSync(join(orcaDir, 'linear-viewer.json'), JSON.stringify(viewer), {
     encoding: 'utf-8'
   })
 }
 
-async function loadClientModule() {
+async function loadClientModule(options: SafeStorageMockOptions = {}) {
   vi.resetModules()
   linearClientMock = vi.fn(function LinearClient(
     this: { viewer: Promise<unknown> },
     { apiKey }: { apiKey: string }
   ) {
+    if (options.authFailureTokens?.includes(apiKey)) {
+      throw new AuthenticationLinearError('Linear authentication failed')
+    }
     const fixture = fixtures.get(apiKey)
     if (!fixture) {
       throw new Error('Invalid API key')
@@ -47,17 +60,18 @@ async function loadClientModule() {
   })
   vi.doMock('electron', () => ({
     safeStorage: {
-      isEncryptionAvailable: () => false,
+      isEncryptionAvailable: () => options.encryptionAvailable ?? false,
       encryptString: (value: string) => Buffer.from(value),
-      decryptString: (value: Buffer) => value.toString('utf-8')
+      decryptString: options.decryptString ?? ((value: Buffer) => value.toString('utf-8'))
     }
   }))
   vi.doMock('os', async () => {
     const actual = await vi.importActual<typeof Os>('os')
     return { ...actual, homedir: () => tempHome }
   })
+  class AuthenticationLinearError extends Error {}
   vi.doMock('@linear/sdk', () => ({
-    AuthenticationLinearError: class AuthenticationLinearError extends Error {},
+    AuthenticationLinearError,
     LinearClient: linearClientMock
   }))
 
@@ -166,5 +180,176 @@ describe('Linear client workspace storage', () => {
     expect(readFileSync(join(tempHome, '.orca', 'linear-workspaces.json'), 'utf-8')).toContain(
       'org-alpha'
     )
+  })
+
+  it('preserves plaintext legacy token fallback when safeStorage cannot decrypt it', async () => {
+    writeLegacyLinearFiles('token-alpha', {
+      displayName: 'Ada',
+      email: 'ada@example.com',
+      organizationName: 'Alpha'
+    })
+    const linear = await loadClientModule({
+      encryptionAvailable: true,
+      decryptString: () => {
+        throw new Error('not encrypted')
+      }
+    })
+
+    await expect(linear.testConnection('legacy')).resolves.toMatchObject({
+      ok: true,
+      workspace: { id: 'org-alpha', organizationName: 'Alpha' }
+    })
+
+    expect(linearClientMock).toHaveBeenCalledWith({ apiKey: 'token-alpha' })
+  })
+
+  it('does not pass encrypted safeStorage bytes to the Linear SDK when encryption is unavailable', async () => {
+    const tokenPath = join(tempHome, '.orca', 'linear-token.enc')
+    writeLegacyLinearToken(Buffer.from([0x76, 0x31, 0x30, 0xff, 0xfe]), {
+      displayName: 'Ada',
+      email: 'ada@example.com',
+      organizationName: 'Alpha'
+    })
+    const linear = await loadClientModule({ encryptionAvailable: false })
+
+    await expect(linear.testConnection('legacy')).resolves.toEqual({
+      ok: false,
+      error:
+        'Could not decrypt saved Linear credential. Approve Keychain access or reconnect Linear.'
+    })
+
+    expect(linearClientMock).not.toHaveBeenCalled()
+    expect(existsSync(tokenPath)).toBe(true)
+    expect(linear.getStatus()).toMatchObject({
+      connected: true,
+      workspaces: [{ id: 'legacy' }]
+    })
+  })
+
+  it('does not clear the Linear token when safeStorage decryption fails', async () => {
+    const tokenPath = join(tempHome, '.orca', 'linear-token.enc')
+    writeLegacyLinearToken(Buffer.from([0x76, 0x31, 0x30, 0xff, 0xfe]), {
+      displayName: 'Ada',
+      email: 'ada@example.com',
+      organizationName: 'Alpha'
+    })
+    const linear = await loadClientModule({
+      encryptionAvailable: true,
+      decryptString: () => {
+        throw new Error('userCanceledErr')
+      }
+    })
+
+    await expect(linear.testConnection('legacy')).resolves.toEqual({
+      ok: false,
+      error:
+        'Could not decrypt saved Linear credential. Approve Keychain access or reconnect Linear.'
+    })
+
+    expect(linearClientMock).not.toHaveBeenCalled()
+    expect(existsSync(tokenPath)).toBe(true)
+    expect(linear.getStatus()).toMatchObject({
+      connected: true,
+      workspaces: [{ id: 'legacy' }]
+    })
+  })
+
+  it('does not clear plaintext fallback credentials on Linear auth failure after decrypt failure', async () => {
+    const tokenPath = join(tempHome, '.orca', 'linear-token.enc')
+    writeLegacyLinearFiles('token-revoked', {
+      displayName: 'Ada',
+      email: 'ada@example.com',
+      organizationName: 'Alpha'
+    })
+    const linear = await loadClientModule({
+      encryptionAvailable: true,
+      authFailureTokens: ['token-revoked'],
+      decryptString: () => {
+        throw new Error('userCanceledErr')
+      }
+    })
+
+    await expect(linear.testConnection('legacy')).resolves.toEqual({
+      ok: false,
+      error: 'Linear authentication failed'
+    })
+
+    expect(existsSync(tokenPath)).toBe(true)
+    expect(linear.getStatus()).toMatchObject({
+      connected: true,
+      workspaces: [{ id: 'legacy' }]
+    })
+  })
+
+  it('retries Linear decryption after a transient plaintext fallback auth failure', async () => {
+    let keychainApproved = false
+    writeLegacyLinearFiles('v10printable', {
+      displayName: 'Ada',
+      email: 'ada@example.com',
+      organizationName: 'Alpha'
+    })
+    const linear = await loadClientModule({
+      encryptionAvailable: true,
+      authFailureTokens: ['v10printable'],
+      decryptString: () => {
+        if (!keychainApproved) {
+          throw new Error('userCanceledErr')
+        }
+        return 'token-alpha'
+      }
+    })
+
+    await expect(linear.testConnection('legacy')).resolves.toEqual({
+      ok: false,
+      error: 'Linear authentication failed'
+    })
+
+    keychainApproved = true
+    await expect(linear.testConnection('legacy')).resolves.toMatchObject({
+      ok: true,
+      workspace: { id: 'org-alpha', organizationName: 'Alpha' }
+    })
+    expect(linearClientMock).toHaveBeenNthCalledWith(1, { apiKey: 'v10printable' })
+    expect(linearClientMock).toHaveBeenNthCalledWith(2, { apiKey: 'token-alpha' })
+  })
+
+  it('does not clear plaintext credentials on Linear auth failure when safeStorage is unavailable', async () => {
+    const tokenPath = join(tempHome, '.orca', 'linear-token.enc')
+    writeLegacyLinearFiles('token-revoked', {
+      displayName: 'Ada',
+      email: 'ada@example.com',
+      organizationName: 'Alpha'
+    })
+    const linear = await loadClientModule({
+      encryptionAvailable: false,
+      authFailureTokens: ['token-revoked']
+    })
+
+    await expect(linear.testConnection('legacy')).resolves.toEqual({
+      ok: false,
+      error: 'Linear authentication failed'
+    })
+
+    expect(existsSync(tokenPath)).toBe(true)
+    expect(linear.getStatus()).toMatchObject({
+      connected: true,
+      workspaces: [{ id: 'legacy' }]
+    })
+  })
+
+  it('treats empty Linear token files as missing credentials', async () => {
+    writeLegacyLinearToken(Buffer.alloc(0), {
+      displayName: 'Ada',
+      email: 'ada@example.com',
+      organizationName: 'Alpha'
+    })
+    const linear = await loadClientModule({ encryptionAvailable: false })
+
+    await expect(linear.testConnection('legacy')).resolves.toEqual({
+      ok: false,
+      error: 'No API key stored.'
+    })
+
+    expect(linearClientMock).not.toHaveBeenCalled()
   })
 })

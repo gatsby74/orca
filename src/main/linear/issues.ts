@@ -18,6 +18,7 @@ import {
   getClients,
   isAuthError,
   clearToken,
+  shouldClearTokenAfterAuthError,
   type LinearClientForWorkspace
 } from './client'
 import { mapLinearIssue } from './mappers'
@@ -368,7 +369,9 @@ export async function getIssue(
       })
     } catch (error) {
       if (isAuthError(error)) {
-        clearToken(entry.workspace.id)
+        if (shouldClearTokenAfterAuthError(entry)) {
+          clearToken(entry.workspace.id)
+        }
         if (shouldThrowAuthError(workspaceId)) {
           throw error
         }
@@ -404,7 +407,9 @@ export async function searchIssues(
         return nodes.map((issue) => mapRawIssueForWorkspace(entry, issue))
       } catch (error) {
         if (isAuthError(error)) {
-          clearToken(entry.workspace.id)
+          if (shouldClearTokenAfterAuthError(entry)) {
+            clearToken(entry.workspace.id)
+          }
           if (shouldThrowAuthError(workspaceId)) {
             throw error
           }
@@ -457,7 +462,9 @@ async function readListIssuesForWorkspace(
     return readIssueConnectionPages(entry, limit, getListIssueConnectionLoader(entry, filter))
   } catch (error) {
     if (isAuthError(error)) {
-      clearToken(entry.workspace.id)
+      if (shouldClearTokenAfterAuthError(entry)) {
+        clearToken(entry.workspace.id)
+      }
       if (shouldThrowAuthError(workspaceId)) {
         throw error
       }
@@ -508,7 +515,9 @@ async function readListIssuesPageForState(
     state.hasMore = false
     state.canPage = false
     if (isAuthError(error)) {
-      clearToken(state.entry.workspace.id)
+      if (shouldClearTokenAfterAuthError(state.entry)) {
+        clearToken(state.entry.workspace.id)
+      }
       if (shouldThrowAuthError(workspaceId)) {
         throw error
       }
@@ -667,7 +676,9 @@ export async function createIssue(
     }
   } catch (error) {
     if (isAuthError(error)) {
-      clearToken(entry.workspace.id)
+      if (shouldClearTokenAfterAuthError(entry)) {
+        clearToken(entry.workspace.id)
+      }
       throw error
     }
     const message = error instanceof Error ? error.message : String(error)
@@ -728,7 +739,9 @@ export async function updateIssue(
     return { ok: true }
   } catch (error) {
     if (isAuthError(error)) {
-      clearToken(entry.workspace.id)
+      if (shouldClearTokenAfterAuthError(entry)) {
+        clearToken(entry.workspace.id)
+      }
       throw error
     }
     const message = error instanceof Error ? error.message : String(error)
@@ -758,7 +771,9 @@ export async function addIssueComment(
     return { ok: true, id: comment?.id ?? '' }
   } catch (error) {
     if (isAuthError(error)) {
-      clearToken(entry.workspace.id)
+      if (shouldClearTokenAfterAuthError(entry)) {
+        clearToken(entry.workspace.id)
+      }
       throw error
     }
     const message = error instanceof Error ? error.message : String(error)
@@ -796,7 +811,9 @@ export async function getIssueComments(
     return results
   } catch (error) {
     if (isAuthError(error)) {
-      clearToken(entry.workspace.id)
+      if (shouldClearTokenAfterAuthError(entry)) {
+        clearToken(entry.workspace.id)
+      }
       throw error
     }
     console.warn('[linear] getIssueComments failed:', error)

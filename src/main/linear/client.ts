@@ -6,6 +6,12 @@ import { LinearClient, AuthenticationLinearError } from '@linear/sdk'
 import { existsSync, mkdirSync, readFileSync, unlinkSync, writeFileSync } from 'fs'
 import { homedir } from 'os'
 import { join } from 'path'
+import {
+  CredentialDecryptionError,
+  readStoredCredentialToken,
+  type StoredCredentialToken
+} from '../integration-credential-file'
+import type { CredentialTokenProvenance } from '../../shared/integration-credential-errors'
 import type {
   LinearConnectionStatus,
   LinearViewer,
@@ -55,9 +61,10 @@ type LinearWorkspaceFile = {
 export type LinearClientForWorkspace = {
   workspace: LinearWorkspace
   client: LinearClient
+  credentialProvenance: CredentialTokenProvenance
 }
 
-let cachedTokens = new Map<string, string>()
+let cachedTokens = new Map<string, StoredCredentialToken>()
 let cachedLegacyViewer: LinearViewer | null = null
 let legacyViewerLoadedFromDisk = false
 let cachedWorkspaceFile: LinearWorkspaceFile | null = null
@@ -308,15 +315,16 @@ function clearLegacyViewerOnDisk(): void {
   }
 }
 
-function writeEncryptedToken(path: string, apiKey: string): void {
+function writeEncryptedToken(path: string, apiKey: string): CredentialTokenProvenance {
   if (safeStorage.isEncryptionAvailable()) {
     const encrypted = safeStorage.encryptString(apiKey)
     writeFileSync(path, encrypted, { mode: 0o600 })
-    return
+    return 'decrypted'
   }
 
   console.warn('[linear] safeStorage encryption unavailable — storing token in plaintext')
   writeFileSync(path, apiKey, { encoding: 'utf-8', mode: 0o600 })
+  return 'plaintext-safeStorage-unavailable'
 }
 
 function saveWorkspaceToken(workspaceId: string, apiKey: string): void {
@@ -325,8 +333,8 @@ function saveWorkspaceToken(workspaceId: string, apiKey: string): void {
     ensureWorkspaceTokenDir()
   }
   const tokenPath = getWorkspaceTokenPath(workspaceId)
-  writeEncryptedToken(tokenPath, apiKey)
-  cachedTokens.set(workspaceId, apiKey)
+  const provenance = writeEncryptedToken(tokenPath, apiKey)
+  cachedTokens.set(workspaceId, { token: apiKey, provenance })
 }
 
 // Backward-compatible export for the legacy single-workspace storage path.
@@ -335,12 +343,18 @@ export function saveToken(apiKey: string): void {
 }
 
 export function loadToken(options: { force?: boolean; workspaceId?: string } = {}): string | null {
+  return loadStoredToken(options)?.token ?? null
+}
+
+function loadStoredToken(
+  options: { force?: boolean; workspaceId?: string } = {}
+): StoredCredentialToken | null {
   const workspaceId = options.workspaceId ?? resolveWorkspaceId()
   if (!workspaceId) {
     return null
   }
   const cached = cachedTokens.get(workspaceId)
-  if (cached !== undefined) {
+  if (cached !== undefined && (!options.force || cached.provenance === 'decrypted')) {
     return cached
   }
   if (!options.force) {
@@ -352,12 +366,15 @@ export function loadToken(options: { force?: boolean; workspaceId?: string } = {
   }
   try {
     const raw = readFileSync(tokenPath)
-    const token = safeStorage.isEncryptionAvailable()
-      ? safeStorage.decryptString(raw)
-      : raw.toString('utf-8')
-    cachedTokens.set(workspaceId, token)
+    const token = readStoredCredentialToken('Linear', raw)
+    if (token) {
+      cachedTokens.set(workspaceId, token)
+    }
     return token
-  } catch {
+  } catch (error) {
+    if (error instanceof CredentialDecryptionError) {
+      throw error
+    }
     return null
   }
 }
@@ -510,13 +527,21 @@ export function getClients(
 
   const clients: LinearClientForWorkspace[] = []
   for (const workspace of selectedWorkspaces) {
-    const token = loadToken({ force: true, workspaceId: workspace.id })
-    if (!token) {
+    const credential = loadStoredToken({ force: true, workspaceId: workspace.id })
+    if (!credential) {
       continue
     }
-    clients.push({ workspace, client: new LinearClient({ apiKey: token }) })
+    clients.push({
+      workspace,
+      client: new LinearClient({ apiKey: credential.token }),
+      credentialProvenance: credential.provenance
+    })
   }
   return clients
+}
+
+export function shouldClearTokenAfterAuthError(entry: LinearClientForWorkspace): boolean {
+  return entry.credentialProvenance === 'decrypted'
 }
 
 // ── Auth error detection ─────────────────────────────────────────────
@@ -612,25 +637,31 @@ export async function testConnection(
   if (!resolvedWorkspaceId) {
     return { ok: false, error: 'No API key stored.' }
   }
-  const token = loadToken({ force: true, workspaceId: resolvedWorkspaceId })
-  if (!token) {
+  let credential: StoredCredentialToken | null
+  try {
+    credential = loadStoredToken({ force: true, workspaceId: resolvedWorkspaceId })
+  } catch (error) {
+    const message = error instanceof Error ? error.message : 'Test failed'
+    return { ok: false, error: message }
+  }
+  if (!credential) {
     return { ok: false, error: 'No API key stored.' }
   }
 
   try {
-    const client = new LinearClient({ apiKey: token })
+    const client = new LinearClient({ apiKey: credential.token })
     const me = await client.viewer
     const org = await me.organization
     const workspace = workspaceFromLinearData(me, org)
     if (resolvedWorkspaceId === LEGACY_WORKSPACE_ID) {
-      replaceLegacyWorkspace(workspace, token)
+      replaceLegacyWorkspace(workspace, credential.token)
     } else {
-      saveWorkspaceToken(workspace.id, token)
+      saveWorkspaceToken(workspace.id, credential.token)
       upsertWorkspace(workspace, { select: true })
     }
     return { ok: true, viewer: workspace, workspace }
   } catch (error) {
-    if (isAuthError(error)) {
+    if (isAuthError(error) && credential.provenance === 'decrypted') {
       clearToken(resolvedWorkspaceId)
     }
     const message = error instanceof Error ? error.message : 'Test failed'

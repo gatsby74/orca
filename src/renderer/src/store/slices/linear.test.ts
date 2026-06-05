@@ -12,6 +12,7 @@ import type {
   LinearTeam,
   LinearViewer
 } from '../../../../shared/types'
+import { credentialDecryptionMessage } from '../../../../shared/integration-credential-errors'
 import { createLinearSlice } from './linear'
 
 const linearStatus = vi.fn()
@@ -195,6 +196,33 @@ describe('createLinearSlice caching', () => {
     ).resolves.toMatchObject({ items: [{ id: 'LIN-CACHED' }] })
   })
 
+  it('rejects Linear decrypt errors on forced list refresh instead of returning cached rows', async () => {
+    const store = createTestStore()
+    const error = new Error(credentialDecryptionMessage('Linear'))
+    store.setState({
+      linearStatus: { connected: true, viewer: null, selectedWorkspaceId: 'workspace-1' },
+      linearListCache: {
+        'workspace-1::list::all::36': { data: { items: [issue('LIN-CACHED')] }, fetchedAt: 1 }
+      }
+    })
+    linearListIssues.mockRejectedValueOnce(error)
+
+    await expect(store.getState().listLinearIssues('all', 36, { force: true })).rejects.toThrow(
+      error.message
+    )
+  })
+
+  it('rejects Linear decrypt errors on search cache miss instead of returning an empty list', async () => {
+    const store = createTestStore()
+    const error = new Error(credentialDecryptionMessage('Linear'))
+    store.setState({
+      linearStatus: { connected: true, viewer: null, selectedWorkspaceId: 'workspace-1' }
+    })
+    linearSearchIssues.mockRejectedValueOnce(error)
+
+    await expect(store.getState().searchLinearIssues('bug', 36)).rejects.toThrow(error.message)
+  })
+
   it('surfaces scoped project issue failures alongside cached rows', async () => {
     const store = createTestStore()
     store.setState({
@@ -214,6 +242,24 @@ describe('createLinearSlice caching', () => {
       errors: [{ workspaceId: 'workspace-1', type: 'unknown', message: 'network down' }]
     })
     expect(linearListProjectIssues.mock.calls[0][4]).toEqual({ force: true })
+  })
+
+  it('rejects Linear decrypt errors on project issue refresh instead of returning stale rows', async () => {
+    const store = createTestStore()
+    const error = new Error(credentialDecryptionMessage('Linear'))
+    store.setState({
+      linearProjectIssueCache: {
+        'workspace-1::project-issues::project-1::20': {
+          data: { items: [issue('LIN-CACHED')] },
+          fetchedAt: 1
+        }
+      }
+    })
+    linearListProjectIssues.mockRejectedValueOnce(error)
+
+    await expect(
+      store.getState().listLinearProjectIssues('project-1', 'workspace-1', 20, { force: true })
+    ).rejects.toThrow(error.message)
   })
 
   it('falls back to the largest smaller cached project issue limit when expansion fails', async () => {
