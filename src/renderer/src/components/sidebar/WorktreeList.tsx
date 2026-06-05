@@ -183,6 +183,7 @@ import { getRepositoryIconSectionId } from '@/components/settings/repository-set
 import { keybindingMatchesAction } from '../../../../shared/keybindings'
 import { ProjectGroupNameDialog } from './ProjectGroupNameDialog'
 import { ProjectGroupDeleteDialog } from './ProjectGroupDeleteDialog'
+import { selectProjectGroupRemovalTargets } from '@/store/slices/project-group-removal-targets'
 import { isGitRepoKind } from '../../../../shared/repo-kind'
 import {
   effectiveExternalWorktreeVisibility,
@@ -204,6 +205,7 @@ import {
   getProjectGroupHeaderPaddingLeft,
   getWorktreeCardContentIndent
 } from './worktree-list-indentation'
+import { toast } from 'sonner'
 
 export {
   getScrollTopToRevealBounds,
@@ -217,6 +219,7 @@ type ProjectGroupNameDialogState =
 type ProjectGroupDeleteDialogState = {
   groupId: string
   groupName: string
+  deleteChildRepos: boolean
 }
 
 // How long to wait after a sortEpoch bump before actually re-sorting.
@@ -4289,7 +4292,9 @@ const WorktreeList = React.memo(function WorktreeList({
   const moveProjectToGroup = useAppStore((s) => s.moveProjectToGroup)
   const createProjectGroup = useAppStore((s) => s.createProjectGroup)
   const updateProjectGroup = useAppStore((s) => s.updateProjectGroup)
-  const deleteProjectGroup = useAppStore((s) => s.deleteProjectGroup)
+  const deleteProjectGroupWithContainedProjects = useAppStore(
+    (s) => s.deleteProjectGroupWithContainedProjects
+  )
   const [projectGroupNameDialog, setProjectGroupNameDialog] =
     useState<ProjectGroupNameDialogState | null>(null)
   const [projectGroupDeleteDialog, setProjectGroupDeleteDialog] =
@@ -4337,16 +4342,57 @@ const WorktreeList = React.memo(function WorktreeList({
     [createProjectGroup, moveProjectToGroup, projectGroupNameDialog, updateProjectGroup]
   )
 
+  const projectGroupDeleteTargets = useMemo(() => {
+    if (!projectGroupDeleteDialog) {
+      return null
+    }
+    return selectProjectGroupRemovalTargets(projectGroups, repos, projectGroupDeleteDialog.groupId)
+  }, [projectGroupDeleteDialog, projectGroups, repos])
+  const projectGroupDeleteProjectCount = projectGroupDeleteTargets?.projectIds.length ?? 0
+  const projectGroupDeleteProjectNames = useMemo(
+    () =>
+      (projectGroupDeleteTargets?.projectIds ?? []).map(
+        (projectId) => repoMap.get(projectId)?.displayName ?? projectId
+      ),
+    [projectGroupDeleteTargets, repoMap]
+  )
+  const projectGroupDeleteChildRepos =
+    projectGroupDeleteProjectCount > 0 && projectGroupDeleteDialog?.deleteChildRepos === true
+
   const handleDeleteProjectGroup = useCallback((groupId: string, groupName: string) => {
-    setProjectGroupDeleteDialog({ groupId, groupName })
+    setProjectGroupDeleteDialog({ groupId, groupName, deleteChildRepos: false })
   }, [])
 
   const handleConfirmDeleteProjectGroup = useCallback(async () => {
     if (!projectGroupDeleteDialog) {
       return
     }
-    await deleteProjectGroup(projectGroupDeleteDialog.groupId)
-  }, [deleteProjectGroup, projectGroupDeleteDialog])
+    try {
+      const result = await deleteProjectGroupWithContainedProjects(
+        projectGroupDeleteDialog.groupId,
+        {
+          removeContainedProjects: projectGroupDeleteChildRepos
+        }
+      )
+      if (result.status === 'deleted-group' && result.failedProjectRemovals.length > 0) {
+        const failedCount = result.failedProjectRemovals.length
+        const requestedCount = result.requestedProjectIds.length
+        toast.error('Some projects could not be removed from Orca', {
+          description: `${failedCount} of ${requestedCount} contained project${
+            requestedCount === 1 ? '' : 's'
+          } remained after deleting the group.`
+        })
+      }
+    } finally {
+      // Why: deleting contained projects can empty the sidebar and unmount this
+      // dialog before its own close handler runs, so the parent owns cleanup.
+      setProjectGroupDeleteDialog(null)
+    }
+  }, [
+    deleteProjectGroupWithContainedProjects,
+    projectGroupDeleteChildRepos,
+    projectGroupDeleteDialog
+  ])
 
   const moveWorktreeToStatus = useCallback(
     (worktreeId: string, status: WorkspaceStatus) => {
@@ -4660,6 +4706,14 @@ const WorktreeList = React.memo(function WorktreeList({
       <ProjectGroupDeleteDialog
         open={projectGroupDeleteDialog !== null}
         groupName={projectGroupDeleteDialog?.groupName ?? ''}
+        projectCount={projectGroupDeleteProjectCount}
+        projectNames={projectGroupDeleteProjectNames}
+        deleteChildRepos={projectGroupDeleteChildRepos}
+        onDeleteChildReposChange={(deleteChildRepos) => {
+          setProjectGroupDeleteDialog((current) =>
+            current ? { ...current, deleteChildRepos } : current
+          )
+        }}
         onOpenChange={(open) => {
           if (!open) {
             setProjectGroupDeleteDialog(null)
