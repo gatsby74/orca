@@ -49,12 +49,13 @@ function makeProgress(overrides: Partial<FeatureWallSetupProgress> = {}): Featur
       notifications: false,
       'split-terminal': false,
       'two-worktrees': false,
+      browser: false,
       'task-sources': false,
       'agent-capabilities': false,
       'setup-script': false
     },
     coreDoneCount: 0,
-    coreTotal: 8,
+    coreTotal: 9,
     ...overrides
   }
 }
@@ -69,12 +70,13 @@ function makeAllDoneProgress(
       notifications: true,
       'split-terminal': true,
       'two-worktrees': true,
+      browser: true,
       'task-sources': true,
       'agent-capabilities': true,
       'setup-script': true
     },
-    coreDoneCount: 8,
-    coreTotal: 8,
+    coreDoneCount: 9,
+    coreTotal: 9,
     ...overrides
   })
 }
