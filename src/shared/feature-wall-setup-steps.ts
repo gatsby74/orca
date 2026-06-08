@@ -44,7 +44,7 @@ export const FEATURE_WALL_SETUP_STEPS: readonly FeatureWallSetupStep[] = [
     name: "Use Orca's browser",
     subtitle: "Use Orca's browser",
     description:
-      'Browse your web app without leaving Orca. Grab any element with one click to send it to an agent — Orca sends the exact source and styles, so it knows exactly what you mean.'
+      'Browse your web app without leaving Orca. Grab any element and send its exact source and styles to an agent with one click.'
   },
   {
     id: 'notifications',
