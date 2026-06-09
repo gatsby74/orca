@@ -50,7 +50,7 @@ export function AddRepoNestedImportStep({
           {scanInProgress ? <AddRepoNestedImportStopButton onStopScan={onStopScan} /> : null}
           <DialogDescription className="min-w-0 truncate">
             {scanInProgress ? translate("auto.components.sidebar.AddRepoNestedImportStep.220dd32d83", "Scanning...") : null}
-            {translate("auto.components.sidebar.AddRepoNestedImportStep.4df0d08cc5", "Found")}{repoCountLabel} {translate("auto.components.sidebar.AddRepoNestedImportStep.5f857ba8e6", "in")}{' '}
+            {translate("auto.components.sidebar.AddRepoNestedImportStep.4df0d08cc5", "Found")} {repoCountLabel} {translate("auto.components.sidebar.AddRepoNestedImportStep.5f857ba8e6", "in")}{' '}
             <span className="font-mono text-[11px] text-foreground" title={scan.selectedPath}>
               {scan.selectedPath}
             </span>

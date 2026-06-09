@@ -294,7 +294,7 @@ export function ConflictTriageStrip({
         <AlertTriangle className="size-3.5 shrink-0 text-amber-500" />
         <div className="min-w-0 flex-1">
           <div className="truncate text-[11px] font-medium text-foreground">
-            {translate("auto.components.right.sidebar.checks.panel.content.60186d8498", "Conflicts block this")}{reviewKind}
+            {translate("auto.components.right.sidebar.checks.panel.content.60186d8498", "Conflicts block this")} {reviewKind}
           </div>
           <div className="truncate text-[10px] text-muted-foreground">
             {translate("auto.components.right.sidebar.checks.panel.content.3a71a6ed0b", "Resolve conflicts before checks and merge can complete.")}</div>

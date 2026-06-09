@@ -42,7 +42,7 @@ function NestedRepoSelectAllRow({
         {allSelected ? translate("auto.components.repo.NestedRepoChecklist.929734aea5", "Deselect all") : translate("auto.components.repo.NestedRepoChecklist.91b5bcadb6", "Select all")}
       </span>
       <span className="ml-auto shrink-0 text-[11px] text-muted-foreground">
-        {selectedCount} {translate("auto.components.repo.NestedRepoChecklist.ea54c7bf8f", "of")}{total} {translate("auto.components.repo.NestedRepoChecklist.f7e1170567", "selected")}</span>
+        {selectedCount} {translate("auto.components.repo.NestedRepoChecklist.ea54c7bf8f", "of")} {total} {translate("auto.components.repo.NestedRepoChecklist.f7e1170567", "selected")}</span>
     </label>
   )
 }

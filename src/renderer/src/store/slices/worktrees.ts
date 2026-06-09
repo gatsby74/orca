@@ -124,7 +124,7 @@ function showLocalBaseRefUpdateSuggestionToast(
 
   // Why (matches the sticky "Session restore failed" toast): stay on screen until
   // the user acts, so a ~4s auto-expire can't bury this one-time, opt-in nudge.
-  toast.warning(translate("auto.store.slices.worktrees.14bc053a47", "Local {{value0}} is behind {{value1}}", { value0: suggestion.localBranch, value1: suggestion.baseRef }), {
+  toast.warning(translate("auto.store.slices.worktrees.4a18052018", "Local {{value0}} is behind {{value1}}", { value0: suggestion.localBranch, value1: suggestion.baseRef }), {
     id: toastId,
     description: translate("auto.store.slices.worktrees.fa9299a66f", "Your new worktree is current, but local {{value0}} is {{value1}} {{value2}} behind. AI diffs may miss recent commits.", { value0: suggestion.localBranch, value1: suggestion.behind, value2: commitNoun }),
     duration: Infinity,

@@ -103,7 +103,7 @@ export function RepoStep({
                 </span>
               </div>
               <div className="mt-0.5 truncate text-[11px] text-muted-foreground">
-                {translate("auto.components.onboarding.RepoStep.cecd6593fa", "Scanned folder:")}{folderName} - {nestedScan.selectedPath}
+                {translate("auto.components.onboarding.RepoStep.cecd6593fa", "Scanned folder:")} {folderName} - {nestedScan.selectedPath}
               </div>
             </div>
           </div>

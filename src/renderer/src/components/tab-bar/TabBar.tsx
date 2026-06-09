@@ -460,7 +460,7 @@ function TabBarInner({
               className="gap-2 rounded-[7px] px-2 py-1.5 text-[12px] leading-5 font-medium"
             >
               <ShellIcon shell={entry.shell} size={14} />
-              <span className="flex-1">{translate("auto.components.tab.bar.TabBar.7c1313d237", "New Terminal:")}{entry.label}</span>
+              <span className="flex-1">{translate("auto.components.tab.bar.TabBar.7c1313d237", "New Terminal:")} {entry.label}</span>
               {isDefault ? (
                 <DropdownMenuShortcut>{newTerminalShortcut}</DropdownMenuShortcut>
               ) : null}

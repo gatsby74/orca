@@ -166,6 +166,7 @@
           "34a03a6565": "Keep {{value0}} up to date",
           "fa9299a66f": "Your new worktree is current, but local {{value0}} is {{value1}} {{value2}} behind. AI diffs may miss recent commits.",
           "14bc053a47": "Local {{value0}} was not refreshed",
+          "4a18052018": "Local {{value0}} is behind {{value1}}",
           "903b51c2ed": "Workspace created from {{value0}}, but Orca could not fast-forward local {{value1}} because {{value2}}",
           "0216895fb5": "Failed to delete branch",
           "19db0085fb": "Local branch deleted",
