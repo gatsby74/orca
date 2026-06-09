@@ -129,5 +129,26 @@ describe('showLocalBaseRefUpdateSuggestionToast', () => {
       sectionId: 'git-keep-local-main-up-to-date'
     })
     expect(toast.dismiss).toHaveBeenCalledWith(TOAST_ID)
+    const options = vi.mocked(toast.warning).mock.calls.at(-1)?.[1] as unknown as {
+      onDismiss: () => void
+    }
+    options.onDismiss()
+  })
+
+  it('does not record a permanent dismissal when opening the Git setting', async () => {
+    const deps = makeDeps()
+    showLocalBaseRefUpdateSuggestionToast(SUGGESTION, deps)
+    const body = renderToastBody()
+
+    clickButton(body, 'Settings › Keep Local Main Up to Date')
+    const options = vi.mocked(toast.warning).mock.calls.at(-1)?.[1] as unknown as {
+      onDismiss: () => void
+    }
+    options.onDismiss()
+    await Promise.resolve()
+
+    expect(deps.updateSettings).not.toHaveBeenCalledWith({
+      localBaseRefSuggestionDismissed: true
+    })
   })
 })

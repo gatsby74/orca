@@ -18,6 +18,8 @@ function toastId(suggestion: LocalBaseRefUpdateSuggestion): string {
   return `local-base-ref-update-suggestion:${suggestion.baseRef}:${suggestion.localBranch}`
 }
 
+const inspectSettingsDismissals = new Set<string>()
+
 // Why: sonner crams its built-in `action`/`cancel` buttons into the same
 // center-aligned flex row as the title + multi-line description, which pinches
 // the actions into a squished column. Rendering the body as a custom node lets
@@ -50,13 +52,17 @@ function SuggestionToastBody({
   }
 
   const openSetting = (): void => {
+    const id = toastId(suggestion)
     openSettingsPage()
     openSettingsTarget({
       pane: 'git',
       repoId: null,
       sectionId: KEEP_LOCAL_MAIN_UP_TO_DATE_SECTION_ID
     })
-    toast.dismiss(toastId(suggestion))
+    // Why: opening Settings is informational, not a decline; Sonner still calls
+    // onDismiss for this programmatic close, so skip the one-time decline flag.
+    inspectSettingsDismissals.add(id)
+    toast.dismiss(id)
   }
 
   return (
@@ -103,6 +109,9 @@ export function showLocalBaseRefUpdateSuggestionToast(
     // Fires for the close (X) button and swipe; the in-body buttons handle their
     // own dismissal since they are not sonner's native action/cancel controls.
     onDismiss: () => {
+      if (inspectSettingsDismissals.delete(toastId(suggestion))) {
+        return
+      }
       if (deps.getSettings()?.refreshLocalBaseRefOnWorktreeCreate === true) {
         return
       }
