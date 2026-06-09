@@ -90,6 +90,7 @@ import { ClaudeRuntimeAuthService } from './claude-accounts/runtime-auth-service
 import { StarNagService } from './star-nag/service'
 import { agentHookServer } from './agent-hooks/server'
 import { maybeAutoRenameBranchOnFirstWork } from './agent-hooks/first-work-branch-rename'
+import { getRepoIdFromWorktreeId } from '../shared/worktree-id'
 import { setMigrationUnsupportedPtyListener } from './agent-hooks/migration-unsupported-pty-state'
 import {
   clearProviderPtyState,
@@ -99,6 +100,8 @@ import {
   registerHeadlessPtyRuntime
 } from './ipc/pty'
 import { AgentBrowserBridge } from './browser/agent-browser-bridge'
+import { EmulatorBridge } from './emulator/emulator-bridge'
+import { serveSimStateWatcher } from './emulator/serve-sim-state-watcher'
 import { browserManager } from './browser/browser-manager'
 import { initializeBrowserSessionsForApp } from './browser/browser-session-startup'
 import { setUnreadDockBadgeCount } from './dock/unread-badge'
@@ -210,8 +213,23 @@ function maybeAutoRenameBranchOnFirstWorkFromHook(event: {
       setDisplayName: (worktreeId, displayName) => {
         currentStore.setWorktreeMeta(worktreeId, {
           displayName,
-          pendingFirstAgentMessageRename: false
+          pendingFirstAgentMessageRename: false,
+          // Success always clears the failure badge, even if the explicit
+          // setRenameError(null) clear is redundant.
+          firstAgentMessageRenameError: null
         })
+      },
+      setRenameError: (worktreeId, error) => {
+        // Skip the write + renderer push when nothing changes — benign skips
+        // clear the error on every settled worktree, most of which never had one.
+        const current = currentStore.getWorktreeMeta(worktreeId)?.firstAgentMessageRenameError
+        if ((current ?? null) === (error ?? null)) {
+          return
+        }
+        currentStore.setWorktreeMeta(worktreeId, { firstAgentMessageRenameError: error })
+        // Push to the renderer so the badge updates — the hook only knows the
+        // worktreeId, so derive the repoId the same way notifyBranchRenamed expects.
+        currentRuntime.notifyBranchRenamed(getRepoIdFromWorktreeId(worktreeId))
       },
       resolveWorktreeIdForTab: (tabId) => currentStore.getWorktreeIdForTab(tabId),
       onRenamed: (repoId) => currentRuntime.notifyBranchRenamed(repoId)
@@ -607,6 +625,7 @@ function openMainWindow(): BrowserWindow {
       payload,
       receivedAt,
       stateStartedAt,
+      providerSession,
       isReplay
     }) => {
       if (mainWindow?.isDestroyed()) {
@@ -624,6 +643,7 @@ function openMainWindow(): BrowserWindow {
         connectionId,
         receivedAt,
         stateStartedAt,
+        ...(providerSession ? { providerSession } : {}),
         ...(orchestration ? { orchestration } : {})
       })
       recordAgentStateCrashBreadcrumb(payload.agentType ?? 'unknown', payload.state)
@@ -1183,6 +1203,18 @@ app.whenReady().then(async () => {
       onTabsChanged: (worktreeId) => runtimeService.notifyMobileSessionTabsChanged(worktreeId)
     })
   )
+
+  // Emulator bridge (serve-sim). macOS-only feature (gated in CLI/runtime); always ship like agent-browser.
+  const emulatorBridge = new EmulatorBridge()
+  runtimeService.setEmulatorBridge(emulatorBridge)
+  serveSimStateWatcher.start()
+  serveSimStateWatcher.onDetected(({ worktreeId, info }) => {
+    runtimeService.getEmulatorBridge()?.registerActiveEmulator(worktreeId, info, {
+      managed: false
+    })
+    serveSimStateWatcher.markOrcaManaged(info)
+    runtimeService.notifyEmulatorAutoAttachFromWatcher(worktreeId, info)
+  })
   nativeTheme.themeSource = store.getSettings().theme ?? 'system'
   if (shouldInstallManagedHooks(is.dev)) {
     // Why: the persisted off switch must run before any auto-install path so
@@ -1427,6 +1459,8 @@ app.on('will-quit', (e) => {
   // Why: agent-browser daemon processes would otherwise linger after Orca quits,
   // holding ports and leaving stale session state on disk.
   runtime?.getAgentBrowserBridge()?.destroyAllSessions()
+  const emulatorShutdown = runtime?.getEmulatorBridge()?.destroyAllSessions() ?? Promise.resolve()
+  serveSimStateWatcher.stop()
   killAllPty()
   const watcherShutdown = shutdownWatchersOnce()
   store?.flush()
@@ -1475,7 +1509,7 @@ app.on('will-quit', (e) => {
     // Why: normal quits preserve the detached daemon for warm reattach, but a
     // dev parent dying means the temp/dev profile has no owner left to reattach.
     const daemonTeardown = isDevParentShutdownRequested() ? shutdownDaemon() : disconnectDaemon()
-    Promise.allSettled([daemonTeardown, rpcStopAndClear, watcherShutdown])
+    Promise.allSettled([daemonTeardown, rpcStopAndClear, watcherShutdown, emulatorShutdown])
       .then(() => shutdownTelemetry())
       .then(() => shutdownObservability())
       .catch(() => {

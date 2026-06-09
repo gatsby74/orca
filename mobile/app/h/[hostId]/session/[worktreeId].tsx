@@ -14,8 +14,7 @@ import {
   Platform,
   ActivityIndicator,
   type KeyboardEvent,
-  type ListRenderItem,
-  type TextStyle
+  type ListRenderItem
 } from 'react-native'
 import { SafeAreaView, useSafeAreaInsets } from 'react-native-safe-area-context'
 import { useFocusEffect, useLocalSearchParams, useRouter } from 'expo-router'
@@ -85,6 +84,7 @@ import { MobileAgentIcon } from '../../../../src/components/MobileAgentIcon'
 import { TextInputModal } from '../../../../src/components/TextInputModal'
 import { ConfirmModal } from '../../../../src/components/ConfirmModal'
 import { MobileRichMarkdownEditor } from '../../../../src/components/MobileRichMarkdownEditor'
+import { MobileSyntaxSegments } from '../../../../src/components/MobileSyntaxSegments'
 import {
   CustomKeyModal,
   loadCustomKeys,
@@ -108,13 +108,13 @@ import {
   highlightMobileDiffLines,
   resolveMobileSyntaxLanguage,
   type MobileHighlightedDiffLine,
-  type MobileSyntaxSegment,
-  type MobileSyntaxTokenKind
+  type MobileSyntaxSegment
 } from '../../../../src/session/mobile-file-syntax'
 import {
   getTerminalRecordsFromSessionTabs,
   mergeTerminalListWithKnownRecords,
   mergeTerminalRecordsByCurrentOrder,
+  mobileSessionTabsEqual,
   terminalRecordsEqual,
   type TerminalRecord
 } from '../../../../src/session/mobile-terminal-records'
@@ -130,6 +130,7 @@ import {
 } from '../../../../src/session/mobile-session-create-warning-state'
 import { colors, spacing, radii, typography } from '../../../../src/theme/mobile-theme'
 import type { DiffComment } from '../../../../../src/shared/types'
+import type { AgentStatusEntry } from '../../../../../src/shared/agent-status-types'
 
 type Terminal = TerminalRecord
 
@@ -144,6 +145,7 @@ type MobileSessionTab =
       leafId?: string
       status?: 'pending-handle' | 'ready'
       terminal: string | null
+      agentStatus?: AgentStatusEntry | null
       terminalTheme?: MobileTerminalTheme
       isActive: boolean
     }
@@ -240,59 +242,6 @@ type DirtyMarkdownDraft = {
   tabId: string
   title: string
   content: string
-}
-
-function mobileSessionTabsEqual(a: MobileSessionTab[], b: MobileSessionTab[]): boolean {
-  return a.length === b.length && a.every((tab, index) => mobileSessionTabEqual(tab, b[index]))
-}
-
-function mobileSessionTabEqual(a: MobileSessionTab, b: MobileSessionTab | undefined): boolean {
-  if (
-    !b ||
-    a.type !== b.type ||
-    a.id !== b.id ||
-    a.title !== b.title ||
-    a.isActive !== b.isActive
-  ) {
-    return false
-  }
-  switch (a.type) {
-    case 'terminal':
-      return (
-        b.type === 'terminal' &&
-        a.parentTabId === b.parentTabId &&
-        a.leafId === b.leafId &&
-        a.status === b.status &&
-        a.terminal === b.terminal &&
-        JSON.stringify(a.terminalTheme ?? null) === JSON.stringify(b.terminalTheme ?? null)
-      )
-    case 'markdown':
-      return (
-        b.type === 'markdown' &&
-        a.filePath === b.filePath &&
-        a.relativePath === b.relativePath &&
-        a.isDirty === b.isDirty &&
-        a.documentVersion === b.documentVersion
-      )
-    case 'file':
-      return (
-        b.type === 'file' &&
-        a.filePath === b.filePath &&
-        a.relativePath === b.relativePath &&
-        a.language === b.language &&
-        a.isDirty === b.isDirty
-      )
-    case 'browser':
-      return (
-        b.type === 'browser' &&
-        a.browserWorkspaceId === b.browserWorkspaceId &&
-        a.browserPageId === b.browserPageId &&
-        a.url === b.url &&
-        a.loading === b.loading &&
-        a.canGoBack === b.canGoBack &&
-        a.canGoForward === b.canGoForward
-      )
-  }
 }
 
 function getActiveTabIdForHandle(
@@ -562,18 +511,6 @@ function MarkdownReader({
   )
 }
 
-function SyntaxSegments({ segments }: { segments: MobileSyntaxSegment[] }) {
-  return (
-    <>
-      {segments.map((segment, index) => (
-        <Text key={`${index}:${segment.kind}`} style={syntaxTokenStyles[segment.kind]}>
-          {segment.text}
-        </Text>
-      ))}
-    </>
-  )
-}
-
 function DiffLineRow({
   line,
   title,
@@ -631,7 +568,7 @@ function DiffLineRow({
           >
             {line.kind === 'add' ? '+ ' : line.kind === 'delete' ? '- ' : '  '}
           </Text>
-          <SyntaxSegments segments={line.segments} />
+          <MobileSyntaxSegments segments={line.segments} />
         </Text>
         {canComment ? (
           <Pressable
@@ -938,7 +875,7 @@ function FileReader({
         contentContainerStyle={styles.filePreviewContent}
       >
         <Text selectable style={styles.filePreviewText} accessibilityLabel={`${title} preview`}>
-          <SyntaxSegments
+          <MobileSyntaxSegments
             segments={
               fileSyntax?.doc === doc && fileSyntax.language === syntaxLanguage
                 ? fileSyntax.segments
@@ -5338,35 +5275,5 @@ const styles = StyleSheet.create({
   },
   sendButtonDisabled: {
     opacity: 0.35
-  }
-})
-
-const syntaxTokenStyles: Record<MobileSyntaxTokenKind, TextStyle> = StyleSheet.create({
-  plain: {
-    color: colors.textPrimary
-  },
-  comment: {
-    color: colors.syntaxComment
-  },
-  keyword: {
-    color: colors.syntaxKeyword
-  },
-  string: {
-    color: colors.syntaxString
-  },
-  number: {
-    color: colors.syntaxNumber
-  },
-  type: {
-    color: colors.syntaxType
-  },
-  function: {
-    color: colors.syntaxFunction
-  },
-  variable: {
-    color: colors.syntaxVariable
-  },
-  meta: {
-    color: colors.syntaxMeta
   }
 })

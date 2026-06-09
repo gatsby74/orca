@@ -828,6 +828,7 @@ describe('setActiveWorktree', () => {
         ]
       },
       activeGroupIdByWorktree: { [wt]: groupId },
+      layoutByWorktree: { [wt]: { type: 'leaf', groupId } },
       everActivatedWorktreeIds: new Set([wt]),
       refreshGitHubForWorktree: vi.fn(),
       refreshGitHubForWorktreeIfStale: vi.fn()
@@ -1075,6 +1076,35 @@ describe('setActiveWorktree', () => {
     )
     expect(groups[0].activeTabId).toBe(terminal.id)
     expect(groups[0].tabOrder).toEqual([terminal.id])
+  })
+
+  it('stores trimmed quick command labels on terminal and unified tabs', () => {
+    const store = createTestStore()
+    const wt = 'repo1::/path/wt1'
+
+    seedStore(store, {
+      worktreesByRepo: {
+        repo1: [makeWorktree({ id: wt, repoId: 'repo1', path: '/path/wt1' })]
+      }
+    })
+
+    const labeled = store
+      .getState()
+      .createTab(wt, undefined, undefined, { quickCommandLabel: '  Run tests  ' })
+    const unlabeled = store
+      .getState()
+      .createTab(wt, undefined, undefined, { quickCommandLabel: '   ' })
+    const state = store.getState()
+
+    expect(state.tabsByWorktree[wt].find((tab) => tab.id === labeled.id)?.quickCommandLabel).toBe(
+      'Run tests'
+    )
+    expect(
+      state.unifiedTabsByWorktree[wt].find((tab) => tab.entityId === labeled.id)?.quickCommandLabel
+    ).toBe('Run tests')
+    expect(state.tabsByWorktree[wt].find((tab) => tab.id === unlabeled.id)).not.toHaveProperty(
+      'quickCommandLabel'
+    )
   })
 
   it('stamps the Windows default shell onto new terminal tabs', () => {
@@ -2065,6 +2095,99 @@ describe('shutdownWorktreeTerminals (sleep) — agent status hygiene', () => {
 
     const s = store.getState()
     expect(s.agentStatusByPaneKey['tab-1:0']).toBeUndefined()
+  })
+
+  it('captures resumable provider session metadata before dropping sleep-time rows', async () => {
+    const store = createTestStore()
+    const wt = 'repo1::/path/wt1'
+
+    seedStore(store, {
+      worktreesByRepo: {
+        repo1: [makeWorktree({ id: wt, repoId: 'repo1', path: '/path/wt1' })]
+      },
+      tabsByWorktree: {
+        [wt]: [makeTab({ id: 'tab-1', worktreeId: wt, title: 'Codex' })]
+      },
+      ptyIdsByTabId: { 'tab-1': ['pty-1'] }
+    })
+
+    store.getState().setAgentStatus(
+      'tab-1:0',
+      {
+        state: 'working',
+        prompt: 'resume this',
+        agentType: 'codex'
+      },
+      'Codex',
+      { updatedAt: 1000, stateStartedAt: 1000 },
+      { tabId: 'tab-1', worktreeId: wt },
+      { providerSession: { key: 'session_id', id: 'codex-session-1' } }
+    )
+
+    await store.getState().shutdownWorktreeTerminals(wt, { keepIdentifiers: true })
+
+    const state = store.getState()
+    expect(state.agentStatusByPaneKey['tab-1:0']).toBeUndefined()
+    expect(state.sleepingAgentSessionsByPaneKey['tab-1:0']).toMatchObject({
+      paneKey: 'tab-1:0',
+      tabId: 'tab-1',
+      worktreeId: wt,
+      agent: 'codex',
+      providerSession: { key: 'session_id', id: 'codex-session-1' },
+      prompt: 'resume this',
+      terminalTitle: 'Codex'
+    })
+  })
+
+  it('does not preserve provider session metadata when a pane switches agent type', async () => {
+    const store = createTestStore()
+    const wt = 'repo1::/path/wt1'
+
+    seedStore(store, {
+      worktreesByRepo: {
+        repo1: [makeWorktree({ id: wt, repoId: 'repo1', path: '/path/wt1' })]
+      },
+      tabsByWorktree: {
+        [wt]: [makeTab({ id: 'tab-1', worktreeId: wt, title: 'Claude' })]
+      },
+      ptyIdsByTabId: { 'tab-1': ['pty-1'] }
+    })
+
+    store.getState().setAgentStatus(
+      'tab-1:0',
+      {
+        state: 'done',
+        prompt: 'codex prompt',
+        agentType: 'codex',
+        interrupted: false
+      },
+      'Codex',
+      { updatedAt: 1000, stateStartedAt: 1000 },
+      { tabId: 'tab-1', worktreeId: wt },
+      { providerSession: { key: 'session_id', id: 'codex-session-1' } }
+    )
+
+    store.getState().setAgentStatus(
+      'tab-1:0',
+      {
+        state: 'working',
+        prompt: 'claude prompt',
+        agentType: 'claude'
+      },
+      'Claude',
+      { updatedAt: 2000, stateStartedAt: 2000 },
+      { tabId: 'tab-1', worktreeId: wt }
+    )
+
+    const liveEntry = store.getState().agentStatusByPaneKey['tab-1:0']
+    expect(liveEntry?.agentType).toBe('claude')
+    expect(liveEntry?.providerSession).toBeUndefined()
+
+    await store.getState().shutdownWorktreeTerminals(wt, { keepIdentifiers: true })
+
+    const state = store.getState()
+    expect(state.agentStatusByPaneKey['tab-1:0']).toBeUndefined()
+    expect(state.sleepingAgentSessionsByPaneKey['tab-1:0']).toBeUndefined()
   })
 
   it('drops retainedAgentsByPaneKey entries for the slept worktree', async () => {

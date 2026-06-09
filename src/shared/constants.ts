@@ -21,6 +21,7 @@ import { getDefaultSourceControlAiSettings } from './source-control-ai'
 import { DEFAULT_APP_ICON_ID } from './app-icon'
 import { DEFAULT_OPEN_IN_APPLICATIONS } from './open-in-applications'
 import { DEFAULT_BROWSER_PAGE_ZOOM_LEVEL } from './browser-page-zoom'
+import { DEFAULT_DISABLED_TUI_AGENTS } from './tui-agent-selection'
 
 export { DEFAULT_STATUS_BAR_ITEMS } from './status-bar-defaults'
 export {
@@ -171,6 +172,7 @@ export function getDefaultSettings(homedir: string): GlobalSettings {
     nestWorkspaces: true,
     workspaceDirHistory: [],
     refreshLocalBaseRefOnWorktreeCreate: false,
+    localBaseRefSuggestionDismissed: false,
     autoRenameBranchFromWork: true,
     autoRenameBranchFromWorkDefaultedOn: true,
     branchPrefix: 'git-username',
@@ -192,15 +194,16 @@ export function getDefaultSettings(homedir: string): GlobalSettings {
     terminalFontFamily: defaultTerminalFontFamily(),
     terminalFontWeight: DEFAULT_TERMINAL_FONT_WEIGHT,
     terminalLineHeight: 1,
-    // Why: keep the setting on "auto" so explicit user choices stay available,
-    // but renderer policy maps Linux auto to DOM to avoid GPU glyph corruption.
+    // Why: "auto" should use WebGL when supported while keeping DOM fallback
+    // for renderer failures and Linux software/unknown GPU renderers.
     terminalGpuAcceleration: 'auto',
     // Why 'auto': when the user has picked a known ligature font we want the
     // feature enabled by default, but we never force it if they pick a font
     // that lacks ligatures or if they've explicitly opted out. The resolver
     // is in shared/terminal-ligatures.ts.
     terminalLigatures: 'auto',
-    terminalCursorStyle: 'bar',
+    terminalCursorStyle: 'block',
+    terminalCursorStyleDefaultedToBlock: true,
     terminalCursorBlink: true,
     terminalThemeDark: 'Ghostty Default Style Dark',
     terminalDividerColorDark: '#3f3f46',
@@ -232,6 +235,7 @@ export function getDefaultSettings(homedir: string): GlobalSettings {
     windowBackgroundBlur: false,
     terminalClipboardOnSelect: false,
     terminalAllowOsc52Clipboard: false,
+    claudeAgentTeamsMode: 'off',
     setupScriptLaunchMode: 'new-tab',
     terminalScrollbackBytes: 10_000_000,
     httpProxyUrl: '',
@@ -268,7 +272,8 @@ export function getDefaultSettings(homedir: string): GlobalSettings {
     activeClaudeManagedAccountId: null,
     terminalScopeHistoryByWorktree: true,
     defaultTuiAgent: null,
-    disabledTuiAgents: [],
+    disabledTuiAgents: [...DEFAULT_DISABLED_TUI_AGENTS],
+    claudeAgentTeamsDefaultDisabledMigrated: true,
     skipDeleteWorktreeConfirm: false,
     skipDeleteAutomationConfirm: false,
     defaultTaskViewPreset: 'all',
@@ -294,6 +299,8 @@ export function getDefaultSettings(homedir: string): GlobalSettings {
     terminalMacOptionAsAltMigrated: false,
     terminalJISYenToBackslash: false,
     experimentalMobile: false,
+    mobileEmulatorEnabled: true,
+    mobileEmulatorDefaultDeviceUdid: null,
     // Why: indefinite hold by default — the desktop "Restore" banner is the
     // explicit return-to-desktop-size action, no wall-clock guess.
     // See docs/mobile-fit-hold.md.
@@ -304,9 +311,8 @@ export function getDefaultSettings(homedir: string): GlobalSettings {
     experimentalActivity: false,
     experimentalActivityDefaultedOffForAllUsers: true,
     experimentalTerminalAttention: false,
-    experimentalCompactWorktreeCards: false,
+    compactWorktreeCards: false,
     experimentalWorktreeSymlinks: false,
-    experimentalUnifiedNewTabLauncher: false,
     // Why: local desktop remains the default server until the user explicitly
     // selects a saved runtime environment.
     activeRuntimeEnvironmentId: null,
@@ -348,7 +354,8 @@ export function getDefaultVoiceSettings(): VoiceSettings {
     language: 'en',
     dictationMode: 'toggle' as const,
     terminalConfirmBeforeInsert: false,
-    userModels: []
+    userModels: [],
+    openAiApiKeyConfigured: false
   }
 }
 
@@ -395,6 +402,7 @@ export function getDefaultUIState(): PersistedUIState {
     rightSidebarWidth: 350,
     groupBy: 'repo',
     sortBy: 'recent',
+    projectOrderBy: 'manual',
     showActiveOnly: false,
     hideSleepingWorkspaces: DEFAULT_HIDE_SLEEPING_WORKSPACES,
     showSleepingWorkspaces: DEFAULT_SHOW_SLEEPING_WORKSPACES,
@@ -420,6 +428,7 @@ export function getDefaultUIState(): PersistedUIState {
     setupScriptPromptDismissedRepoIds: [],
     acknowledgedAgentsByPaneKey: {},
     setupGuideSidebarDismissed: false,
+    browserImportHintHidden: false,
     workspaceCleanup: { dismissals: {} },
     featureTipsSeenIds: [],
     featureInteractions: {},

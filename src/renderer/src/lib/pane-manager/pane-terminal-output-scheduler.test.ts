@@ -316,7 +316,7 @@ describe('pane terminal output scheduler', () => {
     vi.runOnlyPendingTimers()
 
     expect(terminal.write).toHaveBeenCalledWith(
-      '\x1b[?2026h\x1b[?25l\x1b[10;8H\x1b[?25h\x1b[?2026ltyped',
+      '\x1b[?2026h\x1b[?25l\x1b[10;8H\x1b[?2026ltyped',
       expect.any(Function)
     )
   })
@@ -346,7 +346,53 @@ describe('pane terminal output scheduler', () => {
     vi.runOnlyPendingTimers()
 
     expect(terminal.write).toHaveBeenCalledWith(
-      '\x1b[?2026h\x1b[?25l\x1b[13;14Hr\x1b[?25h\x1b[?2026l',
+      '\x1b[?2026h\x1b[?25l\x1b[13;14Hr\x1b[?2026l',
+      expect.any(Function)
+    )
+  })
+
+  it('strips synchronized cursor shows that end before the real cursor restore', async () => {
+    vi.useFakeTimers()
+    const { writeTerminalOutput } = await loadScheduler()
+    const terminal = createTerminal()
+
+    writeTerminalOutput(terminal, '\x1b[?2026h\x1b[?25l\x1b[26;59H\x1b[?25h\x1b[?2026l', {
+      foreground: true,
+      latencySensitive: true,
+      stripTransientCursorShows: true,
+      coalesceForeground: true
+    })
+
+    vi.advanceTimersByTime(16)
+    vi.runOnlyPendingTimers()
+
+    expect(terminal.write).toHaveBeenCalledWith(
+      '\x1b[?2026h\x1b[?25l\x1b[26;59H\x1b[?2026l',
+      expect.any(Function)
+    )
+  })
+
+  it('drains synchronized endings with final cursor placement before the fallback', async () => {
+    vi.useFakeTimers()
+    const { writeTerminalOutput } = await loadScheduler()
+    const terminal = createTerminal()
+
+    writeTerminalOutput(
+      terminal,
+      '\x1b[?2026h\x1b[?25l\x1b[13;14Hr\x1b[5 q\x1b[?25h\x1b[19;3H\x1b[?2026l',
+      {
+        foreground: true,
+        latencySensitive: true,
+        stripTransientCursorShows: true,
+        coalesceForeground: true
+      }
+    )
+
+    vi.advanceTimersByTime(0)
+
+    expect(terminal.write).toHaveBeenCalledTimes(1)
+    expect(terminal.write).toHaveBeenCalledWith(
+      '\x1b[?2026h\x1b[?25l\x1b[13;14Hr\x1b[5 q\x1b[19;3H\x1b[?25h\x1b[?2026l',
       expect.any(Function)
     )
   })
@@ -391,8 +437,8 @@ describe('pane terminal output scheduler', () => {
 
     expect(terminal.write).toHaveBeenCalledTimes(2)
     expect(terminal.write.mock.calls.map(([data]) => data)).toEqual([
-      '\x1b[?2026h\x1b[0 q\x1b[?25l\x1b[19;3Hx\x1b[?25h\x1b[?2026l',
-      '\x1b[?2026h\x1b[0 q\x1b[?25l\x1b[19;4Hx\x1b[?25h\x1b[?2026l'
+      '\x1b[?2026h\x1b[0 q\x1b[?25l\x1b[19;3Hx\x1b[?2026l',
+      '\x1b[?2026h\x1b[0 q\x1b[?25l\x1b[19;4Hx\x1b[?2026l'
     ])
   })
 
@@ -610,45 +656,6 @@ describe('pane terminal output scheduler', () => {
 
     vi.advanceTimersByTime(16)
     expect(terminals[2].write).toHaveBeenCalledWith('pane-2')
-  })
-
-  it('drains the active terminal before older queued background terminals', async () => {
-    vi.useFakeTimers()
-    const { setActiveTerminalOutputTarget, writeTerminalOutput } = await loadScheduler()
-    const terminals = [createTerminal(), createTerminal(), createTerminal()]
-
-    terminals.forEach((terminal, index) => {
-      writeTerminalOutput(terminal, `pane-${index}`, { foreground: false })
-    })
-    setActiveTerminalOutputTarget(terminals[2], true)
-
-    vi.advanceTimersByTime(50)
-
-    expect(terminals[2].write).toHaveBeenCalledWith('pane-2')
-    expect(terminals[0].write).toHaveBeenCalledWith('pane-0')
-    expect(terminals[1].write).not.toHaveBeenCalled()
-
-    setActiveTerminalOutputTarget(terminals[2], false)
-  })
-
-  it('still drains the active terminal first with one hundred queued terminals', async () => {
-    vi.useFakeTimers()
-    const { setActiveTerminalOutputTarget, writeTerminalOutput } = await loadScheduler()
-    const terminals = Array.from({ length: 100 }, () => createTerminal())
-    const activeTerminal = terminals[99]
-
-    terminals.forEach((terminal, index) => {
-      writeTerminalOutput(terminal, `pane-${index}`, { foreground: false })
-    })
-    setActiveTerminalOutputTarget(activeTerminal, true)
-
-    vi.advanceTimersByTime(50)
-
-    expect(activeTerminal.write).toHaveBeenCalledWith('pane-99')
-    expect(terminals[0].write).toHaveBeenCalledWith('pane-0')
-    expect(activeTerminal.write.mock.invocationCallOrder[0]).toBeLessThan(
-      terminals[0].write.mock.invocationCallOrder[0]
-    )
   })
 
   it('rotates terminals with remaining backlog behind untouched queued terminals', async () => {
@@ -877,26 +884,6 @@ describe('pane terminal output scheduler', () => {
     vi.advanceTimersByTime(50)
 
     expect(terminal.write).not.toHaveBeenCalled()
-  })
-
-  it('clears active priority when terminal output is discarded', async () => {
-    vi.useFakeTimers()
-    const { discardTerminalOutput, setActiveTerminalOutputTarget, writeTerminalOutput } =
-      await loadScheduler()
-    const terminalA = createTerminal()
-    const terminalB = createTerminal()
-
-    setActiveTerminalOutputTarget(terminalB, true)
-    discardTerminalOutput(terminalB)
-    writeTerminalOutput(terminalA, 'new-a', { foreground: false })
-    writeTerminalOutput(terminalB, 'new-b', { foreground: false })
-    vi.advanceTimersByTime(50)
-
-    expect(terminalB.write).toHaveBeenCalledWith('new-b')
-    expect(terminalA.write).toHaveBeenCalledWith('new-a')
-    expect(terminalA.write.mock.invocationCallOrder[0]).toBeLessThan(
-      terminalB.write.mock.invocationCallOrder[0]
-    )
   })
 
   it('survives a write to a disposed terminal during background drain', async () => {

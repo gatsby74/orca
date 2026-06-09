@@ -84,7 +84,6 @@ const BACKGROUND_BACKLOG_WARNING =
   '\x18\x1b[0m\r\n[Orca skipped hidden terminal output because the backlog exceeded 2 MB.]\r\n'
 
 const queuedByTerminal = new Map<TerminalOutputTarget, QueueEntry>()
-const activeOutputTargets = new WeakSet<TerminalOutputTarget>()
 const backlogRecoveryByTerminal = new WeakMap<
   TerminalOutputTarget,
   TerminalBacklogRecoveryRequest
@@ -307,6 +306,29 @@ function isEntryDrainable(entry: QueueEntry): boolean {
   return !entry.foregroundHold && !entry.foregroundCoalesce
 }
 
+function findCursorPositionSequenceEnd(
+  data: string,
+  fromIndex: number,
+  toIndex = data.length
+): number {
+  let offset = data.indexOf('\x1b[', fromIndex)
+  while (offset !== -1 && offset < toIndex) {
+    let index = offset + 2
+    while (index < toIndex) {
+      const char = data[index]
+      if (char === 'G' || char === 'H' || char === 'f') {
+        return index + 1
+      }
+      if ((char < '0' || char > '9') && char !== ';') {
+        break
+      }
+      index += 1
+    }
+    offset = data.indexOf('\x1b[', offset + 2)
+  }
+  return -1
+}
+
 function removeTransientCursorShowSequences(data: string): string {
   let result = ''
   let offset = 0
@@ -316,8 +338,35 @@ function removeTransientCursorShowSequences(data: string): string {
       CURSOR_HIDE_SEQUENCE,
       showIndex + CURSOR_SHOW_SEQUENCE.length
     )
+    const nextPositionEnd = findCursorPositionSequenceEnd(
+      data,
+      showIndex + CURSOR_SHOW_SEQUENCE.length,
+      nextHideIndex === -1 ? data.length : nextHideIndex
+    )
     if (nextHideIndex === -1) {
-      break
+      if (nextPositionEnd === -1) {
+        const synchronizedEndIndex = data.indexOf(
+          SYNCHRONIZED_OUTPUT_END_SEQUENCE,
+          showIndex + CURSOR_SHOW_SEQUENCE.length
+        )
+        if (synchronizedEndIndex === -1) {
+          break
+        }
+        // Why: a synchronized frame can end while parked on footer/status
+        // text. Do not expose that transient cell as the visible cursor.
+        result += data.slice(offset, showIndex)
+        offset = showIndex + CURSOR_SHOW_SEQUENCE.length
+        showIndex = data.indexOf(CURSOR_SHOW_SEQUENCE, offset)
+        continue
+      }
+      // Why: Codex can show the cursor before its final synchronized-frame
+      // placement. Place first so xterm cannot rasterize the stale cell.
+      result += data.slice(offset, showIndex)
+      result += data.slice(showIndex + CURSOR_SHOW_SEQUENCE.length, nextPositionEnd)
+      result += CURSOR_SHOW_SEQUENCE
+      offset = nextPositionEnd
+      showIndex = data.indexOf(CURSOR_SHOW_SEQUENCE, offset)
+      continue
     }
     result += data.slice(offset, showIndex)
     offset = showIndex + CURSOR_SHOW_SEQUENCE.length
@@ -361,6 +410,28 @@ function containsDrainableCursorRestore(data: string): boolean {
   )
 }
 
+function containsFinalCursorPlacementBeforeSynchronizedEnd(data: string): boolean {
+  const synchronizedEndIndex = data.lastIndexOf(SYNCHRONIZED_OUTPUT_END_SEQUENCE)
+  if (synchronizedEndIndex === -1) {
+    return false
+  }
+  const lastShowIndex = data.lastIndexOf(CURSOR_SHOW_SEQUENCE, synchronizedEndIndex)
+  if (lastShowIndex === -1) {
+    return false
+  }
+  const lastHideIndex = data.lastIndexOf(CURSOR_HIDE_SEQUENCE, synchronizedEndIndex)
+  if (lastHideIndex > lastShowIndex) {
+    return false
+  }
+  return (
+    findCursorPositionSequenceEnd(
+      data,
+      lastShowIndex + CURSOR_SHOW_SEQUENCE.length,
+      synchronizedEndIndex
+    ) !== -1
+  )
+}
+
 function previewQueuedData(entry: QueueEntry, limit: number): string {
   let data = ''
   for (let index = entry.chunkIndex; index < entry.chunks.length; index += 1) {
@@ -384,7 +455,11 @@ function coalescedQueuedDataNeedsCursorRestore(entry: QueueEntry): boolean {
     0,
     synchronizedEndIndex + SYNCHRONIZED_OUTPUT_END_SEQUENCE.length
   )
-  return containsCursorRestore(synchronizedFrame) && !containsDrainableCursorRestore(data)
+  return (
+    containsCursorRestore(synchronizedFrame) &&
+    !containsFinalCursorPlacementBeforeSynchronizedEnd(synchronizedFrame) &&
+    !containsDrainableCursorRestore(data)
+  )
 }
 
 function takeQueuedChunk(entry: QueueEntry, limit: number): QueuedWrite | null {
@@ -527,13 +602,6 @@ function hasDrainableBacklog(): boolean {
 
 function takeNextDrainableEntry(): QueueEntry | null {
   for (const entry of queuedByTerminal.values()) {
-    if (!activeOutputTargets.has(entry.terminal) || !isEntryDrainable(entry)) {
-      continue
-    }
-    queuedByTerminal.delete(entry.terminal)
-    return entry
-  }
-  for (const entry of queuedByTerminal.values()) {
     if (!isEntryDrainable(entry)) {
       continue
     }
@@ -621,17 +689,6 @@ function drainQueuedOutput(): void {
     scheduleDrain(
       hasHighPriorityBacklog() ? HIGH_PRIORITY_DRAIN_INTERVAL_MS : BACKGROUND_DRAIN_INTERVAL_MS
     )
-  }
-}
-
-export function setActiveTerminalOutputTarget(
-  terminal: TerminalOutputTarget,
-  active: boolean
-): void {
-  if (active) {
-    activeOutputTargets.add(terminal)
-  } else {
-    activeOutputTargets.delete(terminal)
   }
 }
 
@@ -931,7 +988,6 @@ export function waitForTerminalOutputParsed(terminal: TerminalOutputTarget): Pro
 export function discardTerminalOutput(terminal: TerminalOutputTarget): void {
   exposeDebugApi()
   queuedByTerminal.delete(terminal)
-  activeOutputTargets.delete(terminal)
   discardForegroundRenderSettle(terminal)
   recordQueueDebugPressure()
 }
