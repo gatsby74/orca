@@ -5,6 +5,7 @@ import {
   ChevronRight,
   CircleSlash,
   Copy,
+  Download,
   ExternalLink,
   Eye,
   File,
@@ -47,6 +48,7 @@ import type { TreeNode } from './file-explorer-types'
 import { useFileExplorerRowDrag } from './useFileExplorerRowDrag'
 import { isLocalPathOpenBlocked, showLocalPathOpenBlockedToast } from '@/lib/local-path-open-guard'
 import { translate } from '@/i18n/i18n'
+import { extractIpcErrorMessage } from '@/lib/ipc-error'
 
 const isMac = navigator.userAgent.includes('Mac')
 const isLinux = navigator.userAgent.includes('Linux')
@@ -266,6 +268,7 @@ type FileExplorerRowProps = {
   statusColor: string | null
   isIgnored: boolean
   deleteShortcutLabel: string
+  connectionId?: string | null
   targetDir: string
   targetDepth: number
   selectionSize: number
@@ -297,6 +300,38 @@ export function shouldShowFindInFolderAction(node: TreeNode): boolean {
   return node.isDirectory
 }
 
+export function shouldShowRemoteDownloadAction(
+  node: TreeNode,
+  connectionId?: string | null
+): boolean {
+  // Why: Desktop-only because download depends on Electron's native save dialog.
+  return (
+    !node.isDirectory &&
+    Boolean(connectionId) &&
+    (globalThis as { __ORCA_WEB_CLIENT__?: boolean }).__ORCA_WEB_CLIENT__ !== true
+  )
+}
+
+export async function downloadRemoteFile(node: TreeNode, connectionId: string): Promise<void> {
+  try {
+    const result = await window.api.fs.downloadFile({ filePath: node.path, connectionId })
+    // Why: Suppress toasts when the user cancels the native save dialog per design.
+    if (result.canceled) {
+      return
+    }
+    toast.success(translate("auto.components.right.sidebar.FileExplorerRow.bce4d4e44f", "Downloaded '{{value0}}'", { value0: node.name }), {
+      action: {
+        label: translate("auto.components.right.sidebar.FileExplorerRow.1a3df04ae1", "Open"),
+        onClick: () => {
+          void window.api.shell.openPath(result.destinationPath)
+        }
+      }
+    })
+  } catch (error) {
+    toast.error(extractIpcErrorMessage(error, translate("auto.components.right.sidebar.FileExplorerRow.b3e288bf41", "Failed to download '{{value0}}'.", { value0: node.name })))
+  }
+}
+
 export function FileExplorerRow({
   node,
   isExpanded,
@@ -308,6 +343,7 @@ export function FileExplorerRow({
   statusColor,
   isIgnored,
   deleteShortcutLabel,
+  connectionId,
   targetDir,
   targetDepth,
   selectionSize,
@@ -337,6 +373,7 @@ export function FileExplorerRow({
   const findInFolderShortcutLabel = useShortcutLabel('sidebar.search.toggle')
   const FileIcon = getFileTypeIcon(node.relativePath || node.name)
   const rowDropDir = node.isDirectory ? node.path : targetDir
+  const showRemoteDownloadAction = shouldShowRemoteDownloadAction(node, connectionId)
   const { setRowDragNode, handleDragOver, handleDragEnter, handleDragLeave, handleDrop } =
     useFileExplorerRowDrag({
       rowDropDir,
@@ -358,6 +395,12 @@ export function FileExplorerRow({
       toast.error(result.message)
     }
   }, [activeWorktreeId, node.path])
+  const handleDownload = useCallback(() => {
+    if (!connectionId) {
+      return
+    }
+    void downloadRemoteFile(node, connectionId)
+  }, [connectionId, node])
 
   return (
     <ContextMenu>
@@ -557,6 +600,12 @@ export function FileExplorerRow({
           >
             <Eye />
             {translate("auto.components.right.sidebar.FileExplorerRow.d87a4c42e1", "Open Markdown Preview")}</ContextMenuItem>
+        )}
+        {showRemoteDownloadAction && (
+          <ContextMenuItem onSelect={handleDownload}>
+            <Download />
+            {translate("auto.components.right.sidebar.FileExplorerRow.c2112579f6", "Download")}
+          </ContextMenuItem>
         )}
         {shouldShowCollapseFolderAction(node, isExpanded) && (
           <ContextMenuItem onSelect={onCollapseFolderSubtree}>
