@@ -21,6 +21,7 @@ import { clearRuntimeCompatibilityCacheForTests } from '../../runtime/runtime-rp
 vi.mock('sonner', () => ({
   toast: {
     warning: vi.fn(),
+    info: vi.fn(),
     success: vi.fn(),
     error: vi.fn(),
     dismiss: vi.fn()
@@ -1340,8 +1341,8 @@ describe('createWorktree base status merge', () => {
     await store.getState().createWorktree('repo1', 'feature', 'origin/main')
 
     // The button workflow (Keep main up to date / Settings link) lives in the
-    // toast component's own test; here we just assert the sticky warning is raised.
-    expect(toast.warning).toHaveBeenCalledWith(
+    // toast component's own test; here we just assert the sticky nudge is raised.
+    expect(toast.info).toHaveBeenCalledWith(
       'Local main is behind origin/main',
       expect.objectContaining({
         id: 'local-base-ref-update-suggestion:origin/main:main',
@@ -1365,7 +1366,7 @@ describe('createWorktree base status merge', () => {
 
     await store.getState().createWorktree('repo1', 'feature', 'origin/main')
 
-    const options = vi.mocked(toast.warning).mock.calls.at(-1)?.[1] as unknown as {
+    const options = vi.mocked(toast.info).mock.calls.at(-1)?.[1] as unknown as {
       onDismiss: () => void
     }
     // The close (X)/swipe path persists the decline flag.
@@ -1391,7 +1392,7 @@ describe('createWorktree base status merge', () => {
 
     await store.getState().createWorktree('repo1', 'feature', 'origin/main')
 
-    const options = vi.mocked(toast.warning).mock.calls.at(-1)?.[1] as unknown as {
+    const options = vi.mocked(toast.info).mock.calls.at(-1)?.[1] as unknown as {
       onDismiss: () => void
     }
     // The Turn On success path dismisses the toast, which fires onDismiss; that

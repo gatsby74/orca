@@ -24,7 +24,7 @@ const inspectSettingsDismissals = new Set<string>()
 // center-aligned flex row as the title + multi-line description, which pinches
 // the actions into a squished column. Rendering the body as a custom node lets
 // the buttons sit in a full-width footer below the text while still reusing
-// sonner's native frame (warning icon, title, close X, swipe-to-dismiss).
+// sonner's native frame (info icon, title, close X, swipe-to-dismiss).
 function SuggestionToastBody({
   suggestion,
   deps
@@ -101,7 +101,7 @@ export function showLocalBaseRefUpdateSuggestionToast(
 
   // Why (matches the sticky "Session restore failed" toast): stay on screen until
   // the user acts, so a ~4s auto-expire can't bury this one-time, opt-in nudge.
-  toast.warning(`Local ${suggestion.localBranch} is behind ${suggestion.baseRef}`, {
+  toast.info(`Local ${suggestion.localBranch} is behind ${suggestion.baseRef}`, {
     id: toastId(suggestion),
     description: <SuggestionToastBody suggestion={suggestion} deps={deps} />,
     duration: Infinity,

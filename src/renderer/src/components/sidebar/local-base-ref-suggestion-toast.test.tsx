@@ -10,7 +10,7 @@ import { showLocalBaseRefUpdateSuggestionToast } from './local-base-ref-suggesti
 
 vi.mock('sonner', () => ({
   toast: {
-    warning: vi.fn(),
+    info: vi.fn(),
     success: vi.fn(),
     error: vi.fn(),
     dismiss: vi.fn()
@@ -41,10 +41,10 @@ function makeDeps(overrides: Partial<{ enabled: boolean }> = {}) {
   }
 }
 
-// Render the ReactNode passed to toast.warning as the toast description so we can
+// Render the ReactNode passed to toast.info as the toast description so we can
 // click its in-body buttons the same way the real toast surface would.
 function renderToastBody(): HTMLElement {
-  const description = vi.mocked(toast.warning).mock.calls.at(-1)?.[1]
+  const description = vi.mocked(toast.info).mock.calls.at(-1)?.[1]
     ?.description as React.ReactElement
   const container = document.createElement('div')
   document.body.appendChild(container)
@@ -77,7 +77,7 @@ afterEach(() => {
 describe('showLocalBaseRefUpdateSuggestionToast', () => {
   it('does nothing without a suggestion', () => {
     showLocalBaseRefUpdateSuggestionToast(undefined, makeDeps())
-    expect(toast.warning).not.toHaveBeenCalled()
+    expect(toast.info).not.toHaveBeenCalled()
   })
 
   it('turns on the setting and confirms from the Keep main up to date button', async () => {
@@ -129,7 +129,7 @@ describe('showLocalBaseRefUpdateSuggestionToast', () => {
       sectionId: 'git-keep-local-main-up-to-date'
     })
     expect(toast.dismiss).toHaveBeenCalledWith(TOAST_ID)
-    const options = vi.mocked(toast.warning).mock.calls.at(-1)?.[1] as unknown as {
+    const options = vi.mocked(toast.info).mock.calls.at(-1)?.[1] as unknown as {
       onDismiss: () => void
     }
     options.onDismiss()
@@ -141,7 +141,7 @@ describe('showLocalBaseRefUpdateSuggestionToast', () => {
     const body = renderToastBody()
 
     clickButton(body, 'Settings › Keep Local Main Up to Date')
-    const options = vi.mocked(toast.warning).mock.calls.at(-1)?.[1] as unknown as {
+    const options = vi.mocked(toast.info).mock.calls.at(-1)?.[1] as unknown as {
       onDismiss: () => void
     }
     options.onDismiss()
