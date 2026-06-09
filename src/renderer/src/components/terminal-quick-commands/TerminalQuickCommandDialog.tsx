@@ -1,5 +1,4 @@
 import { useRef, useState } from 'react'
-import { ChevronDown } from 'lucide-react'
 import type {
   Repo,
   TerminalQuickCommand,
@@ -20,28 +19,18 @@ import {
   DialogTitle
 } from '@/components/ui/dialog'
 import { Label } from '@/components/ui/label'
-import { Button } from '@/components/ui/button'
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue
-} from '@/components/ui/select'
-import { getAgentCatalog, AgentIcon } from '@/lib/agent-catalog'
+import { getAgentCatalog } from '@/lib/agent-catalog'
 import { getScreenSubmitShortcutLabel, isScreenSubmitShortcut } from '@/lib/screen-submit-shortcut'
 import type { TuiAgent } from '../../../../shared/types'
 import { TerminalQuickCommandActionToggle } from './TerminalQuickCommandActionToggle'
-import { TerminalQuickCommandAppendEnterSwitch } from './TerminalQuickCommandAppendEnterSwitch'
+import { TerminalQuickCommandAdvancedSection } from './TerminalQuickCommandAdvancedSection'
+import { TerminalQuickCommandContentSection } from './TerminalQuickCommandContentSection'
 import { TerminalQuickCommandDialogFooter } from './TerminalQuickCommandDialogFooter'
 import { TerminalQuickCommandLabelField } from './TerminalQuickCommandLabelField'
-import { TerminalQuickCommandScopeField } from './TerminalQuickCommandScopeField'
 import {
   createTerminalQuickCommandDialogDraftMemory,
   switchTerminalQuickCommandDialogAction
 } from './terminal-quick-command-dialog-draft'
-import { cn } from '@/lib/utils'
-import { getTerminalQuickCommandAgentOptions } from './terminal-quick-command-agent-options'
 import { translate } from '@/i18n/i18n'
 
 type TerminalQuickCommandDialogMode = 'add' | 'edit'
@@ -56,7 +45,6 @@ type TerminalQuickCommandDialogProps = {
 }
 
 const EMPTY_REPOS: Pick<Repo, 'id' | 'displayName' | 'path' | 'badgeColor'>[] = []
-const QUICK_COMMAND_AGENT_OPTIONS = getTerminalQuickCommandAgentOptions()
 
 export function createTerminalQuickCommandDraft(
   scope: TerminalQuickCommandScope = { type: 'global' }
@@ -92,8 +80,6 @@ export function TerminalQuickCommandDialog({
   const selectedAction = getTerminalQuickCommandAction(draft)
   const selectedScope = getTerminalQuickCommandScope(draft)
   const isAgentAction = isTerminalAgentQuickCommand(draft)
-  // Why: repo-scoped commands can outlive the current repo list; only an
-  // explicit selection should replace the saved repo id.
   const selectedRepo =
     selectedScope.type === 'repo'
       ? (repos.find((repo) => repo.id === selectedScope.repoId) ?? null)
@@ -106,8 +92,6 @@ export function TerminalQuickCommandDialog({
   } else if (!wasOpenRef.current || syncedCommandRef.current !== command) {
     wasOpenRef.current = true
     syncedCommandRef.current = command
-    // Why: opening or retargeting the dialog should render the new command
-    // draft immediately instead of repairing it in a follow-up Effect.
     draftMemoryRef.current = createTerminalQuickCommandDialogDraftMemory(command, fallbackAgent)
     const commandScope = getTerminalQuickCommandScope(command)
     lastRepoScopeIdRef.current = commandScope.type === 'repo' ? commandScope.repoId : null
@@ -225,225 +209,26 @@ export function TerminalQuickCommandDialog({
             />
           </div>
 
-          <div>
-            {/* Why: action changes add/remove agent-only fields; animating rows here
-                keeps the fixed dialog from snapping between content heights. */}
-            <div
-              className={cn(
-                'grid overflow-hidden transition-[grid-template-rows] duration-200 ease-out',
-                isAgentAction ? 'grid-rows-[1fr]' : 'grid-rows-[0fr]'
-              )}
-              aria-hidden={!isAgentAction}
-            >
-              <div className="min-h-0">
-                <div
-                  className={cn(
-                    'space-y-2 px-1 pt-1 pb-4 transition-[opacity,transform] duration-150 ease-out',
-                    isAgentAction
-                      ? 'translate-y-0 opacity-100 delay-200'
-                      : '-translate-y-1 opacity-0 delay-0'
-                  )}
-                >
-                  <Label>
-                    {translate(
-                      'auto.components.terminal.quick.commands.TerminalQuickCommandDialog.0adba8fa0c',
-                      'Agent'
-                    )}
-                  </Label>
-                  <Select
-                    value={selectedAgent}
-                    disabled={!isAgentAction}
-                    onValueChange={(agent) => {
-                      const nextAgent = agent as TuiAgent
-                      draftMemoryRef.current = {
-                        ...draftMemoryRef.current,
-                        agent: nextAgent
-                      }
-                      setDraft((current) =>
-                        isTerminalAgentQuickCommand(current)
-                          ? { ...current, agent: nextAgent }
-                          : current
-                      )
-                    }}
-                  >
-                    <SelectTrigger>
-                      <SelectValue
-                        placeholder={translate(
-                          'auto.components.terminal.quick.commands.TerminalQuickCommandDialog.346d409ab2',
-                          'Choose agent'
-                        )}
-                      />
-                    </SelectTrigger>
-                    <SelectContent
-                      position="popper"
-                      side="bottom"
-                      align="start"
-                      sideOffset={4}
-                      className="max-h-[min(20rem,var(--radix-select-content-available-height))] w-[--radix-select-trigger-width]"
-                    >
-                      {QUICK_COMMAND_AGENT_OPTIONS.map((entry) => {
-                        const supported = supportsTerminalAgentQuickCommand(entry.id)
-                        return (
-                          <SelectItem key={entry.id} value={entry.id} disabled={!supported}>
-                            <span className="flex min-w-0 items-center gap-2">
-                              <AgentIcon agent={entry.id} size={16} />
-                              <span className="flex min-w-0 flex-col">
-                                <span className="truncate">{entry.label}</span>
-                                {!supported ? (
-                                  <span className="truncate text-xs text-muted-foreground">
-                                    {translate(
-                                      'auto.components.terminal.quick.commands.TerminalQuickCommandDialog.026cfb232a',
-                                      'Does not support prompt commands'
-                                    )}
-                                  </span>
-                                ) : null}
-                              </span>
-                            </span>
-                          </SelectItem>
-                        )
-                      })}
-                    </SelectContent>
-                  </Select>
-                </div>
-              </div>
-            </div>
+          <TerminalQuickCommandContentSection
+            draft={draft}
+            isAgentAction={isAgentAction}
+            selectedAgent={selectedAgent}
+            draftMemoryRef={draftMemoryRef}
+            setDraft={setDraft}
+          />
 
-            <div className="space-y-2">
-              <Label>
-                {isAgentAction
-                  ? translate(
-                      'auto.components.terminal.quick.commands.TerminalQuickCommandDialog.dc921c17ee',
-                      'Prompt'
-                    )
-                  : translate(
-                      'auto.components.terminal.quick.commands.TerminalQuickCommandDialog.ca414324ee',
-                      'Command Text'
-                    )}
-              </Label>
-              <textarea
-                value={isAgentAction ? draft.prompt : draft.command}
-                onChange={(event) => {
-                  const text = event.target.value
-                  draftMemoryRef.current = isAgentAction
-                    ? {
-                        ...draftMemoryRef.current,
-                        agentPrompt: text
-                      }
-                    : {
-                        ...draftMemoryRef.current,
-                        terminalCommand: text
-                      }
-                  setDraft((current) =>
-                    isTerminalAgentQuickCommand(current)
-                      ? { ...current, prompt: text }
-                      : { ...current, command: text }
-                  )
-                }}
-                placeholder={
-                  isAgentAction
-                    ? translate(
-                        'auto.components.terminal.quick.commands.TerminalQuickCommandDialog.577a342c7d',
-                        'Ask the agent to investigate this workspace'
-                      )
-                    : translate(
-                        'auto.components.terminal.quick.commands.TerminalQuickCommandDialog.79af0c0841',
-                        'npm run dev'
-                      )
-                }
-                rows={4}
-                className={cn(
-                  'min-h-24 w-full resize-y rounded-md border border-input bg-transparent px-3 py-2 text-sm shadow-xs outline-none transition-[color,box-shadow] focus-visible:border-ring focus-visible:ring-[3px] focus-visible:ring-ring/50',
-                  !isAgentAction && 'font-mono'
-                )}
-              />
-            </div>
-
-            <div
-              className={cn(
-                'grid overflow-hidden transition-[grid-template-rows] duration-200 ease-out',
-                isAgentAction ? 'grid-rows-[1fr]' : 'grid-rows-[0fr]'
-              )}
-              aria-hidden={!isAgentAction}
-            >
-              <div className="min-h-0">
-                <p
-                  className={cn(
-                    'px-1 pt-2 text-xs text-muted-foreground transition-[opacity,transform] duration-150 ease-out',
-                    isAgentAction
-                      ? 'translate-y-0 opacity-100 delay-200'
-                      : '-translate-y-1 opacity-0 delay-0'
-                  )}
-                >
-                  {translate(
-                    'auto.components.terminal.quick.commands.TerminalQuickCommandDialog.e604bd40d6',
-                    'Supports skills, file paths, and built-in commands like'
-                  )}{' '}
-                  <code className="rounded bg-muted px-1 font-mono text-[11px]">
-                    {translate(
-                      'auto.components.terminal.quick.commands.TerminalQuickCommandDialog.97e96cc027',
-                      '/goal'
-                    )}
-                  </code>
-                  .
-                </p>
-              </div>
-            </div>
-          </div>
-
-          <div>
-            <Button
-              type="button"
-              variant="ghost"
-              size="sm"
-              onClick={() => setAdvancedOpen((current) => !current)}
-              className="-ml-2 text-xs"
-            >
-              {translate(
-                'auto.components.terminal.quick.commands.TerminalQuickCommandDialog.925b8e0f6e',
-                'Advanced'
-              )}
-              <ChevronDown
-                className={cn('size-4 transition-transform', advancedOpen && 'rotate-180')}
-              />
-            </Button>
-          </div>
-
-          <div
-            className={cn(
-              'grid overflow-hidden transition-[grid-template-rows] duration-200 ease-out',
-              advancedOpen ? 'grid-rows-[1fr]' : 'grid-rows-[0fr]'
-            )}
-            aria-hidden={!advancedOpen}
-          >
-            <div className="min-h-0">
-              <div
-                className={cn(
-                  'space-y-4 px-1 pt-1 pb-1 transition-[opacity,transform] duration-150 ease-out',
-                  advancedOpen
-                    ? 'translate-y-0 opacity-100 delay-200'
-                    : '-translate-y-1 opacity-0 delay-0'
-                )}
-              >
-                {!isTerminalAgentQuickCommand(draft) ? (
-                  <TerminalQuickCommandAppendEnterSwitch
-                    appendEnter={draft.appendEnter}
-                    onToggle={toggleAppendEnter}
-                  />
-                ) : null}
-                <TerminalQuickCommandScopeField
-                  repos={repos}
-                  selectedScope={selectedScope}
-                  selectedRepoId={selectedRepoId}
-                  selectedRepoMissing={selectedRepoMissing}
-                  lastRepoScopeId={lastRepoScopeIdRef.current}
-                  rememberRepoScopeId={(repoId) => {
-                    lastRepoScopeIdRef.current = repoId
-                  }}
-                  setDraft={setDraft}
-                />
-              </div>
-            </div>
-          </div>
+          <TerminalQuickCommandAdvancedSection
+            draft={draft}
+            repos={repos}
+            advancedOpen={advancedOpen}
+            selectedScope={selectedScope}
+            selectedRepoId={selectedRepoId}
+            selectedRepoMissing={selectedRepoMissing}
+            lastRepoScopeIdRef={lastRepoScopeIdRef}
+            setAdvancedOpen={setAdvancedOpen}
+            setDraft={setDraft}
+            toggleAppendEnter={toggleAppendEnter}
+          />
         </div>
 
         <TerminalQuickCommandDialogFooter

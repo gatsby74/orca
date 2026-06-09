@@ -1,5 +1,4 @@
 import { useCallback, useEffect, useState } from 'react'
-import { Import, Loader2 } from 'lucide-react'
 import { toast } from 'sonner'
 import type { CliInstallStatus } from '../../../../shared/cli-install-types'
 import {
@@ -18,19 +17,6 @@ import {
 } from '@/hooks/useInstalledAgentSkills'
 import { useMountedRef } from '@/hooks/useMountedRef'
 import { cn } from '@/lib/utils'
-import { Button } from '../ui/button'
-import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '../ui/tooltip'
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuPortal,
-  DropdownMenuSeparator,
-  DropdownMenuSub,
-  DropdownMenuSubContent,
-  DropdownMenuSubTrigger,
-  DropdownMenuTrigger
-} from '../ui/dropdown-menu'
 import { useAppStore } from '../../store'
 import { BROWSER_FAMILY_LABELS } from '../../../../shared/constants'
 import { SearchableSetting } from './SearchableSetting'
@@ -39,8 +25,9 @@ import { getBrowserUsePaneSearchEntries } from './browser-use-search'
 import { BrowserUseExamples } from './BrowserUseExamples'
 import { BrowserUseComputerUseNotice } from './BrowserUseComputerUseNotice'
 import { BrowserUseEnableSwitch } from './BrowserUseEnableSwitch'
-import { StepBadge } from './BrowserUseStepBadge'
 import { BrowserUseSkillStep } from './BrowserUseSkillStep'
+import { BrowserUseCliStep } from './BrowserUseCliStep'
+import { BrowserUseCookieImportStep } from './BrowserUseCookieImportStep'
 import { translate } from '@/i18n/i18n'
 
 type BrowserUseSetupProps = {
@@ -54,9 +41,7 @@ export function BrowserUseSetup({
 }: BrowserUseSetupProps = {}): React.JSX.Element {
   const searchQuery = useAppStore((s) => s.settingsSearchQuery)
   const browserSessionProfiles = useAppStore((s) => s.browserSessionProfiles)
-  const detectedBrowsers = useAppStore((s) => s.detectedBrowsers)
   const fetchBrowserSessionProfiles = useAppStore((s) => s.fetchBrowserSessionProfiles)
-  const fetchDetectedBrowsers = useAppStore((s) => s.fetchDetectedBrowsers)
   const browserSessionImportState = useAppStore((s) => s.browserSessionImportState)
 
   const [cliStatus, setCliStatus] = useState<CliInstallStatus | null>(null)
@@ -73,10 +58,6 @@ export function BrowserUseSetup({
     [mountedRef]
   )
 
-  // Why: the toggle gates only whether we show the setup instructions. We
-  // persist it in localStorage instead of global settings because it has no
-  // functional effect elsewhere in the app — it's a UI affordance local to
-  // this pane, consistent with the skill-installed marker below.
   const [browserUseEnabled, setBrowserUseEnabled] = useState<boolean>(() => {
     return localStorage.getItem(BROWSER_USE_ENABLED_STORAGE_KEY) === '1'
   })
@@ -112,8 +93,6 @@ export function BrowserUseSetup({
   }, [handleCliStatusChange, mountedRef])
 
   useEffect(() => {
-    // Why: skip IPC work when the feature is toggled off — the component
-    // returns early below and none of this data is rendered.
     if (!browserUseEnabled) {
       return
     }
@@ -122,10 +101,6 @@ export function BrowserUseSetup({
   }, [browserUseEnabled, fetchBrowserSessionProfiles, refreshCli])
 
   const defaultProfile = browserSessionProfiles.find((p) => p.id === 'default')
-  // Why: this step explicitly imports into the default profile, so completion
-  // must track that profile only. Marking done when a non-default profile has
-  // cookies would mislead users into thinking agents can reach their logins
-  // when the default profile — the one agents use — is still empty.
   const cookiesImported = !!defaultProfile?.source
 
   const cliEnabled = isOrcaCliAvailableOnPath(cliStatus)
@@ -160,47 +135,6 @@ export function BrowserUseSetup({
       if (mountedRef.current) {
         setCliBusy(false)
       }
-    }
-  }
-
-  const handleImportFromBrowser = async (
-    browserFamily: string,
-    browserProfile?: string
-  ): Promise<void> => {
-    const profileId = 'default'
-    const result = await useAppStore
-      .getState()
-      .importCookiesFromBrowser(profileId, browserFamily, browserProfile)
-    if (result.ok) {
-      const browser = detectedBrowsers.find((b) => b.family === browserFamily)
-      toast.success(
-        translate(
-          'auto.components.settings.BrowserUsePane.2ea4617e3a',
-          'Imported {{value0}} cookies from {{value1}}{{value2}}.',
-          {
-            value0: result.summary.importedCookies,
-            value1: browser?.label ?? browserFamily,
-            value2: browserProfile ? ` (${browserProfile})` : ''
-          }
-        )
-      )
-    } else {
-      toast.error(result.reason)
-    }
-  }
-
-  const handleImportFromFile = async (): Promise<void> => {
-    const result = await useAppStore.getState().importCookiesToProfile('default')
-    if (result.ok) {
-      toast.success(
-        translate(
-          'auto.components.settings.BrowserUsePane.2ea4617e3a',
-          'Imported {{value0}} cookies from file.',
-          { value0: result.summary.importedCookies }
-        )
-      )
-    } else if (result.reason !== 'canceled') {
-      toast.error(result.reason)
     }
   }
 
@@ -277,81 +211,15 @@ export function BrowserUseSetup({
       ) : null}
 
       {showStep1 ? (
-        <SearchableSetting
-          title={translate('auto.components.settings.BrowserUsePane.c6065d205d', 'Enable Orca CLI')}
-          description={translate(
-            'auto.components.settings.BrowserUsePane.c79eff0213',
-            'Register the Orca CLI so agents can drive the browser.'
-          )}
-          keywords={getBrowserUsePaneSearchEntries()[0].keywords}
-          className="rounded-xl border border-border/60 bg-card/50 p-4"
-        >
-          <div className="flex items-start gap-3">
-            <StepBadge
-              index={1}
-              state={cliEnabled ? 'done' : cliBusy ? 'in-progress' : 'pending'}
-            />
-            <div className="min-w-0 flex-1 space-y-1">
-              <p className="text-sm font-medium">
-                {translate('auto.components.settings.BrowserUsePane.c6065d205d', 'Enable Orca CLI')}
-              </p>
-              <p className="text-xs text-muted-foreground">
-                {translate(
-                  'auto.components.settings.BrowserUsePane.9fca1f7f5d',
-                  'Registers the Orca CLI command so agents can orchestrate the browser from their shell.'
-                )}
-              </p>
-              {cliStatus?.commandPath && cliEnabled ? (
-                <p className="text-[11px] text-muted-foreground">
-                  {translate('auto.components.settings.BrowserUsePane.e9f3f3b488', 'Installed at')}{' '}
-                  <code className="rounded bg-muted px-1 py-0.5">{cliStatus.commandPath}</code>
-                </p>
-              ) : null}
-              {cliPathNeedsAttention && cliStatus?.detail ? (
-                <p className="text-[11px] text-amber-600 dark:text-amber-400">{cliStatus.detail}</p>
-              ) : null}
-            </div>
-            <TooltipProvider delayDuration={250}>
-              <Tooltip>
-                <TooltipTrigger asChild>
-                  <span>
-                    <Button
-                      size="sm"
-                      variant={cliEnabled ? 'outline' : 'default'}
-                      disabled={cliLoading || cliBusy || !cliSupported || cliEnabled}
-                      onClick={() => void handleEnableCli()}
-                    >
-                      {cliBusy
-                        ? translate(
-                            'auto.components.settings.BrowserUsePane.8b3054dac7',
-                            'Registering...'
-                          )
-                        : cliEnabled
-                          ? translate(
-                              'auto.components.settings.BrowserUsePane.0289434ed6',
-                              'Enabled'
-                            )
-                          : cliPathNeedsAttention
-                            ? translate(
-                                'auto.components.settings.BrowserUsePane.ad8cb0ee22',
-                                'Fix PATH'
-                              )
-                            : translate(
-                                'auto.components.settings.BrowserUsePane.de9b2f32f3',
-                                'Enable'
-                              )}
-                    </Button>
-                  </span>
-                </TooltipTrigger>
-                {!cliSupported && !cliLoading && cliStatus?.detail ? (
-                  <TooltipContent side="left" sideOffset={6}>
-                    {cliStatus.detail}
-                  </TooltipContent>
-                ) : null}
-              </Tooltip>
-            </TooltipProvider>
-          </div>
-        </SearchableSetting>
+        <BrowserUseCliStep
+          cliStatus={cliStatus}
+          cliEnabled={cliEnabled}
+          cliLoading={cliLoading}
+          cliBusy={cliBusy}
+          cliSupported={cliSupported}
+          cliPathNeedsAttention={cliPathNeedsAttention}
+          onEnableCli={() => void handleEnableCli()}
+        />
       ) : null}
 
       {showStep2 ? (
@@ -389,128 +257,13 @@ export function BrowserUseSetup({
       ) : null}
 
       {showStep3 ? (
-        <SearchableSetting
-          title={translate(
-            'auto.components.settings.BrowserUsePane.2eb906706c',
-            'Import Browser Cookies'
-          )}
-          description={translate(
-            'auto.components.settings.BrowserUsePane.af8c83ed61',
-            'Import cookies from Chrome, Edge, or other browsers so agents can reuse your logins.'
-          )}
-          keywords={getBrowserUsePaneSearchEntries()[2].keywords}
-          className={cn(
-            'rounded-xl border border-border/60 bg-card/50 p-4',
-            step3Blocked && 'opacity-60'
-          )}
-        >
-          <div className="flex items-start gap-3">
-            <StepBadge
-              index={3}
-              state={cookiesImported ? 'done' : isImportingDefault ? 'in-progress' : 'pending'}
-            />
-            <div className="min-w-0 flex-1 space-y-1">
-              <p className="text-sm font-medium">
-                {translate(
-                  'auto.components.settings.BrowserUsePane.2eb906706c',
-                  'Import Browser Cookies'
-                )}
-              </p>
-              <p className="text-xs text-muted-foreground">
-                {translate(
-                  'auto.components.settings.BrowserUsePane.72d4815523',
-                  'Bring your existing logins into Orca so agents can reach authenticated pages. Imports into the default profile.'
-                )}
-              </p>
-              {sourceLabel ? (
-                <p className="text-[11px] text-muted-foreground">
-                  {translate(
-                    'auto.components.settings.BrowserUsePane.112f70adc4',
-                    'Last imported from'
-                  )}
-                  {sourceLabel}
-                </p>
-              ) : null}
-              {onConfigureMoreBrowsers ? (
-                <button
-                  type="button"
-                  onClick={onConfigureMoreBrowsers}
-                  className="text-[11px] text-muted-foreground underline underline-offset-2 hover:text-foreground"
-                >
-                  {translate(
-                    'auto.components.settings.BrowserUsePane.67d9a53f47',
-                    'Manage profiles for separate logins'
-                  )}
-                </button>
-              ) : null}
-            </div>
-            <DropdownMenu
-              onOpenChange={(open) => {
-                if (open) {
-                  // Why: macOS treats other browsers' profile folders as app
-                  // data. Only probe them when the user opens the import menu.
-                  void fetchDetectedBrowsers()
-                }
-              }}
-            >
-              <DropdownMenuTrigger asChild>
-                <Button
-                  variant={cookiesImported ? 'outline' : 'default'}
-                  size="sm"
-                  disabled={isImportingDefault}
-                  className="gap-1.5"
-                >
-                  {isImportingDefault ? (
-                    <Loader2 className="size-3.5 animate-spin" />
-                  ) : (
-                    <Import className="size-3.5" />
-                  )}
-                  {cookiesImported
-                    ? translate('auto.components.settings.BrowserUsePane.0462565413', 'Re-import')
-                    : translate('auto.components.settings.BrowserUsePane.2ccfc9cff8', 'Import')}
-                </Button>
-              </DropdownMenuTrigger>
-              <DropdownMenuContent align="end">
-                {detectedBrowsers.map((browser) =>
-                  browser.profiles.length > 1 ? (
-                    <DropdownMenuSub key={browser.family}>
-                      <DropdownMenuSubTrigger>
-                        {translate('auto.components.settings.BrowserUsePane.e44c5d681e', 'From')}
-                        {browser.label}
-                      </DropdownMenuSubTrigger>
-                      <DropdownMenuPortal>
-                        <DropdownMenuSubContent>
-                          {browser.profiles.map((bp) => (
-                            <DropdownMenuItem
-                              key={bp.directory}
-                              onSelect={() =>
-                                void handleImportFromBrowser(browser.family, bp.directory)
-                              }
-                            >
-                              {bp.name}
-                            </DropdownMenuItem>
-                          ))}
-                        </DropdownMenuSubContent>
-                      </DropdownMenuPortal>
-                    </DropdownMenuSub>
-                  ) : (
-                    <DropdownMenuItem
-                      key={browser.family}
-                      onSelect={() => void handleImportFromBrowser(browser.family)}
-                    >
-                      {translate('auto.components.settings.BrowserUsePane.e44c5d681e', 'From')}
-                      {browser.label}
-                    </DropdownMenuItem>
-                  )
-                )}
-                {detectedBrowsers.length > 0 ? <DropdownMenuSeparator /> : null}
-                <DropdownMenuItem onSelect={() => void handleImportFromFile()}>
-                  {translate('auto.components.settings.BrowserUsePane.be6df68384', 'From File…')}
-                </DropdownMenuItem>
-              </DropdownMenuContent>
-            </DropdownMenu>
-          </div>
-        </SearchableSetting>
+        <BrowserUseCookieImportStep
+          cookiesImported={cookiesImported}
+          isImportingDefault={isImportingDefault}
+          step3Blocked={step3Blocked}
+          sourceLabel={sourceLabel}
+          onConfigureMoreBrowsers={onConfigureMoreBrowsers}
+        />
       ) : null}
 
       <BrowserUseExamples />
