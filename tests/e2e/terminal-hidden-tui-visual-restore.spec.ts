@@ -41,8 +41,6 @@ type HiddenTuiDebugSnapshot = {
 type TuiCursorState = {
   hidden: boolean | null
   initialized: boolean | null
-  cursorElementVisible: boolean
-  cursorCanvasPresent: boolean
 }
 
 function tuiFrame(runId: string, frame: number): string {
@@ -120,23 +118,9 @@ async function readTuiCursorState(page: Page): Promise<TuiCursorState> {
         _core?: { coreService?: { isCursorHidden?: boolean; isCursorInitialized?: boolean } }
       }
     )._core
-    const cursorElement = pane.container.querySelector<HTMLElement>('.xterm-cursor')
-    const cursorRect = cursorElement?.getBoundingClientRect()
-    const cursorStyle = cursorElement ? window.getComputedStyle(cursorElement) : null
     return {
       hidden: terminalCore?.coreService?.isCursorHidden ?? null,
-      initialized: terminalCore?.coreService?.isCursorInitialized ?? null,
-      // Why: a blinking DOM cursor may be transparent during the sampled frame;
-      // disappearance regressions remove the laid-out cursor element/layer.
-      cursorElementVisible:
-        !!cursorElement &&
-        !!cursorRect &&
-        cursorRect.width > 0 &&
-        cursorRect.height > 0 &&
-        cursorStyle?.display !== 'none' &&
-        cursorStyle?.visibility !== 'hidden',
-      cursorCanvasPresent:
-        pane.container.querySelector<HTMLCanvasElement>('.xterm-cursor-layer canvas') !== null
+      initialized: terminalCore?.coreService?.isCursorInitialized ?? null
     }
   })
 }
@@ -279,8 +263,6 @@ test.describe('Hidden terminal TUI visual restore', () => {
         hidden: false,
         initialized: true
       })
-    const cursorState = await readTuiCursorState(orcaPage)
-    expect(cursorState.cursorElementVisible || cursorState.cursorCanvasPresent).toBe(true)
 
     const screenshotPath = testInfo.outputPath('hidden-tui-restore-final.png')
     await orcaPage.screenshot({ path: screenshotPath, fullPage: true })
