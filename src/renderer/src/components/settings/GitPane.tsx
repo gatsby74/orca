@@ -10,10 +10,13 @@ import { GitHubRateLimitPanel } from '../github/github-rate-limit-display'
 import { GitLabRateLimitPanel } from '../gitlab/gitlab-rate-limit-display'
 import { AutoRenameBranchFromWorkSetting } from './AutoRenameBranchFromWorkSetting'
 import { AUTO_RENAME_BRANCH_SEARCH_ENTRIES } from './auto-rename-branch-search'
+import {
+  KEEP_LOCAL_MAIN_UP_TO_DATE_SECTION_ID,
+  KEEP_LOCAL_MAIN_UP_TO_DATE_TITLE
+} from './keep-local-main-up-to-date-setting'
 
 export { GIT_PANE_SEARCH_ENTRIES }
 
-const KEEP_LOCAL_MAIN_UP_TO_DATE_TITLE = 'Keep Local Main Up to Date'
 const KEEP_LOCAL_MAIN_UP_TO_DATE_DESCRIPTION =
   'When you create a workspace, Orca refreshes the remote base and safely fast-forwards your matching local branch, such as main or master. This keeps commands like git diff main...HEAD from comparing against stale history. Orca skips the update if that branch has uncommitted changes or local-only commits.'
 const KEEP_LOCAL_MAIN_UP_TO_DATE_KEYWORDS = [
@@ -125,6 +128,7 @@ export function GitPane({
     }) ? (
       <SearchableSetting
         key="refresh-base-ref"
+        id={KEEP_LOCAL_MAIN_UP_TO_DATE_SECTION_ID}
         title={KEEP_LOCAL_MAIN_UP_TO_DATE_TITLE}
         description={KEEP_LOCAL_MAIN_UP_TO_DATE_DESCRIPTION}
         keywords={KEEP_LOCAL_MAIN_UP_TO_DATE_KEYWORDS}

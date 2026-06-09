@@ -6,7 +6,6 @@ import type {
   TerminalLayoutSnapshot,
   TerminalPaneLayoutNode,
   LocalBaseRefRefreshResult,
-  LocalBaseRefUpdateSuggestion,
   ForceDeleteWorktreeBranchResult,
   GitHubPrStartPoint,
   Worktree,
@@ -38,6 +37,7 @@ import { toast } from 'sonner'
 import { requestVirtualizedScrollAnchorRecord } from '@/hooks/requestVirtualizedScrollAnchorRecord'
 import { branchName } from '@/lib/git-utils'
 import { markInputQuietSchedulerInput, scheduleAfterInputQuiet } from '@/lib/input-quiet-scheduler'
+import { showLocalBaseRefUpdateSuggestionToast } from '@/components/sidebar/local-base-ref-suggestion-toast'
 export type { WorktreeSlice, WorktreeDeleteState } from './worktree-helpers'
 
 // Why: old runtime servers only have `worktree.list`; preserve the large-list
@@ -95,68 +95,6 @@ function showLocalBaseRefRefreshToast(result: LocalBaseRefRefreshResult | undefi
 
   toast.warning(`Local ${result.localBranch} was not refreshed`, {
     description: `Workspace created from ${result.baseRef}, but Orca could not fast-forward local ${result.localBranch} because ${reason}`
-  })
-}
-
-function showLocalBaseRefUpdateSuggestionToast(
-  suggestion: LocalBaseRefUpdateSuggestion | undefined,
-  updateSettings: AppState['updateSettings'],
-  getSettings: () => AppState['settings']
-): void {
-  if (!suggestion) {
-    return
-  }
-
-  const toastId = `local-base-ref-update-suggestion:${suggestion.baseRef}:${suggestion.localBranch}`
-  const commitNoun = suggestion.behind === 1 ? 'commit' : 'commits'
-
-  // Why: an explicit dismissal (Dismiss button, close X, or swipe) persists a
-  // flag so the nudge never shows again — the backend probe is gated on it too.
-  // Skip when the feature is now enabled: the Turn On success path also dismisses
-  // the toast (which fires onDismiss), and "dismissed" should mean "declined".
-  const persistDismissal = (): void => {
-    if (getSettings()?.refreshLocalBaseRefOnWorktreeCreate === true) {
-      return
-    }
-    void Promise.resolve(updateSettings({ localBaseRefSuggestionDismissed: true })).catch(() => {})
-  }
-
-  // Why (matches the sticky "Session restore failed" toast): stay on screen until
-  // the user acts, so a ~4s auto-expire can't bury this one-time, opt-in nudge.
-  toast.warning(`Local ${suggestion.localBranch} is behind ${suggestion.baseRef}`, {
-    id: toastId,
-    description: `Your new workspace used the latest ${suggestion.baseRef}, but local ${suggestion.localBranch} is ${suggestion.behind} ${commitNoun} behind. Turn this on so Orca keeps local ${suggestion.localBranch} current for future workspaces.`,
-    duration: Infinity,
-    dismissible: true,
-    // Fires for the close (X) button and swipe; the Dismiss button uses its own
-    // handler since sonner's cancel action does not trigger onDismiss.
-    onDismiss: persistDismissal,
-    action: {
-      label: 'Turn On',
-      onClick: () => {
-        void Promise.resolve(
-          updateSettings({
-            refreshLocalBaseRefOnWorktreeCreate: true
-          })
-        )
-          .then(() => {
-            if (getSettings()?.refreshLocalBaseRefOnWorktreeCreate !== true) {
-              throw new Error('settings_not_persisted')
-            }
-            toast.dismiss(toastId)
-            toast.success(`Keeping local ${suggestion.localBranch} up to date`)
-          })
-          .catch(() => {
-            toast.error('Could not turn on Keep Local Main Up to Date', {
-              description: 'Open Settings and try again.'
-            })
-          })
-      }
-    },
-    cancel: {
-      label: 'Dismiss',
-      onClick: persistDismissal
-    }
   })
 }
 
@@ -1206,11 +1144,12 @@ export const createWorktreeSlice: StateCreator<AppState, [], [], WorktreeSlice> 
             }
           })
           showLocalBaseRefRefreshToast(result.localBaseRefRefresh)
-          showLocalBaseRefUpdateSuggestionToast(
-            result.localBaseRefUpdateSuggestion,
-            get().updateSettings,
-            () => get().settings
-          )
+          showLocalBaseRefUpdateSuggestionToast(result.localBaseRefUpdateSuggestion, {
+            updateSettings: get().updateSettings,
+            getSettings: () => get().settings,
+            openSettingsPage: get().openSettingsPage,
+            openSettingsTarget: get().openSettingsTarget
+          })
           return result
         } catch (error) {
           const message = error instanceof Error ? error.message : String(error)

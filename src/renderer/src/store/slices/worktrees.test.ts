@@ -1339,20 +1339,19 @@ describe('createWorktree base status merge', () => {
 
     await store.getState().createWorktree('repo1', 'feature', 'origin/main')
 
+    // The button workflow (Keep main up to date / Settings link) lives in the
+    // toast component's own test; here we just assert the sticky warning is raised.
     expect(toast.warning).toHaveBeenCalledWith(
       'Local main is behind origin/main',
       expect.objectContaining({
         id: 'local-base-ref-update-suggestion:origin/main:main',
-        description: expect.stringContaining('local main is 2 commits behind'),
         duration: Infinity,
-        dismissible: true,
-        action: expect.objectContaining({ label: 'Turn On' }),
-        cancel: expect.objectContaining({ label: 'Dismiss' })
+        dismissible: true
       })
     )
   })
 
-  it('persists the dismissal flag when the suggestion toast is dismissed', async () => {
+  it('persists the dismissal flag when the suggestion toast is closed or swiped', async () => {
     const store = createTestStore()
     store.setState({
       settings: { refreshLocalBaseRefOnWorktreeCreate: false } as AppState['settings'],
@@ -1368,11 +1367,9 @@ describe('createWorktree base status merge', () => {
 
     const options = vi.mocked(toast.warning).mock.calls.at(-1)?.[1] as unknown as {
       onDismiss: () => void
-      cancel: { onClick: () => void }
     }
-    // Both the close (X)/swipe path and the Dismiss button must persist the flag.
+    // The close (X)/swipe path persists the decline flag.
     options.onDismiss()
-    options.cancel.onClick()
     await Promise.resolve()
 
     expect(store.getState().updateSettings).toHaveBeenCalledWith({
@@ -1380,15 +1377,11 @@ describe('createWorktree base status merge', () => {
     })
   })
 
-  it('does not record a dismissal when Turn On has enabled the feature', async () => {
+  it('does not record a dismissal on close when the feature is already enabled', async () => {
     const store = createTestStore()
     store.setState({
-      settings: { refreshLocalBaseRefOnWorktreeCreate: false } as AppState['settings'],
-      updateSettings: vi.fn().mockImplementation(async (updates) => {
-        store.setState({
-          settings: { ...store.getState().settings!, ...updates } as AppState['settings']
-        })
-      })
+      settings: { refreshLocalBaseRefOnWorktreeCreate: true } as AppState['settings'],
+      updateSettings: vi.fn().mockResolvedValue(undefined)
     } as Partial<AppState>)
     const wt = makeWorktree({ id: 'repo1::/path/wt1', repoId: 'repo1', path: '/path/wt1' })
     mockApi.worktrees.create.mockResolvedValue({
@@ -1400,11 +1393,7 @@ describe('createWorktree base status merge', () => {
 
     const options = vi.mocked(toast.warning).mock.calls.at(-1)?.[1] as unknown as {
       onDismiss: () => void
-      action: { onClick: () => void }
     }
-    options.action.onClick()
-    await Promise.resolve()
-    await Promise.resolve()
     // The Turn On success path dismisses the toast, which fires onDismiss; that
     // must not be recorded as a decline now that the feature is enabled.
     options.onDismiss()
@@ -1412,86 +1401,6 @@ describe('createWorktree base status merge', () => {
 
     expect(store.getState().updateSettings).not.toHaveBeenCalledWith({
       localBaseRefSuggestionDismissed: true
-    })
-  })
-
-  it('turns on local main freshness from the suggestion toast action', async () => {
-    const store = createTestStore()
-    store.setState({
-      settings: { refreshLocalBaseRefOnWorktreeCreate: false } as AppState['settings'],
-      updateSettings: vi.fn().mockImplementation(async (updates) => {
-        store.setState({
-          settings: {
-            ...store.getState().settings!,
-            ...updates
-          } as AppState['settings']
-        })
-      })
-    } as Partial<AppState>)
-    const wt = makeWorktree({
-      id: 'repo1::/path/wt1',
-      repoId: 'repo1',
-      path: '/path/wt1'
-    })
-    mockApi.worktrees.create.mockResolvedValue({
-      worktree: wt,
-      localBaseRefUpdateSuggestion: {
-        baseRef: 'origin/master',
-        localBranch: 'master',
-        behind: 1
-      }
-    })
-
-    await store.getState().createWorktree('repo1', 'feature', 'origin/main')
-
-    const action = vi.mocked(toast.warning).mock.calls.at(-1)?.[1]?.action as unknown as {
-      onClick: () => void
-    }
-    action.onClick()
-    await Promise.resolve()
-    await Promise.resolve()
-
-    expect(store.getState().updateSettings).toHaveBeenCalledWith({
-      refreshLocalBaseRefOnWorktreeCreate: true
-    })
-    expect(toast.dismiss).toHaveBeenCalledWith(
-      'local-base-ref-update-suggestion:origin/master:master'
-    )
-    expect(toast.success).toHaveBeenCalledWith('Keeping local master up to date')
-  })
-
-  it('reports failure when the suggestion toast action cannot persist the setting', async () => {
-    const store = createTestStore()
-    store.setState({
-      settings: { refreshLocalBaseRefOnWorktreeCreate: false } as AppState['settings'],
-      updateSettings: vi.fn().mockResolvedValue(undefined)
-    } as Partial<AppState>)
-    const wt = makeWorktree({
-      id: 'repo1::/path/wt1',
-      repoId: 'repo1',
-      path: '/path/wt1'
-    })
-    mockApi.worktrees.create.mockResolvedValue({
-      worktree: wt,
-      localBaseRefUpdateSuggestion: {
-        baseRef: 'origin/main',
-        localBranch: 'main',
-        behind: 1
-      }
-    })
-
-    await store.getState().createWorktree('repo1', 'feature', 'origin/main')
-
-    const action = vi.mocked(toast.warning).mock.calls.at(-1)?.[1]?.action as unknown as {
-      onClick: () => void
-    }
-    action.onClick()
-    await Promise.resolve()
-    await Promise.resolve()
-
-    expect(toast.dismiss).not.toHaveBeenCalled()
-    expect(toast.error).toHaveBeenCalledWith('Could not turn on Keep Local Main Up to Date', {
-      description: 'Open Settings and try again.'
     })
   })
 
