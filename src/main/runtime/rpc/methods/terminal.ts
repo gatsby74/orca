@@ -75,6 +75,9 @@ type TerminalMultiplexStream = {
   ackInFlightBytes: number
   buffering: boolean
   ackPendingOutput: TerminalOutputFrameChunk[]
+  ackPendingOutputBytes: number
+  ackPendingOutputOverflowed: boolean
+  ackRecoverySnapshotInFlight: boolean
   pendingOutput: TerminalOutputChunk[]
   pendingOutputBytes: number
   pendingOutputOverflowed: boolean
@@ -247,6 +250,26 @@ function appendPendingMultiplexOutput(
   const trimmed = trimPendingOutputToBudget(stream.pendingOutput, stream.pendingOutputBytes)
   stream.pendingOutputBytes = trimmed.bytes
   stream.pendingOutputOverflowed ||= trimmed.overflowed
+}
+
+function appendAckPendingOutput(
+  stream: TerminalMultiplexStream,
+  chunk: TerminalOutputFrameChunk
+): void {
+  stream.ackPendingOutput.push(chunk)
+  stream.ackPendingOutputBytes += chunk.bytes.byteLength
+  let omittedChunkCount = 0
+  while (
+    stream.ackPendingOutputBytes > TERMINAL_MULTIPLEX_PENDING_MAX_BYTES &&
+    omittedChunkCount < stream.ackPendingOutput.length
+  ) {
+    stream.ackPendingOutputBytes -= stream.ackPendingOutput[omittedChunkCount]!.bytes.byteLength
+    omittedChunkCount += 1
+  }
+  if (omittedChunkCount > 0) {
+    stream.ackPendingOutput.splice(0, omittedChunkCount)
+    stream.ackPendingOutputOverflowed = true
+  }
 }
 
 function trimPendingOutputToBudget(
@@ -953,15 +976,63 @@ export const TERMINAL_METHODS: RpcAnyMethod[] = [
           return
         }
         if (
+          stream.ackPendingOutputOverflowed ||
           stream.ackPendingOutput.length > 0 ||
           !canSendAckGatedOutput(stream, chunk.bytes.byteLength)
         ) {
-          stream.ackPendingOutput.push(chunk)
+          appendAckPendingOutput(stream, chunk)
           return
         }
         sendAckGatedOutput(stream, chunk)
       }
+      const sendAckRecoverySnapshot = async (stream: TerminalMultiplexStream): Promise<void> => {
+        if (
+          closed ||
+          streams.get(stream.streamId) !== stream ||
+          stream.ackRecoverySnapshotInFlight
+        ) {
+          return
+        }
+        stream.ackRecoverySnapshotInFlight = true
+        try {
+          const serialized = await serializeBudgetedRequestedSnapshot(runtime, stream.ptyId, 0)
+          if (closed || streams.get(stream.streamId) !== stream) {
+            return
+          }
+          const size = runtime.getTerminalSize(stream.ptyId)
+          const displayMode = runtime.getMobileDisplayMode(stream.ptyId)
+          // Why: dropped ACK-pending output means live frames are no longer a
+          // complete replay. Send a fresh model snapshot before resuming output.
+          sendSnapshotFrames((opcode, payload) => sendFrame(stream.streamId, opcode, payload), {
+            kind: 'scrollback',
+            cols: serialized?.cols ?? size?.cols ?? 80,
+            rows: serialized?.rows ?? size?.rows ?? 24,
+            displayMode,
+            reason: 'ack-pending-overflow',
+            seq: serialized?.seq,
+            source: serialized?.source,
+            truncated: true,
+            truncatedByByteBudget: serialized?.truncatedByByteBudget,
+            data: serialized?.data ?? ''
+          })
+          stream.ackPendingOutputOverflowed = false
+        } catch (error) {
+          sendStreamError(
+            stream.streamId,
+            error instanceof Error ? error.message : 'Remote terminal recovery snapshot failed.'
+          )
+        } finally {
+          if (streams.get(stream.streamId) === stream) {
+            stream.ackRecoverySnapshotInFlight = false
+            flushAckPendingOutput(stream)
+          }
+        }
+      }
       const flushAckPendingOutput = (stream: TerminalMultiplexStream): void => {
+        if (stream.ackPendingOutputOverflowed) {
+          void sendAckRecoverySnapshot(stream)
+          return
+        }
         let flushed = 0
         while (
           flushed < stream.ackPendingOutput.length &&
@@ -972,6 +1043,10 @@ export const TERMINAL_METHODS: RpcAnyMethod[] = [
         }
         if (flushed > 0) {
           stream.ackPendingOutput.splice(0, flushed)
+          stream.ackPendingOutputBytes = stream.ackPendingOutput.reduce(
+            (total, pending) => total + pending.bytes.byteLength,
+            0
+          )
         }
       }
       const acknowledgeOutput = (stream: TerminalMultiplexStream, bytes: number): void => {
@@ -993,6 +1068,9 @@ export const TERMINAL_METHODS: RpcAnyMethod[] = [
         ackTotalInFlightBytes = Math.max(0, ackTotalInFlightBytes - stream.ackInFlightBytes)
         stream.ackInFlightBytes = 0
         stream.ackPendingOutput = []
+        stream.ackPendingOutputBytes = 0
+        stream.ackPendingOutputOverflowed = false
+        stream.ackRecoverySnapshotInFlight = false
         stream.unsubscribeData()
         stream.unsubscribeResize()
         stream.unsubscribeFit()
@@ -1203,6 +1281,9 @@ export const TERMINAL_METHODS: RpcAnyMethod[] = [
           ackInFlightBytes: 0,
           buffering: true,
           ackPendingOutput: [],
+          ackPendingOutputBytes: 0,
+          ackPendingOutputOverflowed: false,
+          ackRecoverySnapshotInFlight: false,
           pendingOutput: [],
           pendingOutputBytes: 0,
           pendingOutputOverflowed: false,

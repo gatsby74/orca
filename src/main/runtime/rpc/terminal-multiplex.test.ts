@@ -489,6 +489,176 @@ describe('terminal multiplex RPC', () => {
     await dispatchPromise
   })
 
+  it('caps stalled ACK output and snapshots before resuming retained tail frames', async () => {
+    const messages: string[] = []
+    const binaryFrames: Uint8Array<ArrayBufferLike>[] = []
+    const handlers = new Map<
+      number,
+      (frame: NonNullable<ReturnType<typeof decodeTerminalStreamFrame>>) => void
+    >()
+    const cleanups = new Map<string, () => void>()
+    const dataListenerRef: {
+      current?: (data: string, meta?: { seq?: number; rawLength?: number }) => void
+    } = {}
+    const runtime = stubRuntime({
+      resolveLeafForHandle: vi.fn().mockReturnValue({ ptyId: 'pty-1' }),
+      readTerminal: vi.fn().mockResolvedValue({ tail: [], truncated: false }),
+      serializeTerminalBuffer: vi
+        .fn()
+        .mockResolvedValueOnce({ data: 'initial snapshot', cols: 120, rows: 40 })
+        .mockResolvedValue({ data: 'recovered snapshot', cols: 120, rows: 40, seq: 99 }),
+      getTerminalSize: vi.fn().mockReturnValue({ cols: 120, rows: 40 }),
+      getMobileDisplayMode: vi.fn().mockReturnValue('auto'),
+      getLayout: vi.fn().mockReturnValue({ seq: 1 }),
+      subscribeToTerminalData: vi.fn(
+        (
+          _: string,
+          listener: (data: string, meta?: { seq?: number; rawLength?: number }) => void
+        ) => {
+          dataListenerRef.current = listener
+          return vi.fn()
+        }
+      ),
+      subscribeToTerminalResize: vi.fn().mockReturnValue(vi.fn()),
+      subscribeToFitOverrideChanges: vi.fn().mockReturnValue(vi.fn()),
+      subscribeToDriverChanges: vi.fn().mockReturnValue(vi.fn()),
+      getTerminalFitOverride: vi.fn().mockReturnValue(null),
+      getDriver: vi.fn().mockReturnValue({ kind: 'idle' }),
+      registerSubscriptionCleanup: vi.fn((id: string, cleanup: () => void) => {
+        cleanups.set(id, cleanup)
+      }),
+      cleanupSubscription: vi.fn((id: string) => {
+        const cleanup = cleanups.get(id)
+        cleanups.delete(id)
+        cleanup?.()
+      }),
+      waitForTerminal: vi.fn(() => new Promise<RuntimeTerminalWait>(() => {})),
+      sendTerminal: vi.fn().mockResolvedValue({ accepted: true }),
+      updateDesktopViewport: vi.fn().mockResolvedValue(true)
+    })
+    const dispatcher = new RpcDispatcher({ runtime, methods: TERMINAL_METHODS })
+
+    const dispatchPromise = dispatcher.dispatchStreaming(
+      makeRequest('terminal.multiplex', {}),
+      (msg) => messages.push(msg),
+      {
+        connectionId: 'conn-ack-overflow',
+        sendBinary: (bytes) => binaryFrames.push(bytes),
+        registerBinaryStreamHandler: (streamId, handler) => {
+          handlers.set(streamId, handler)
+          return () => handlers.delete(streamId)
+        }
+      }
+    )
+
+    await vi.waitFor(() =>
+      expect(messages.some((msg) => JSON.parse(msg).result?.type === 'ready')).toBe(true)
+    )
+    handlers.get(0)?.(
+      decodeTerminalStreamFrame(
+        encodeTerminalStreamFrame({
+          opcode: TerminalStreamOpcode.Subscribe,
+          streamId: 0,
+          seq: 1,
+          payload: encodeTerminalStreamJson({
+            streamId: 17,
+            terminal: 'terminal-1',
+            client: { id: 'desktop-1', type: 'desktop' },
+            viewport: { cols: 120, rows: 40 },
+            capabilities: { ackOutput: 1 }
+          })
+        })
+      )!
+    )
+    await vi.waitFor(() =>
+      expect(messages.some((msg) => JSON.parse(msg).result?.type === 'subscribed')).toBe(true)
+    )
+    binaryFrames.splice(0)
+
+    const output = 'x'.repeat(3 * 1024 * 1024)
+    dataListenerRef.current?.(output, { seq: output.length, rawLength: output.length })
+
+    const initialOutputFrames = binaryFrames
+      .map((frame) => decodeTerminalStreamFrame(frame))
+      .filter((frame) => frame?.opcode === TerminalStreamOpcode.Output)
+    const initialBytes = initialOutputFrames.reduce(
+      (total, frame) => total + (frame?.payload.byteLength ?? 0),
+      0
+    )
+    expect(initialBytes).toBeLessThanOrEqual(512 * 1024)
+
+    handlers.get(17)?.(
+      decodeTerminalStreamFrame(
+        encodeTerminalStreamFrame({
+          opcode: TerminalStreamOpcode.Input,
+          streamId: 17,
+          seq: 2,
+          payload: encodeTerminalStreamText('still interactive\r')
+        })
+      )!
+    )
+    await vi.waitFor(() =>
+      expect(runtime.sendTerminal).toHaveBeenCalledWith('terminal-1', {
+        text: 'still interactive\r',
+        enter: false,
+        interrupt: false
+      })
+    )
+
+    binaryFrames.splice(0)
+    handlers.get(17)?.(
+      decodeTerminalStreamFrame(
+        encodeTerminalStreamFrame({
+          opcode: TerminalStreamOpcode.Ack,
+          streamId: 17,
+          seq: 3,
+          payload: encodeTerminalStreamJson({ bytes: initialBytes })
+        })
+      )!
+    )
+
+    await vi.waitFor(() =>
+      expect(
+        binaryFrames
+          .map((frame) => decodeTerminalStreamFrame(frame))
+          .some((frame) => {
+            if (frame?.opcode !== TerminalStreamOpcode.SnapshotStart) {
+              return false
+            }
+            const payload = decodeTerminalStreamJson<{ reason?: string }>(frame.payload)
+            return payload?.reason === 'ack-pending-overflow'
+          })
+      ).toBe(true)
+    )
+    const drainFrames = binaryFrames.map((frame) => decodeTerminalStreamFrame(frame))
+    const recoveryStartIndex = drainFrames.findIndex((frame) => {
+      if (frame?.opcode !== TerminalStreamOpcode.SnapshotStart) {
+        return false
+      }
+      const payload = decodeTerminalStreamJson<{ reason?: string }>(frame.payload)
+      return payload?.reason === 'ack-pending-overflow'
+    })
+    const firstOutputAfterAckIndex = drainFrames.findIndex(
+      (frame) => frame?.opcode === TerminalStreamOpcode.Output
+    )
+    expect(recoveryStartIndex).toBeGreaterThanOrEqual(0)
+    expect(firstOutputAfterAckIndex).toBeGreaterThan(recoveryStartIndex)
+    expect(
+      drainFrames
+        .filter((frame) => frame?.opcode === TerminalStreamOpcode.SnapshotChunk)
+        .map((frame) => (frame ? decodeTerminalStreamText(frame.payload) : ''))
+        .join('')
+    ).toBe('recovered snapshot')
+
+    const outputBytesAfterRecovery = drainFrames
+      .filter((frame) => frame?.opcode === TerminalStreamOpcode.Output)
+      .reduce((total, frame) => total + (frame?.payload.byteLength ?? 0), 0)
+    expect(outputBytesAfterRecovery).toBeLessThanOrEqual(256 * 1024)
+
+    runtime.cleanupSubscription('terminal-multiplex:conn-ack-overflow')
+    await dispatchPromise
+  })
+
   it('marks multiplex fallback snapshots truncated when the uncursored read is limited', async () => {
     const messages: string[] = []
     const binaryFrames: Uint8Array<ArrayBufferLike>[] = []
