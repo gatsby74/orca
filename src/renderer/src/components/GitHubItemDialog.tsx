@@ -167,6 +167,7 @@ import type {
   PRComment
 } from '../../../shared/types'
 import { PER_REPO_FETCH_LIMIT } from '../../../shared/work-items'
+import { translate } from '@/i18n/i18n'
 
 const IS_MAC = navigator.userAgent.includes('Mac')
 
@@ -658,16 +659,16 @@ function PRReviewersPanel({
       selectedReviewerLogins
     )
     if (logins.length === 0) {
-      toast.error('Enter a reviewer')
+      toast.error(translate("auto.components.GitHubItemDialog.94ab23a9f9", "Enter a reviewer"))
       return
     }
     if (localReviewRequests.length + logins.length > 15) {
-      toast.error('You can request up to 15 reviewers')
+      toast.error(translate("auto.components.GitHubItemDialog.12e761610e", "You can request up to 15 reviewers"))
       return
     }
     const target = getActiveRuntimeTarget(settings)
     if (target.kind !== 'environment' && !repoPath) {
-      toast.error('No repo context available for this pull request.')
+      toast.error(translate("auto.components.GitHubItemDialog.b4af16bf43", "No repo context available for this pull request."))
       return
     }
     setSubmitting(true)
@@ -702,10 +703,10 @@ function PRReviewersPanel({
       patchWorkItem(item.id, { reviewRequests: nextReviewRequests }, item.repoId)
       onReviewersRequested(nextReviewRequests)
       setReviewerInput('')
-      toast.success(logins.length === 1 ? 'Reviewer requested' : 'Reviewers requested')
+      toast.success(logins.length === 1 ? translate("auto.components.GitHubItemDialog.ea985e657f", "Reviewer requested") : translate("auto.components.GitHubItemDialog.c016e4bac3", "Reviewers requested"))
     } catch {
       if (reviewerPanelMountedRef.current) {
-        toast.error('Failed to request reviewer')
+        toast.error(translate("auto.components.GitHubItemDialog.c42d942b75", "Failed to request reviewer"))
       }
     } finally {
       if (reviewerPanelMountedRef.current) {
@@ -727,7 +728,7 @@ function PRReviewersPanel({
     }
     const target = getActiveRuntimeTarget(settings)
     if (target.kind !== 'environment' && !repoPath) {
-      toast.error('No repo context available for this pull request.')
+      toast.error(translate("auto.components.GitHubItemDialog.b4af16bf43", "No repo context available for this pull request."))
       return
     }
     setSubmitting(true)
@@ -761,10 +762,10 @@ function PRReviewersPanel({
       patchWorkItem(item.id, { reviewRequests: nextReviewRequests }, item.repoId)
       onReviewersRequested(nextReviewRequests)
       setReviewerInput('')
-      toast.success(logins.length === 1 ? 'Reviewer removed' : 'Reviewers removed')
+      toast.success(logins.length === 1 ? translate("auto.components.GitHubItemDialog.69515bff81", "Reviewer removed") : translate("auto.components.GitHubItemDialog.2e69540652", "Reviewers removed"))
     } catch {
       if (reviewerPanelMountedRef.current) {
-        toast.error('Failed to remove reviewer')
+        toast.error(translate("auto.components.GitHubItemDialog.73487fb975", "Failed to remove reviewer"))
       }
     } finally {
       if (reviewerPanelMountedRef.current) {
@@ -803,7 +804,7 @@ function PRReviewersPanel({
         key={`${options.suggested ? 'suggested' : 'reviewer'}:${reviewer.login}`}
         type="button"
         aria-label={
-          selected ? `Unrequest reviewer ${reviewer.login}` : `Request reviewer ${reviewer.login}`
+          selected ? translate("auto.components.GitHubItemDialog.fedc09eeb9", "Unrequest reviewer {{value0}}", { value0: reviewer.login }) : translate("auto.components.GitHubItemDialog.8c45901789", "Request reviewer {{value0}}", { value0: reviewer.login })
         }
         aria-pressed={selected}
         className={cn(
@@ -839,8 +840,7 @@ function PRReviewersPanel({
           </span>
           {options.suggested ? (
             <span className="block truncate text-[12px] leading-4 text-muted-foreground">
-              Recently edited these files
-            </span>
+              {translate("auto.components.GitHubItemDialog.e3243d9376", "Recently edited these files")}</span>
           ) : null}
         </span>
       </button>
@@ -851,7 +851,7 @@ function PRReviewersPanel({
     <aside className="rounded-lg border border-border/50 bg-card/50 shadow-xs">
       <div className="flex h-10 items-center gap-2 border-b border-border/50 px-3">
         <Users className="size-3.5 text-muted-foreground" />
-        <span className="text-[13px] font-medium text-foreground">Reviewers</span>
+        <span className="text-[13px] font-medium text-foreground">{translate("auto.components.GitHubItemDialog.dc8a092c57", "Reviewers")}</span>
         {reviewers.length > 0 ? (
           <span className="ml-auto rounded-full border border-border/50 bg-muted/30 px-1.5 py-0.5 text-[11px] tabular-nums text-muted-foreground">
             {reviewers.length}
@@ -862,8 +862,7 @@ function PRReviewersPanel({
         {loading && !hasReviewerMetadata ? (
           <div className="flex items-center gap-2 py-1 text-[12px] text-muted-foreground">
             <LoaderCircle className="size-3.5 animate-spin" />
-            Loading reviewers
-          </div>
+            {translate("auto.components.GitHubItemDialog.6a45771d47", "Loading reviewers")}</div>
         ) : reviewers.length > 0 ? (
           <div className="flex flex-col gap-2">
             {reviewers.map((reviewer) => {
@@ -893,7 +892,7 @@ function PRReviewersPanel({
                           size="icon-xs"
                           className="size-6 shrink-0 text-muted-foreground hover:text-foreground"
                           disabled={submitting || !canRequestReview}
-                          aria-label={`Remove reviewer ${reviewer.login}`}
+                          aria-label={translate("auto.components.GitHubItemDialog.8b15a5e91c", "Remove reviewer {{value0}}", { value0: reviewer.login })}
                           onClick={() => {
                             void handleRemoveReviewers([reviewer.login])
                           }}
@@ -901,7 +900,7 @@ function PRReviewersPanel({
                           <X className="size-3.5" />
                         </Button>
                       </TooltipTrigger>
-                      <TooltipContent>Remove reviewer</TooltipContent>
+                      <TooltipContent>{translate("auto.components.GitHubItemDialog.8b15a5e91c", "Remove reviewer")}</TooltipContent>
                     </Tooltip>
                   ) : null}
                 </div>
@@ -909,7 +908,7 @@ function PRReviewersPanel({
             })}
           </div>
         ) : (
-          <div className="py-1 text-[12px] text-muted-foreground">No reviewers requested.</div>
+          <div className="py-1 text-[12px] text-muted-foreground">{translate("auto.components.GitHubItemDialog.36f9ac4a47", "No reviewers requested.")}</div>
         )}
         <Popover open={open} onOpenChange={handleReviewerPickerOpenChange}>
           <PopoverAnchor asChild>
@@ -923,8 +922,8 @@ function PRReviewersPanel({
                 }
               }}
               disabled={submitting || !canRequestReview}
-              placeholder="Type or choose a user"
-              aria-label="Reviewer"
+              placeholder={translate("auto.components.GitHubItemDialog.bb42774171", "Type or choose a user")}
+              aria-label={translate("auto.components.GitHubItemDialog.934add88b6", "Reviewer")}
               aria-expanded={open}
               aria-haspopup="listbox"
               className="mt-3 h-8 min-w-0 cursor-text rounded-md border-border/50 bg-background text-xs"
@@ -986,27 +985,24 @@ function PRReviewersPanel({
           >
             <div className="border-b border-border/70 px-3 py-2">
               <div className="text-[13px] font-semibold text-foreground">
-                Request up to 15 reviewers
-              </div>
+                {translate("auto.components.GitHubItemDialog.b0b7344684", "Request up to 15 reviewers")}</div>
             </div>
             <div className="min-h-0 flex-1 overflow-y-auto scrollbar-sleek">
               {reviewerMetadata.loading ? (
-                <div className="px-3 py-2 text-[13px] text-muted-foreground">Loading...</div>
+                <div className="px-3 py-2 text-[13px] text-muted-foreground">{translate("auto.components.GitHubItemDialog.a98433e73d", "Loading...")}</div>
               ) : filteredReviewerCandidates.length > 0 ? (
                 <>
                   {suggestedReviewerRows.length > 0 ? (
                     <>
                       <div className="border-b border-border/70 bg-muted/50 px-3 py-1.5 text-[12px] font-semibold text-foreground">
-                        Suggestions
-                      </div>
+                        {translate("auto.components.GitHubItemDialog.c2b21818e1", "Suggestions")}</div>
                       {suggestedReviewerRows.map((reviewer, index) =>
                         renderReviewerPickerRow(reviewer, { suggested: true, activeIndex: index })
                       )}
                     </>
                   ) : null}
                   <div className="border-b border-border/70 bg-muted/50 px-3 py-1.5 text-[12px] font-semibold text-foreground">
-                    Everyone else
-                  </div>
+                    {translate("auto.components.GitHubItemDialog.1ffce94a8b", "Everyone else")}</div>
                   {everyoneElseReviewerRows.length > 0 ? (
                     everyoneElseReviewerRows.map((reviewer, index) =>
                       renderReviewerPickerRow(reviewer, {
@@ -1016,8 +1012,7 @@ function PRReviewersPanel({
                     )
                   ) : (
                     <div className="px-3 py-2 text-[13px] text-muted-foreground">
-                      No matching reviewers.
-                    </div>
+                      {translate("auto.components.GitHubItemDialog.70e84e3d0b", "No matching reviewers.")}</div>
                   )}
                 </>
               ) : (
@@ -1467,7 +1462,7 @@ function PRViewedCheckbox({
           type="button"
           role="checkbox"
           aria-checked={checked}
-          aria-label={`${checked ? 'Unmark' : 'Mark'} ${filePath} as viewed`}
+          aria-label={translate("auto.components.GitHubItemDialog.2d89a38d9d", "{{value0}} {{value1}} as viewed", { value0: checked ? 'Unmark' : 'Mark', value1: filePath })}
           disabled={pending}
           onClick={(event) => {
             event.stopPropagation()
@@ -1493,7 +1488,7 @@ function PRViewedCheckbox({
               <Check className="size-3" strokeWidth={3} />
             ) : null}
           </span>
-          <span>Viewed</span>
+          <span>{translate("auto.components.GitHubItemDialog.af924014f8", "Viewed")}</span>
         </button>
       </TooltipTrigger>
       <TooltipContent side="bottom" sideOffset={4}>
@@ -1741,7 +1736,7 @@ function PRFilesCombinedDiffViewer({
               originalIsBinary: false,
               modifiedIsBinary: false
             },
-            error: 'Diff unavailable because the PR commit SHAs are missing.'
+            error: translate("auto.components.GitHubItemDialog.829674460a", "Diff unavailable because the PR commit SHAs are missing.")
           }
         }
         const contents = await loadPRFileContents({
@@ -1916,7 +1911,7 @@ function PRFilesCombinedDiffViewer({
       }
     ) => {
       if (!headSha) {
-        toast.error('Unable to comment without the PR head SHA.')
+        toast.error(translate("auto.components.GitHubItemDialog.d1fa2cf888", "Unable to comment without the PR head SHA."))
         return false
       }
       const result = await addPRReviewCommentForRepo({
@@ -1934,7 +1929,7 @@ function PRFilesCombinedDiffViewer({
         return false
       }
       onCommentAdded(result.comment)
-      toast.success('Review comment added.')
+      toast.success(translate("auto.components.GitHubItemDialog.a341343303", "Review comment added."))
       return true
     },
     [headSha, onCommentAdded, prNumber, repoId, repoPath]
@@ -1982,13 +1977,11 @@ function PRFilesCombinedDiffViewer({
                 </Button>
               </TooltipTrigger>
               <TooltipContent side="bottom" sideOffset={6}>
-                Show file tree
-              </TooltipContent>
+                {translate("auto.components.GitHubItemDialog.1257d1435d", "Show file tree")}</TooltipContent>
             </Tooltip>
           )}
           <span className="truncate text-xs text-muted-foreground">
-            {files.filter(isPRFileViewed).length} / {files.length} files viewed
-          </span>
+            {files.filter(isPRFileViewed).length} / {files.length} {translate("auto.components.GitHubItemDialog.f2d02cdf8c", "files viewed")}</span>
         </div>
         <div className="flex shrink-0 items-center gap-2">
           <button
@@ -2163,8 +2156,7 @@ function CommentCodeContext({
     return (
       <div className="mb-3 flex items-center gap-2 rounded-md border border-border/40 bg-muted/20 px-3 py-2 text-[12px] text-muted-foreground">
         <LoaderCircle className="size-3.5 animate-spin" />
-        Loading code context…
-      </div>
+        {translate("auto.components.GitHubItemDialog.db61d76cd5", "Loading code context…")}</div>
     )
   }
 
@@ -2216,12 +2208,12 @@ function CommentCodeContext({
           </span>
           {(from !== commentFrom || to !== commentTo) && (
             <span className="shrink-0 font-mono text-muted-foreground/70">
-              comment L{commentFrom}
+              {translate("auto.components.GitHubItemDialog.bd7be7b1fd", "comment L")}{commentFrom}
               {commentTo !== commentFrom ? `-L${commentTo}` : ''}
             </span>
           )}
         </div>
-        <ButtonGroup className="text-muted-foreground" aria-label="Code context controls">
+        <ButtonGroup className="text-muted-foreground" aria-label={translate("auto.components.GitHubItemDialog.d43736d09c", "Code context controls")}>
           {(contextBefore > 0 || contextAfter > 0) && (
             <Tooltip>
               <TooltipTrigger asChild>
@@ -2239,7 +2231,7 @@ function CommentCodeContext({
                   <UndoDot className="size-3.5" />
                 </Button>
               </TooltipTrigger>
-              <TooltipContent>Reset code context</TooltipContent>
+              <TooltipContent>{translate("auto.components.GitHubItemDialog.b1574e8ac2", "Reset code context")}</TooltipContent>
             </Tooltip>
           )}
           <Tooltip>
@@ -2255,12 +2247,12 @@ function CommentCodeContext({
                     Math.min(current + CODE_CONTEXT_EXPAND_STEP, commentFrom - 1)
                   )
                 }
-                aria-label={`Show ${CODE_CONTEXT_EXPAND_STEP} more lines above`}
+                aria-label={translate("auto.components.GitHubItemDialog.307c98e8e3", "Show {{value0}} more lines above", { value0: CODE_CONTEXT_EXPAND_STEP })}
               >
                 <ArrowUp className="size-3.5" />
               </Button>
             </TooltipTrigger>
-            <TooltipContent>Show more lines above</TooltipContent>
+            <TooltipContent>{translate("auto.components.GitHubItemDialog.5664681624", "Show more lines above")}</TooltipContent>
           </Tooltip>
           <Tooltip>
             <TooltipTrigger asChild>
@@ -2275,12 +2267,12 @@ function CommentCodeContext({
                     Math.min(current + CODE_CONTEXT_EXPAND_STEP, lines.length - commentTo)
                   )
                 }
-                aria-label={`Show ${CODE_CONTEXT_EXPAND_STEP} more lines below`}
+                aria-label={translate("auto.components.GitHubItemDialog.307c98e8e3", "Show {{value0}} more lines below", { value0: CODE_CONTEXT_EXPAND_STEP })}
               >
                 <ArrowDown className="size-3.5" />
               </Button>
             </TooltipTrigger>
-            <TooltipContent>Show more lines below</TooltipContent>
+            <TooltipContent>{translate("auto.components.GitHubItemDialog.06c06e58ba", "Show more lines below")}</TooltipContent>
           </Tooltip>
           <Tooltip>
             <TooltipTrigger asChild>
@@ -2432,9 +2424,9 @@ function ConversationTab({
       })
       onBodyUpdated(resolvedBodyDraft)
       setBodyEditing(false)
-      toast.success('Description updated.')
+      toast.success(translate("auto.components.GitHubItemDialog.5221548274", "Description updated."))
     } catch (err) {
-      toast.error(err instanceof Error ? err.message : 'Failed to update description.')
+      toast.error(err instanceof Error ? err.message : translate("auto.components.GitHubItemDialog.58c73cb0d8", "Failed to update description."))
     } finally {
       setBodySaving(false)
     }
@@ -2452,7 +2444,7 @@ function ConversationTab({
   const handleReply = useCallback(
     async (comment: PRComment, replyBody: string): Promise<boolean> => {
       if (!repoPath) {
-        toast.error('Unable to reply without a repository path.')
+        toast.error(translate("auto.components.GitHubItemDialog.745c9089ec", "Unable to reply without a repository path."))
         return false
       }
       const result =
@@ -2481,7 +2473,7 @@ function ConversationTab({
       }
       onCommentAdded(result.comment)
       setReplyingTo(null)
-      toast.success('Reply posted.')
+      toast.success(translate("auto.components.GitHubItemDialog.10f4ff5be8", "Reply posted."))
       return true
     },
     [item.number, item.repoId, item.type, onCommentAdded, repoPath]
@@ -2557,8 +2549,7 @@ function ConversationTab({
         )}
         {comment.isResolved && (
           <span className="rounded-full border border-border/60 bg-muted/40 px-1.5 py-0.5 text-[11px] text-muted-foreground">
-            resolved
-          </span>
+            {translate("auto.components.GitHubItemDialog.68cb993d61", "resolved")}</span>
         )}
         <div className="ml-auto flex shrink-0 items-center gap-1">
           <Tooltip>
@@ -2570,12 +2561,12 @@ function ConversationTab({
                 onClick={() =>
                   setReplyingTo((current) => (current === comment.id ? null : comment.id))
                 }
-                aria-label="Reply to comment"
+                aria-label={translate("auto.components.GitHubItemDialog.bca8eb39ac", "Reply to comment")}
               >
                 <MessageSquarePlus className="size-3.5" />
               </Button>
             </TooltipTrigger>
-            <TooltipContent>Reply to comment</TooltipContent>
+            <TooltipContent>{translate("auto.components.GitHubItemDialog.bca8eb39ac", "Reply to comment")}</TooltipContent>
           </Tooltip>
           {comment.url && (
             <Tooltip>
@@ -2591,7 +2582,7 @@ function ConversationTab({
                   <ExternalLink className="size-3.5" />
                 </Button>
               </TooltipTrigger>
-              <TooltipContent>Open comment on GitHub</TooltipContent>
+              <TooltipContent>{translate("auto.components.GitHubItemDialog.a154ec5224", "Open comment on GitHub")}</TooltipContent>
             </Tooltip>
           )}
         </div>
@@ -2654,7 +2645,7 @@ function ConversationTab({
         >
           <AccordionTrigger className="px-3 py-2 text-[13px] text-muted-foreground hover:bg-accent/30">
             <span className="min-w-0 truncate">
-              Resolved {group.kind === 'thread' ? 'thread' : 'comment'} by {root.author}
+              {translate("auto.components.GitHubItemDialog.228e2f59d3", "Resolved")}{group.kind === 'thread' ? 'thread' : 'comment'} {translate("auto.components.GitHubItemDialog.0ae387d8ca", "by")}{root.author}
               {count > 1 ? ` (${count})` : ''}
             </span>
           </AccordionTrigger>
@@ -2680,7 +2671,7 @@ function ConversationTab({
         <div className="rounded-lg border border-border/50 bg-card/50 shadow-xs">
           <div className="flex items-center gap-2 border-b border-border/50 px-3 py-2 text-[12px] text-muted-foreground">
             <span className="font-medium text-foreground">{authorLabel}</span>
-            <span>updated {formatRelativeTime(item.updatedAt)}</span>
+            <span>{translate("auto.components.GitHubItemDialog.8223320f8d", "updated")}{formatRelativeTime(item.updatedAt)}</span>
             {canEditBody && !loading && detailsLoaded ? (
               bodyEditing ? (
                 <div className="ml-auto flex items-center gap-1">
@@ -2696,8 +2687,7 @@ function ConversationTab({
                     }}
                   >
                     <X className="size-3.5" />
-                    Cancel
-                  </Button>
+                    {translate("auto.components.GitHubItemDialog.675bc0d638", "Cancel")}</Button>
                   <Button
                     type="button"
                     size="xs"
@@ -2710,8 +2700,7 @@ function ConversationTab({
                     ) : (
                       <Check className="size-3.5" />
                     )}
-                    Save
-                  </Button>
+                    {translate("auto.components.GitHubItemDialog.9df4e74bdf", "Save")}</Button>
                 </div>
               ) : (
                 <Tooltip>
@@ -2725,12 +2714,12 @@ function ConversationTab({
                         setBodyDraft(body)
                         setBodyEditing(true)
                       }}
-                      aria-label="Edit description"
+                      aria-label={translate("auto.components.GitHubItemDialog.4d555d3796", "Edit description")}
                     >
                       <Pencil className="size-3.5" />
                     </Button>
                   </TooltipTrigger>
-                  <TooltipContent>Edit description</TooltipContent>
+                  <TooltipContent>{translate("auto.components.GitHubItemDialog.4d555d3796", "Edit description")}</TooltipContent>
                 </Tooltip>
               )
             ) : null}
@@ -2744,7 +2733,7 @@ function ConversationTab({
               <GitHubMarkdownComposer
                 value={resolvedBodyDraft}
                 onChange={setBodyDraft}
-                placeholder="Description"
+                placeholder={translate("auto.components.GitHubItemDialog.52b20b56f7", "Description")}
                 disabled={bodySaving}
                 autoFocus
                 minHeightClassName="min-h-64"
@@ -2758,7 +2747,7 @@ function ConversationTab({
                 className="min-w-0 max-w-full overflow-hidden break-words text-[14px] leading-relaxed [&_a]:break-all [&_code]:break-words [&_pre]:max-w-full"
               />
             ) : (
-              <span className="italic text-muted-foreground">No description provided.</span>
+              <span className="italic text-muted-foreground">{translate("auto.components.GitHubItemDialog.9b9cb55994", "No description provided.")}</span>
             )}
           </div>
         </div>
@@ -2767,7 +2756,7 @@ function ConversationTab({
           <>
             <div className="flex items-center gap-2 pt-1">
               <MessageSquare className="size-4 text-muted-foreground" />
-              <span className="text-[13px] font-medium text-foreground">Comments</span>
+              <span className="text-[13px] font-medium text-foreground">{translate("auto.components.GitHubItemDialog.1506916c09", "Comments")}</span>
               {comments.length > 0 && (
                 <span className="rounded-full border border-border/50 bg-muted/30 px-1.5 py-0.5 text-[11px] tabular-nums text-muted-foreground">
                   {comments.length}
@@ -2800,8 +2789,7 @@ function ConversationTab({
 
             {comments.length === 0 ? (
               <div className="rounded-lg border border-dashed border-border/50 px-3 py-6 text-left text-[13px] text-muted-foreground">
-                No comments yet.
-              </div>
+                {translate("auto.components.GitHubItemDialog.5a94f3d0e9", "No comments yet.")}</div>
             ) : visibleComments.length === 0 ? (
               <div className="rounded-lg border border-dashed border-border/50 px-3 py-6 text-center text-[13px] text-muted-foreground">
                 {getPRCommentAudienceEmptyLabel(commentFilter)}
@@ -2885,11 +2873,11 @@ function PRActionsPanel({
     }
     const label = nextState === 'closed' ? 'Close' : 'Reopen'
     const confirmed = await confirm({
-      title: `${label} PR #${item.number}?`,
+      title: translate("auto.components.GitHubItemDialog.03d7216d62", "{{value0}} PR #{{value1}}?", { value0: label, value1: item.number }),
       description:
         nextState === 'closed'
-          ? 'This will close the pull request on GitHub.'
-          : 'This will reopen the pull request on GitHub.',
+          ? translate("auto.components.GitHubItemDialog.de45fedf7b", "This will close the pull request on GitHub.")
+          : translate("auto.components.GitHubItemDialog.b6f1b7adbd", "This will reopen the pull request on GitHub."),
       confirmLabel: label,
       confirmVariant: nextState === 'closed' ? 'destructive' : 'default'
     })
@@ -2907,11 +2895,11 @@ function PRActionsPanel({
         number: item.number,
         updates: { state: nextState }
       })
-      toast.success(nextState === 'closed' ? 'Pull request closed' : 'Pull request reopened')
+      toast.success(nextState === 'closed' ? translate("auto.components.GitHubItemDialog.9f88657c4e", "Pull request closed") : translate("auto.components.GitHubItemDialog.bd3b4492a0", "Pull request reopened"))
       onMutated()
     } catch (err) {
       applyStatePatch(previousState)
-      toast.error(err instanceof Error ? err.message : `Failed to ${label.toLowerCase()} PR`)
+      toast.error(err instanceof Error ? err.message : translate("auto.components.GitHubItemDialog.e9b7cb7d17", "Failed to {{value0}} PR", { value0: label.toLowerCase() }))
     } finally {
       setStatePending(false)
     }
@@ -2923,8 +2911,8 @@ function PRActionsPanel({
     }
     const label = GITHUB_PR_MERGE_METHOD_LABELS[method]
     const confirmed = await confirm({
-      title: `${label} PR #${item.number}?`,
-      description: 'This will update the pull request on GitHub.',
+      title: translate("auto.components.GitHubItemDialog.03d7216d62", "{{value0}} PR #{{value1}}?", { value0: label, value1: item.number }),
+      description: translate("auto.components.GitHubItemDialog.a27ee5ca1a", "This will update the pull request on GitHub."),
       confirmLabel: label
     })
     if (!confirmed) {
@@ -2944,10 +2932,10 @@ function PRActionsPanel({
         return
       }
       applyStatePatch('merged')
-      toast.success('Pull request merged')
+      toast.success(translate("auto.components.GitHubItemDialog.dbe5e2448e", "Pull request merged"))
       onMutated()
     } catch {
-      toast.error('Failed to merge pull request')
+      toast.error(translate("auto.components.GitHubItemDialog.aba792c8b3", "Failed to merge pull request"))
     } finally {
       setMergePending(false)
     }
@@ -2971,10 +2959,10 @@ function PRActionsPanel({
         toast.error(result.error)
         return
       }
-      toast.success(enabled ? 'Auto-merge enabled' : 'Auto-merge disabled')
+      toast.success(enabled ? translate("auto.components.GitHubItemDialog.a35ea5a0f6", "Auto-merge enabled") : translate("auto.components.GitHubItemDialog.4b390bd50d", "Auto-merge disabled"))
       onMutated()
     } catch {
-      toast.error(enabled ? 'Failed to enable auto-merge' : 'Failed to disable auto-merge')
+      toast.error(enabled ? translate("auto.components.GitHubItemDialog.825a8fb8cd", "Failed to enable auto-merge") : translate("auto.components.GitHubItemDialog.ce360fc318", "Failed to disable auto-merge"))
     } finally {
       setMergePending(false)
     }
@@ -2985,7 +2973,7 @@ function PRActionsPanel({
       <div className="mb-3 flex items-center justify-between gap-2">
         <div className="flex items-center gap-2">
           <GitPullRequest className="size-3.5 text-muted-foreground" />
-          <span className="text-[13px] font-medium text-foreground">Pull request</span>
+          <span className="text-[13px] font-medium text-foreground">{translate("auto.components.GitHubItemDialog.a2495e4784", "Pull request")}</span>
         </div>
         <WorkItemStateBadge item={actionItem} />
       </div>
@@ -3043,8 +3031,7 @@ function PRActionsPanel({
             ))}
             <DropdownMenuItem onSelect={() => window.api.shell.openUrl(item.url)}>
               <ExternalLink className="size-4" />
-              Open GitHub merge box
-            </DropdownMenuItem>
+              {translate("auto.components.GitHubItemDialog.53fe19aefc", "Open GitHub merge box")}</DropdownMenuItem>
           </DropdownMenuContent>
         </DropdownMenu>
 
@@ -3090,7 +3077,7 @@ function CommentReactions({
         <span
           key={reaction.content}
           className="inline-flex h-6 items-center gap-1 rounded-full border border-border/60 bg-muted/35 px-2 text-[12px] leading-none text-foreground"
-          aria-label={`${reaction.count} ${reaction.content} reaction${reaction.count === 1 ? '' : 's'}`}
+          aria-label={translate("auto.components.GitHubItemDialog.a18f669c7a", "{{value0}} {{value1}} reaction{{value2}}", { value0: reaction.count, value1: reaction.content, value2: reaction.count === 1 ? '' : 's' })}
         >
           <span aria-hidden="true">{REACTION_EMOJI[reaction.content]}</span>
           <span className="tabular-nums">{reaction.count}</span>
@@ -3149,8 +3136,7 @@ function CommentReplyForm({
       />
       <div className="mt-2 flex justify-end gap-2">
         <Button variant="ghost" size="sm" onClick={onCancel}>
-          Cancel
-        </Button>
+          {translate("auto.components.GitHubItemDialog.675bc0d638", "Cancel")}</Button>
         <Button size="sm" disabled={!body.trim() || submitting} onClick={() => void submit()}>
           {submitting ? 'Posting…' : 'Reply'}
         </Button>
@@ -3327,7 +3313,7 @@ function ChecksTab({
 
   const handleRefresh = useCallback(async (): Promise<PRCheckDetail[] | null> => {
     if (!repoPath) {
-      toast.error('Unable to refresh checks without a repository path.')
+      toast.error(translate("auto.components.GitHubItemDialog.e7007aa1d8", "Unable to refresh checks without a repository path."))
       return null
     }
     setRefreshing(true)
@@ -3343,7 +3329,7 @@ function ChecksTab({
       onChecksUpdated(nextChecks)
       return nextChecks
     } catch (err) {
-      toast.error(err instanceof Error ? err.message : 'Failed to refresh checks')
+      toast.error(err instanceof Error ? err.message : translate("auto.components.GitHubItemDialog.0bbdc673c1", "Failed to refresh checks"))
       return null
     } finally {
       setRefreshing(false)
@@ -3368,10 +3354,10 @@ function ChecksTab({
           toast.error(result.error)
           return
         }
-        toast.success(result.count === 1 ? 'Check rerun requested' : 'Check reruns requested')
+        toast.success(result.count === 1 ? translate("auto.components.GitHubItemDialog.ddafe851e1", "Check rerun requested") : translate("auto.components.GitHubItemDialog.e463ec935f", "Check reruns requested"))
         await handleRefresh()
       } catch (err) {
-        toast.error(err instanceof Error ? err.message : 'Failed to rerun checks')
+        toast.error(err instanceof Error ? err.message : translate("auto.components.GitHubItemDialog.9e7c221b8d", "Failed to rerun checks"))
       } finally {
         setRerunning(false)
       }
@@ -3385,7 +3371,7 @@ function ChecksTab({
       return
     }
     if (failedChecks.length === 0) {
-      toast.message('No broken checks to fix.')
+      toast.message(translate("auto.components.GitHubItemDialog.1690fd7f4a", "No broken checks to fix."))
       return
     }
 
@@ -3409,12 +3395,12 @@ function ChecksTab({
         }
       })
       if (started) {
-        toast.success('Started an AI agent for the broken checks.')
+        toast.success(translate("auto.components.GitHubItemDialog.28986b3747", "Started an AI agent for the broken checks."))
       }
     } catch (err) {
       const message = err instanceof Error ? err.message : String(err)
       console.error('Failed to start fix checks agent', err)
-      toast.error(`Failed to start an AI agent for the broken checks: ${message}`)
+      toast.error(translate("auto.components.GitHubItemDialog.03e542fcfe", "Failed to start an AI agent for the broken checks: {{value0}}", { value0: message }))
     } finally {
       setFixingChecks(false)
     }
@@ -3482,14 +3468,13 @@ function ChecksTab({
           className="size-7 shrink-0"
           disabled={!repoPath || refreshing}
           onClick={() => void handleRefresh()}
-          aria-label="Refresh checks"
+          aria-label={translate("auto.components.GitHubItemDialog.9a1004fc76", "Refresh checks")}
         >
           <RefreshCw className={cn('size-3.5', refreshing && 'animate-spin')} />
         </Button>
       </TooltipTrigger>
       <TooltipContent side="bottom" sideOffset={6}>
-        Refresh checks
-      </TooltipContent>
+        {translate("auto.components.GitHubItemDialog.9a1004fc76", "Refresh checks")}</TooltipContent>
     </Tooltip>
   )
   const fixBrokenChecksAction =
@@ -3513,8 +3498,7 @@ function ChecksTab({
           </Button>
         </TooltipTrigger>
         <TooltipContent side="bottom" sideOffset={6}>
-          Start the default AI agent on these checks
-        </TooltipContent>
+          {translate("auto.components.GitHubItemDialog.f4b1292569", "Start the default AI agent on these checks")}</TooltipContent>
       </Tooltip>
     ) : null
   const rerunAction =
@@ -3533,8 +3517,7 @@ function ChecksTab({
             ) : (
               <RefreshCw className="size-3" />
             )}
-            Rerun
-            <ChevronDown className="size-3 opacity-60" />
+            {translate("auto.components.GitHubItemDialog.1b56e28faa", "Rerun")}<ChevronDown className="size-3 opacity-60" />
           </Button>
         </DropdownMenuTrigger>
         <DropdownMenuContent align="end" className="w-44">
@@ -3543,12 +3526,10 @@ function ChecksTab({
             onSelect={() => void handleRerun(true)}
           >
             <RefreshCw className="size-4" />
-            Rerun failed checks
-          </DropdownMenuItem>
+            {translate("auto.components.GitHubItemDialog.e31651a224", "Rerun failed checks")}</DropdownMenuItem>
           <DropdownMenuItem disabled={rerunning} onSelect={() => void handleRerun(false)}>
             <RefreshCw className="size-4" />
-            Rerun all checks
-          </DropdownMenuItem>
+            {translate("auto.components.GitHubItemDialog.71c11aff84", "Rerun all checks")}</DropdownMenuItem>
         </DropdownMenuContent>
       </DropdownMenu>
     ) : null
@@ -3579,7 +3560,7 @@ function ChecksTab({
             )}
           />
           <div className="min-w-0 flex-1">
-            <div className="text-[13px] font-medium leading-5 text-foreground">Checks</div>
+            <div className="text-[13px] font-medium leading-5 text-foreground">{translate("auto.components.GitHubItemDialog.4bd1f5b055", "Checks")}</div>
             {list.length > 0 && (
               <div className="truncate text-[11px] leading-4 text-muted-foreground">
                 {summaryLabel}
@@ -3661,18 +3642,17 @@ function ChecksTab({
         {state?.loading ? (
           <div className="flex items-center gap-2 py-2 text-[12px] text-muted-foreground">
             <LoaderCircle className="size-3.5 animate-spin" />
-            Loading check details…
-          </div>
+            {translate("auto.components.GitHubItemDialog.934d87ab96", "Loading check details…")}</div>
         ) : (
           <div className="flex min-w-0 flex-col gap-2">
             <div className="flex min-w-0 flex-wrap items-center gap-x-3 gap-y-1 text-[11px] text-muted-foreground">
               <span>
-                Status:{' '}
+                {translate("auto.components.GitHubItemDialog.9c3ba11a05", "Status:")}{' '}
                 {details ? getCheckStatusLabel(detailsStatusCheck) : getCheckStatusLabel(check)}
               </span>
-              {startedAt && <span>Started {startedAt}</span>}
-              {completedAt && <span>Completed {completedAt}</span>}
-              {check.checkRunId && <span className="font-mono">check #{check.checkRunId}</span>}
+              {startedAt && <span>{translate("auto.components.GitHubItemDialog.4812814bc8", "Started")}{startedAt}</span>}
+              {completedAt && <span>{translate("auto.components.GitHubItemDialog.0f478f5efa", "Completed")}{completedAt}</span>}
+              {check.checkRunId && <span className="font-mono">{translate("auto.components.GitHubItemDialog.485609c4f2", "check #")}{check.checkRunId}</span>}
             </div>
 
             {state?.error && <div className="text-[12px] text-muted-foreground">{state.error}</div>}
@@ -3704,8 +3684,7 @@ function ChecksTab({
             {hasAnnotations && (
               <div className="min-w-0 rounded-md border border-border/40 bg-background/70">
                 <div className="border-b border-border/40 px-2.5 py-1.5 text-[11px] font-medium text-foreground">
-                  Annotations
-                </div>
+                  {translate("auto.components.GitHubItemDialog.96d8f36798", "Annotations")}</div>
                 <div className="flex flex-col">
                   {details!.annotations.map((annotation, index) => (
                     <div
@@ -3748,8 +3727,7 @@ function ChecksTab({
             {hasJobs && (
               <div className="min-w-0 rounded-md border border-border/40 bg-background/70">
                 <div className="border-b border-border/40 px-2.5 py-1.5 text-[11px] font-medium text-foreground">
-                  Jobs
-                </div>
+                  {translate("auto.components.GitHubItemDialog.08d072664d", "Jobs")}</div>
                 <div className="flex flex-col">
                   {details!.jobs.map((job, index) => (
                     <div
@@ -3788,8 +3766,7 @@ function ChecksTab({
 
             {!state?.error && !hasOutput && !hasAnnotations && !hasJobs && (
               <div className="text-[12px] text-muted-foreground">
-                No inline output is available for this check.
-              </div>
+                {translate("auto.components.GitHubItemDialog.744197c84d", "No inline output is available for this check.")}</div>
             )}
 
             {openUrl && (
@@ -3801,8 +3778,7 @@ function ChecksTab({
                   className="h-7 gap-1 px-2 text-[11px]"
                   onClick={() => window.api.shell.openUrl(openUrl)}
                 >
-                  Open in GitHub
-                  <ExternalLink className="size-3" />
+                  {translate("auto.components.GitHubItemDialog.5dddefdf58", "Open in GitHub")}<ExternalLink className="size-3" />
                 </Button>
               </div>
             )}
@@ -3830,11 +3806,9 @@ function ChecksTab({
             <CircleDashed className="size-4 shrink-0 text-muted-foreground" />
             <div className="flex min-w-0 flex-1 flex-col">
               <span className="truncate text-[13px] font-medium text-foreground">
-                No checks found
-              </span>
+                {translate("auto.components.GitHubItemDialog.ecffebc251", "No checks found")}</span>
               <span className="truncate text-[11px] text-muted-foreground">
-                This pull request has no reported checks yet.
-              </span>
+                {translate("auto.components.GitHubItemDialog.90020cc1f3", "This pull request has no reported checks yet.")}</span>
             </div>
             {actions}
           </div>
@@ -3846,7 +3820,7 @@ function ChecksTab({
         {compactHeader}
         <div className="flex flex-col items-center justify-center gap-1 px-4 py-6 text-center">
           <CircleDashed className="size-4 text-muted-foreground/60" />
-          <div className="text-[12px] text-muted-foreground">No checks reported yet</div>
+          <div className="text-[12px] text-muted-foreground">{translate("auto.components.GitHubItemDialog.e52bed9264", "No checks reported yet")}</div>
         </div>
       </>
     )
@@ -3854,17 +3828,17 @@ function ChecksTab({
   if (variant === 'page') {
     const countChips: { label: string; className: string }[] = []
     if (counts.passing > 0) {
-      countChips.push({ label: `${counts.passing} passing`, className: CHECK_COLOR.success })
+      countChips.push({ label: translate("auto.components.GitHubItemDialog.311d0cee55", "{{value0}} passing", { value0: counts.passing }), className: CHECK_COLOR.success })
     }
     if (counts.failing > 0) {
-      countChips.push({ label: `${counts.failing} failing`, className: CHECK_COLOR.failure })
+      countChips.push({ label: translate("auto.components.GitHubItemDialog.b1ac991806", "{{value0}} failing", { value0: counts.failing }), className: CHECK_COLOR.failure })
     }
     if (counts.pending > 0) {
-      countChips.push({ label: `${counts.pending} pending`, className: CHECK_COLOR.pending })
+      countChips.push({ label: translate("auto.components.GitHubItemDialog.18f80e1329", "{{value0}} pending", { value0: counts.pending }), className: CHECK_COLOR.pending })
     }
     if (counts.skipped + counts.neutral > 0) {
       countChips.push({
-        label: `${counts.skipped + counts.neutral} skipped`,
+        label: translate("auto.components.GitHubItemDialog.d23bbb6416", "{{value0}} skipped", { value0: counts.skipped + counts.neutral }),
         className: 'text-muted-foreground'
       })
     }
@@ -4077,7 +4051,7 @@ function GitHubLabelsSettingsLink({
         className="flex w-full items-center gap-2 rounded-sm px-2 py-1.5 text-[12px] text-muted-foreground hover:bg-accent hover:text-accent-foreground"
       >
         <Settings className="size-3.5 shrink-0" />
-        <span className="min-w-0 flex-1 text-left">Edit labels on GitHub</span>
+        <span className="min-w-0 flex-1 text-left">{translate("auto.components.GitHubItemDialog.2aa9acdf34", "Edit labels on GitHub")}</span>
         <ExternalLink className="size-3 shrink-0 opacity-70" />
       </button>
     </div>
@@ -4397,8 +4371,7 @@ function GHEditSection({
         {/* State */}
         <section>
           <div className="mb-2 text-[11px] font-semibold uppercase tracking-[0.05em] text-muted-foreground">
-            Status
-          </div>
+            {translate("auto.components.GitHubItemDialog.00ccdf9b5a", "Status")}</div>
           <Popover>
             <PopoverTrigger asChild>
               <button
@@ -4429,8 +4402,7 @@ function GHEditSection({
                 )}
               >
                 <CircleDot className="size-3 text-emerald-500" />
-                Open
-              </button>
+                {translate("auto.components.GitHubItemDialog.dc1ca081a8", "Open")}</button>
               <button
                 type="button"
                 onClick={() => handleStateChange('closed')}
@@ -4440,8 +4412,7 @@ function GHEditSection({
                 )}
               >
                 <CircleDashed className="size-3 text-rose-500" />
-                Closed
-              </button>
+                {translate("auto.components.GitHubItemDialog.ab050dffec", "Closed")}</button>
             </PopoverContent>
           </Popover>
         </section>
@@ -4449,13 +4420,13 @@ function GHEditSection({
         {/* Assignees */}
         <section>
           <div className="mb-2 flex items-center justify-between text-[11px] font-semibold uppercase tracking-[0.05em] text-muted-foreground">
-            <span>Assignees</span>
+            <span>{translate("auto.components.GitHubItemDialog.83ac703dda", "Assignees")}</span>
             <Popover open={assigneePopoverOpen} onOpenChange={setAssigneePopoverOpen}>
               <PopoverTrigger asChild>
                 <button
                   type="button"
                   disabled={isPending('assignees') || repoAssignees.loading}
-                  aria-label="Edit assignees"
+                  aria-label={translate("auto.components.GitHubItemDialog.76adcf5fe2", "Edit assignees")}
                   className="rounded p-0.5 text-muted-foreground transition hover:bg-accent hover:text-foreground disabled:opacity-50"
                 >
                   {isPending('assignees') ? (
@@ -4508,7 +4479,7 @@ function GHEditSection({
             </Popover>
           </div>
           {localAssignees.length === 0 ? (
-            <div className="text-[12px] text-muted-foreground">No one assigned</div>
+            <div className="text-[12px] text-muted-foreground">{translate("auto.components.GitHubItemDialog.c67de9e2fe", "No one assigned")}</div>
           ) : (
             <ul className="flex flex-col gap-1.5">
               {localAssignees.map((login) => {
@@ -4537,13 +4508,13 @@ function GHEditSection({
         {/* Labels */}
         <section>
           <div className="mb-2 flex items-center justify-between text-[11px] font-semibold uppercase tracking-[0.05em] text-muted-foreground">
-            <span>Labels</span>
+            <span>{translate("auto.components.GitHubItemDialog.217e55d87c", "Labels")}</span>
             <Popover open={labelPopoverOpen} onOpenChange={setLabelPopoverOpen}>
               <PopoverTrigger asChild>
                 <button
                   type="button"
                   disabled={isPending('labels') || repoLabels.loading}
-                  aria-label="Edit labels"
+                  aria-label={translate("auto.components.GitHubItemDialog.4ba0132f37", "Edit labels")}
                   className="rounded p-0.5 text-muted-foreground transition hover:bg-accent hover:text-foreground disabled:opacity-50"
                 >
                   {isPending('labels') ? (
@@ -4595,7 +4566,7 @@ function GHEditSection({
             </Popover>
           </div>
           {localLabels.length === 0 ? (
-            <div className="text-[12px] text-muted-foreground">None yet</div>
+            <div className="text-[12px] text-muted-foreground">{translate("auto.components.GitHubItemDialog.886a64b081", "None yet")}</div>
           ) : (
             <div className="flex flex-wrap gap-1.5">
               {localLabels.map((name) => (
@@ -4612,8 +4583,7 @@ function GHEditSection({
 
         <section>
           <div className="mb-2 text-[11px] font-semibold uppercase tracking-[0.05em] text-muted-foreground">
-            Workspace
-          </div>
+            {translate("auto.components.GitHubItemDialog.2e4d806c92", "Workspace")}</div>
           {attachedWorkspaceLabel ? (
             <div className="mb-2 flex min-w-0 items-center gap-1.5 text-[12px] text-muted-foreground">
               <FolderKanban className="size-3.5 shrink-0" />
@@ -4628,13 +4598,12 @@ function GHEditSection({
                   size="sm"
                   onClick={handleOpenOrUseWorkspace}
                   className="flex-1 gap-1.5"
-                  aria-label="Open workspace attached to issue"
+                  aria-label={translate("auto.components.GitHubItemDialog.84855fedd0", "Open workspace attached to issue")}
                 >
-                  Open workspace
-                  <ArrowRight className="size-3.5" />
+                  {translate("auto.components.GitHubItemDialog.726db41722", "Open workspace")}<ArrowRight className="size-3.5" />
                 </Button>
                 <DropdownMenuTrigger asChild>
-                  <Button type="button" size="icon-sm" aria-label="More issue workspace actions">
+                  <Button type="button" size="icon-sm" aria-label={translate("auto.components.GitHubItemDialog.fe6ff12dc2", "More issue workspace actions")}>
                     <ChevronDown className="size-3.5" />
                   </Button>
                 </DropdownMenuTrigger>
@@ -4642,8 +4611,7 @@ function GHEditSection({
               <DropdownMenuContent align="end">
                 <DropdownMenuItem onSelect={() => onUse(item)}>
                   <Plus className="size-4" />
-                  Start new workspace
-                </DropdownMenuItem>
+                  {translate("auto.components.GitHubItemDialog.36182aa57f", "Start new workspace")}</DropdownMenuItem>
               </DropdownMenuContent>
             </DropdownMenu>
           ) : (
@@ -4652,10 +4620,9 @@ function GHEditSection({
               size="sm"
               onClick={() => onUse(item)}
               className="w-full gap-1.5"
-              aria-label="Start workspace from issue"
+              aria-label={translate("auto.components.GitHubItemDialog.0ab4664a8b", "Start workspace from issue")}
             >
-              Start workspace from issue
-              <ArrowRight className="size-3.5" />
+              {translate("auto.components.GitHubItemDialog.0ab4664a8b", "Start workspace from issue")}<ArrowRight className="size-3.5" />
             </Button>
           )}
         </section>
@@ -4689,8 +4656,7 @@ function GHEditSection({
             )}
           >
             <CircleDot className="size-3 text-emerald-500" />
-            Open
-          </button>
+            {translate("auto.components.GitHubItemDialog.dc1ca081a8", "Open")}</button>
           <button
             type="button"
             onClick={() => handleStateChange('closed')}
@@ -4700,8 +4666,7 @@ function GHEditSection({
             )}
           >
             <CircleDashed className="size-3 text-rose-500" />
-            Closed
-          </button>
+            {translate("auto.components.GitHubItemDialog.ab050dffec", "Closed")}</button>
         </PopoverContent>
       </Popover>
 
@@ -4714,7 +4679,7 @@ function GHEditSection({
             className="group/labels inline-flex items-center gap-1 rounded-full border border-border/30 bg-muted/20 px-2 py-0.5 text-[11px] transition hover:brightness-125 hover:ring-1 hover:ring-white/10 disabled:opacity-50"
           >
             {localLabels.length === 0 ? (
-              <span className="text-muted-foreground">+ Label</span>
+              <span className="text-muted-foreground">{translate("auto.components.GitHubItemDialog.f41ec96c13", "+ Label")}</span>
             ) : (
               localLabels.map((name) => (
                 <span key={name} className="text-[10px] text-muted-foreground">
@@ -4776,7 +4741,7 @@ function GHEditSection({
             className="group/assignees inline-flex items-center gap-1 rounded-full border border-border/30 bg-muted/20 px-2 py-0.5 text-[11px] transition hover:brightness-125 hover:ring-1 hover:ring-white/10 disabled:opacity-50"
           >
             {localAssignees.length === 0 ? (
-              <span className="text-muted-foreground">+ Assignee</span>
+              <span className="text-muted-foreground">{translate("auto.components.GitHubItemDialog.c6f37a563d", "+ Assignee")}</span>
             ) : (
               localAssignees.map((login) => (
                 <span key={login} className="text-[10px] text-muted-foreground">
@@ -4845,13 +4810,12 @@ function GHEditSection({
                 size="sm"
                 onClick={handleOpenOrUseWorkspace}
                 className="gap-2"
-                aria-label="Open workspace attached to issue"
+                aria-label={translate("auto.components.GitHubItemDialog.84855fedd0", "Open workspace attached to issue")}
               >
-                Open workspace
-                <ArrowRight className="size-4" />
+                {translate("auto.components.GitHubItemDialog.726db41722", "Open workspace")}<ArrowRight className="size-4" />
               </Button>
               <DropdownMenuTrigger asChild>
-                <Button type="button" size="icon-sm" aria-label="More issue workspace actions">
+                <Button type="button" size="icon-sm" aria-label={translate("auto.components.GitHubItemDialog.fe6ff12dc2", "More issue workspace actions")}>
                   <ChevronDown className="size-3.5" />
                 </Button>
               </DropdownMenuTrigger>
@@ -4859,8 +4823,7 @@ function GHEditSection({
             <DropdownMenuContent align="end">
               <DropdownMenuItem onSelect={() => onUse(item)}>
                 <Plus className="size-4" />
-                Start new workspace
-              </DropdownMenuItem>
+                {translate("auto.components.GitHubItemDialog.36182aa57f", "Start new workspace")}</DropdownMenuItem>
             </DropdownMenuContent>
           </DropdownMenu>
         ) : (
@@ -4869,10 +4832,9 @@ function GHEditSection({
             size="sm"
             onClick={() => onUse(item)}
             className="gap-2"
-            aria-label="Start workspace from issue"
+            aria-label={translate("auto.components.GitHubItemDialog.0ab4664a8b", "Start workspace from issue")}
           >
-            Start workspace from issue
-            <ArrowRight className="size-4" />
+            {translate("auto.components.GitHubItemDialog.0ab4664a8b", "Start workspace from issue")}<ArrowRight className="size-4" />
           </Button>
         )}
       </div>
@@ -4926,7 +4888,7 @@ function GHCommentComposer({
       }
     } catch (err) {
       if (mountedRef.current) {
-        toast.error(err instanceof Error ? err.message : 'Failed to add comment')
+        toast.error(err instanceof Error ? err.message : translate("auto.components.GitHubItemDialog.082515176a", "Failed to add comment"))
       }
     } finally {
       if (mountedRef.current) {
@@ -4940,7 +4902,7 @@ function GHCommentComposer({
       <GitHubMarkdownComposer
         value={body}
         onChange={setBody}
-        placeholder="Add a comment…"
+        placeholder={translate("auto.components.GitHubItemDialog.c5c117270e", "Add a comment…")}
         disabled={submitting}
         minHeightClassName="min-h-28"
         className="w-full"
@@ -4950,15 +4912,14 @@ function GHCommentComposer({
         onClick={handleSubmit}
         disabled={!body.trim() || submitting}
         className="gap-2"
-        aria-label="Send comment"
+        aria-label={translate("auto.components.GitHubItemDialog.0a73f59e85", "Send comment")}
       >
         {submitting ? (
           <LoaderCircle className="size-3.5 animate-spin" />
         ) : (
           <Send className="size-3.5" />
         )}
-        Comment
-      </Button>
+        {translate("auto.components.GitHubItemDialog.bf43425540", "Comment")}</Button>
     </div>
   )
 }
@@ -5078,7 +5039,7 @@ export default function GitHubItemDialog({
 
       const result = activateAndRevealWorktree(currentAttached.id)
       if (result === false) {
-        toast.error('Unable to open the workspace attached to this issue.')
+        toast.error(translate("auto.components.GitHubItemDialog.2ef631437e", "Unable to open the workspace attached to this issue."))
       }
     },
     [effectiveRepoId, onUse]
@@ -5391,9 +5352,9 @@ export default function GitHubItemDialog({
         linkCopiedResetTimerRef.current = null
         setLinkCopyState((current) => clearGitHubLinkCopied(current, copiedWorkItemId))
       }, 1500)
-      toast.success('GitHub link copied')
+      toast.success(translate("auto.components.GitHubItemDialog.2e77dc2053", "GitHub link copied"))
     } catch {
-      toast.error('Failed to copy GitHub link')
+      toast.error(translate("auto.components.GitHubItemDialog.5fea151559", "Failed to copy GitHub link"))
     }
   }, [clearLinkCopiedResetTimer, workItem])
 
@@ -5434,7 +5395,7 @@ export default function GitHubItemDialog({
   const handlePRFileViewedChange = useCallback(
     async (path: string, viewed: boolean): Promise<boolean> => {
       if (!repoPath || !details?.pullRequestId || !workItem || workItem.type !== 'pr') {
-        toast.error('Unable to sync viewed state for this pull request.')
+        toast.error(translate("auto.components.GitHubItemDialog.c0253318d6", "Unable to sync viewed state for this pull request."))
         return false
       }
       setPendingViewedPaths((prev) => new Set(prev).add(path))
@@ -5455,7 +5416,7 @@ export default function GitHubItemDialog({
           if (detailsCacheKey && previousState) {
             patchCachedPRFileViewedState(detailsCacheKey, path, previousState)
           }
-          toast.error('Failed to sync viewed state with GitHub.')
+          toast.error(translate("auto.components.GitHubItemDialog.b7bf31b8de", "Failed to sync viewed state with GitHub."))
           return false
         }
         return true
@@ -5514,7 +5475,7 @@ export default function GitHubItemDialog({
                       variant="ghost"
                       size="icon-sm"
                       onClick={() => void handleCopyWorkItemLink()}
-                      aria-label="Copy GitHub link"
+                      aria-label={translate("auto.components.GitHubItemDialog.c43fe79ee0", "Copy GitHub link")}
                     >
                       {linkCopied ? (
                         <Check className="size-4 text-emerald-500" />
@@ -5533,14 +5494,13 @@ export default function GitHubItemDialog({
                       variant="ghost"
                       size="icon-sm"
                       onClick={() => window.api.shell.openUrl(workItem.url)}
-                      aria-label="Open on GitHub"
+                      aria-label={translate("auto.components.GitHubItemDialog.3fdf777817", "Open on GitHub")}
                     >
                       <ExternalLink className="size-4" />
                     </Button>
                   </TooltipTrigger>
                   <TooltipContent side="bottom" sideOffset={6}>
-                    Open on GitHub
-                  </TooltipContent>
+                    {translate("auto.components.GitHubItemDialog.3fdf777817", "Open on GitHub")}</TooltipContent>
                 </Tooltip>
               </div>
             </div>
@@ -5564,16 +5524,15 @@ export default function GitHubItemDialog({
                         size="sm"
                         onClick={() => handleOpenOrUseIssueWorkspace(workItem)}
                         className="gap-1.5 whitespace-nowrap"
-                        aria-label="Open workspace attached to issue"
+                        aria-label={translate("auto.components.GitHubItemDialog.84855fedd0", "Open workspace attached to issue")}
                       >
-                        Open workspace
-                        <ArrowRight className="size-3.5" />
+                        {translate("auto.components.GitHubItemDialog.726db41722", "Open workspace")}<ArrowRight className="size-3.5" />
                       </Button>
                       <DropdownMenuTrigger asChild>
                         <Button
                           type="button"
                           size="icon-sm"
-                          aria-label="More issue workspace actions"
+                          aria-label={translate("auto.components.GitHubItemDialog.fe6ff12dc2", "More issue workspace actions")}
                         >
                           <ChevronDown className="size-3.5" />
                         </Button>
@@ -5582,12 +5541,10 @@ export default function GitHubItemDialog({
                     <DropdownMenuContent align="end">
                       <DropdownMenuItem onSelect={() => onUse(workItem)}>
                         <Plus className="size-4" />
-                        Start new workspace
-                      </DropdownMenuItem>
+                        {translate("auto.components.GitHubItemDialog.36182aa57f", "Start new workspace")}</DropdownMenuItem>
                       <DropdownMenuItem onSelect={() => window.api.shell.openUrl(workItem.url)}>
                         <ExternalLink className="size-4" />
-                        Open on GitHub
-                      </DropdownMenuItem>
+                        {translate("auto.components.GitHubItemDialog.3fdf777817", "Open on GitHub")}</DropdownMenuItem>
                     </DropdownMenuContent>
                   </DropdownMenu>
                 ) : (
@@ -5596,10 +5553,9 @@ export default function GitHubItemDialog({
                     size="sm"
                     onClick={() => onUse(workItem)}
                     className="gap-1.5 whitespace-nowrap"
-                    aria-label="Start workspace from issue"
+                    aria-label={translate("auto.components.GitHubItemDialog.0ab4664a8b", "Start workspace from issue")}
                   >
-                    Start workspace from issue
-                    <ArrowRight className="size-3.5" />
+                    {translate("auto.components.GitHubItemDialog.0ab4664a8b", "Start workspace from issue")}<ArrowRight className="size-3.5" />
                   </Button>
                 )}
               </div>
@@ -5622,9 +5578,9 @@ export default function GitHubItemDialog({
                 <span className="font-semibold text-foreground">
                   {workItem.author ?? 'unknown'}
                 </span>
-                <span>opened this issue</span>
+                <span>{translate("auto.components.GitHubItemDialog.55962099bc", "opened this issue")}</span>
                 <span className="text-muted-foreground/80">
-                  · updated {formatRelativeTime(workItem.updatedAt)}
+                  {translate("auto.components.GitHubItemDialog.10ef1afb8e", "· updated")}{formatRelativeTime(workItem.updatedAt)}
                 </span>
               </span>
               <WorkItemIssueSourceIndicator url={workItem.url} repoId={effectiveRepoId} />
@@ -5667,7 +5623,7 @@ export default function GitHubItemDialog({
               </h2>
               <div className="flex flex-wrap items-center gap-x-2 gap-y-1 text-[11px] text-muted-foreground">
                 <span>{workItem.author ?? 'unknown'}</span>
-                <span>updated {formatRelativeTime(workItem.updatedAt)}</span>
+                <span>{translate("auto.components.GitHubItemDialog.8223320f8d", "updated")}{formatRelativeTime(workItem.updatedAt)}</span>
                 {workItem.branchName && (
                   <span className="max-w-full truncate rounded-md border border-border/50 bg-muted/40 px-1.5 py-0.5 font-mono text-[10px] text-muted-foreground">
                     {workItem.branchName}
@@ -5693,8 +5649,7 @@ export default function GitHubItemDialog({
                   className="gap-1.5 whitespace-nowrap"
                   aria-label="Start workspace from PR"
                 >
-                  Start workspace from PR
-                  <ArrowRight className="size-3.5" />
+                  {translate("auto.components.GitHubItemDialog.0caac1a18f", "Start workspace from PR")}<ArrowRight className="size-3.5" />
                 </Button>
               )}
               <Tooltip>
@@ -5705,7 +5660,7 @@ export default function GitHubItemDialog({
                     variant="ghost"
                     size="icon-sm"
                     onClick={() => void handleCopyWorkItemLink()}
-                    aria-label="Copy GitHub link"
+                    aria-label={translate("auto.components.GitHubItemDialog.c43fe79ee0", "Copy GitHub link")}
                   >
                     {linkCopied ? (
                       <Check className="size-4 text-emerald-500" />
@@ -5724,14 +5679,13 @@ export default function GitHubItemDialog({
                     variant="ghost"
                     size="icon-sm"
                     onClick={() => window.api.shell.openUrl(workItem.url)}
-                    aria-label="Open on GitHub"
+                    aria-label={translate("auto.components.GitHubItemDialog.3fdf777817", "Open on GitHub")}
                   >
                     <ExternalLink className="size-4" />
                   </Button>
                 </TooltipTrigger>
                 <TooltipContent side="bottom" sideOffset={6}>
-                  Open on GitHub
-                </TooltipContent>
+                  {translate("auto.components.GitHubItemDialog.3fdf777817", "Open on GitHub")}</TooltipContent>
               </Tooltip>
               {variant === 'sheet' ? (
                 <Tooltip>
@@ -5740,14 +5694,13 @@ export default function GitHubItemDialog({
                       variant="ghost"
                       size="icon-sm"
                       onClick={onClose}
-                      aria-label="Close preview"
+                      aria-label={translate("auto.components.GitHubItemDialog.45af57999b", "Close preview")}
                     >
                       <X className="size-4" />
                     </Button>
                   </TooltipTrigger>
                   <TooltipContent side="bottom" sideOffset={6}>
-                    Close · Esc
-                  </TooltipContent>
+                    {translate("auto.components.GitHubItemDialog.474c59b4b3", "Close · Esc")}</TooltipContent>
                 </Tooltip>
               ) : null}
             </div>
@@ -5886,14 +5839,12 @@ export default function GitHubItemDialog({
             >
               <TabsTrigger value="conversation" className="px-2">
                 <MessageSquare className="size-3.5" />
-                Conversation
-              </TabsTrigger>
+                {translate("auto.components.GitHubItemDialog.e30a5470c9", "Conversation")}</TabsTrigger>
               {workItem.type === 'pr' && (
                 <>
                   <TabsTrigger value="checks" className="px-2">
                     <ListChecks className="size-3.5" />
-                    Checks
-                    {checks.length > 0 && (
+                    {translate("auto.components.GitHubItemDialog.4bd1f5b055", "Checks")}{checks.length > 0 && (
                       <span className="ml-1 text-[10px] text-muted-foreground">
                         {checks.length}
                       </span>
@@ -5901,8 +5852,7 @@ export default function GitHubItemDialog({
                   </TabsTrigger>
                   <TabsTrigger value="files" className="px-2">
                     <FileText className="size-3.5" />
-                    Files
-                    {files.length > 0 && (
+                    {translate("auto.components.GitHubItemDialog.999b5ad7d9", "Files")}{files.length > 0 && (
                       <span className="ml-1 text-[10px] text-muted-foreground">{files.length}</span>
                     )}
                   </TabsTrigger>
@@ -5986,8 +5936,7 @@ export default function GitHubItemDialog({
                       </div>
                     ) : files.length === 0 ? (
                       <div className="px-4 py-10 text-center text-[12px] text-muted-foreground">
-                        No files changed.
-                      </div>
+                        {translate("auto.components.GitHubItemDialog.3cd5ae5b7b", "No files changed.")}</div>
                     ) : (
                       <PRFilesCombinedDiffViewer
                         files={files}
@@ -6058,8 +6007,7 @@ export default function GitHubItemDialog({
         </VisuallyHidden.Root>
         <VisuallyHidden.Root asChild>
           <SheetDescription>
-            Preview and edit the selected GitHub issue or pull request.
-          </SheetDescription>
+            {translate("auto.components.GitHubItemDialog.3ab6ac0fc8", "Preview and edit the selected GitHub issue or pull request.")}</SheetDescription>
         </VisuallyHidden.Root>
 
         {content}

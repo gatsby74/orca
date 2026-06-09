@@ -27,6 +27,7 @@ import { AutomationSessionField } from './AutomationSessionField'
 import { AUTOMATION_TEMPLATES, type AutomationTemplate } from './automation-templates'
 import { CreateFromPicker } from './CreateFromPicker'
 import { WorkspaceCombobox } from './WorkspaceCombobox'
+import { translate } from '@/i18n/i18n'
 
 const PICKER_TRIGGER_CLASS =
   'border-input bg-input/30 shadow-xs hover:bg-accent/60 dark:bg-input/30 dark:hover:bg-input/50'
@@ -107,7 +108,7 @@ export function AutomationEditorDialog({
     return AGENT_CATALOG.filter((agent) => enabledIds.has(agent.id) || agent.id === draft.agentId)
   }, [draft.agentId, settings?.disabledTuiAgents])
   const scheduleField = (
-    <Field label="Schedule">
+    <Field label={translate("auto.components.automations.AutomationEditorDialog.c4b19094c2", "Schedule")}>
       <AutomationSchedulePicker
         draft={draft}
         triggerClassName={PICKER_TRIGGER_CLASS}
@@ -153,18 +154,18 @@ export function AutomationEditorDialog({
               {draft.scheduleWarning}
             </div>
           ) : null}
-          <Field label="Prompt">
+          <Field label={translate("auto.components.automations.AutomationEditorDialog.058c23cb3f", "Prompt")}>
             <textarea
               value={draft.prompt}
-              placeholder="Run the weekly dependency audit and summarize risky changes."
+              placeholder={translate("auto.components.automations.AutomationEditorDialog.6d778190b7", "Run the weekly dependency audit and summarize risky changes.")}
               onChange={(event) =>
                 onDraftChange((current) => ({ ...current, prompt: event.target.value }))
               }
               className="min-h-[260px] w-full resize-none rounded-md border border-input bg-transparent px-3 py-2 text-sm shadow-xs outline-none placeholder:text-muted-foreground focus-visible:border-ring focus-visible:ring-[3px] focus-visible:ring-ring/50 dark:bg-input/30"
             />
             <p className="mt-1 text-xs text-muted-foreground">
-              Supports skills, file paths, and built-in commands like{' '}
-              <code className="rounded bg-muted px-1 font-mono text-[11px]">/goal</code>.
+              {translate("auto.components.automations.AutomationEditorDialog.827b25a81e", "Supports skills, file paths, and built-in commands like")}{' '}
+              <code className="rounded bg-muted px-1 font-mono text-[11px]">{translate("auto.components.automations.AutomationEditorDialog.a4ac8fcc62", "/goal")}</code>.
             </p>
           </Field>
           {/* Why: the Orca/Hermes target toggle changes form height; collapsing the
@@ -199,12 +200,12 @@ export function AutomationEditorDialog({
 
         <div className="border-t border-border/50 px-5 py-4">
           <div className="grid gap-3 md:grid-cols-3 lg:grid-cols-4">
-            <Field label="Project">
+            <Field label={translate("auto.components.automations.AutomationEditorDialog.02d351877e", "Project")}>
               <RepoCombobox
                 repos={repos}
                 value={draft.projectId}
                 onValueChange={onProjectChange}
-                placeholder="Select project"
+                placeholder={translate("auto.components.automations.AutomationEditorDialog.0d17f4ca8f", "Select project")}
                 triggerClassName={`h-9 w-full min-w-0 ${PICKER_TRIGGER_CLASS}`}
                 showStandaloneAddButton={false}
               />
@@ -212,21 +213,18 @@ export function AutomationEditorDialog({
             <Field
               label={
                 <span className="inline-flex items-center gap-1">
-                  Workspace
-                  <Tooltip>
+                  {translate("auto.components.automations.AutomationEditorDialog.b28b140eaf", "Workspace")}<Tooltip>
                     <TooltipTrigger asChild>
                       <button
                         type="button"
-                        aria-label="Workspace mode help"
+                        aria-label={translate("auto.components.automations.AutomationEditorDialog.2c3fd9bfa1", "Workspace mode help")}
                         className="rounded-sm text-muted-foreground outline-none hover:text-foreground focus-visible:ring-[3px] focus-visible:ring-ring/50"
                       >
                         <Info className="size-3.5" />
                       </button>
                     </TooltipTrigger>
                     <TooltipContent side="top" sideOffset={6} className="max-w-72">
-                      Worktree runs in the selected workspace. New run creates a fresh workspace
-                      from the selected branch each time.
-                    </TooltipContent>
+                      {translate("auto.components.automations.AutomationEditorDialog.6f9610e667", "Worktree runs in the selected workspace. New run creates a fresh workspace from the selected branch each time.")}</TooltipContent>
                   </Tooltip>
                 </span>
               }
@@ -259,11 +257,9 @@ export function AutomationEditorDialog({
                     className="grid w-full grid-cols-2"
                   >
                     <ToggleGroupItem value="existing" className={MODE_TOGGLE_ITEM_CLASS}>
-                      Worktree
-                    </ToggleGroupItem>
+                      {translate("auto.components.automations.AutomationEditorDialog.a2e688226d", "Worktree")}</ToggleGroupItem>
                     <ToggleGroupItem value="new_per_run" className={MODE_TOGGLE_ITEM_CLASS}>
-                      New run
-                    </ToggleGroupItem>
+                      {translate("auto.components.automations.AutomationEditorDialog.6ff66f9012", "New run")}</ToggleGroupItem>
                   </ToggleGroup>
                   {draft.workspaceMode === 'existing' ? (
                     <WorkspaceCombobox
@@ -315,7 +311,7 @@ export function AutomationEditorDialog({
                     : 'translate-y-0 opacity-100 delay-200'
                 )}
               >
-                <Field label="Agent">
+                <Field label={translate("auto.components.automations.AutomationEditorDialog.57b722cbba", "Agent")}>
                   <AgentCombobox
                     agents={visibleAgents}
                     value={draft.agentId}
@@ -344,8 +340,7 @@ export function AutomationEditorDialog({
           </div>
           <div className="mt-4 flex justify-end gap-2">
             <Button variant="outline" onClick={() => onOpenChange(false)}>
-              Cancel
-            </Button>
+              {translate("auto.components.automations.AutomationEditorDialog.fb1896a5e7", "Cancel")}</Button>
             <Button
               variant="outline"
               onClick={onSave}

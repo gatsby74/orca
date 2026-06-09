@@ -80,6 +80,7 @@ import {
   RightPanelCommentComposer,
   type RightPanelCommentSubmitResult
 } from './right-panel-comment-composer'
+import { translate } from '@/i18n/i18n'
 
 export const PullRequestIcon = GitPullRequest
 
@@ -119,13 +120,12 @@ export function ConflictingFilesSection({ pr }: { pr: ConflictReview }): React.J
   return (
     <div className="border-b border-border px-3 py-3">
       <div className="text-[11px] text-muted-foreground">
-        {pr.conflictSummary!.commitsBehind} commit
-        {pr.conflictSummary!.commitsBehind === 1 ? '' : 's'} behind (base commit:{' '}
+        {pr.conflictSummary!.commitsBehind} {translate("auto.components.right.sidebar.checks.panel.content.6fa7f8723f", "commit")}{pr.conflictSummary!.commitsBehind === 1 ? '' : 's'} {translate("auto.components.right.sidebar.checks.panel.content.3916814392", "behind (base commit:")}{' '}
         <span className="font-mono text-[10px]">{pr.conflictSummary!.baseCommit}</span>)
       </div>
       <div className="mt-2 flex items-center gap-2">
         <Files className="size-3.5 shrink-0 text-muted-foreground" />
-        <div className="text-[11px] text-muted-foreground">Conflicting files</div>
+        <div className="text-[11px] text-muted-foreground">{translate("auto.components.right.sidebar.checks.panel.content.0975eeaaef", "Conflicting files")}</div>
       </div>
       <div className="mt-2 space-y-1.5">
         {files.map((filePath) => (
@@ -158,8 +158,7 @@ export function MergeConflictNotice({
   return (
     <div className="border-t border-border px-3 py-3">
       <div className="text-[11px] font-medium text-foreground">
-        This branch has conflicts that must be resolved
-      </div>
+        {translate("auto.components.right.sidebar.checks.panel.content.87cd07c69a", "This branch has conflicts that must be resolved")}</div>
       <div className="mt-1 text-[11px] text-muted-foreground">
         {isRefreshingConflictDetails
           ? 'Refreshing conflict details…'
@@ -221,11 +220,10 @@ export function PRTriageStrip({
           <CircleX className="size-3.5 shrink-0 text-rose-500" />
           <div className="min-w-0 flex-1">
             <div className="truncate text-[11px] font-medium text-foreground">
-              {failingCount} failing check{failingCount === 1 ? '' : 's'}
+              {failingCount} {translate("auto.components.right.sidebar.checks.panel.content.b652f38caf", "failing check")}{failingCount === 1 ? '' : 's'}
             </div>
             <div className="truncate text-[10px] text-muted-foreground">
-              Inspect details or start an AI fix pass.
-            </div>
+              {translate("auto.components.right.sidebar.checks.panel.content.5d4ebf9391", "Inspect details or start an AI fix pass.")}</div>
           </div>
           <Button
             type="button"
@@ -240,8 +238,7 @@ export function PRTriageStrip({
             ) : (
               <Sparkles className="size-3" />
             )}
-            Fix
-          </Button>
+            {translate("auto.components.right.sidebar.checks.panel.content.b45db92d0e", "Fix")}</Button>
         </div>
       </div>
     )
@@ -254,11 +251,9 @@ export function PRTriageStrip({
           <LoaderCircle className="size-3.5 shrink-0 animate-spin text-amber-500" />
           <div className="min-w-0 flex-1">
             <div className="truncate text-[11px] font-medium text-foreground">
-              {pendingCount} check{pendingCount === 1 ? '' : 's'} pending
-            </div>
+              {pendingCount} {translate("auto.components.right.sidebar.checks.panel.content.5341023167", "check")}{pendingCount === 1 ? '' : 's'} {translate("auto.components.right.sidebar.checks.panel.content.9ad98f2a17", "pending")}</div>
             <div className="truncate text-[10px] text-muted-foreground">
-              Orca will refresh checks while this panel stays open.
-            </div>
+              {translate("auto.components.right.sidebar.checks.panel.content.5856874b59", "Orca will refresh checks while this panel stays open.")}</div>
           </div>
         </div>
       </div>
@@ -271,11 +266,9 @@ export function PRTriageStrip({
         <CircleCheck className="size-3.5 shrink-0 text-emerald-500" />
         <div className="min-w-0 flex-1">
           <div className="truncate text-[11px] font-medium text-foreground">
-            No blocking PR action
-          </div>
+            {translate("auto.components.right.sidebar.checks.panel.content.9d0e7bcefc", "No blocking PR action")}</div>
           <div className="truncate text-[10px] text-muted-foreground">
-            Checks and comments below show the current fetched context.
-          </div>
+            {translate("auto.components.right.sidebar.checks.panel.content.c16762ac8c", "Checks and comments below show the current fetched context.")}</div>
         </div>
       </div>
     </div>
@@ -301,11 +294,10 @@ export function ConflictTriageStrip({
         <AlertTriangle className="size-3.5 shrink-0 text-amber-500" />
         <div className="min-w-0 flex-1">
           <div className="truncate text-[11px] font-medium text-foreground">
-            Conflicts block this {reviewKind}
+            {translate("auto.components.right.sidebar.checks.panel.content.60186d8498", "Conflicts block this")}{reviewKind}
           </div>
           <div className="truncate text-[10px] text-muted-foreground">
-            Resolve conflicts before checks and merge can complete.
-          </div>
+            {translate("auto.components.right.sidebar.checks.panel.content.3a71a6ed0b", "Resolve conflicts before checks and merge can complete.")}</div>
         </div>
         <Button
           type="button"
@@ -320,8 +312,7 @@ export function ConflictTriageStrip({
           ) : (
             <Sparkles className="size-3" />
           )}
-          Resolve
-        </Button>
+          {translate("auto.components.right.sidebar.checks.panel.content.0c96cd25e5", "Resolve")}</Button>
       </div>
     </div>
   )
@@ -453,20 +444,19 @@ function CheckRunDetails({
       {state?.loading ? (
         <div className="flex items-center gap-2 py-1.5 text-[12px] text-muted-foreground">
           <LoaderCircle className="size-3.5 animate-spin" />
-          Loading check details…
-        </div>
+          {translate("auto.components.right.sidebar.checks.panel.content.1f2b980522", "Loading check details…")}</div>
       ) : (
         <div className="flex min-w-0 flex-col gap-2.5 py-1.5">
           <div className="flex min-w-0 flex-wrap items-center gap-x-3 gap-y-0.5 text-[11px] text-muted-foreground">
             <span>
-              Status:{' '}
+              {translate("auto.components.right.sidebar.checks.panel.content.a54ae21c6f", "Status:")}{' '}
               {details ? getCheckStatusLabel(detailsStatusCheck) : getCheckStatusLabel(check)}
             </span>
-            {startedAt && <span>Started {startedAt}</span>}
-            {completedAt && <span>Completed {completedAt}</span>}
-            {check.checkRunId && <span className="font-mono">check #{check.checkRunId}</span>}
+            {startedAt && <span>{translate("auto.components.right.sidebar.checks.panel.content.fd46a70f1a", "Started")}{startedAt}</span>}
+            {completedAt && <span>{translate("auto.components.right.sidebar.checks.panel.content.00e1c1658a", "Completed")}{completedAt}</span>}
+            {check.checkRunId && <span className="font-mono">{translate("auto.components.right.sidebar.checks.panel.content.aa8494ae3c", "check #")}{check.checkRunId}</span>}
             {check.workflowRunId && (
-              <span className="font-mono">workflow #{check.workflowRunId}</span>
+              <span className="font-mono">{translate("auto.components.right.sidebar.checks.panel.content.2dd5ddabc4", "workflow #")}{check.workflowRunId}</span>
             )}
           </div>
 
@@ -497,8 +487,7 @@ function CheckRunDetails({
           {hasAnnotations && (
             <div className="min-w-0 border-t border-border/60 pt-2">
               <div className="mb-1.5 text-[10px] font-semibold uppercase tracking-wide text-muted-foreground">
-                Annotations
-              </div>
+                {translate("auto.components.right.sidebar.checks.panel.content.f2fe8a4e8f", "Annotations")}</div>
               <div className="flex flex-col gap-2">
                 {details!.annotations.map((annotation, index) => (
                   <div key={`${annotation.path ?? 'annotation'}-${index}`} className="min-w-0">
@@ -531,8 +520,7 @@ function CheckRunDetails({
               </div>
               {details!.annotations.length >= 20 && (
                 <div className="mt-1.5 text-[10px] text-muted-foreground">
-                  Showing first 20 annotations
-                </div>
+                  {translate("auto.components.right.sidebar.checks.panel.content.df137989b3", "Showing first 20 annotations")}</div>
               )}
             </div>
           )}
@@ -576,22 +564,19 @@ function CheckRunDetails({
               </div>
               {(details?.jobs.length ?? 0) >= 100 && (
                 <div className="mt-1.5 text-[10px] text-muted-foreground">
-                  Showing first 100 jobs
-                </div>
+                  {translate("auto.components.right.sidebar.checks.panel.content.a2fb3f4408", "Showing first 100 jobs")}</div>
               )}
             </div>
           )}
 
           {hasLogTail && (
             <div className="text-[11px] text-muted-foreground">
-              Log tail available in full details.
-            </div>
+              {translate("auto.components.right.sidebar.checks.panel.content.2524d1fb83", "Log tail available in full details.")}</div>
           )}
 
           {!state?.error && !hasOutput && !hasAnnotations && !hasJobs && (
             <div className="text-[12px] text-muted-foreground">
-              No inline details are available for this check.
-            </div>
+              {translate("auto.components.right.sidebar.checks.panel.content.e15a8b77ef", "No inline details are available for this check.")}</div>
           )}
 
           <div className="flex justify-end pt-1">
@@ -605,8 +590,7 @@ function CheckRunDetails({
                     className="h-7 gap-1 px-2 text-[11px]"
                     onClick={(event) => event.stopPropagation()}
                   >
-                    View full details
-                  </Button>
+                    {translate("auto.components.right.sidebar.checks.panel.content.e4e3af15ee", "View full details")}</Button>
                 </DialogTrigger>
                 <CheckRunDetailsDialog
                   check={check}
@@ -653,13 +637,13 @@ export function CheckRunDetailsDialog({
         <DialogTitle className="truncate text-base">{check.name}</DialogTitle>
         <DialogDescription className="flex flex-wrap items-center gap-x-3 gap-y-1 text-xs">
           <span>
-            Status: {details ? getCheckStatusLabel(detailsStatusCheck) : getCheckStatusLabel(check)}
+            {translate("auto.components.right.sidebar.checks.panel.content.a54ae21c6f", "Status:")}{details ? getCheckStatusLabel(detailsStatusCheck) : getCheckStatusLabel(check)}
           </span>
-          {startedAt && <span>Started {startedAt}</span>}
-          {completedAt && <span>Completed {completedAt}</span>}
-          {check.checkRunId && <span className="font-mono">check #{check.checkRunId}</span>}
+          {startedAt && <span>{translate("auto.components.right.sidebar.checks.panel.content.fd46a70f1a", "Started")}{startedAt}</span>}
+          {completedAt && <span>{translate("auto.components.right.sidebar.checks.panel.content.00e1c1658a", "Completed")}{completedAt}</span>}
+          {check.checkRunId && <span className="font-mono">{translate("auto.components.right.sidebar.checks.panel.content.aa8494ae3c", "check #")}{check.checkRunId}</span>}
           {check.workflowRunId && (
-            <span className="font-mono">workflow #{check.workflowRunId}</span>
+            <span className="font-mono">{translate("auto.components.right.sidebar.checks.panel.content.2dd5ddabc4", "workflow #")}{check.workflowRunId}</span>
           )}
         </DialogDescription>
       </DialogHeader>
@@ -669,7 +653,7 @@ export function CheckRunDetailsDialog({
 
           {hasOutput && (
             <section className="rounded-md border border-border bg-background">
-              <div className="border-b border-border px-3 py-2 text-sm font-medium">Output</div>
+              <div className="border-b border-border px-3 py-2 text-sm font-medium">{translate("auto.components.right.sidebar.checks.panel.content.d098e5529a", "Output")}</div>
               <div className="px-3 py-3">
                 {details?.title && (
                   <div className="mb-2 text-sm font-medium text-foreground">{details.title}</div>
@@ -695,8 +679,7 @@ export function CheckRunDetailsDialog({
           {hasAnnotations && (
             <section className="rounded-md border border-border bg-background">
               <div className="border-b border-border px-3 py-2 text-sm font-medium">
-                Annotations
-              </div>
+                {translate("auto.components.right.sidebar.checks.panel.content.f2fe8a4e8f", "Annotations")}</div>
               <div className="divide-y divide-border/50">
                 {details!.annotations.map((annotation, index) => (
                   <div key={`${annotation.path ?? 'annotation'}-${index}`} className="px-3 py-3">
@@ -732,7 +715,7 @@ export function CheckRunDetailsDialog({
 
           {hasJobs && (
             <section className="rounded-md border border-border bg-background">
-              <div className="border-b border-border px-3 py-2 text-sm font-medium">Jobs</div>
+              <div className="border-b border-border px-3 py-2 text-sm font-medium">{translate("auto.components.right.sidebar.checks.panel.content.49731703ea", "Jobs")}</div>
               <div className="divide-y divide-border/50">
                 {jobs.map((job, index) => (
                   <div key={`${job.name}-${index}`} className="px-3 py-3">
@@ -766,8 +749,7 @@ export function CheckRunDetailsDialog({
 
           {!state?.error && !hasOutput && !hasAnnotations && !hasJobs && (
             <div className="text-sm text-muted-foreground">
-              No details are available for this check.
-            </div>
+              {translate("auto.components.right.sidebar.checks.panel.content.07eccfa397", "No details are available for this check.")}</div>
           )}
         </div>
       </div>
@@ -782,8 +764,7 @@ export function CheckRunDetailsDialog({
               window.api.shell.openUrl(openUrl)
             }}
           >
-            Open details
-            <ExternalLink className="size-3.5" />
+            {translate("auto.components.right.sidebar.checks.panel.content.a916648574", "Open details")}<ExternalLink className="size-3.5" />
           </Button>
         </div>
       )}
@@ -796,9 +777,8 @@ export function CheckJobLogTail({ logTail }: { logTail: string }): React.JSX.Ele
     <div className="mt-3 min-w-0">
       <div className="mb-1.5 flex min-w-0 items-center gap-2">
         <div className="min-w-0 flex-1 text-[10px] font-semibold uppercase tracking-wide text-muted-foreground">
-          Log tail (last 200 lines)
-        </div>
-        <CopyButton text={logTail} title="Copy log tail" />
+          {translate("auto.components.right.sidebar.checks.panel.content.d713f500b2", "Log tail (last 200 lines)")}</div>
+        <CopyButton text={logTail} title={translate("auto.components.right.sidebar.checks.panel.content.679bf2093c", "Copy log tail")} />
       </div>
       <pre className="max-h-72 overflow-auto whitespace-pre-wrap rounded bg-muted/40 p-3 font-mono text-xs text-muted-foreground scrollbar-sleek">
         {logTail}
@@ -894,7 +874,7 @@ export function ChecksList({
           [row.key]: {
             loading: false,
             details: null,
-            error: 'No inline details are available for this check.'
+            error: translate("auto.components.right.sidebar.checks.panel.content.e15a8b77ef", "No inline details are available for this check.")
           }
         }))
         return
@@ -905,7 +885,7 @@ export function ChecksList({
           [row.key]: {
             loading: false,
             details: null,
-            error: 'No inline details are available for this check.'
+            error: translate("auto.components.right.sidebar.checks.panel.content.e15a8b77ef", "No inline details are available for this check.")
           }
         }))
         return
@@ -992,20 +972,17 @@ export function ChecksList({
           {passingCount > 0 && (
             <span className="flex items-center gap-1">
               <CircleCheck className="size-3 text-emerald-500" />
-              {passingCount} passing
-            </span>
+              {passingCount} {translate("auto.components.right.sidebar.checks.panel.content.02ca4f9074", "passing")}</span>
           )}
           {failingCount > 0 && (
             <span className="flex items-center gap-1">
               <CircleX className="size-3 text-rose-500" />
-              {failingCount} failing
-            </span>
+              {failingCount} {translate("auto.components.right.sidebar.checks.panel.content.5e52f4ef7f", "failing")}</span>
           )}
           {pendingCount > 0 && (
             <span className="flex items-center gap-1">
               <LoaderCircle className="size-3 text-amber-500" />
-              {pendingCount} pending
-            </span>
+              {pendingCount} {translate("auto.components.right.sidebar.checks.panel.content.9ad98f2a17", "pending")}</span>
           )}
           <span className="flex-1" />
           {checksLoading && <LoaderCircle className="size-3 animate-spin text-muted-foreground" />}
@@ -1019,8 +996,7 @@ export function ChecksList({
         </div>
       ) : checks.length === 0 ? (
         <div className="flex items-center justify-center py-8 text-[11px] text-muted-foreground">
-          No checks configured
-        </div>
+          {translate("auto.components.right.sidebar.checks.panel.content.991f50c7e4", "No checks configured")}</div>
       ) : !checksExpanded ? null : (
         <>
           <div
@@ -1081,8 +1057,7 @@ export function ChecksList({
                             </Button>
                           </TooltipTrigger>
                           <TooltipContent side="left" sideOffset={4}>
-                            Open check details
-                          </TooltipContent>
+                            {translate("auto.components.right.sidebar.checks.panel.content.0dca6bfab5", "Open check details")}</TooltipContent>
                         </Tooltip>
                       )}
                     </span>
@@ -1105,8 +1080,7 @@ export function ChecksList({
           )}
           {checks.length >= 100 && (
             <div className="border-b border-border px-3 py-1.5 text-[10px] text-muted-foreground">
-              Showing first 100 checks
-            </div>
+              {translate("auto.components.right.sidebar.checks.panel.content.cbcc4ab3db", "Showing first 100 checks")}</div>
           )}
         </>
       )}
@@ -1272,8 +1246,8 @@ function CommentMoreMenu({
         <button
           type="button"
           className="shrink-0 rounded p-1 text-muted-foreground/40 transition-colors hover:bg-accent hover:text-foreground"
-          aria-label="More comment actions"
-          title="More"
+          aria-label={translate("auto.components.right.sidebar.checks.panel.content.74c6885b8a", "More comment actions")}
+          title={translate("auto.components.right.sidebar.checks.panel.content.1abb17aac9", "More")}
           onClick={(event) => event.stopPropagation()}
         >
           <MoreHorizontal className="size-3" />
@@ -1283,8 +1257,7 @@ function CommentMoreMenu({
         {hasGoToComment && (
           <DropdownMenuItem onSelect={() => window.api.shell.openUrl(comment.url)}>
             <ExternalLink />
-            Go to comment
-          </DropdownMenuItem>
+            {translate("auto.components.right.sidebar.checks.panel.content.d3923d18fe", "Go to comment")}</DropdownMenuItem>
         )}
         {hasGoToComment && (hasEdit || hasDelete) ? <DropdownMenuSeparator /> : null}
         {hasEdit ? (
@@ -1295,14 +1268,12 @@ function CommentMoreMenu({
             }}
           >
             <Pencil />
-            Edit
-          </DropdownMenuItem>
+            {translate("auto.components.right.sidebar.checks.panel.content.03ca88f623", "Edit")}</DropdownMenuItem>
         ) : null}
         {hasDelete ? (
           <DropdownMenuItem variant="destructive" onSelect={() => void onDelete?.()}>
             <Trash />
-            Delete
-          </DropdownMenuItem>
+            {translate("auto.components.right.sidebar.checks.panel.content.6cc6eace26", "Delete")}</DropdownMenuItem>
         ) : null}
       </DropdownMenuContent>
     </DropdownMenu>
@@ -1429,8 +1400,7 @@ function CommentRow({
           </span>
           {automated && (
             <span className="shrink-0 rounded border border-border bg-accent/40 px-1 py-px text-[9px] font-medium uppercase tracking-wide text-muted-foreground">
-              bot
-            </span>
+              {translate("auto.components.right.sidebar.checks.panel.content.2ba0a32bdd", "bot")}</span>
           )}
           {!isReply && comment.path && (
             <span className="text-[10px] font-mono text-muted-foreground/60 truncate min-w-0">
@@ -1458,8 +1428,7 @@ function CommentRow({
                     onReply(comment)
                   }}
                 >
-                  Reply
-                </button>
+                  {translate("auto.components.right.sidebar.checks.panel.content.c1f6fc006a", "Reply")}</button>
               )}
               <CopyButton text={buildCopyText(comment)} />
               <CommentMoreMenu
@@ -1487,16 +1456,14 @@ function CommentRow({
                 disabled={submittingEdit}
                 onClick={handleCancelEdit}
               >
-                Cancel
-              </Button>
+                {translate("auto.components.right.sidebar.checks.panel.content.b062f55f29", "Cancel")}</Button>
               <Button
                 type="button"
                 size="xs"
                 disabled={!canSaveEdit}
                 onClick={(event) => void handleSaveEdit(event)}
               >
-                Save
-              </Button>
+                {translate("auto.components.right.sidebar.checks.panel.content.f6a40263ff", "Save")}</Button>
             </div>
           </div>
         ) : (
@@ -1543,7 +1510,7 @@ function PRCommentGroupView({
     replyingGroupId === groupId && onReply ? (
       <div className={cn('px-3 pb-2', group.kind === 'thread' && 'pl-6')}>
         <RightPanelCommentComposer
-          placeholder={`Reply to ${root.author}`}
+          placeholder={translate("auto.components.right.sidebar.checks.panel.content.ba20d1a896", "Reply to {{value0}}", { value0: root.author })}
           submitLabel="Reply"
           autoFocus
           disabled={replyDisabled}
@@ -1639,7 +1606,7 @@ function ResolvedCommentGroupAccordion({
       <AccordionItem value={getPRCommentGroupId(group)} className="border-b-0">
         <AccordionTrigger className="px-3 py-1.5 text-[11px] text-muted-foreground hover:bg-accent/35">
           <span className="min-w-0 truncate">
-            Resolved {group.kind === 'thread' ? 'thread' : 'comment'} by {root.author}
+            {translate("auto.components.right.sidebar.checks.panel.content.8987d5a3dd", "Resolved")}{group.kind === 'thread' ? 'thread' : 'comment'} {translate("auto.components.right.sidebar.checks.panel.content.0fc6f743b3", "by")}{root.author}
             {count > 1 ? ` (${count})` : ''}
           </span>
         </AccordionTrigger>
@@ -1779,7 +1746,7 @@ export function PRCommentsList({
       className={cn(empty ? 'px-3 py-2' : 'border-t border-border px-3 py-2')}
     >
       <RightPanelCommentComposer
-        placeholder={empty ? 'Start conversation...' : 'Add a PR comment'}
+        placeholder={empty ? translate("auto.components.right.sidebar.checks.panel.content.ea9fd5ed6a", "Start conversation...") : translate("auto.components.right.sidebar.checks.panel.content.3fff651d32", "Add a PR comment")}
         submitLabel="Send"
         autoFocus
         disabled={commentsDisabled}
@@ -1796,7 +1763,7 @@ export function PRCommentsList({
       <div className="border-b border-border px-3 py-2">
         <div className="flex min-w-0 items-center gap-2">
           <MessageSquare className="size-3.5 text-muted-foreground" />
-          <span className="text-[11px] font-medium text-foreground">Comments</span>
+          <span className="text-[11px] font-medium text-foreground">{translate("auto.components.right.sidebar.checks.panel.content.94557d68e2", "Comments")}</span>
           {comments.length > 0 && (
             <span className="text-[10px] text-muted-foreground">{comments.length}</span>
           )}
@@ -1850,8 +1817,7 @@ export function PRCommentsList({
         )}
         {comments.length >= 100 && (
           <div className="mt-1.5 text-[10px] text-muted-foreground">
-            Showing first 100 comments per source
-          </div>
+            {translate("auto.components.right.sidebar.checks.panel.content.751f7c6e5c", "Showing first 100 comments per source")}</div>
         )}
       </div>
 
@@ -1865,8 +1831,7 @@ export function PRCommentsList({
       ) : comments.length === 0 ? (
         !onAddComment && (
           <div className="flex items-center justify-center py-5 text-[11px] text-muted-foreground">
-            No comments
-          </div>
+            {translate("auto.components.right.sidebar.checks.panel.content.755be805f6", "No comments")}</div>
         )
       ) : visibleComments.length === 0 ? (
         <div className="flex items-center justify-center py-5 text-[11px] text-muted-foreground">

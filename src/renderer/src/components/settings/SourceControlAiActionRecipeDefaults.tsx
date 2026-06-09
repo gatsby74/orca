@@ -34,6 +34,7 @@ import {
   getAgentCatalogForAction,
   getSourceControlAgentArgsPlaceholder
 } from './source-control-action-recipe-options'
+import { translate } from '@/i18n/i18n'
 
 type SourceControlAiActionRecipeDefaultsProps = {
   config: SourceControlAiSettings
@@ -154,9 +155,11 @@ export function SourceControlAiActionRecipeDefaults({
         console.error('Failed to roll back Source Control AI action agent default', rollbackError)
       }
       toast.error(
-        `Failed to save Source Control AI action default: ${
-          error instanceof Error ? error.message : 'Unknown error'
-        }`
+        translate(
+          'auto.components.settings.SourceControlAiActionRecipeDefaults.b5f46664d3',
+          'Failed to save Source Control AI action default: {{value0}}',
+          { value0: error instanceof Error ? error.message : 'Unknown error' }
+        )
       )
     }
   }
@@ -270,8 +273,8 @@ export function SourceControlAiActionRecipeDefaults({
 
   return (
     <SearchableSetting
-      title="Action recipes"
-      description="Agent, CLI arguments, and command template used by each Source Control AI button."
+      title={translate("auto.components.settings.SourceControlAiActionRecipeDefaults.a79c567194", "Action recipes")}
+      description={translate("auto.components.settings.SourceControlAiActionRecipeDefaults.cf01d41bce", "Agent, CLI arguments, and command template used by each Source Control AI button.")}
       keywords={[
         'agent',
         'arguments',
@@ -288,11 +291,9 @@ export function SourceControlAiActionRecipeDefaults({
       className="space-y-3 px-1 py-2"
     >
       <div className="space-y-0.5">
-        <Label>Action recipes</Label>
+        <Label>{translate("auto.components.settings.SourceControlAiActionRecipeDefaults.a79c567194", "Action recipes")}</Label>
         <p className="text-xs text-muted-foreground">
-          Use variables only when you want Orca to inject context. Leave the agent as default to
-          follow your normal agent preference.
-        </p>
+          {translate("auto.components.settings.SourceControlAiActionRecipeDefaults.bf84dea6af", "Use variables only when you want Orca to inject context. Leave the agent as default to follow your normal agent preference.")}</p>
       </div>
       <div className="space-y-3">
         {SOURCE_CONTROL_ACTION_IDS.map((actionId) => {
@@ -331,15 +332,13 @@ export function SourceControlAiActionRecipeDefaults({
                     <SelectItem value={DEFAULT_AGENT_VALUE}>
                       <span className="flex items-center gap-2">
                         <Terminal className="size-3.5 text-muted-foreground" />
-                        Use default agent
-                      </span>
+                        {translate("auto.components.settings.SourceControlAiActionRecipeDefaults.ee0e5c2a48", "Use default agent")}</span>
                     </SelectItem>
                     {SOURCE_CONTROL_TEXT_ACTION_ID_SET.has(actionId) ? (
                       <SelectItem value={CUSTOM_AGENT_ID}>
                         <span className="flex items-center gap-2">
                           <Terminal className="size-3.5 text-muted-foreground" />
-                          Custom command
-                        </span>
+                          {translate("auto.components.settings.SourceControlAiActionRecipeDefaults.0740d30915", "Custom command")}</span>
                       </SelectItem>
                     ) : null}
                     {agentOptions.map((agent) => (
@@ -355,7 +354,7 @@ export function SourceControlAiActionRecipeDefaults({
               </div>
               <div className="mt-3 grid gap-3 sm:grid-cols-[220px_1fr]">
                 <div className="space-y-2">
-                  <Label className="text-[11px] text-muted-foreground">CLI arguments</Label>
+                  <Label className="text-[11px] text-muted-foreground">{translate("auto.components.settings.SourceControlAiActionRecipeDefaults.2cb4bb7e5d", "CLI arguments")}</Label>
                   <Input
                     value={agentArgs}
                     spellCheck={false}
@@ -365,7 +364,7 @@ export function SourceControlAiActionRecipeDefaults({
                   />
                 </div>
                 <div className="space-y-2">
-                  <Label className="text-[11px] text-muted-foreground">Command template</Label>
+                  <Label className="text-[11px] text-muted-foreground">{translate("auto.components.settings.SourceControlAiActionRecipeDefaults.fb09da4345", "Command template")}</Label>
                   <textarea
                     value={template}
                     rows={3}
@@ -392,8 +391,7 @@ export function SourceControlAiActionRecipeDefaults({
                       onClick={() => discardActionTemplateDraft(actionId)}
                       disabled={isSavingTemplate}
                     >
-                      Discard
-                    </Button>
+                      {translate("auto.components.settings.SourceControlAiActionRecipeDefaults.b3914ecbbc", "Discard")}</Button>
                   ) : null}
                   <Button
                     type="button"

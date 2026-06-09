@@ -37,6 +37,7 @@ import SmartWorkspaceNameField, {
 import type { SetupConfig } from '@/lib/new-workspace'
 import type { WorkspaceCreateErrorDisplay } from '@/lib/workspace-create-error-format'
 import type { SshConnectionStatus } from '../../../shared/ssh-types'
+import { translate } from '@/i18n/i18n'
 
 type RepoOption = React.ComponentProps<typeof RepoCombobox>['repos'][number]
 
@@ -98,7 +99,7 @@ const SSH_STATUS_LABELS: Record<SshConnectionStatus, string> = {
   connected: 'Connected',
   reconnecting: 'Reconnecting SSH...',
   'reconnection-failed': 'SSH reconnection failed',
-  error: 'SSH connection error'
+  error: translate("auto.components.NewWorkspaceComposerCard.a239038146", "SSH connection error")
 }
 
 function SetupCommandPreview({
@@ -112,7 +113,7 @@ function SetupCommandPreview({
     return (
       <div className="rounded-2xl border border-border/60 bg-muted/40 shadow-inner">
         <div className="flex items-center justify-between gap-3 border-b border-border/60 px-4 py-2.5">
-          <div className="font-mono text-[11px] text-muted-foreground">orca.yaml</div>
+          <div className="font-mono text-[11px] text-muted-foreground">{translate("auto.components.NewWorkspaceComposerCard.23bb365554", "orca.yaml")}</div>
           {headerAction}
         </div>
         {/* Why: long orca.yaml scripts must not grow the create dialog past the viewport. */}
@@ -387,7 +388,7 @@ export default function NewWorkspaceComposerCard({
       <div className="min-w-0 space-y-4 pt-3">
         <div className="space-y-1" data-contextual-tour-target="workspace-creation-project">
           <div className="flex items-center justify-between gap-2">
-            <label className="text-xs font-medium text-muted-foreground">Project</label>
+            <label className="text-xs font-medium text-muted-foreground">{translate("auto.components.NewWorkspaceComposerCard.969a8bff66", "Project")}</label>
             <Tooltip>
               <TooltipTrigger asChild>
                 <Button
@@ -396,14 +397,13 @@ export default function NewWorkspaceComposerCard({
                   size="icon-xs"
                   onClick={handleAddRepo}
                   className="size-5 shrink-0 rounded-sm text-muted-foreground hover:text-foreground"
-                  aria-label="Add project"
+                  aria-label={translate("auto.components.NewWorkspaceComposerCard.d6b0a96f32", "Add project")}
                 >
                   <FolderPlus className="size-3" />
                 </Button>
               </TooltipTrigger>
               <TooltipContent side="top" sideOffset={6}>
-                Add project
-              </TooltipContent>
+                {translate("auto.components.NewWorkspaceComposerCard.d6b0a96f32", "Add project")}</TooltipContent>
             </Tooltip>
           </div>
           <RepoCombobox
@@ -411,7 +411,7 @@ export default function NewWorkspaceComposerCard({
             value={repoId}
             onValueChange={onRepoChange}
             onValueSelected={focusNameInput}
-            placeholder="Choose project"
+            placeholder={translate("auto.components.NewWorkspaceComposerCard.dccd26d4e4", "Choose project")}
             // Why: programmatic .focus() from the Dialog's onOpenAutoFocus
             // handler does not reliably trigger :focus-visible in Chromium.
             // Mirror the Input component's standard ring (border-ring +
@@ -429,7 +429,7 @@ export default function NewWorkspaceComposerCard({
             >
               <div className="min-w-0">
                 <div className="truncate text-xs font-medium text-foreground">
-                  Connect {selectedRepoName}
+                  {translate("auto.components.NewWorkspaceComposerCard.b5a0796911", "Connect")}{selectedRepoName}
                 </div>
                 <div className="mt-0.5 text-[11px] text-muted-foreground">{sshStatusLabel}</div>
               </div>
@@ -455,7 +455,7 @@ export default function NewWorkspaceComposerCard({
         <div className="min-w-0 space-y-1" data-contextual-tour-target="workspace-creation-name">
           <label className="block min-w-0 truncate text-xs font-medium text-muted-foreground">
             {selectedRepoIsGit ? "Name or 'Create From'" : 'Workspace name'}{' '}
-            <span className="text-muted-foreground/70">[Optional]</span>
+            <span className="text-muted-foreground/70">{translate("auto.components.NewWorkspaceComposerCard.0c5d6a479c", "[Optional]")}</span>
           </label>
           <SmartWorkspaceNameField
             inputRef={nameInputRef}
@@ -494,7 +494,7 @@ export default function NewWorkspaceComposerCard({
 
         <div className="space-y-1" data-contextual-tour-target="workspace-creation-agent">
           <div className="flex items-center justify-between gap-2">
-            <label className="text-xs font-medium text-muted-foreground">Agent</label>
+            <label className="text-xs font-medium text-muted-foreground">{translate("auto.components.NewWorkspaceComposerCard.01d1e8f601", "Agent")}</label>
             <Tooltip>
               <TooltipTrigger asChild>
                 <Button
@@ -507,14 +507,13 @@ export default function NewWorkspaceComposerCard({
                   // on every workspace creation.
                   tabIndex={-1}
                   className="size-5 shrink-0 rounded-sm text-muted-foreground hover:text-foreground"
-                  aria-label="Open agent settings"
+                  aria-label={translate("auto.components.NewWorkspaceComposerCard.ab63f25397", "Open agent settings")}
                 >
                   <Settings2 className="size-3" />
                 </Button>
               </TooltipTrigger>
               <TooltipContent side="top" sideOffset={6}>
-                Configure agents
-              </TooltipContent>
+                {translate("auto.components.NewWorkspaceComposerCard.ba64270bdb", "Configure agents")}</TooltipContent>
             </Tooltip>
           </div>
           <AgentCombobox
@@ -537,8 +536,7 @@ export default function NewWorkspaceComposerCard({
             onClick={onToggleAdvanced}
             className="-ml-2 text-xs"
           >
-            Advanced
-            <ChevronDown
+            {translate("auto.components.NewWorkspaceComposerCard.f0470c7383", "Advanced")}<ChevronDown
               className={cn('size-4 transition-transform', advancedOpen && 'rotate-180')}
             />
           </Button>
@@ -572,19 +570,19 @@ export default function NewWorkspaceComposerCard({
                 // explicit name there's no source pill — the smart input is
                 // already the name field, so we don't duplicate it here.
                 <div className="space-y-1">
-                  <label className="text-xs font-medium text-muted-foreground">Name</label>
+                  <label className="text-xs font-medium text-muted-foreground">{translate("auto.components.NewWorkspaceComposerCard.2688050e4b", "Name")}</label>
                   <input
                     type="text"
                     value={name}
                     onChange={(event) => onNameValueChange(event.target.value)}
-                    placeholder="Workspace name"
+                    placeholder={translate("auto.components.NewWorkspaceComposerCard.0ee17638fe", "Workspace name")}
                     className="w-full min-w-0 rounded-md border border-input bg-transparent px-3 py-1.5 text-sm shadow-xs transition-[color,box-shadow] outline-none placeholder:text-muted-foreground focus-visible:border-ring focus-visible:ring-[3px] focus-visible:ring-ring/50"
                   />
                 </div>
               ) : null}
 
               <div className="space-y-1">
-                <label className="text-xs font-medium text-muted-foreground">Note</label>
+                <label className="text-xs font-medium text-muted-foreground">{translate("auto.components.NewWorkspaceComposerCard.f8728aa4f9", "Note")}</label>
                 <textarea
                   value={note}
                   onChange={(event) => onNoteChange(event.target.value)}
@@ -596,7 +594,7 @@ export default function NewWorkspaceComposerCard({
                     ta.style.height = 'auto'
                     ta.style.height = `${ta.scrollHeight}px`
                   }}
-                  placeholder="Write a note"
+                  placeholder={translate("auto.components.NewWorkspaceComposerCard.090cfedeb4", "Write a note")}
                   rows={1}
                   className="w-full min-w-0 resize-none overflow-hidden rounded-md border border-input bg-transparent px-3 py-1.5 text-sm shadow-xs transition-[color,box-shadow] outline-none placeholder:text-muted-foreground focus-visible:border-ring focus-visible:ring-[3px] focus-visible:ring-ring/50 max-h-40"
                 />
@@ -690,7 +688,7 @@ export default function NewWorkspaceComposerCard({
               ) : null}
 
               <div className="space-y-1.5">
-                <label className="text-xs font-medium text-muted-foreground">Sparse checkout</label>
+                <label className="text-xs font-medium text-muted-foreground">{translate("auto.components.NewWorkspaceComposerCard.d861de981b", "Sparse checkout")}</label>
                 <SparseCheckoutPresetSelect
                   repoId={repoId}
                   presets={sparsePresets}
@@ -700,8 +698,7 @@ export default function NewWorkspaceComposerCard({
                 />
                 {!canUseSparseCheckout ? (
                   <p className="text-[11px] text-muted-foreground">
-                    Only available for local Git projects.
-                  </p>
+                    {translate("auto.components.NewWorkspaceComposerCard.cbb47ee0dc", "Only available for local Git projects.")}</p>
                 ) : null}
               </div>
             </div>

@@ -39,6 +39,7 @@ import {
   clampRightSidebarPanelWidth,
   computeMaxRightSidebarPanelWidth
 } from './right-sidebar-width'
+import { translate } from '@/i18n/i18n'
 
 const ACTIVITY_BAR_SIDE_WIDTH = 40
 
@@ -76,33 +77,33 @@ function RightSidebarInner(): React.JSX.Element {
       {
         id: 'explorer',
         icon: Files,
-        title: 'Explorer',
+        title: translate("auto.components.right.sidebar.index.8bc2bbc3a0", "Explorer"),
         shortcut: explorerShortcut === 'Unassigned' ? '' : explorerShortcut
       },
       {
         id: 'search',
         icon: Search,
-        title: 'Search',
+        title: translate("auto.components.right.sidebar.index.06219e4cb1", "Search"),
         shortcut: searchShortcut === 'Unassigned' ? '' : searchShortcut
       },
       {
         id: 'source-control',
         icon: GitBranch,
-        title: 'Source Control',
+        title: translate("auto.components.right.sidebar.index.0314901467", "Source Control"),
         shortcut: sourceControlShortcut === 'Unassigned' ? '' : sourceControlShortcut,
         gitOnly: true
       },
       {
         id: 'checks',
         icon: ListChecks,
-        title: 'Checks',
+        title: translate("auto.components.right.sidebar.index.83a10e3c44", "Checks"),
         shortcut: checksShortcut === 'Unassigned' ? '' : checksShortcut,
         gitOnly: true
       },
       {
         id: 'ports',
         icon: Plug,
-        title: 'Ports',
+        title: translate("auto.components.right.sidebar.index.441733b630", "Ports"),
         shortcut: portsShortcut === 'Unassigned' ? '' : portsShortcut,
         sshOnly: true
       }
@@ -191,7 +192,7 @@ function RightSidebarInner(): React.JSX.Element {
           type="button"
           className="sidebar-toggle mr-1"
           onClick={toggleRightSidebar}
-          aria-label="Toggle right sidebar"
+          aria-label={translate("auto.components.right.sidebar.index.e8e2e4ce74", "Toggle right sidebar")}
         >
           <PanelRight size={16} />
         </button>
@@ -433,13 +434,13 @@ function ActivityBarPositionMenu({
 }): React.JSX.Element {
   return (
     <ContextMenuContent>
-      <ContextMenuLabel>Activity Bar Position</ContextMenuLabel>
+      <ContextMenuLabel>{translate("auto.components.right.sidebar.index.864111caa2", "Activity Bar Position")}</ContextMenuLabel>
       <ContextMenuRadioGroup
         value={currentPosition}
         onValueChange={(v) => onChangePosition(v as ActivityBarPosition)}
       >
-        <ContextMenuRadioItem value="top">Top</ContextMenuRadioItem>
-        <ContextMenuRadioItem value="side">Side</ContextMenuRadioItem>
+        <ContextMenuRadioItem value="top">{translate("auto.components.right.sidebar.index.7b415c39e9", "Top")}</ContextMenuRadioItem>
+        <ContextMenuRadioItem value="side">{translate("auto.components.right.sidebar.index.70893f017b", "Side")}</ContextMenuRadioItem>
       </ContextMenuRadioGroup>
     </ContextMenuContent>
   )

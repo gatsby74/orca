@@ -195,6 +195,7 @@ import {
 } from './source-control-text-generation-defaults'
 import { useSourceControlAi } from './use-source-control-ai'
 import { CONFLICT_KIND_LABELS } from './source-control-conflict-labels'
+import { translate } from '@/i18n/i18n'
 
 export {
   appendCommitFailureCustomInstruction,
@@ -937,7 +938,7 @@ function SourceControlInner(): React.JSX.Element {
       if (ok) {
         setPendingDiffCommentsClear(null)
       } else {
-        toast.error('Failed to clear notes.')
+        toast.error(translate("auto.components.right.sidebar.SourceControl.eae7a1da5f", "Failed to clear notes."))
       }
     } finally {
       setIsClearingDiffComments(false)
@@ -1889,7 +1890,7 @@ function SourceControlInner(): React.JSX.Element {
         await abortGitOperation(context)
       } catch (error) {
         const message = error instanceof Error ? error.message : `Failed to abort ${label}`
-        toast.error(`Abort ${label} failed`, { description: message })
+        toast.error(translate("auto.components.right.sidebar.SourceControl.f99560ab29", "Abort {{value0}} failed", { value0: label }), { description: message })
         setRemoteActionErrors((prev) => ({
           ...prev,
           [activeWorktreeId]: { kind: isRebase ? 'abort_rebase' : 'abort_merge', message }
@@ -1991,9 +1992,9 @@ function SourceControlInner(): React.JSX.Element {
           })
         ])
       } catch {
-        toast.warning(`${copy.titleLabel} created, but Orca could not refresh it yet.`, {
+        toast.warning(translate("auto.components.right.sidebar.SourceControl.0453ca3a9a", "{{value0}} created, but Orca could not refresh it yet.", { value0: copy.titleLabel }), {
           action: {
-            label: `Open on ${copy.providerName}`,
+            label: translate("auto.components.right.sidebar.SourceControl.812cb992ee", "Open on {{value0}}", { value0: copy.providerName }),
             onClick: () => window.api.shell.openUrl(result.url)
           }
         })
@@ -2413,11 +2414,11 @@ function SourceControlInner(): React.JSX.Element {
         const number = result.existingReview.number
         toast.success(
           number
-            ? `${hostedReviewCreateCopy.titleLabel} #${number} is already open`
-            : `${hostedReviewCreateCopy.titleLabel} is already open`,
+            ? translate("auto.components.right.sidebar.SourceControl.eef5446523", "{{value0}} #{{value1}} is already open", { value0: hostedReviewCreateCopy.titleLabel, value1: number })
+            : translate("auto.components.right.sidebar.SourceControl.eef5446523", "{{value0}} is already open", { value0: hostedReviewCreateCopy.titleLabel }),
           {
             action: {
-              label: `Open on ${hostedReviewCreateCopy.providerName}`,
+              label: translate("auto.components.right.sidebar.SourceControl.812cb992ee", "Open on {{value0}}", { value0: hostedReviewCreateCopy.providerName }),
               onClick: () => window.api.shell.openUrl(result.existingReview!.url)
             }
           }
@@ -2497,7 +2498,7 @@ function SourceControlInner(): React.JSX.Element {
     return isCreatingPr && action.kind === 'create_pr'
       ? {
           ...action,
-          title: `Creating ${hostedReviewCreateCopy.reviewLabel}...`,
+          title: translate("auto.components.right.sidebar.SourceControl.fe5bd1a610", "Creating {{value0}}...", { value0: hostedReviewCreateCopy.reviewLabel }),
           disabled: true
         }
       : action
@@ -3310,7 +3311,7 @@ function SourceControlInner(): React.JSX.Element {
           item.message
         )
       } catch (error) {
-        toast.error(error instanceof Error ? error.message : 'Failed to load commit diff')
+        toast.error(error instanceof Error ? error.message : translate("auto.components.right.sidebar.SourceControl.8a5ba6a988", "Failed to load commit diff"))
       }
     },
     [activeWorktreeId, openCommitAllDiffs, worktreePath]
@@ -3601,7 +3602,7 @@ function SourceControlInner(): React.JSX.Element {
           }
         })
         if (result.aborted) {
-          toast.error('Discard all failed — unable to unstage files before discard', {
+          toast.error(translate("auto.components.right.sidebar.SourceControl.a5e5a11090", "Discard all failed — unable to unstage files before discard"), {
             description: errors[0] instanceof Error ? errors[0].message : undefined
           })
         } else if (result.failed.length > 0) {
@@ -3612,9 +3613,9 @@ function SourceControlInner(): React.JSX.Element {
           const sample = result.failed.slice(0, 3).join(', ')
           const more = result.failed.length > 3 ? `, +${result.failed.length - 3} more` : ''
           toast.error(
-            `Failed to discard ${result.failed.length} file${result.failed.length === 1 ? '' : 's'}`,
+            translate("auto.components.right.sidebar.SourceControl.8eb3782a0c", "Failed to discard {{value0}} file{{value1}}", { value0: result.failed.length, value1: result.failed.length === 1 ? '' : 's' }),
             {
-              description: firstMsg ? `${firstMsg} (e.g. ${sample}${more})` : `${sample}${more}`
+              description: firstMsg ? translate("auto.components.right.sidebar.SourceControl.dc5a6465fc", "{{value0}} (e.g. {{value1}}{{value2}})", { value0: firstMsg, value1: sample, value2: more }) : `${sample}${more}`
             }
           )
         }
@@ -3678,15 +3679,13 @@ function SourceControlInner(): React.JSX.Element {
   if (!activeWorktree || !activeRepo || !worktreePath) {
     return (
       <div className="flex items-center justify-center h-full text-xs text-muted-foreground px-4 text-center">
-        Select a workspace to view changes
-      </div>
+        {translate("auto.components.right.sidebar.SourceControl.c07b236287", "Select a workspace to view changes")}</div>
     )
   }
   if (isFolder) {
     return (
       <div className="flex items-center justify-center h-full text-xs text-muted-foreground px-4 text-center">
-        Source Control is only available for Git repositories
-      </div>
+        {translate("auto.components.right.sidebar.SourceControl.e131cd7128", "Source Control is only available for Git repositories")}</div>
     )
   }
 
@@ -3770,7 +3769,7 @@ function SourceControlInner(): React.JSX.Element {
                   )}
                 />
                 <MessageSquare className="size-3.5 shrink-0" />
-                <span>Notes</span>
+                <span>{translate("auto.components.right.sidebar.SourceControl.cc474e0b8c", "Notes")}</span>
                 {diffCommentCount > 0 && (
                   <span className="text-[11px] leading-none text-muted-foreground tabular-nums">
                     {diffCommentCount}
@@ -3802,8 +3801,7 @@ function SourceControlInner(): React.JSX.Element {
                         </button>
                       </TooltipTrigger>
                       <TooltipContent side="bottom" sideOffset={6}>
-                        Copy all notes
-                      </TooltipContent>
+                        {translate("auto.components.right.sidebar.SourceControl.eae2d051af", "Copy all notes")}</TooltipContent>
                     </Tooltip>
                   </TooltipProvider>
                 )}
@@ -3822,8 +3820,7 @@ function SourceControlInner(): React.JSX.Element {
                         </DropdownMenuTrigger>
                       </TooltipTrigger>
                       <TooltipContent side="bottom" sideOffset={6}>
-                        More note actions
-                      </TooltipContent>
+                        {translate("auto.components.right.sidebar.SourceControl.2fe2a67580", "More note actions")}</TooltipContent>
                     </Tooltip>
                   </TooltipProvider>
                   <DropdownMenuContent align="end" className="min-w-[180px]">
@@ -3838,8 +3835,7 @@ function SourceControlInner(): React.JSX.Element {
                       }}
                     >
                       <Trash2 className="size-3.5" />
-                      Clear all notes...
-                    </DropdownMenuItem>
+                      {translate("auto.components.right.sidebar.SourceControl.1406954883", "Clear all notes...")}</DropdownMenuItem>
                   </DropdownMenuContent>
                 </DropdownMenu>
               </div>
@@ -3869,7 +3865,7 @@ function SourceControlInner(): React.JSX.Element {
             type="text"
             value={filterQuery}
             onChange={(e) => setFilterQuery(e.target.value)}
-            placeholder="Filter files…"
+            placeholder={translate("auto.components.right.sidebar.SourceControl.c35baf2f1e", "Filter files…")}
             className="flex-1 min-w-0 bg-transparent text-xs text-foreground placeholder:text-muted-foreground/60 outline-none"
           />
           {filterQuery && (
@@ -3965,11 +3961,11 @@ function SourceControlInner(): React.JSX.Element {
           {activeWorktree?.pushTarget && activeWorktree.pushTarget.remoteName !== 'origin' ? (
             <div
               className="flex items-center gap-1.5 px-1 text-[11px] text-muted-foreground"
-              title={`Pushes to the fork at ${activeWorktree.pushTarget.remoteName} (not origin)`}
+              title={translate("auto.components.right.sidebar.SourceControl.c05fe04839", "Pushes to the fork at {{value0}} (not origin)", { value0: activeWorktree.pushTarget.remoteName })}
             >
               <GitFork className="size-3 shrink-0" aria-hidden="true" />
               <span className="truncate">
-                Pushes to fork {describeForkPushTarget(activeWorktree.pushTarget)}
+                {translate("auto.components.right.sidebar.SourceControl.78ce2d37ac", "Pushes to fork")}{describeForkPushTarget(activeWorktree.pushTarget)}
               </span>
             </div>
           ) : null}
@@ -4155,8 +4151,7 @@ function SourceControlInner(): React.JSX.Element {
                                 }
                               }}
                             >
-                              View all
-                            </Button>
+                              {translate("auto.components.right.sidebar.SourceControl.48db37cca9", "View all")}</Button>
                           ) : (
                             <Button
                               type="button"
@@ -4170,8 +4165,7 @@ function SourceControlInner(): React.JSX.Element {
                                 }
                               }}
                             >
-                              View all
-                            </Button>
+                              {translate("auto.components.right.sidebar.SourceControl.48db37cca9", "View all")}</Button>
                           )}
                         </>
                       }
@@ -4280,8 +4274,7 @@ function SourceControlInner(): React.JSX.Element {
                       }
                     }}
                   >
-                    View all
-                  </Button>
+                    {translate("auto.components.right.sidebar.SourceControl.48db37cca9", "View all")}</Button>
                 }
               />
               {!collapsedSections.has('branch') &&
@@ -4364,7 +4357,7 @@ function SourceControlInner(): React.JSX.Element {
       >
         <DialogContent className="max-w-md">
           <DialogHeader>
-            <DialogTitle className="text-sm">Clear Notes</DialogTitle>
+            <DialogTitle className="text-sm">{translate("auto.components.right.sidebar.SourceControl.574d2f4413", "Clear Notes")}</DialogTitle>
             <DialogDescription className="text-xs">
               {pendingDiffCommentsClearDescription}
             </DialogDescription>
@@ -4376,8 +4369,7 @@ function SourceControlInner(): React.JSX.Element {
               onClick={() => setPendingDiffCommentsClear(null)}
               disabled={isClearingDiffComments}
             >
-              Cancel
-            </Button>
+              {translate("auto.components.right.sidebar.SourceControl.05bb8f4a48", "Cancel")}</Button>
             <Button
               type="button"
               variant="destructive"
@@ -4385,8 +4377,7 @@ function SourceControlInner(): React.JSX.Element {
               disabled={isClearingDiffComments || pendingDiffCommentsClearCount === 0}
             >
               <Trash2 className="size-4" />
-              Clear Notes
-            </Button>
+              {translate("auto.components.right.sidebar.SourceControl.574d2f4413", "Clear Notes")}</Button>
           </DialogFooter>
         </DialogContent>
       </Dialog>
@@ -4400,10 +4391,9 @@ function SourceControlInner(): React.JSX.Element {
       <Dialog open={baseRefDialogOpen} onOpenChange={setBaseRefDialogOpen}>
         <DialogContent className="max-w-xl">
           <DialogHeader>
-            <DialogTitle className="text-sm">Change Base Ref</DialogTitle>
+            <DialogTitle className="text-sm">{translate("auto.components.right.sidebar.SourceControl.476b77745b", "Change Base Ref")}</DialogTitle>
             <DialogDescription className="text-xs">
-              Pick the branch compare target for this repository.
-            </DialogDescription>
+              {translate("auto.components.right.sidebar.SourceControl.c9ad22888e", "Pick the branch compare target for this repository.")}</DialogDescription>
           </DialogHeader>
           <BaseRefPicker
             repoId={activeRepo.id}
@@ -4425,8 +4415,8 @@ function SourceControlInner(): React.JSX.Element {
         open={resolveConflictsComposerOpen}
         onOpenChange={setResolveConflictsComposerOpen}
         actionId="resolveConflicts"
-        title="Resolve Conflicts With AI"
-        description="Review and edit the full command input before starting an agent."
+        title={translate("auto.components.right.sidebar.SourceControl.19652ddd76", "Resolve Conflicts With AI")}
+        description={translate("auto.components.right.sidebar.SourceControl.901140f47d", "Review and edit the full command input before starting an agent.")}
         baseCommandInput={resolveConflictsPrompt}
         worktreeId={activeWorktreeId}
         groupId={activeGroupId ?? activeWorktreeId}
@@ -4444,14 +4434,14 @@ function SourceControlInner(): React.JSX.Element {
         savedAgentArgs={getLaunchActionRecipe('resolveConflicts').agentArgs ?? null}
         onSaveAgentDefault={saveLaunchActionDefault}
         onOpenSettings={openSourceControlAiSettings}
-        onLaunched={() => toast.success('Started an AI agent for the conflicts.')}
+        onLaunched={() => toast.success(translate("auto.components.right.sidebar.SourceControl.e48caaf0dd", "Started an AI agent for the conflicts."))}
       />
       <SourceControlTextGenerationDialog
         open={commitGenerationDialogOpen}
         onOpenChange={setCommitGenerationDialogOpen}
         actionId="commitMessage"
-        title="Generate Commit Message"
-        description="Choose the agent and command template for this run."
+        title={translate("auto.components.right.sidebar.SourceControl.6b122529d4", "Generate Commit Message")}
+        description={translate("auto.components.right.sidebar.SourceControl.f4c766f1ca", "Choose the agent and command template for this run.")}
         generateLabel="Generate"
         settings={settings}
         repo={activeRepo ?? null}
@@ -4465,8 +4455,8 @@ function SourceControlInner(): React.JSX.Element {
         open={pullRequestGenerationDialogOpen}
         onOpenChange={setPullRequestGenerationDialogOpen}
         actionId="pullRequest"
-        title="Generate Hosted Review Details"
-        description="Choose the agent and command template for this run."
+        title={translate("auto.components.right.sidebar.SourceControl.1a6a6e0bc5", "Generate Hosted Review Details")}
+        description={translate("auto.components.right.sidebar.SourceControl.f4c766f1ca", "Choose the agent and command template for this run.")}
         generateLabel="Generate"
         settings={settings}
         repo={activeRepo ?? null}
@@ -4579,7 +4569,7 @@ function PullRequestComposer({
         <div className="flex min-w-0 items-center justify-between gap-2">
           <div className="flex min-w-0 items-center gap-1.5 text-xs">
             <ReviewIcon className="size-3.5 shrink-0 text-muted-foreground" aria-hidden="true" />
-            <span className="font-medium text-foreground">New {copy.reviewLabel}</span>
+            <span className="font-medium text-foreground">{translate("auto.components.right.sidebar.SourceControl.e1970d327d", "New")}{copy.reviewLabel}</span>
           </div>
           {aiGenerationEnabled ? (
             generating ? (
@@ -4587,11 +4577,11 @@ function PullRequestComposer({
                 type="button"
                 onClick={() => onCancelGenerate()}
                 className="inline-flex h-6 shrink-0 items-center gap-1 rounded-md border border-border bg-background px-2 text-[11px] text-muted-foreground transition-colors hover:bg-destructive/10 hover:text-destructive"
-                title="Stop generating"
-                aria-label={`Stop generating ${copy.reviewLabel} details`}
+                title={translate("auto.components.right.sidebar.SourceControl.527e130b6f", "Stop generating")}
+                aria-label={translate("auto.components.right.sidebar.SourceControl.527e130b6f", "Stop generating {{value0}} details", { value0: copy.reviewLabel })}
               >
                 <RefreshCw className="size-3 animate-spin" />
-                <span>Generating…</span>
+                <span>{translate("auto.components.right.sidebar.SourceControl.e868cec4e1", "Generating…")}</span>
                 <Square className="size-2.5 fill-current" />
               </button>
             ) : (
@@ -4601,11 +4591,10 @@ function PullRequestComposer({
                 onClick={() => onGenerate()}
                 className="inline-flex h-6 shrink-0 items-center gap-1 rounded-md border border-border bg-background px-2 text-[11px] font-medium text-foreground transition-colors hover:bg-accent disabled:cursor-not-allowed disabled:opacity-40 disabled:hover:bg-background"
                 title={generateDisabledReason ?? `Generate ${copy.reviewLabel} details with AI`}
-                aria-label={`Generate ${copy.reviewLabel} details with AI`}
+                aria-label={translate("auto.components.right.sidebar.SourceControl.02d8c04339", "Generate {{value0}} details with AI", { value0: copy.reviewLabel })}
               >
                 <Sparkles className="size-3" />
-                Generate
-              </button>
+                {translate("auto.components.right.sidebar.SourceControl.02d8c04339", "Generate")}</button>
             )
           ) : null}
         </div>
@@ -4630,21 +4619,21 @@ function PullRequestComposer({
 
         <div className="relative space-y-2">
           <input
-            aria-label={`${copy.titleLabel} title`}
+            aria-label={translate("auto.components.right.sidebar.SourceControl.a6eda33521", "{{value0}} title", { value0: copy.titleLabel })}
             value={title}
             disabled={fieldsLocked}
             onChange={(event) => setTitle(event.target.value)}
-            placeholder="Title"
+            placeholder={translate("auto.components.right.sidebar.SourceControl.7d6a8f0082", "Title")}
             className="h-8 w-full min-w-0 rounded-md border border-border bg-background px-2 text-xs font-medium text-foreground outline-none placeholder:text-muted-foreground/70 focus-visible:ring-1 focus-visible:ring-ring disabled:cursor-not-allowed disabled:opacity-60"
           />
 
           <textarea
-            aria-label={`${copy.titleLabel} description`}
+            aria-label={translate("auto.components.right.sidebar.SourceControl.a8873e1d62", "{{value0}} description", { value0: copy.titleLabel })}
             rows={6}
             value={body}
             disabled={fieldsLocked}
             onChange={(event) => setBody(event.target.value)}
-            placeholder="Description (optional)"
+            placeholder={translate("auto.components.right.sidebar.SourceControl.a0dc20fc93", "Description (optional)")}
             className="min-h-[7.5rem] w-full resize-y rounded-md border border-border bg-background px-2 py-1.5 text-xs text-foreground outline-none placeholder:text-muted-foreground/70 focus-visible:ring-1 focus-visible:ring-ring disabled:cursor-not-allowed disabled:opacity-60 scrollbar-sleek"
           />
 
@@ -4659,7 +4648,7 @@ function PullRequestComposer({
             >
               <div className="pointer-events-auto flex items-center gap-1.5 rounded-md border border-border bg-background px-2 py-1 text-[11px] text-muted-foreground shadow-sm">
                 <Sparkles className="size-3 animate-pulse text-foreground" />
-                <span>Generating title & description…</span>
+                <span>{translate("auto.components.right.sidebar.SourceControl.9484270f45", "Generating title & description…")}</span>
               </div>
             </div>
           ) : null}
@@ -4669,17 +4658,17 @@ function PullRequestComposer({
             the full width. The dropdown chevron makes the picker affordance
             obvious; the inline label clarifies that this is the merge target. */}
         <div className="flex items-center gap-2">
-          <span className="shrink-0 text-[11px] text-muted-foreground">Base</span>
+          <span className="shrink-0 text-[11px] text-muted-foreground">{translate("auto.components.right.sidebar.SourceControl.1f7119f604", "Base")}</span>
           <div className="relative min-w-0 flex-1">
             <input
-              aria-label={`${copy.titleLabel} base branch`}
+              aria-label={translate("auto.components.right.sidebar.SourceControl.6055949c50", "{{value0}} base branch", { value0: copy.titleLabel })}
               value={baseQuery || base}
               disabled={fieldsLocked}
               onChange={(event) => {
                 setBaseQuery(event.target.value)
                 setBase(event.target.value)
               }}
-              placeholder="main"
+              placeholder={translate("auto.components.right.sidebar.SourceControl.e64a632456", "main")}
               className="h-7 w-full min-w-0 rounded-md border border-border bg-background px-2 pr-6 font-mono text-xs text-foreground outline-none placeholder:text-muted-foreground/70 focus-visible:ring-1 focus-visible:ring-ring disabled:cursor-not-allowed disabled:opacity-60"
             />
             <ChevronDown
@@ -4704,7 +4693,7 @@ function PullRequestComposer({
             onChange={(event) => setDraft(event.target.checked)}
             className="size-3.5 shrink-0 rounded border-border accent-primary"
           />
-          <span className="min-w-0 flex-1 truncate">Create as draft</span>
+          <span className="min-w-0 flex-1 truncate">{translate("auto.components.right.sidebar.SourceControl.78ddfd0bb4", "Create as draft")}</span>
         </label>
 
         {baseResults.length > 0 ? (
@@ -4759,8 +4748,8 @@ function PullRequestComposer({
                   'h-7 rounded-l-none border-l border-primary-foreground/20 px-1.5 shrink-0',
                   createDisabled && 'opacity-50'
                 )}
-                aria-label={`More ${copy.reviewLabel} and remote actions`}
-                title="More actions"
+                aria-label={translate("auto.components.right.sidebar.SourceControl.c5e4175139", "More {{value0}} and remote actions", { value0: copy.reviewLabel })}
+                title={translate("auto.components.right.sidebar.SourceControl.4d6e1fd7f3", "More actions")}
               >
                 <ChevronDown className="size-3.5" />
               </Button>
@@ -4801,7 +4790,7 @@ function PullRequestComposer({
         {baseSameAsBranch ? (
           <p className="flex items-start gap-1 text-[11px] text-destructive">
             <TriangleAlert className="mt-px size-3 shrink-0" aria-hidden="true" />
-            <span>Choose a different base branch before creating a {copy.reviewLabel}.</span>
+            <span>{translate("auto.components.right.sidebar.SourceControl.ae743199cd", "Choose a different base branch before creating a")}{copy.reviewLabel}.</span>
           </p>
         ) : null}
         {baseSearchError ? (
@@ -4891,8 +4880,8 @@ function CommitFailureFixSplitButton({
             className={cn('rounded-r-none', primaryClassName)}
             disabled={isLaunching || !canLaunch}
             onClick={() => void onFixWithDefaultAgent()}
-            title="Start the default AI agent to fix this commit failure"
-            aria-label="Fix commit failure with AI"
+            title={translate("auto.components.right.sidebar.SourceControl.4b37ae99b0", "Start the default AI agent to fix this commit failure")}
+            aria-label={translate("auto.components.right.sidebar.SourceControl.30b8d4f181", "Fix commit failure with AI")}
           >
             {isLaunching ? (
               <RefreshCw className={cn(iconClassName, 'animate-spin')} />
@@ -4908,8 +4897,8 @@ function CommitFailureFixSplitButton({
               size={size}
               className={cn('rounded-l-none border-l', dividerClass, chevronClassName)}
               disabled={isLaunching || !canLaunch}
-              title="Choose an agent for this commit failure"
-              aria-label="Choose agent to fix commit failure"
+              title={translate("auto.components.right.sidebar.SourceControl.dd43c47089", "Choose an agent for this commit failure")}
+              aria-label={translate("auto.components.right.sidebar.SourceControl.ec7bfced55", "Choose agent to fix commit failure")}
             >
               <ChevronDown className={iconClassName} />
             </Button>
@@ -4922,10 +4911,9 @@ function CommitFailureFixSplitButton({
               className="gap-2 rounded-[7px] px-2 py-1.5 text-[12px] leading-5 font-medium"
             >
               <SlidersHorizontal className="size-4 text-muted-foreground" />
-              Customize launch...
-            </DropdownMenuItem>
+              {translate("auto.components.right.sidebar.SourceControl.f0a2dc9e46", "Customize launch...")}</DropdownMenuItem>
           ) : (
-            <DropdownMenuItem disabled>Commit failure context unavailable</DropdownMenuItem>
+            <DropdownMenuItem disabled>{translate("auto.components.right.sidebar.SourceControl.9e5ccd00aa", "Commit failure context unavailable")}</DropdownMenuItem>
           )}
         </DropdownMenuContent>
       </DropdownMenu>
@@ -4934,8 +4922,8 @@ function CommitFailureFixSplitButton({
           open={composerOpen}
           onOpenChange={setComposerOpen}
           actionId="fixCommitFailure"
-          title="Fix Commit Failure With AI"
-          description="Choose the agent and edit the full command input before launch."
+          title={translate("auto.components.right.sidebar.SourceControl.054ead86b1", "Fix Commit Failure With AI")}
+          description={translate("auto.components.right.sidebar.SourceControl.15b7f210d7", "Choose the agent and edit the full command input before launch.")}
           baseCommandInput={prompt}
           worktreeId={worktreeId}
           groupId={groupId}
@@ -5174,8 +5162,8 @@ export function CommitArea({
             rows={rows}
             value={commitMessage}
             onChange={(e) => onCommitMessageChange(e.target.value)}
-            placeholder="Message"
-            aria-label="Commit message"
+            placeholder={translate("auto.components.right.sidebar.SourceControl.0d0a8359d3", "Message")}
+            aria-label={translate("auto.components.right.sidebar.SourceControl.b94112eb9e", "Commit message")}
             aria-describedby={describedBy || undefined}
             // Why: reserve right padding so typed text does not slide under the
             // absolute-positioned Generate icon in the top-right corner.
@@ -5204,8 +5192,7 @@ export function CommitArea({
                   </button>
                 </TooltipTrigger>
                 <TooltipContent side="left" sideOffset={6}>
-                  Generating commit message. Click to stop.
-                </TooltipContent>
+                  {translate("auto.components.right.sidebar.SourceControl.37a81f29ad", "Generating commit message. Click to stop.")}</TooltipContent>
               </Tooltip>
             ) : (
               <button
@@ -5274,8 +5261,8 @@ export function CommitArea({
                       // that are still valid when the primary is disabled.
                       primaryAction.disabled && 'opacity-50'
                     )}
-                    aria-label="More commit and remote actions"
-                    title="More actions"
+                    aria-label={translate("auto.components.right.sidebar.SourceControl.cc199ccc5f", "More commit and remote actions")}
+                    title={translate("auto.components.right.sidebar.SourceControl.4d6e1fd7f3", "More actions")}
                   >
                     {showChevronSpinner ? (
                       <RefreshCw className="size-3.5 animate-spin" />
@@ -5287,8 +5274,7 @@ export function CommitArea({
               </span>
             </TooltipTrigger>
             <TooltipContent side="top" sideOffset={6}>
-              More commit and remote actions
-            </TooltipContent>
+              {translate("auto.components.right.sidebar.SourceControl.cc199ccc5f", "More commit and remote actions")}</TooltipContent>
           </Tooltip>
           <DropdownMenuContent align="end" className="min-w-[14rem]">
             {dropdownItems.map((entry, index) =>
@@ -5348,7 +5334,7 @@ export function CommitArea({
                 <TriangleAlert className="size-3" aria-hidden="true" />
               </span>
               <div className="flex min-w-0 items-center gap-1.5">
-                <span className="text-xs font-semibold text-foreground">Commit blocked</span>
+                <span className="text-xs font-semibold text-foreground">{translate("auto.components.right.sidebar.SourceControl.011f9713fc", "Commit blocked")}</span>
                 {commitFailureKindLabel ? (
                   <span className="shrink-0 rounded-full bg-destructive/10 px-1.5 py-px text-[10px] leading-4 font-semibold text-destructive">
                     {commitFailureKindLabel}
@@ -5390,8 +5376,7 @@ export function CommitArea({
                   className="h-6 shrink-0 border-foreground/25 px-2 text-[11px] font-semibold"
                   onClick={() => setCommitFailureDialogOpen(true)}
                 >
-                  Details
-                </Button>
+                  {translate("auto.components.right.sidebar.SourceControl.03d238218c", "Details")}</Button>
               )}
             </div>
           </div>
@@ -5405,7 +5390,7 @@ export function CommitArea({
         >
           <DialogContent className="sm:max-w-2xl">
             <DialogHeader>
-              <DialogTitle>Commit Failed</DialogTitle>
+              <DialogTitle>{translate("auto.components.right.sidebar.SourceControl.a9bf7c171a", "Commit Failed")}</DialogTitle>
               <DialogDescription>{commitFailureSummary}</DialogDescription>
             </DialogHeader>
             <pre className="max-h-[60vh] overflow-auto rounded-md border border-border bg-muted/40 p-3 font-mono text-xs whitespace-pre-wrap text-foreground scrollbar-sleek">
@@ -5436,8 +5421,7 @@ export function CommitArea({
               />
               <DialogClose asChild>
                 <Button type="button" variant="outline" size="sm">
-                  Close
-                </Button>
+                  {translate("auto.components.right.sidebar.SourceControl.783a808870", "Close")}</Button>
               </DialogClose>
             </DialogFooter>
           </DialogContent>
@@ -5490,7 +5474,7 @@ export function CompareSummary({
     return (
       <div className="flex items-center gap-2 text-xs text-muted-foreground">
         <RefreshCw className="size-3.5 animate-spin" />
-        <span>Comparing against {summary?.baseRef ?? '…'}</span>
+        <span>{translate("auto.components.right.sidebar.SourceControl.11b5dd8e41", "Comparing against")}{summary?.baseRef ?? '…'}</span>
       </div>
     )
   }
@@ -5504,10 +5488,10 @@ export function CompareSummary({
         <div className="flex shrink-0 items-center gap-2">
           <CompareSummaryToolbarButton
             icon={Settings2}
-            label="Change base ref"
+            label={translate("auto.components.right.sidebar.SourceControl.493f963029", "Change base ref")}
             onClick={onChangeBaseRef}
           />
-          <CompareSummaryToolbarButton icon={RefreshCw} label="Retry" onClick={onRetry} />
+          <CompareSummaryToolbarButton icon={RefreshCw} label={translate("auto.components.right.sidebar.SourceControl.286dbda4d6", "Retry")} onClick={onRetry} />
         </div>
       </div>
     )
@@ -5527,17 +5511,17 @@ export function CompareSummary({
     <div className="flex items-center gap-2 text-xs text-muted-foreground">
       <span className="flex min-w-0 items-center gap-1" title={commitsAheadTitle}>
         <ArrowUp className="size-3" />
-        <span>{commitsAhead} ahead</span>
+        <span>{commitsAhead} {translate("auto.components.right.sidebar.SourceControl.3278b2767b", "ahead")}</span>
       </span>
       <div className="ml-auto flex shrink-0 items-center gap-2">
         <CompareSummaryToolbarButton
           icon={Settings2}
-          label="Change base ref"
+          label={translate("auto.components.right.sidebar.SourceControl.493f963029", "Change base ref")}
           onClick={onChangeBaseRef}
         />
         <CompareSummaryToolbarButton
           icon={RefreshCw}
-          label="Refresh branch compare"
+          label={translate("auto.components.right.sidebar.SourceControl.ed34038d0d", "Refresh branch compare")}
           onClick={onRetry}
         />
       </div>
@@ -5607,13 +5591,11 @@ function CompareUnavailable({
             onClick={onChangeBaseRef}
           >
             <Settings2 className="size-3.5" />
-            Change Base Ref
-          </Button>
+            {translate("auto.components.right.sidebar.SourceControl.476b77745b", "Change Base Ref")}</Button>
         )}
         <Button type="button" variant="ghost" size="sm" className="h-7 text-xs" onClick={onRetry}>
           <RefreshCw className="size-3.5" />
-          Retry
-        </Button>
+          {translate("auto.components.right.sidebar.SourceControl.286dbda4d6", "Retry")}</Button>
       </div>
     </div>
   )
@@ -5653,7 +5635,7 @@ function SectionHeader({
           <span className="text-[11px] font-medium tabular-nums">{count}</span>
           {conflictCount > 0 && (
             <span className="text-[11px] font-medium text-destructive/80">
-              · {conflictCount} conflict{conflictCount === 1 ? '' : 's'}
+              · {conflictCount} {translate("auto.components.right.sidebar.SourceControl.413a3ba113", "conflict")}{conflictCount === 1 ? '' : 's'}
             </span>
           )}
         </button>
@@ -5709,8 +5691,7 @@ function DiffCommentsInlineList({
   if (comments.length === 0) {
     return (
       <div className="px-6 py-2 text-[11px] text-muted-foreground">
-        Hover over a line in the diff view and click the + to add a note.
-      </div>
+        {translate("auto.components.right.sidebar.SourceControl.ac8cbe3bf5", "Hover over a line in the diff view and click the + to add a note.")}</div>
     )
   }
 
@@ -5728,7 +5709,7 @@ function DiffCommentsInlineList({
                   onOpen(first)
                 }
               }}
-              title={`Open ${filePath}`}
+              title={translate("auto.components.right.sidebar.SourceControl.0d963bf982", "Open {{value0}}", { value0: filePath })}
             >
               {filePath}
             </button>
@@ -5736,8 +5717,8 @@ function DiffCommentsInlineList({
               type="button"
               className="shrink-0 rounded p-0.5 text-muted-foreground opacity-0 transition-opacity hover:text-destructive focus-visible:opacity-100 group-hover/file:opacity-100"
               onClick={() => onClearFile(filePath)}
-              title={`Clear notes for ${filePath}`}
-              aria-label={`Clear notes for ${filePath}`}
+              title={translate("auto.components.right.sidebar.SourceControl.59654650d3", "Clear notes for {{value0}}", { value0: filePath })}
+              aria-label={translate("auto.components.right.sidebar.SourceControl.59654650d3", "Clear notes for {{value0}}", { value0: filePath })}
             >
               <Trash2 className="size-3" />
             </button>
@@ -5758,8 +5739,8 @@ function DiffCommentsInlineList({
                   // fire the row's open handler.
                   className="flex min-w-0 flex-1 cursor-pointer items-center gap-1.5 rounded text-left"
                   onClick={() => onOpen(c)}
-                  title={`Open ${c.filePath} (${getDiffCommentLineLabel(c).toLowerCase()})`}
-                  aria-label={`Open note on ${getDiffCommentLineLabel(c).toLowerCase()}`}
+                  title={translate("auto.components.right.sidebar.SourceControl.0d963bf982", "Open {{value0}} ({{value1}})", { value0: c.filePath, value1: getDiffCommentLineLabel(c).toLowerCase() })}
+                  aria-label={translate("auto.components.right.sidebar.SourceControl.3eb9b2805e", "Open note on {{value0}}", { value0: getDiffCommentLineLabel(c).toLowerCase() })}
                 >
                   <span className="shrink-0 rounded bg-muted px-1 py-0.5 text-[10px] leading-none tabular-nums text-muted-foreground">
                     {getDiffCommentLineLabel(c, true)}
@@ -5769,8 +5750,7 @@ function DiffCommentsInlineList({
                   </span>
                   {c.sentAt ? (
                     <span className="shrink-0 rounded bg-muted/70 px-1 py-0.5 text-[10px] leading-none text-muted-foreground">
-                      Sent
-                    </span>
+                      {translate("auto.components.right.sidebar.SourceControl.655633c08a", "Sent")}</span>
                   ) : null}
                   <span className="block min-w-0 flex-1 whitespace-pre-wrap break-words text-[11px] leading-snug text-foreground">
                     {c.body}
@@ -5780,8 +5760,8 @@ function DiffCommentsInlineList({
                   type="button"
                   className="shrink-0 rounded p-0.5 text-muted-foreground opacity-0 transition-opacity hover:text-foreground group-hover:opacity-100"
                   onClick={() => void handleCopyOne(c)}
-                  title="Copy note"
-                  aria-label={`Copy note on line ${c.lineNumber}`}
+                  title={translate("auto.components.right.sidebar.SourceControl.1623bf4e19", "Copy note")}
+                  aria-label={translate("auto.components.right.sidebar.SourceControl.c085946bda", "Copy note on line {{value0}}", { value0: c.lineNumber })}
                 >
                   {copiedId === c.id ? <Check className="size-3" /> : <Copy className="size-3" />}
                 </button>
@@ -5789,8 +5769,8 @@ function DiffCommentsInlineList({
                   type="button"
                   className="shrink-0 rounded p-0.5 text-muted-foreground opacity-0 transition-opacity hover:text-destructive group-hover:opacity-100"
                   onClick={() => onDelete(c.id)}
-                  title="Delete note"
-                  aria-label={`Delete note on line ${c.lineNumber}`}
+                  title={translate("auto.components.right.sidebar.SourceControl.b656381c18", "Delete note")}
+                  aria-label={translate("auto.components.right.sidebar.SourceControl.c321542ee2", "Delete note on line {{value0}}", { value0: c.lineNumber })}
                 >
                   <Trash className="size-3" />
                 </button>
@@ -5847,8 +5827,7 @@ export function ConflictSummaryCard({
             aria-live="polite"
           >{`${operationLabel}: ${unresolvedCount} unresolved`}</div>
           <div className="mt-1 text-[11px] text-muted-foreground">
-            Resolved files move back to normal changes after they leave the live conflict state.
-          </div>
+            {translate("auto.components.right.sidebar.SourceControl.3eeccbb221", "Resolved files move back to normal changes after they leave the live conflict state.")}</div>
         </div>
       </div>
       <div className="mt-2">
@@ -5865,8 +5844,7 @@ export function ConflictSummaryCard({
           ) : (
             <Sparkles className="size-3.5" />
           )}
-          Resolve with AI
-        </Button>
+          {translate("auto.components.right.sidebar.SourceControl.f6cb48b6fe", "Resolve with AI")}</Button>
         <Button
           type="button"
           variant="outline"
@@ -5875,8 +5853,7 @@ export function ConflictSummaryCard({
           onClick={onReview}
         >
           <GitMerge className="size-3.5" />
-          Review conflicts
-        </Button>
+          {translate("auto.components.right.sidebar.SourceControl.27a50fe970", "Review conflicts")}</Button>
         {(conflictOperation === 'merge' || conflictOperation === 'rebase') && onAbortOperation ? (
           <Button
             type="button"
@@ -6287,7 +6264,7 @@ function ConflictBadge({ entry }: { entry: GitStatusEntry }): React.JSX.Element 
   const badge = (
     <span
       role="status"
-      aria-label={`${label} conflict${entry.conflictKind ? `, ${CONFLICT_KIND_LABELS[entry.conflictKind]}` : ''}`}
+      aria-label={translate("auto.components.right.sidebar.SourceControl.413a3ba113", "{{value0}} conflict{{value1}}", { value0: label, value1: entry.conflictKind ? `, ${CONFLICT_KIND_LABELS[entry.conflictKind]}` : '' })}
       className={cn(
         'inline-flex shrink-0 items-center gap-1 rounded-full px-2 py-0.5 text-[10px] font-semibold',
         isUnresolvedConflict
@@ -6309,8 +6286,7 @@ function ConflictBadge({ entry }: { entry: GitStatusEntry }): React.JSX.Element 
       <Tooltip>
         <TooltipTrigger asChild>{badge}</TooltipTrigger>
         <TooltipContent side="left" sideOffset={6}>
-          Local session state derived from a conflict you opened here.
-        </TooltipContent>
+          {translate("auto.components.right.sidebar.SourceControl.03194cfff4", "Local session state derived from a conflict you opened here.")}</TooltipContent>
       </Tooltip>
     </TooltipProvider>
   )
@@ -6413,8 +6389,7 @@ function SourceControlEntryContextMenu({
       <ContextMenuContent className="w-52">
         <ContextMenuItem onSelect={handleOpenInFileExplorer} disabled={!absolutePath}>
           <FolderOpen className="size-3.5" />
-          Open in File Explorer
-        </ContextMenuItem>
+          {translate("auto.components.right.sidebar.SourceControl.cc05b2d088", "Open in File Explorer")}</ContextMenuItem>
       </ContextMenuContent>
     </ContextMenu>
   )

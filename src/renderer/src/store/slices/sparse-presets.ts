@@ -2,6 +2,7 @@ import type { StateCreator } from 'zustand'
 import { toast } from 'sonner'
 import type { AppState } from '../types'
 import type { SparsePreset } from '../../../../shared/types'
+import { translate } from '@/i18n/i18n'
 
 const ERROR_TOAST_DURATION = 60_000
 
@@ -74,7 +75,7 @@ export const createSparsePresetsSlice: StateCreator<AppState, [], [], SparsePres
         await get().fetchSparsePresets(args.repoId)
         if (get().sparsePresetsByRepo[args.repoId] === undefined) {
           toast.error(args.id ? 'Failed to update preset' : 'Failed to save preset', {
-            description: 'Presets must load before saving.',
+            description: translate("auto.store.slices.sparse.presets.ef13e994e6", "Presets must load before saving."),
             duration: ERROR_TOAST_DURATION
           })
           return null

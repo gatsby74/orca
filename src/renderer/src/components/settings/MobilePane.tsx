@@ -12,6 +12,7 @@ import {
   type MobileNetworkInterface
 } from './mobile-network-interface-selection'
 import { MobileNetworkInterfaceSection } from './MobileNetworkInterfaceSection'
+import { translate } from '@/i18n/i18n'
 export { MOBILE_PANE_SEARCH_ENTRIES } from './mobile-pane-search'
 
 // Why: the section heading "When you leave the mobile app" carries the
@@ -19,10 +20,10 @@ export { MOBILE_PANE_SEARCH_ENTRIES } from './mobile-pane-search'
 // duration knob. Indefinite hold (`null`) is the default. Server clamps
 // anything outside [5_000ms, 60min]. See docs/mobile-fit-hold.md.
 const AUTO_RESTORE_FIT_OPTIONS: { value: string; label: string; ms: number | null }[] = [
-  { value: 'indefinite', label: 'Keep at phone size (default)', ms: null },
-  { value: '60s', label: 'After 1 minute', ms: 60_000 },
-  { value: '5m', label: 'After 5 minutes', ms: 5 * 60_000 },
-  { value: '30m', label: 'After 30 minutes', ms: 30 * 60_000 }
+  { value: 'indefinite', label: translate("auto.components.settings.MobilePane.aa1263e881", "Keep at phone size (default)"), ms: null },
+  { value: '60s', label: translate("auto.components.settings.MobilePane.c474aa09d8", "After 1 minute"), ms: 60_000 },
+  { value: '5m', label: translate("auto.components.settings.MobilePane.d4ba07d914", "After 5 minutes"), ms: 5 * 60_000 },
+  { value: '30m', label: translate("auto.components.settings.MobilePane.ff865419dc", "After 30 minutes"), ms: 30 * 60_000 }
 ]
 
 function autoRestoreValueFromMs(ms: number | null | undefined): string {
@@ -103,7 +104,7 @@ export function MobilePane(): React.JSX.Element {
         }
       } catch {
         if (opts.notifyOnError && mountedRef.current) {
-          toast.error('Failed to refresh network interfaces')
+          toast.error(translate("auto.components.settings.MobilePane.d714614dbf", "Failed to refresh network interfaces"))
         }
       } finally {
         if (mountedRef.current) {
@@ -141,12 +142,12 @@ export function MobilePane(): React.JSX.Element {
           }
         } else {
           if (mountedRef.current) {
-            toast.error('WebSocket transport is not running')
+            toast.error(translate("auto.components.settings.MobilePane.cb9067c1c1", "WebSocket transport is not running"))
           }
         }
       } catch {
         if (mountedRef.current) {
-          toast.error('Failed to generate QR code')
+          toast.error(translate("auto.components.settings.MobilePane.e3c427e020", "Failed to generate QR code"))
         }
       } finally {
         if (mountedRef.current) {
@@ -188,7 +189,7 @@ export function MobilePane(): React.JSX.Element {
       }, 2000)
     } catch {
       if (mountedRef.current) {
-        toast.error('Failed to copy pairing code')
+        toast.error(translate("auto.components.settings.MobilePane.711231348f", "Failed to copy pairing code"))
       }
     }
   }
@@ -202,11 +203,11 @@ export function MobilePane(): React.JSX.Element {
           devicesRef.current = nextDevices
           return nextDevices
         })
-        toast.success('Device revoked')
+        toast.success(translate("auto.components.settings.MobilePane.2e3dd0bc29", "Device revoked"))
       }
     } catch {
       if (mountedRef.current) {
-        toast.error('Failed to revoke device')
+        toast.error(translate("auto.components.settings.MobilePane.870e1b5ca5", "Failed to revoke device"))
       }
     }
   }
@@ -237,13 +238,11 @@ export function MobilePane(): React.JSX.Element {
           </button>
           {endpoint && <span className="text-muted-foreground font-mono text-xs">{endpoint}</span>}
           <p className="text-muted-foreground max-w-xs text-center text-xs">
-            Scan this code with the Orca mobile app. Each code creates a unique device token.
-          </p>
+            {translate("auto.components.settings.MobilePane.310924ad2c", "Scan this code with the Orca mobile app. Each code creates a unique device token.")}</p>
           {pairingUrl && (
             <div className="flex w-full max-w-lg flex-col gap-1.5 px-4">
               <div className="text-muted-foreground text-center text-xs">
-                Or paste this code in the mobile app:
-              </div>
+                {translate("auto.components.settings.MobilePane.e778ecb209", "Or paste this code in the mobile app:")}</div>
               <Button
                 ref={setPairingCodeButtonRef}
                 variant="outline"
@@ -265,7 +264,7 @@ export function MobilePane(): React.JSX.Element {
 
       {/* Paired devices */}
       <div>
-        <h3 className="mb-2 text-sm font-medium">Paired Devices</h3>
+        <h3 className="mb-2 text-sm font-medium">{translate("auto.components.settings.MobilePane.d7ce676270", "Paired Devices")}</h3>
         {devices.length === 0 ? (
           <p className="text-muted-foreground text-sm">
             {qrDataUrl
@@ -282,7 +281,7 @@ export function MobilePane(): React.JSX.Element {
                 <div>
                   <div className="text-sm font-medium">{device.name}</div>
                   <div className="text-muted-foreground text-xs">
-                    Paired {new Date(device.pairedAt).toLocaleDateString()}
+                    {translate("auto.components.settings.MobilePane.254a6d09e4", "Paired")}{new Date(device.pairedAt).toLocaleDateString()}
                   </div>
                 </div>
                 <Button
@@ -299,8 +298,7 @@ export function MobilePane(): React.JSX.Element {
         )}
         {devices.length > 0 && (
           <p className="text-muted-foreground mt-3 text-xs">
-            Revoking a device disconnects it immediately.
-          </p>
+            {translate("auto.components.settings.MobilePane.3939fd062c", "Revoking a device disconnects it immediately.")}</p>
         )}
       </div>
 
@@ -308,14 +306,10 @@ export function MobilePane(): React.JSX.Element {
       <div className="rounded-lg border border-border/60 p-4">
         <div className="mb-3 flex items-center gap-2">
           <Smartphone className="size-4 text-muted-foreground" />
-          <span className="text-sm font-medium">When you leave the mobile app</span>
+          <span className="text-sm font-medium">{translate("auto.components.settings.MobilePane.ee56f1c7e4", "When you leave the mobile app")}</span>
         </div>
         <p className="text-muted-foreground mb-3 text-xs">
-          While you&apos;re using a terminal on your phone, Orca shrinks it to fit your phone
-          screen. When you close the app or switch away, this controls whether it stays at phone
-          size (so interactive CLI tools don&apos;t reflow) or resizes back to your desktop. You can
-          always click Restore on the terminal banner to resize it manually.
-        </p>
+          {translate("auto.components.settings.MobilePane.35100bca5d", "While you're using a terminal on your phone, Orca shrinks it to fit your phone screen. When you close the app or switch away, this controls whether it stays at phone size (so interactive CLI tools don't reflow) or resizes back to your desktop. You can always click Restore on the terminal banner to resize it manually.")}</p>
         <Select
           value={autoRestoreValueFromMs(autoRestoreFitMs)}
           onValueChange={(v) => {
@@ -343,7 +337,7 @@ export function MobilePane(): React.JSX.Element {
       <Dialog open={qrEnlarged} onOpenChange={setQrEnlarged}>
         <DialogContent className="sm:max-w-sm">
           <DialogHeader>
-            <DialogTitle>Scan with Orca Mobile</DialogTitle>
+            <DialogTitle>{translate("auto.components.settings.MobilePane.dd3cd78d04", "Scan with Orca Mobile")}</DialogTitle>
           </DialogHeader>
           {qrDataUrl && (
             <div className="flex flex-col items-center gap-3">

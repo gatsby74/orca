@@ -46,6 +46,7 @@ import { STATUS_LABELS } from './status-display'
 import type { TreeNode } from './file-explorer-types'
 import { useFileExplorerRowDrag } from './useFileExplorerRowDrag'
 import { isLocalPathOpenBlocked, showLocalPathOpenBlockedToast } from '@/lib/local-path-open-guard'
+import { translate } from '@/i18n/i18n'
 
 const isMac = navigator.userAgent.includes('Mac')
 const isLinux = navigator.userAgent.includes('Linux')
@@ -495,7 +496,7 @@ export function FileExplorerRow({
             </span>
           ) : isIgnored ? (
             <CircleSlash
-              aria-label="Ignored by .gitignore"
+              aria-label={translate("auto.components.right.sidebar.FileExplorerRow.e26010014a", "Ignored by .gitignore")}
               className="ml-auto size-3 shrink-0 mr-2"
               style={{ color: 'var(--git-decoration-ignored)' }}
             />
@@ -509,12 +510,10 @@ export function FileExplorerRow({
       >
         <ContextMenuItem onSelect={() => onStartNew('file', targetDir, targetDepth)}>
           <FilePlus />
-          New File
-        </ContextMenuItem>
+          {translate("auto.components.right.sidebar.FileExplorerRow.37c875d827", "New File")}</ContextMenuItem>
         <ContextMenuItem onSelect={() => onStartNew('folder', targetDir, targetDepth)}>
           <FolderPlus />
-          New Folder
-        </ContextMenuItem>
+          {translate("auto.components.right.sidebar.FileExplorerRow.f61af83316", "New Folder")}</ContextMenuItem>
         <ContextMenuSeparator />
         <ContextMenuItem onSelect={() => onCopyPaths('absolute')}>
           <Copy />
@@ -533,20 +532,17 @@ export function FileExplorerRow({
         {!node.isDirectory && (
           <ContextMenuItem onSelect={() => onDuplicate(node)}>
             <Files />
-            Duplicate
-          </ContextMenuItem>
+            {translate("auto.components.right.sidebar.FileExplorerRow.0fec99bfd7", "Duplicate")}</ContextMenuItem>
         )}
         {canAddAsProject && (
           <ContextMenuItem onSelect={onAddFolderAsProject}>
             <FolderPlus />
-            Add as Project...
-          </ContextMenuItem>
+            {translate("auto.components.right.sidebar.FileExplorerRow.1bb9be455c", "Add as Project...")}</ContextMenuItem>
         )}
         {!node.isDirectory && activeWorktreeId && (
           <ContextMenuItem onSelect={handleOpenInOrcaBrowser}>
             <Globe />
-            Open in Orca Browser
-          </ContextMenuItem>
+            {translate("auto.components.right.sidebar.FileExplorerRow.dd112c81d2", "Open in Orca Browser")}</ContextMenuItem>
         )}
         {!node.isDirectory && activeWorktreeId && detectLanguage(node.path) === 'markdown' && (
           <ContextMenuItem
@@ -560,20 +556,17 @@ export function FileExplorerRow({
             }
           >
             <Eye />
-            Open Markdown Preview
-          </ContextMenuItem>
+            {translate("auto.components.right.sidebar.FileExplorerRow.d87a4c42e1", "Open Markdown Preview")}</ContextMenuItem>
         )}
         {shouldShowCollapseFolderAction(node, isExpanded) && (
           <ContextMenuItem onSelect={onCollapseFolderSubtree}>
             <ListCollapse />
-            Collapse Folder
-          </ContextMenuItem>
+            {translate("auto.components.right.sidebar.FileExplorerRow.d6a25618aa", "Collapse Folder")}</ContextMenuItem>
         )}
         {shouldShowFindInFolderAction(node) && (
           <ContextMenuItem onSelect={onFindInFolder}>
             <Search />
-            Find in Folder
-            {findInFolderShortcutLabel !== 'Unassigned' ? (
+            {translate("auto.components.right.sidebar.FileExplorerRow.0df0e5abac", "Find in Folder")}{findInFolderShortcutLabel !== 'Unassigned' ? (
               <ContextMenuShortcut>{findInFolderShortcutLabel}</ContextMenuShortcut>
             ) : null}
           </ContextMenuItem>
@@ -604,13 +597,11 @@ export function FileExplorerRow({
         <ContextMenuSeparator />
         <ContextMenuItem onSelect={() => onStartRename(node)}>
           <Pencil />
-          Rename
-          <ContextMenuShortcut>{isMac ? '↩' : 'Enter'}</ContextMenuShortcut>
+          {translate("auto.components.right.sidebar.FileExplorerRow.fc747429bf", "Rename")}<ContextMenuShortcut>{isMac ? '↩' : 'Enter'}</ContextMenuShortcut>
         </ContextMenuItem>
         <ContextMenuItem variant="destructive" onSelect={onRequestDelete}>
           <Trash2 />
-          Delete
-          <ContextMenuShortcut>{deleteShortcutLabel}</ContextMenuShortcut>
+          {translate("auto.components.right.sidebar.FileExplorerRow.addc01145f", "Delete")}<ContextMenuShortcut>{deleteShortcutLabel}</ContextMenuShortcut>
         </ContextMenuItem>
       </ContextMenuContent>
     </ContextMenu>

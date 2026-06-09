@@ -7,6 +7,7 @@ import SidebarWorkspaceOptionsMenu from './SidebarWorkspaceOptionsMenu'
 import WorkspaceKanbanDrawer from './WorkspaceKanbanDrawer'
 import { useShortcutLabel } from '@/hooks/useShortcutLabel'
 import { openWorkspaceCreationComposerWithTourHandoff } from '../contextual-tours/workspace-creation-tour-handoff'
+import { translate } from '@/i18n/i18n'
 
 const SidebarHeader = React.memo(function SidebarHeader() {
   const newWorktreeShortcutLabel = useShortcutLabel('workspace.create')
@@ -110,7 +111,7 @@ const SidebarHeader = React.memo(function SidebarHeader() {
                 variant={workspaceBoardOpen ? 'secondary' : 'ghost'}
                 size="icon-xs"
                 className="text-muted-foreground"
-                aria-label="Workspace board"
+                aria-label={translate("auto.components.sidebar.SidebarHeader.49f62c5665", "Workspace board")}
                 aria-pressed={workspaceBoardOpen}
                 data-workspace-board-trigger=""
                 onClick={handleWorkspaceBoardToggle}
@@ -136,7 +137,7 @@ const SidebarHeader = React.memo(function SidebarHeader() {
                   // control so it can hand off to the workspace-creation tour.
                   openWorkspaceCreationComposerWithTourHandoff()
                 }}
-                aria-label="New workspace"
+                aria-label={translate("auto.components.sidebar.SidebarHeader.92154beb7e", "New workspace")}
                 disabled={!canCreateWorkspace}
                 data-contextual-tour-target="workspace-create-control"
               >

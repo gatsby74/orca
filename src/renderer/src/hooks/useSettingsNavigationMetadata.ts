@@ -72,6 +72,7 @@ import {
   getCachedWindowsTerminalCapabilities,
   getWindowsTerminalCapabilityOwnerKey
 } from '@/lib/windows-terminal-capabilities'
+import { translate } from '@/i18n/i18n'
 
 export function isWebClientLocation(): boolean {
   return (
@@ -108,25 +109,25 @@ export function buildSettingsNavigationMetadata({
     // order — keep each new entry beside its group's siblings.
     {
       id: 'agents',
-      title: 'Agents',
-      description: 'Manage AI agents, set a default, and customize commands.',
+      title: translate("auto.hooks.useSettingsNavigationMetadata.b49abbd2f7", "Agents"),
+      description: translate("auto.hooks.useSettingsNavigationMetadata.4121f7a0a2", "Manage AI agents, set a default, and customize commands."),
       icon: Bot,
       searchEntries: AGENTS_PANE_SEARCH_ENTRIES,
       group: 'capabilities'
     },
     {
       id: 'accounts',
-      title: 'AI Provider Accounts',
-      description: 'Optional account switching for Claude, Codex, Gemini, and OpenCode Go.',
+      title: translate("auto.hooks.useSettingsNavigationMetadata.f70ac54d38", "AI Provider Accounts"),
+      description: translate("auto.hooks.useSettingsNavigationMetadata.b1c2f8b0ac", "Optional account switching for Claude, Codex, Gemini, and OpenCode Go."),
       icon: UserCog,
       searchEntries: ACCOUNTS_PANE_SEARCH_ENTRIES,
       group: 'capabilities',
-      badge: 'Optional'
+      badge: translate("auto.hooks.useSettingsNavigationMetadata.7c79d3b7bf", "Optional")
     },
     {
       id: 'orchestration',
-      title: 'Orchestration',
-      description: 'Coordinate multiple coding agents through Orca.',
+      title: translate("auto.hooks.useSettingsNavigationMetadata.58a868e8e4", "Orchestration"),
+      description: translate("auto.hooks.useSettingsNavigationMetadata.cd50cec5d7", "Coordinate multiple coding agents through Orca."),
       icon: Network,
       searchEntries: ORCHESTRATION_PANE_SEARCH_ENTRIES,
       group: 'capabilities'
@@ -135,16 +136,16 @@ export function buildSettingsNavigationMetadata({
       ? [
           {
             id: 'computer-use',
-            title: 'Computer Use',
-            description: 'Enable agents to control any app on your computer.',
+            title: translate("auto.hooks.useSettingsNavigationMetadata.b35e92364b", "Computer Use"),
+            description: translate("auto.hooks.useSettingsNavigationMetadata.0059bd17f3", "Enable agents to control any app on your computer."),
             icon: MousePointerClick,
             searchEntries: COMPUTER_USE_PANE_SEARCH_ENTRIES,
             group: 'capabilities'
           },
           {
             id: 'voice',
-            title: 'Voice',
-            description: 'Local speech-to-text dictation with on-device models.',
+            title: translate("auto.hooks.useSettingsNavigationMetadata.6a50cdcd7c", "Voice"),
+            description: translate("auto.hooks.useSettingsNavigationMetadata.8ac3de82f5", "Local speech-to-text dictation with on-device models."),
             icon: Mic,
             searchEntries: VOICE_PANE_SEARCH_ENTRIES,
             group: 'capabilities'
@@ -153,38 +154,38 @@ export function buildSettingsNavigationMetadata({
       : []),
     {
       id: 'setup-guide',
-      title: 'Onboarding checklist',
-      description: 'Finish the onboarding checklist for core Orca workflows.',
+      title: translate("auto.hooks.useSettingsNavigationMetadata.ded9e9032f", "Onboarding checklist"),
+      description: translate("auto.hooks.useSettingsNavigationMetadata.5f32ac08f3", "Finish the onboarding checklist for core Orca workflows."),
       icon: OrcaLogoSettingsIcon,
       searchEntries: [
         {
-          title: 'Onboarding checklist',
-          description: 'Open the onboarding checklist for setup and milestone steps.',
-          keywords: ['setup guide', 'get started with Orca', 'getting started']
+          title: translate("auto.hooks.useSettingsNavigationMetadata.ded9e9032f", "Onboarding checklist"),
+          description: translate("auto.hooks.useSettingsNavigationMetadata.17005c73d4", "Open the onboarding checklist for setup and milestone steps."),
+          keywords: [translate("auto.hooks.useSettingsNavigationMetadata.ea0b1bc7b8", "setup guide"), translate("auto.hooks.useSettingsNavigationMetadata.0505d0df29", "get started with Orca"), translate("auto.hooks.useSettingsNavigationMetadata.724c440e72", "getting started")]
         }
       ],
       group: 'setup'
     },
     {
       id: 'general',
-      title: 'General',
-      description: 'Workspace defaults, app setup, and maintenance.',
+      title: translate("auto.hooks.useSettingsNavigationMetadata.13241992bd", "General"),
+      description: translate("auto.hooks.useSettingsNavigationMetadata.2cd4ea75da", "Workspace defaults, app setup, and maintenance."),
       icon: SlidersHorizontal,
       searchEntries: GENERAL_PANE_SEARCH_ENTRIES,
       group: 'setup'
     },
     {
       id: 'integrations',
-      title: 'Integrations',
-      description: 'Connect GitHub, GitLab, Linear, and source-hosting services.',
+      title: translate("auto.hooks.useSettingsNavigationMetadata.2b043783ef", "Integrations"),
+      description: translate("auto.hooks.useSettingsNavigationMetadata.33a5e1d597", "Connect GitHub, GitLab, Linear, and source-hosting services."),
       icon: Blocks,
       searchEntries: INTEGRATIONS_PANE_SEARCH_ENTRIES,
       group: 'setup'
     },
     {
       id: 'git',
-      title: 'Git & Source Control',
-      description: 'Branch naming, base refs, attribution, and Git AI Author.',
+      title: translate("auto.hooks.useSettingsNavigationMetadata.09607cb0fe", "Git & Source Control"),
+      description: translate("auto.hooks.useSettingsNavigationMetadata.ab4b21b58e", "Branch naming, base refs, attribution, and Git AI Author."),
       icon: GitBranch,
       // Why: Git AI Author is rendered inside Git, so shared
       // metadata must search both surfaces wherever Git appears.
@@ -193,24 +194,24 @@ export function buildSettingsNavigationMetadata({
     },
     {
       id: 'tasks',
-      title: 'Task Sources',
-      description: 'Choose which task providers appear in the Tasks page and sidebar.',
+      title: translate("auto.hooks.useSettingsNavigationMetadata.85f4fd7710", "Task Sources"),
+      description: translate("auto.hooks.useSettingsNavigationMetadata.5235c215ca", "Choose which task providers appear in the Tasks page and sidebar."),
       icon: ListChecks,
       searchEntries: TASKS_PANE_SEARCH_ENTRIES,
       group: 'workflows'
     },
     {
       id: 'terminal',
-      title: 'Terminal',
-      description: 'Shells, renderer, sessions, and terminal behavior.',
+      title: translate("auto.hooks.useSettingsNavigationMetadata.a9fb10afca", "Terminal"),
+      description: translate("auto.hooks.useSettingsNavigationMetadata.c33bfd664c", "Shells, renderer, sessions, and terminal behavior."),
       icon: SquareTerminal,
       searchEntries: terminalPaneSearchEntries,
       group: 'workflows'
     },
     {
       id: 'quick-commands',
-      title: 'Quick Commands',
-      description: 'Saved terminal commands, scoped globally or per project.',
+      title: translate("auto.hooks.useSettingsNavigationMetadata.3fc3db144f", "Quick Commands"),
+      description: translate("auto.hooks.useSettingsNavigationMetadata.42ae40842f", "Saved terminal commands, scoped globally or per project."),
       icon: Play,
       searchEntries: QUICK_COMMANDS_PANE_SEARCH_ENTRIES,
       group: 'workflows'
@@ -219,8 +220,8 @@ export function buildSettingsNavigationMetadata({
       ? [
           {
             id: 'browser',
-            title: 'Browser',
-            description: 'Home page, link routing, and session cookies.',
+            title: translate("auto.hooks.useSettingsNavigationMetadata.8c197f74a1", "Browser"),
+            description: translate("auto.hooks.useSettingsNavigationMetadata.e815fd01bd", "Home page, link routing, and session cookies."),
             icon: Globe,
             searchEntries: BROWSER_PANE_SEARCH_ENTRIES,
             group: 'workflows'
@@ -231,8 +232,8 @@ export function buildSettingsNavigationMetadata({
       ? [
           {
             id: 'mobile-emulator',
-            title: 'Mobile Emulator',
-            description: 'Configure mobile emulator support for Orca and coding agents.',
+            title: translate("auto.hooks.useSettingsNavigationMetadata.1e761cff2b", "Mobile Emulator"),
+            description: translate("auto.hooks.useSettingsNavigationMetadata.3d65d3f1b9", "Configure mobile emulator support for Orca and coding agents."),
             icon: TabletSmartphone,
             searchEntries: MOBILE_EMULATOR_SEARCH_ENTRIES,
             group: 'workflows'
@@ -241,24 +242,24 @@ export function buildSettingsNavigationMetadata({
       : []),
     {
       id: 'floating-workspace',
-      title: 'Floating Workspace',
-      description: 'Global terminal, browser, and markdown tabs.',
+      title: translate("auto.hooks.useSettingsNavigationMetadata.65b19f5bde", "Floating Workspace"),
+      description: translate("auto.hooks.useSettingsNavigationMetadata.2d0659f6f0", "Global terminal, browser, and markdown tabs."),
       icon: PanelsTopLeft,
       searchEntries: FLOATING_WORKSPACE_SEARCH_ENTRIES,
       group: 'workflows'
     },
     {
       id: 'appearance',
-      title: 'Appearance',
-      description: 'Theme, zoom, app and terminal appearance, sidebars, and status bar.',
+      title: translate("auto.hooks.useSettingsNavigationMetadata.93d88d20bf", "Appearance"),
+      description: translate("auto.hooks.useSettingsNavigationMetadata.b11a5a48a2", "Theme, zoom, app and terminal appearance, sidebars, and status bar."),
       icon: Palette,
       searchEntries: APPEARANCE_PANE_SEARCH_ENTRIES,
       group: 'interface'
     },
     {
       id: 'input',
-      title: 'Input & Editing',
-      description: 'Selection and editing behavior.',
+      title: translate("auto.hooks.useSettingsNavigationMetadata.0c6ee88a5f", "Input & Editing"),
+      description: translate("auto.hooks.useSettingsNavigationMetadata.1f452cbd4c", "Selection and editing behavior."),
       icon: TextCursorInput,
       searchEntries: INPUT_PANE_SEARCH_ENTRIES,
       group: 'interface'
@@ -267,8 +268,8 @@ export function buildSettingsNavigationMetadata({
       ? [
           {
             id: 'notifications',
-            title: 'Notifications',
-            description: 'Native desktop notifications for agent and terminal events.',
+            title: translate("auto.hooks.useSettingsNavigationMetadata.2eece16ad1", "Notifications"),
+            description: translate("auto.hooks.useSettingsNavigationMetadata.7682607591", "Native desktop notifications for agent and terminal events."),
             icon: Bell,
             searchEntries: NOTIFICATIONS_PANE_SEARCH_ENTRIES,
             group: 'interface'
@@ -277,45 +278,45 @@ export function buildSettingsNavigationMetadata({
       : []),
     {
       id: 'shortcuts',
-      title: 'Shortcuts',
-      description: 'Keyboard shortcuts for common actions.',
+      title: translate("auto.hooks.useSettingsNavigationMetadata.94295ebfb3", "Shortcuts"),
+      description: translate("auto.hooks.useSettingsNavigationMetadata.dcd0d9b74f", "Keyboard shortcuts for common actions."),
       icon: Keyboard,
       searchEntries: SHORTCUTS_PANE_SEARCH_ENTRIES,
       group: 'interface'
     },
     {
       id: 'stats',
-      title: 'Stats & Usage',
-      description: 'Orca stats plus Claude, Codex, and OpenCode usage analytics.',
+      title: translate("auto.hooks.useSettingsNavigationMetadata.d72a58b5b9", "Stats & Usage"),
+      description: translate("auto.hooks.useSettingsNavigationMetadata.b351014180", "Orca stats plus Claude, Codex, and OpenCode usage analytics."),
       icon: BarChart3,
       searchEntries: STATS_PANE_SEARCH_ENTRIES,
       group: 'interface'
     },
     {
       id: 'servers',
-      title: 'Remote Orca Servers',
+      title: translate("auto.hooks.useSettingsNavigationMetadata.de0c2907a1", "Remote Orca Servers"),
       description: isWebClient
         ? 'Connect this browser to a saved Orca server.'
         : 'Switch between local desktop mode and paired remote Orca runtimes.',
       icon: Server,
       searchEntries: [runtimeEnvironmentsSearchEntry],
       group: 'remote',
-      badge: 'Beta'
+      badge: translate("auto.hooks.useSettingsNavigationMetadata.40d80bad8a", "Beta")
     },
     ...(showDesktopOnlySettings
       ? [
           {
             id: 'ssh',
-            title: 'SSH Hosts',
-            description: 'Remote SSH hosts for files, terminals, and git.',
+            title: translate("auto.hooks.useSettingsNavigationMetadata.94a5afe910", "SSH Hosts"),
+            description: translate("auto.hooks.useSettingsNavigationMetadata.31e57d1c70", "Remote SSH hosts for files, terminals, and git."),
             icon: Cable,
             searchEntries: SSH_PANE_SEARCH_ENTRIES,
             group: 'remote'
           },
           {
             id: 'mobile',
-            title: 'Mobile',
-            description: 'Control terminals and agents from your phone.',
+            title: translate("auto.hooks.useSettingsNavigationMetadata.1cd25673df", "Mobile"),
+            description: translate("auto.hooks.useSettingsNavigationMetadata.95a1886d94", "Control terminals and agents from your phone."),
             icon: Smartphone,
             searchEntries: MOBILE_SETTINGS_PANE_SEARCH_ENTRIES,
             group: 'remote'
@@ -326,8 +327,8 @@ export function buildSettingsNavigationMetadata({
       ? [
           {
             id: 'developer-permissions',
-            title: 'macOS Permissions',
-            description: 'macOS privacy access for terminal-launched developer tools.',
+            title: translate("auto.hooks.useSettingsNavigationMetadata.d91ae31fbd", "macOS Permissions"),
+            description: translate("auto.hooks.useSettingsNavigationMetadata.65ec7d1968", "macOS privacy access for terminal-launched developer tools."),
             icon: ShieldCheck,
             searchEntries: DEVELOPER_PERMISSIONS_PANE_SEARCH_ENTRIES,
             group: 'security'
@@ -336,8 +337,8 @@ export function buildSettingsNavigationMetadata({
       : []),
     {
       id: 'privacy',
-      title: 'Privacy & Telemetry',
-      description: 'Anonymous usage data and telemetry controls.',
+      title: translate("auto.hooks.useSettingsNavigationMetadata.3618579df6", "Privacy & Telemetry"),
+      description: translate("auto.hooks.useSettingsNavigationMetadata.8400cfe1c1", "Anonymous usage data and telemetry controls."),
       icon: Lock,
       searchEntries: PRIVACY_PANE_SEARCH_ENTRIES,
       group: 'security'
@@ -346,8 +347,8 @@ export function buildSettingsNavigationMetadata({
       ? [
           {
             id: 'advanced',
-            title: 'Advanced',
-            description: 'Low-level compatibility settings for troubleshooting.',
+            title: translate("auto.hooks.useSettingsNavigationMetadata.580a04cd81", "Advanced"),
+            description: translate("auto.hooks.useSettingsNavigationMetadata.e338c507c1", "Low-level compatibility settings for troubleshooting."),
             icon: Wrench,
             searchEntries: ADVANCED_PANE_SEARCH_ENTRIES,
             group: 'advanced'
@@ -356,8 +357,8 @@ export function buildSettingsNavigationMetadata({
       : []),
     {
       id: 'experimental',
-      title: 'Experimental',
-      description: 'New features that are still taking shape. Give them a try.',
+      title: translate("auto.hooks.useSettingsNavigationMetadata.225071c560", "Experimental"),
+      description: translate("auto.hooks.useSettingsNavigationMetadata.4a728cd56b", "New features that are still taking shape. Give them a try."),
       icon: FlaskConical,
       searchEntries: EXPERIMENTAL_PANE_SEARCH_ENTRIES,
       group: 'experimental'

@@ -12,6 +12,7 @@ import { applyAgentStatusHooksEnabled } from '../agent-hooks/managed-agent-hook-
 import { applyElectronProxySettings } from '../network/proxy-settings'
 import { normalizeProxyBypassRules, normalizeProxyUrl } from '../../shared/network-proxy'
 import { normalizeAppIconId } from '../../shared/app-icon'
+import { normalizeUiLanguage } from '../../shared/ui-language'
 import { applyAppIcon } from '../app-icon'
 
 // Why: the whitelist is the source-of-truth for which keys we emit on. Casting
@@ -68,6 +69,9 @@ export function registerSettingsHandlers(
     }
     if ('appIcon' in args) {
       sanitizedArgs.appIcon = normalizeAppIconId(args.appIcon)
+    }
+    if ('uiLanguage' in args) {
+      sanitizedArgs.uiLanguage = normalizeUiLanguage(args.uiLanguage)
     }
     if (args.theme) {
       nativeTheme.themeSource = args.theme

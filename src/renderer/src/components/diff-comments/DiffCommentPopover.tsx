@@ -2,6 +2,7 @@ import { useCallback, useEffect, useId, useRef, useState } from 'react'
 import { CornerDownLeft } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { useMountedRef } from '@/hooks/useMountedRef'
+import { translate } from '@/i18n/i18n'
 
 // Why: rendered as a DOM sibling overlay inside the editor container rather
 // than as a Monaco content widget because it owns a React textarea with
@@ -169,8 +170,7 @@ export function DiffCommentPopover({
         />
         <div className="orca-diff-comment-popover-footer">
           <Button variant="ghost" size="sm" onClick={onCancel}>
-            Cancel
-          </Button>
+            {translate("auto.components.diff.comments.DiffCommentPopover.2b3ce6d394", "Cancel")}</Button>
           <Button
             size="sm"
             onClick={handleSubmit}

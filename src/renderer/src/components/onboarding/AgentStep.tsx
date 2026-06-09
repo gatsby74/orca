@@ -4,6 +4,7 @@ import { AGENT_CATALOG, AgentIcon } from '@/lib/agent-catalog'
 import { cn } from '@/lib/utils'
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible'
 import type { TuiAgent } from '../../../../shared/types'
+import { translate } from '@/i18n/i18n'
 
 type AgentStepProps = {
   selectedAgent: TuiAgent | null
@@ -47,29 +48,24 @@ export function AgentStep({ selectedAgent, onSelect, detectedSet, isDetecting }:
     <div className="space-y-5">
       {!hasDetected && !isDetecting && (
         <div className="rounded-lg border border-amber-400/30 bg-amber-400/10 px-4 py-3 text-xs text-amber-700 dark:text-amber-200/90">
-          No agents detected on your PATH. Pick one to install later, or continue with a blank
-          terminal.
-        </div>
+          {translate("auto.components.onboarding.AgentStep.1eee1c7bd8", "No agents detected on your PATH. Pick one to install later, or continue with a blank terminal.")}</div>
       )}
       {selectedEntry && (
         <div className="flex items-center justify-between gap-3 rounded-lg border border-amber-400/30 bg-amber-400/10 px-4 py-2.5 text-xs text-amber-700 dark:text-amber-200/90">
           <span>
-            <span className="font-medium">{selectedEntry.label}</span> isn&apos;t on your PATH yet.
-            Orca will set it as your default and you can install it any time.
-          </span>
+            <span className="font-medium">{selectedEntry.label}</span> {translate("auto.components.onboarding.AgentStep.69af7e9c1c", "isn't on your PATH yet. Orca will set it as your default and you can install it any time.")}</span>
           <button
             type="button"
             className="inline-flex shrink-0 items-center gap-1 rounded-md border border-amber-400/40 bg-amber-400/10 px-2 py-1 font-medium text-amber-800 hover:bg-amber-400/20 dark:text-amber-100"
             onClick={() => void window.api.shell.openUrl(selectedEntry.homepageUrl)}
           >
-            Install instructions
-            <ExternalLink className="size-3" />
+            {translate("auto.components.onboarding.AgentStep.9c163bb0e0", "Install instructions")}<ExternalLink className="size-3" />
           </button>
         </div>
       )}
       <section className="space-y-3">
         <SectionHeader
-          label={hasDetected ? 'Detected on your system' : 'Popular agents'}
+          label={hasDetected ? translate("auto.components.onboarding.AgentStep.d7b3ef168b", "Detected on your system") : translate("auto.components.onboarding.AgentStep.e6a369bd04", "Popular agents")}
           count={primary.length}
           showDetectedIndicator={hasDetected}
         />

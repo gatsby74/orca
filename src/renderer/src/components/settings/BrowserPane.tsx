@@ -28,6 +28,7 @@ import {
 } from './browser-home-page-draft-state'
 import { useMountedRef } from '@/hooks/useMountedRef'
 import { isMacUserAgent } from '@/components/terminal-pane/pane-helpers'
+import { translate } from '@/i18n/i18n'
 export { BROWSER_PANE_SEARCH_ENTRIES }
 
 type BrowserPaneProps = {
@@ -166,8 +167,8 @@ export function BrowserPane({
 
       {showSearchEngine ? (
         <SearchableSetting
-          title="Default Search Engine"
-          description="Search engine used when typing non-URL text in the address bar."
+          title={translate("auto.components.settings.BrowserPane.0d9c987f21", "Default Search Engine")}
+          description={translate("auto.components.settings.BrowserPane.7b225c78f5", "Search engine used when typing non-URL text in the address bar.")}
           keywords={[
             'browser',
             'search',
@@ -184,10 +185,9 @@ export function BrowserPane({
           className="flex items-start justify-between gap-4 py-2"
         >
           <div className="space-y-0.5">
-            <Label>Default Search Engine</Label>
+            <Label>{translate("auto.components.settings.BrowserPane.0d9c987f21", "Default Search Engine")}</Label>
             <p className="text-xs text-muted-foreground">
-              Used when typing non-URL text in the address bar.
-            </p>
+              {translate("auto.components.settings.BrowserPane.3e46903ad4", "Used when typing non-URL text in the address bar.")}</p>
           </div>
           <div className="flex shrink-0 flex-col items-end gap-2">
             <Select
@@ -222,7 +222,7 @@ export function BrowserPane({
 
       {showLinkRouting ? (
         <SearchableSetting
-          title="Link Routing"
+          title={translate("auto.components.settings.BrowserPane.d3eb69c0aa", "Link Routing")}
           description={linkRoutingDescription}
           keywords={[
             'browser',
@@ -238,7 +238,7 @@ export function BrowserPane({
           className="flex items-center justify-between gap-4 py-2"
         >
           <div className="space-y-0.5">
-            <Label>Link Routing</Label>
+            <Label>{translate("auto.components.settings.BrowserPane.d3eb69c0aa", "Link Routing")}</Label>
             <p className="text-xs text-muted-foreground">{linkRoutingDescription}</p>
           </div>
           <button
@@ -261,8 +261,8 @@ export function BrowserPane({
       {showCookies ? (
         <SearchableSetting
           id="browser-session-cookies"
-          title="Session & Cookies"
-          description="Manage browser profiles and import cookies from Chrome, Edge, Comet, or other browsers."
+          title={translate("auto.components.settings.BrowserPane.113cd2dc9b", "Session & Cookies")}
+          description={translate("auto.components.settings.BrowserPane.aa1074bfe9", "Manage browser profiles and import cookies from Chrome, Edge, Comet, or other browsers.")}
           keywords={[
             'cookies',
             'session',
@@ -278,11 +278,9 @@ export function BrowserPane({
         >
           <div className="flex items-center justify-between gap-3">
             <div className="space-y-0.5">
-              <Label>Session &amp; Cookies</Label>
+              <Label>{translate("auto.components.settings.BrowserPane.2d66a6efb5", "Session & Cookies")}</Label>
               <p className="text-xs text-muted-foreground">
-                Select a default profile for new browser tabs. Import cookies and switch profiles
-                per-tab via the <strong>···</strong> toolbar menu.
-              </p>
+                {translate("auto.components.settings.BrowserPane.cd47bc9622", "Select a default profile for new browser tabs. Import cookies and switch profiles per-tab via the")}<strong>···</strong> {translate("auto.components.settings.BrowserPane.e4aaf8051b", "toolbar menu.")}</p>
             </div>
             <Button
               variant="outline"
@@ -291,8 +289,7 @@ export function BrowserPane({
               className="shrink-0 gap-1.5"
             >
               <Plus className="size-3" />
-              Add Profile
-            </Button>
+              {translate("auto.components.settings.BrowserPane.6f2584b39e", "Add Profile")}</Button>
           </div>
 
           <div className="space-y-2">
@@ -337,7 +334,7 @@ export function BrowserPane({
       >
         <DialogContent className="sm:max-w-sm" showCloseButton={false}>
           <DialogHeader>
-            <DialogTitle className="text-base">New Browser Profile</DialogTitle>
+            <DialogTitle className="text-base">{translate("auto.components.settings.BrowserPane.8481ee0331", "New Browser Profile")}</DialogTitle>
           </DialogHeader>
           <form
             onSubmit={async (e) => {
@@ -357,9 +354,9 @@ export function BrowserPane({
                 if (profile) {
                   setNewProfileDialogOpen(false)
                   setNewProfileName('')
-                  toast.success(`Profile "${profile.label}" created.`)
+                  toast.success(translate("auto.components.settings.BrowserPane.8f22b7580d", "Profile \"{{value0}}\" created.", { value0: profile.label }))
                 } else {
-                  toast.error('Failed to create profile.')
+                  toast.error(translate("auto.components.settings.BrowserPane.612f7f6861", "Failed to create profile."))
                 }
               } finally {
                 if (mountedRef.current) {
@@ -371,7 +368,7 @@ export function BrowserPane({
             <Input
               value={newProfileName}
               onChange={(e) => setNewProfileName(e.target.value)}
-              placeholder="Profile name"
+              placeholder={translate("auto.components.settings.BrowserPane.7d4c0a2aa4", "Profile name")}
               autoFocus
               maxLength={50}
               className="mb-4"
@@ -386,8 +383,7 @@ export function BrowserPane({
                   setNewProfileName('')
                 }}
               >
-                Cancel
-              </Button>
+                {translate("auto.components.settings.BrowserPane.81ff774667", "Cancel")}</Button>
               <Button
                 type="submit"
                 size="sm"

@@ -4,6 +4,7 @@ import { Button } from '@/components/ui/button'
 import { cn } from '@/lib/utils'
 import { reportReactErrorBoundaryCrash } from '@/lib/react-error-boundary-reporting'
 import type { ReactErrorBoundaryReportArgs } from '../../../../shared/crash-reporting'
+import { translate } from '@/i18n/i18n'
 
 type BoundaryFallbackArgs = {
   error: Error | null
@@ -91,8 +92,7 @@ export class RecoverableRenderErrorBoundary extends React.Component<Props, State
         </div>
         <Button type="button" variant="outline" size="sm" onClick={this.handleReset}>
           <RotateCw className="size-3.5" />
-          Retry
-        </Button>
+          {translate("auto.components.error.boundaries.RecoverableRenderErrorBoundary.55001880db", "Retry")}</Button>
       </div>
     )
   }

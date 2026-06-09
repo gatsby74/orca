@@ -136,6 +136,7 @@ import {
 import { isGitRepoKind } from '../../shared/repo-kind'
 import { showTerminalShortcutCaptureNotification } from '@/lib/terminal-shortcut-capture-notification'
 import { resolveMountedLazyModalIds, type LazyModalId } from './lazy-modal-mount-state'
+import { translate } from '@/i18n/i18n'
 
 const isMac = navigator.userAgent.includes('Mac')
 const isWindows = !isMac && navigator.userAgent.includes('Windows')
@@ -172,7 +173,7 @@ function WindowControls(): React.JSX.Element {
     <div className="window-controls">
       <button
         className="window-controls-btn"
-        aria-label="Minimize"
+        aria-label={translate("auto.App.bbb7f90669", "Minimize")}
         onClick={() => window.api.ui.minimize()}
       >
         <svg width="10" height="10" viewBox="0 0 10 10" aria-hidden>
@@ -181,7 +182,7 @@ function WindowControls(): React.JSX.Element {
       </button>
       <button
         className="window-controls-btn"
-        aria-label={maximized ? 'Restore' : 'Maximize'}
+        aria-label={maximized ? translate("auto.App.66f0a552e5", "Restore") : translate("auto.App.c9d6f98459", "Maximize")}
         onClick={() => window.api.ui.maximize()}
       >
         {maximized ? (
@@ -198,7 +199,7 @@ function WindowControls(): React.JSX.Element {
       </button>
       <button
         className="window-controls-btn window-controls-close"
-        aria-label="Close"
+        aria-label={translate("auto.App.e960d18540", "Close")}
         // Why: IPC to main so the BrowserWindow 'close' event fires, which
         // sends 'window:close-requested' back to the renderer and keeps the
         // terminal-running confirmation guard active. window.close() is
@@ -253,7 +254,7 @@ function applyRemoteWorkspacePatchStatus(
       revision: result.snapshot.revision,
       updatedAt: result.snapshot.updatedAt,
       lastSyncedAt: Date.now(),
-      message: 'Workspace uploaded'
+      message: translate("auto.App.332dbfa497", "Workspace uploaded")
     })
     return
   }
@@ -817,13 +818,13 @@ function App(): React.JSX.Element {
           // a no-op. The "Restart now" action calls app.relaunch (defined in
           // src/main/ipc/app.ts) so the user can recover with one click instead
           // of having to find a quit/relaunch path themselves.
-          toast.error('Session restore failed', {
+          toast.error(translate("auto.App.12e77cf12b", "Session restore failed"), {
             description:
-              "Changes won't be saved until restart. Your previous tabs are safe on disk.",
+              translate("auto.App.0a9e810705", "Changes won't be saved until restart. Your previous tabs are safe on disk."),
             duration: Infinity,
             dismissible: true,
             action: {
-              label: 'Restart now',
+              label: translate("auto.App.caea5b51b9", "Restart now"),
               onClick: () => {
                 void window.api.app.relaunch()
               }
@@ -1509,15 +1510,14 @@ function App(): React.JSX.Element {
               <TooltipTrigger asChild>
                 <button
                   className="titlebar-icon-button"
-                  aria-label="Application menu"
+                  aria-label={translate("auto.App.8b0b8eb54f", "Application menu")}
                   onClick={() => window.api.ui.popupMenu()}
                 >
                   <MoreHorizontal size={14} />
                 </button>
               </TooltipTrigger>
               <TooltipContent side="bottom" sideOffset={6}>
-                Application menu
-              </TooltipContent>
+                {translate("auto.App.8b0b8eb54f", "Application menu")}</TooltipContent>
             </Tooltip>
           </>
         ) : (
@@ -1529,7 +1529,7 @@ function App(): React.JSX.Element {
               <ContextMenu>
                 <ContextMenuTrigger asChild>
                   <div className="titlebar-app-name" aria-label="Orca">
-                    <span className="titlebar-app-name-main">Orca</span>
+                    <span className="titlebar-app-name-main">{translate("auto.App.5096cbbc86", "Orca")}</span>
                   </div>
                 </ContextMenuTrigger>
                 <ContextMenuContent>
@@ -1538,8 +1538,7 @@ function App(): React.JSX.Element {
                       void actions.updateSettings({ showTitlebarAppName: false })
                     }}
                   >
-                    Hide App Name
-                  </ContextMenuItem>
+                    {translate("auto.App.e81217c1b7", "Hide App Name")}</ContextMenuItem>
                 </ContextMenuContent>
               </ContextMenu>
             )}
@@ -1610,7 +1609,7 @@ function App(): React.JSX.Element {
         <button
           className="sidebar-toggle mr-2"
           onClick={actions.toggleRightSidebar}
-          aria-label="Toggle right sidebar"
+          aria-label={translate("auto.App.9e0b441a91", "Toggle right sidebar")}
         >
           <PanelRight size={16} />
         </button>
@@ -1650,8 +1649,8 @@ function App(): React.JSX.Element {
             boundaryId="app.workspace-shell"
             surface="workspace-shell"
             resetKey={activeView}
-            title="The workspace shell hit an error."
-            description="The app is still running. Retry the shell or use the menu to report the crash details."
+            title={translate("auto.App.df1d56bf87", "The workspace shell hit an error.")}
+            description={translate("auto.App.8504ddf267", "The app is still running. Retry the shell or use the menu to report the crash details.")}
           >
             <div className="flex flex-row flex-1 min-h-0 overflow-hidden">
               {/* Why: the non-workspace titlebar lives inside this left+center
@@ -1693,8 +1692,7 @@ function App(): React.JSX.Element {
                           </button>
                         </TooltipTrigger>
                         <TooltipContent side="bottom" sideOffset={6}>
-                          Collapse pane
-                        </TooltipContent>
+                          {translate("auto.App.c1cf0b0e4a", "Collapse pane")}</TooltipContent>
                       </Tooltip>
                     )}
                     {/* Why: when the right sidebar is open, its own header renders
@@ -1755,8 +1753,8 @@ function App(): React.JSX.Element {
                             boundaryId="sidebar.worktrees"
                             surface="sidebar"
                             resetKey={activeView}
-                            title="The workspace list hit an error."
-                            description="The active workspace remains open. Retry the list or switch views."
+                            title={translate("auto.App.1468601e7b", "The workspace list hit an error.")}
+                            description={translate("auto.App.bdc71dddc9", "The active workspace remains open. Retry the list or switch views.")}
                           >
                             <Sidebar
                               worktreeScrollOffsetRef={worktreeSidebarScrollOffsetRef}
@@ -1770,8 +1768,8 @@ function App(): React.JSX.Element {
                         boundaryId="sidebar.worktrees"
                         surface="sidebar"
                         resetKey={activeView}
-                        title="The workspace list hit an error."
-                        description="The active page remains open. Retry the list or switch views."
+                        title={translate("auto.App.1468601e7b", "The workspace list hit an error.")}
+                        description={translate("auto.App.cba0fafda5", "The active page remains open. Retry the list or switch views.")}
                       >
                         <Sidebar
                           worktreeScrollOffsetRef={worktreeSidebarScrollOffsetRef}
@@ -1821,8 +1819,8 @@ function App(): React.JSX.Element {
                           boundaryId="terminal.workbench"
                           surface="terminal-workbench"
                           resetKey="terminal"
-                          title="The workspace workbench hit an error."
-                          description="Terminal, browser, or editor rendering failed in this workspace. Retry to remount it."
+                          title={translate("auto.App.5a9519aef0", "The workspace workbench hit an error.")}
+                          description={translate("auto.App.98d4ea2823", "Terminal, browser, or editor rendering failed in this workspace. Retry to remount it.")}
                         >
                           <Terminal />
                         </RecoverableRenderErrorBoundary>
@@ -1832,8 +1830,8 @@ function App(): React.JSX.Element {
                           boundaryId={`page.${activeView}`}
                           surface="page"
                           resetKey={activeView}
-                          title="This page hit an error."
-                          description="Retry the page or navigate to another Orca surface."
+                          title={translate("auto.App.b7a714db1e", "This page hit an error.")}
+                          description={translate("auto.App.03a14f6b5b", "Retry the page or navigate to another Orca surface.")}
                         >
                           {activeView === 'settings' ? <Settings /> : null}
                           {activeView === 'skills' ? <SkillsPage /> : null}
@@ -1873,8 +1871,8 @@ function App(): React.JSX.Element {
                   boundaryId="right-sidebar"
                   surface="right-sidebar"
                   resetKey={rightSidebarTab}
-                  title="The right sidebar hit an error."
-                  description="Retry the sidebar or switch tabs to reload this surface."
+                  title={translate("auto.App.ed6b168d00", "The right sidebar hit an error.")}
+                  description={translate("auto.App.8d1e160ed1", "Retry the sidebar or switch tabs to reload this surface.")}
                 >
                   <RightSidebar />
                 </RecoverableRenderErrorBoundary>
@@ -1887,8 +1885,8 @@ function App(): React.JSX.Element {
               surface="overlay"
               resetKey={floatingTerminalOpen}
               compact
-              title="The floating workspace hit an error."
-              description="Retry the floating workspace or close and reopen it."
+              title={translate("auto.App.1b3024bcd6", "The floating workspace hit an error.")}
+              description={translate("auto.App.7cbfbf622f", "Retry the floating workspace or close and reopen it.")}
             >
               <FloatingTerminalPanel
                 open={floatingTerminalOpen}
@@ -1901,8 +1899,8 @@ function App(): React.JSX.Element {
             surface="overlay"
             resetKey={activeView}
             compact
-            title="The status bar hit an error."
-            description="Retry the status bar to remount its controls."
+            title={translate("auto.App.2e8ff36f94", "The status bar hit an error.")}
+            description={translate("auto.App.8a023cea1f", "Retry the status bar to remount its controls.")}
           >
             <StatusBar floatingTerminalOpen={floatingTerminalOpen} />
           </RecoverableRenderErrorBoundary>
@@ -2068,8 +2066,8 @@ function App(): React.JSX.Element {
             reportAsCrash={false}
             resetKey={activeModal}
             compact
-            title="The crash report dialog hit an error."
-            description="Use the Help menu after retrying if you still need diagnostics."
+            title={translate("auto.App.722d03aa62", "The crash report dialog hit an error.")}
+            description={translate("auto.App.acd66311dc", "Use the Help menu after retrying if you still need diagnostics.")}
           >
             <CrashReportDialog />
           </RecoverableRenderErrorBoundary>
@@ -2079,8 +2077,8 @@ function App(): React.JSX.Element {
                 boundaryId="modal.onboarding"
                 surface="modal"
                 resetKey={onboardingSettingsDetourActive}
-                title="Onboarding hit an error."
-                description="Retry onboarding or close it and continue in the app."
+                title={translate("auto.App.f02d37278a", "Onboarding hit an error.")}
+                description={translate("auto.App.221a95ba38", "Retry onboarding or close it and continue in the app.")}
               >
                 <OnboardingFlow
                   onboarding={onboarding}

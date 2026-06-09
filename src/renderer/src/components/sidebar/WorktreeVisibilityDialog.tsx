@@ -14,6 +14,7 @@ import {
   effectiveExternalWorktreeVisibility,
   isLegacyRepoForExternalWorktreeVisibility
 } from '../../../../shared/worktree-ownership'
+import { translate } from '@/i18n/i18n'
 
 export default function WorktreeVisibilityDialog(): React.JSX.Element | null {
   const activeModal = useAppStore((s) => s.activeModal)
@@ -61,7 +62,7 @@ export default function WorktreeVisibilityDialog(): React.JSX.Element | null {
     <Dialog open onOpenChange={(open) => !open && closeModal()}>
       <DialogContent className="sm:max-w-md">
         <DialogHeader>
-          <DialogTitle>Non-Orca worktrees</DialogTitle>
+          <DialogTitle>{translate("auto.components.sidebar.WorktreeVisibilityDialog.83a5ba8dd1", "Non-Orca worktrees")}</DialogTitle>
           <DialogDescription>{repo.displayName}</DialogDescription>
         </DialogHeader>
 

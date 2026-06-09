@@ -103,6 +103,7 @@ import {
   resolveComposerBranchNameOverrideForCreate,
   resolveComposerBranchSelection
 } from './composer-branch-selection'
+import { translate } from '@/i18n/i18n'
 
 export type UseComposerStateOptions = {
   initialRepoId?: string
@@ -967,7 +968,7 @@ export function useComposerState(options: UseComposerStateOptions): UseComposerS
     try {
       await window.api.ssh.connect({ targetId })
     } catch (error) {
-      toast.error(error instanceof Error ? error.message : 'Failed to connect to project.')
+      toast.error(error instanceof Error ? error.message : translate("auto.hooks.useComposerState.ba6cb77082", "Failed to connect to project."))
     }
   }, [])
 
@@ -1386,7 +1387,7 @@ export function useComposerState(options: UseComposerStateOptions): UseComposerS
         return null
       }
       if (!targetRepoPath) {
-        toast.error('No remote project path is available for attachments.')
+        toast.error(translate("auto.hooks.useComposerState.3db83fc58a", "No remote project path is available for attachments."))
         return { filePaths: [], folderPaths: [] }
       }
       const destinationDir = joinPath(targetRepoPath, '.orca/drops')
@@ -1416,7 +1417,7 @@ export function useComposerState(options: UseComposerStateOptions): UseComposerS
         }
       }
       if (skippedOrFailed > 0) {
-        toast.error('Some attachments could not be uploaded.')
+        toast.error(translate("auto.hooks.useComposerState.a9ff236145", "Some attachments could not be uploaded."))
       }
       return { filePaths, folderPaths }
     },
@@ -1702,7 +1703,7 @@ export function useComposerState(options: UseComposerStateOptions): UseComposerS
         .catch((error: unknown) => {
           setBaseBranch(undefined)
           setPushTarget(undefined)
-          toast.error(error instanceof Error ? error.message : 'Failed to resolve PR base.')
+          toast.error(error instanceof Error ? error.message : translate("auto.hooks.useComposerState.b2ead86962", "Failed to resolve PR base."))
         })
     },
     [applyLinkedWorkItem, eligibleRepos, handleBaseBranchPrSelect, selectedRepo, settings]
@@ -1874,7 +1875,7 @@ export function useComposerState(options: UseComposerStateOptions): UseComposerS
     }
     if (!isTuiAgentEnabled(tuiAgent, disabledTuiAgents)) {
       setTuiAgent(fallbackDefaultAgent)
-      toast.error('Selected agent is disabled. Choose an enabled agent before creating.')
+      toast.error(translate("auto.hooks.useComposerState.7eb3f44ff7", "Selected agent is disabled. Choose an enabled agent before creating."))
       return
     }
 

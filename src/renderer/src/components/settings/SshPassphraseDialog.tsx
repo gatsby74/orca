@@ -11,6 +11,7 @@ import {
   DialogTitle
 } from '@/components/ui/dialog'
 import { useAppStore } from '@/store'
+import { translate } from '@/i18n/i18n'
 
 export function SshPassphraseDialog(): React.JSX.Element | null {
   const request = useAppStore((s) => s.sshCredentialQueue[0] ?? null)
@@ -68,7 +69,7 @@ export function SshPassphraseDialog(): React.JSX.Element | null {
       await window.api.ssh.submitCredential({ requestId: request.requestId, value })
       removeRequest(request.requestId)
     } catch (err) {
-      toast.error(err instanceof Error ? err.message : 'Failed to submit SSH credential')
+      toast.error(err instanceof Error ? err.message : translate("auto.components.settings.SshPassphraseDialog.b8e88fd0de", "Failed to submit SSH credential"))
       setSubmitting(false)
     }
   }, [request, value, removeRequest])
@@ -80,7 +81,7 @@ export function SshPassphraseDialog(): React.JSX.Element | null {
         await window.api.ssh.submitCredential({ requestId: request.requestId, value: null })
         removeRequest(request.requestId)
       } catch (err) {
-        toast.error(err instanceof Error ? err.message : 'Failed to cancel SSH credential request')
+        toast.error(err instanceof Error ? err.message : translate("auto.components.settings.SshPassphraseDialog.c55f105262", "Failed to cancel SSH credential request"))
         setSubmitting(false)
       }
     }
@@ -103,11 +104,11 @@ export function SshPassphraseDialog(): React.JSX.Element | null {
           <DialogDescription className="text-xs">
             {isPassword ? (
               <>
-                Enter the password for <span className="font-medium">{label}</span>
+                {translate("auto.components.settings.SshPassphraseDialog.dbf9b6f2d0", "Enter the password for")}<span className="font-medium">{label}</span>
               </>
             ) : (
               <>
-                Enter the passphrase for <span className="font-medium">{label}</span>
+                {translate("auto.components.settings.SshPassphraseDialog.ce4fdf7914", "Enter the passphrase for")}<span className="font-medium">{label}</span>
               </>
             )}
           </DialogDescription>
@@ -131,7 +132,7 @@ export function SshPassphraseDialog(): React.JSX.Element | null {
                 void handleSubmit()
               }
             }}
-            placeholder={isPassword ? 'Enter password' : 'Enter passphrase'}
+            placeholder={isPassword ? translate("auto.components.settings.SshPassphraseDialog.abaa0dc653", "Enter password") : translate("auto.components.settings.SshPassphraseDialog.c3ce71aad6", "Enter passphrase")}
             className="h-8 text-sm"
             disabled={submitting}
           />
@@ -143,8 +144,7 @@ export function SshPassphraseDialog(): React.JSX.Element | null {
             onClick={() => void handleCancel()}
             disabled={submitting}
           >
-            Cancel
-          </Button>
+            {translate("auto.components.settings.SshPassphraseDialog.d5a234456f", "Cancel")}</Button>
           <Button size="sm" onClick={() => void handleSubmit()} disabled={!value || submitting}>
             {isPassword ? 'Connect' : 'Unlock'}
           </Button>

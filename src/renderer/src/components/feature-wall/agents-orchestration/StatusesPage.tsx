@@ -6,6 +6,7 @@ import { AgentStateDot } from '@/components/AgentStateDot'
 import { AGENT_CATALOG, AgentIcon } from '@/lib/agent-catalog'
 import { ClaudeIcon, OpenAIIcon } from '../../status-bar/icons'
 import { cn } from '@/lib/utils'
+import { translate } from '@/i18n/i18n'
 
 type ClaudeActivity = { kind: 'tool'; tool: string; arg: string } | { kind: 'msg'; text: ReactNode }
 
@@ -69,8 +70,7 @@ export function StatusesPage(props: { active: boolean; reducedMotion: boolean })
         <div className="grid grid-cols-[14px_minmax(0,1fr)] items-center gap-3 px-1.5">
           <span className="inline-block size-[9px] rounded-full bg-emerald-500" />
           <div className="truncate text-[15.5px] font-semibold leading-[1.2]">
-            redesign auth flow
-          </div>
+            {translate("auto.components.feature.wall.agents.orchestration.StatusesPage.79971d1539", "redesign auth flow")}</div>
         </div>
         <div className="flex flex-col gap-3 pl-[30px] pr-2 pt-2.5 pb-1">
           <AgentRow
@@ -81,7 +81,7 @@ export function StatusesPage(props: { active: boolean; reducedMotion: boolean })
           >
             {revealed.codex ? (
               <span>
-                Wants to run <CodeChip>pnpm migrate latest</CodeChip>
+                {translate("auto.components.feature.wall.agents.orchestration.StatusesPage.78f0318ac1", "Wants to run")}<CodeChip>{translate("auto.components.feature.wall.agents.orchestration.StatusesPage.7b26349cb2", "pnpm migrate latest")}</CodeChip>
               </span>
             ) : (
               <Skel widthPct={64} />
@@ -104,7 +104,7 @@ export function StatusesPage(props: { active: boolean; reducedMotion: boolean })
           <AgentRow icon={<AgentIcon agent="opencode" size={18} />} name="OpenCode" state="done">
             {revealed.opencode ? (
               <span>
-                Updated <CodeChip>src/auth/session.test.ts</CodeChip>
+                {translate("auto.components.feature.wall.agents.orchestration.StatusesPage.139e3d7458", "Updated")}<CodeChip>{translate("auto.components.feature.wall.agents.orchestration.StatusesPage.2f549fc0ba", "src/auth/session.test.ts")}</CodeChip>
               </span>
             ) : (
               <Skel widthPct={56} />

@@ -40,6 +40,7 @@ import { TerminalFontSizeSetting } from './TerminalFontSizeSetting'
 import { GhosttyImportModal } from './GhosttyImportModal'
 import type { UseGhosttyImportReturn } from './useGhosttyImport'
 import ghosttyIcon from '../../../../../resources/ghostty.svg'
+import { translate } from '@/i18n/i18n'
 
 type TerminalAppearanceSectionProps = {
   settings: GlobalSettings
@@ -70,8 +71,8 @@ export function TerminalAppearanceSection({
         <div className="min-w-0 space-y-3">
           <div className="flex flex-wrap items-start justify-between gap-3">
             <SettingsSubsectionHeader
-              title="Terminal Typography"
-              description="Default terminal typography for new panes and live updates."
+              title={translate("auto.components.settings.TerminalAppearanceSection.048aac8a64", "Terminal Typography")}
+              description={translate("auto.components.settings.TerminalAppearanceSection.711e589f18", "Default terminal typography for new panes and live updates.")}
             />
             <Button
               variant="outline"
@@ -80,22 +81,21 @@ export function TerminalAppearanceSection({
               onClick={() => void ghostty.handleClick()}
             >
               <img src={ghosttyIcon} alt="" aria-hidden="true" className="size-4" />
-              Import from Ghostty
-            </Button>
+              {translate("auto.components.settings.TerminalAppearanceSection.855a76343a", "Import from Ghostty")}</Button>
           </div>
 
           <div className="divide-y divide-border/40">
             <TerminalFontSizeSetting settings={settings} updateSettings={updateSettings} />
 
             <SearchableSetting
-              title="Font Family"
-              description="Default terminal font family for new panes and live updates."
+              title={translate("auto.components.settings.TerminalAppearanceSection.a408266e67", "Font Family")}
+              description={translate("auto.components.settings.TerminalAppearanceSection.f04b17a50e", "Default terminal font family for new panes and live updates.")}
               keywords={['terminal', 'typography', 'font']}
             >
               <SettingsRow
                 alignTop
-                label="Font Family"
-                description="Default terminal font family for new panes and live updates."
+                label={translate("auto.components.settings.TerminalAppearanceSection.a408266e67", "Font Family")}
+                description={translate("auto.components.settings.TerminalAppearanceSection.f04b17a50e", "Default terminal font family for new panes and live updates.")}
                 control={
                   <FontAutocomplete
                     value={settings.terminalFontFamily}
@@ -108,13 +108,13 @@ export function TerminalAppearanceSection({
             </SearchableSetting>
 
             <SearchableSetting
-              title="Font Weight"
-              description="Controls the terminal text font weight."
+              title={translate("auto.components.settings.TerminalAppearanceSection.4aae5db258", "Font Weight")}
+              description={translate("auto.components.settings.TerminalAppearanceSection.36af8ad94c", "Controls the terminal text font weight.")}
               keywords={['terminal', 'typography', 'weight']}
             >
               <NumberField
-                label="Font Weight"
-                description="Controls the terminal text font weight."
+                label={translate("auto.components.settings.TerminalAppearanceSection.4aae5db258", "Font Weight")}
+                description={translate("auto.components.settings.TerminalAppearanceSection.36af8ad94c", "Controls the terminal text font weight.")}
                 value={normalizeTerminalFontWeight(settings.terminalFontWeight)}
                 defaultValue={DEFAULT_TERMINAL_FONT_WEIGHT}
                 min={TERMINAL_FONT_WEIGHT_MIN}
@@ -130,13 +130,13 @@ export function TerminalAppearanceSection({
             </SearchableSetting>
 
             <SearchableSetting
-              title="Line Height"
-              description="Controls the terminal line height multiplier."
+              title={translate("auto.components.settings.TerminalAppearanceSection.c084eb7d4c", "Line Height")}
+              description={translate("auto.components.settings.TerminalAppearanceSection.bafc80efbc", "Controls the terminal line height multiplier.")}
               keywords={['terminal', 'typography', 'line height', 'spacing']}
             >
               <NumberField
-                label="Line Height"
-                description="Controls the terminal line height multiplier."
+                label={translate("auto.components.settings.TerminalAppearanceSection.c084eb7d4c", "Line Height")}
+                description={translate("auto.components.settings.TerminalAppearanceSection.bafc80efbc", "Controls the terminal line height multiplier.")}
                 value={settings.terminalLineHeight}
                 defaultValue={1}
                 min={1}
@@ -152,8 +152,8 @@ export function TerminalAppearanceSection({
             </SearchableSetting>
 
             <SearchableSetting
-              title="Font Ligatures"
-              description='Render programming ligatures (e.g. =>, !=, ===) for fonts that ship them. "Auto" enables ligatures only for known ligature fonts (Fira Code, JetBrains Mono, Cascadia Code, Iosevka, etc.).'
+              title={translate("auto.components.settings.TerminalAppearanceSection.be8da35e7f", "Font Ligatures")}
+              description={translate("auto.components.settings.TerminalAppearanceSection.7233d594bf", "Render programming ligatures (e.g. =>, !=, ===) for fonts that ship them. \"Auto\" enables ligatures only for known ligature fonts (Fira Code, JetBrains Mono, Cascadia Code, Iosevka, etc.).")}
               keywords={[
                 'terminal',
                 'typography',
@@ -168,27 +168,25 @@ export function TerminalAppearanceSection({
               ]}
             >
               <SettingsRow
-                label="Font Ligatures"
+                label={translate("auto.components.settings.TerminalAppearanceSection.be8da35e7f", "Font Ligatures")}
                 description={
                   settings.terminalLigatures === 'on'
-                    ? 'Always on. Fonts without ligatures simply render as-is.'
+                    ? translate("auto.components.settings.TerminalAppearanceSection.7234abcd08", "Always on. Fonts without ligatures simply render as-is.")
                     : settings.terminalLigatures === 'off'
-                      ? 'Always off, even for fonts that ship them.'
+                      ? translate("auto.components.settings.TerminalAppearanceSection.04569feb07", "Always off, even for fonts that ship them.")
                       : fontFamilyHasKnownLigatures(settings.terminalFontFamily)
-                        ? `Auto - enabled for "${settings.terminalFontFamily}".`
-                        : `Auto - disabled for "${
-                            settings.terminalFontFamily || 'the current font'
-                          }".`
+                        ? translate("auto.components.settings.TerminalAppearanceSection.400e950ca5", "Auto - enabled for \"{{value0}}\".", { value0: settings.terminalFontFamily })
+                        : translate("auto.components.settings.TerminalAppearanceSection.4b1f29598e", "Auto - disabled for \"{{value0}}\".", { value0: settings.terminalFontFamily || 'the current font' })
                 }
                 control={
                   <SettingsSegmentedControl
-                    ariaLabel="Font Ligatures"
+                    ariaLabel={translate("auto.components.settings.TerminalAppearanceSection.be8da35e7f", "Font Ligatures")}
                     value={settings.terminalLigatures ?? 'auto'}
                     onChange={(option) => updateSettings({ terminalLigatures: option })}
                     options={[
-                      { value: 'auto', label: 'Auto' },
-                      { value: 'on', label: 'On' },
-                      { value: 'off', label: 'Off' }
+                      { value: 'auto', label: translate("auto.components.settings.TerminalAppearanceSection.bc9ff84d61", "Auto") },
+                      { value: 'on', label: translate("auto.components.settings.TerminalAppearanceSection.84bd22f2cd", "On") },
+                      { value: 'off', label: translate("auto.components.settings.TerminalAppearanceSection.870377082f", "Off") }
                     ]}
                   />
                 }
@@ -196,7 +194,7 @@ export function TerminalAppearanceSection({
               {/* Why: surface the resolved state explicitly so the "Auto" label
                   isn't ambiguous when a user is staring at it. */}
               <p className="sr-only" aria-live="polite">
-                Ligatures are currently{' '}
+                {translate("auto.components.settings.TerminalAppearanceSection.31f6e61085", "Ligatures are currently")}{' '}
                 {resolveTerminalLigaturesEnabled(
                   settings.terminalLigatures,
                   settings.terminalFontFamily
@@ -209,7 +207,7 @@ export function TerminalAppearanceSection({
           </div>
         </div>
         <TerminalSettingsPreview
-          title="Preview"
+          title={translate("auto.components.settings.TerminalAppearanceSection.70beb1bbc7", "Preview")}
           settings={settings}
           systemPrefersDark={systemPrefersDark}
           previewFontFamily={previewFontFamily}
@@ -220,28 +218,28 @@ export function TerminalAppearanceSection({
     matchesSettingsSearch(searchQuery, TERMINAL_CURSOR_SEARCH_ENTRIES) ? (
       <section key="cursor" className="space-y-3">
         <SettingsSubsectionHeader
-          title="Terminal Cursor"
-          description="Default cursor appearance for Orca terminal panes."
+          title={translate("auto.components.settings.TerminalAppearanceSection.abcb4dd019", "Terminal Cursor")}
+          description={translate("auto.components.settings.TerminalAppearanceSection.d455f2ef4f", "Default cursor appearance for Orca terminal panes.")}
         />
 
         <div className="divide-y divide-border/40">
           <SearchableSetting
-            title="Cursor Shape"
-            description="Default cursor appearance for Orca terminal panes."
+            title={translate("auto.components.settings.TerminalAppearanceSection.db270cc9a9", "Cursor Shape")}
+            description={translate("auto.components.settings.TerminalAppearanceSection.d455f2ef4f", "Default cursor appearance for Orca terminal panes.")}
             keywords={['terminal', 'cursor', 'bar', 'block', 'underline']}
           >
             <SettingsRow
-              label="Cursor Shape"
-              description="Default cursor appearance for Orca terminal panes."
+              label={translate("auto.components.settings.TerminalAppearanceSection.db270cc9a9", "Cursor Shape")}
+              description={translate("auto.components.settings.TerminalAppearanceSection.d455f2ef4f", "Default cursor appearance for Orca terminal panes.")}
               control={
                 <SettingsSegmentedControl
-                  ariaLabel="Cursor Shape"
+                  ariaLabel={translate("auto.components.settings.TerminalAppearanceSection.db270cc9a9", "Cursor Shape")}
                   value={settings.terminalCursorStyle}
                   onChange={(option) => updateSettings({ terminalCursorStyle: option })}
                   options={[
-                    { value: 'bar', label: 'Bar' },
-                    { value: 'block', label: 'Block' },
-                    { value: 'underline', label: 'Underline' }
+                    { value: 'bar', label: translate("auto.components.settings.TerminalAppearanceSection.e070e8aeba", "Bar") },
+                    { value: 'block', label: translate("auto.components.settings.TerminalAppearanceSection.52854a5608", "Block") },
+                    { value: 'underline', label: translate("auto.components.settings.TerminalAppearanceSection.2e5aec3cf6", "Underline") }
                   ]}
                 />
               }
@@ -249,13 +247,13 @@ export function TerminalAppearanceSection({
           </SearchableSetting>
 
           <SearchableSetting
-            title="Blinking Cursor"
-            description="Uses the blinking variant of the selected cursor shape."
+            title={translate("auto.components.settings.TerminalAppearanceSection.74736cc9b1", "Blinking Cursor")}
+            description={translate("auto.components.settings.TerminalAppearanceSection.2de6b5a699", "Uses the blinking variant of the selected cursor shape.")}
             keywords={['terminal', 'cursor', 'blink']}
           >
             <SettingsSwitchRow
-              label="Blinking Cursor"
-              description="Uses the blinking variant of the selected cursor shape."
+              label={translate("auto.components.settings.TerminalAppearanceSection.74736cc9b1", "Blinking Cursor")}
+              description={translate("auto.components.settings.TerminalAppearanceSection.2de6b5a699", "Uses the blinking variant of the selected cursor shape.")}
               checked={settings.terminalCursorBlink}
               onChange={() =>
                 updateSettings({ terminalCursorBlink: !settings.terminalCursorBlink })
@@ -264,13 +262,13 @@ export function TerminalAppearanceSection({
           </SearchableSetting>
 
           <SearchableSetting
-            title="Cursor Opacity"
-            description="Opacity of the terminal cursor."
+            title={translate("auto.components.settings.TerminalAppearanceSection.b9f1804422", "Cursor Opacity")}
+            description={translate("auto.components.settings.TerminalAppearanceSection.04cdf85dec", "Opacity of the terminal cursor.")}
             keywords={['terminal', 'cursor', 'opacity', 'transparency']}
           >
             <NumberField
-              label="Cursor Opacity"
-              description="Opacity of the terminal cursor."
+              label={translate("auto.components.settings.TerminalAppearanceSection.b9f1804422", "Cursor Opacity")}
+              description={translate("auto.components.settings.TerminalAppearanceSection.04cdf85dec", "Opacity of the terminal cursor.")}
               value={settings.terminalCursorOpacity ?? 1}
               defaultValue={1}
               min={0}
@@ -290,19 +288,19 @@ export function TerminalAppearanceSection({
     matchesSettingsSearch(searchQuery, TERMINAL_PANE_APPEARANCE_SEARCH_ENTRIES) ? (
       <section key="pane-appearance" className="space-y-3">
         <SettingsSubsectionHeader
-          title="Terminal Panes"
-          description="Control inactive pane dimming and split divider thickness."
+          title={translate("auto.components.settings.TerminalAppearanceSection.e1a5c25555", "Terminal Panes")}
+          description={translate("auto.components.settings.TerminalAppearanceSection.1b79379d4f", "Control inactive pane dimming and split divider thickness.")}
         />
 
         <div className="divide-y divide-border/40">
           <SearchableSetting
-            title="Inactive Pane Opacity"
-            description="Opacity applied to panes that are not currently active."
+            title={translate("auto.components.settings.TerminalAppearanceSection.a6fdd6a3b1", "Inactive Pane Opacity")}
+            description={translate("auto.components.settings.TerminalAppearanceSection.db632cb50e", "Opacity applied to panes that are not currently active.")}
             keywords={['pane', 'opacity', 'dimming']}
           >
             <NumberField
-              label="Inactive Pane Opacity"
-              description="Opacity applied to panes that are not currently active."
+              label={translate("auto.components.settings.TerminalAppearanceSection.a6fdd6a3b1", "Inactive Pane Opacity")}
+              description={translate("auto.components.settings.TerminalAppearanceSection.db632cb50e", "Opacity applied to panes that are not currently active.")}
               value={paneStyleOptions.inactivePaneOpacity}
               defaultValue={0.8}
               min={0}
@@ -317,13 +315,13 @@ export function TerminalAppearanceSection({
             />
           </SearchableSetting>
           <SearchableSetting
-            title="Divider Thickness"
-            description="Thickness of the pane divider line."
+            title={translate("auto.components.settings.TerminalAppearanceSection.f27a99978d", "Divider Thickness")}
+            description={translate("auto.components.settings.TerminalAppearanceSection.a14a427ae4", "Thickness of the pane divider line.")}
             keywords={['pane', 'divider', 'thickness']}
           >
             <NumberField
-              label="Divider Thickness"
-              description="Thickness of the pane divider line."
+              label={translate("auto.components.settings.TerminalAppearanceSection.f27a99978d", "Divider Thickness")}
+              description={translate("auto.components.settings.TerminalAppearanceSection.a14a427ae4", "Thickness of the pane divider line.")}
               value={paneStyleOptions.dividerThicknessPx}
               defaultValue={1}
               min={1}

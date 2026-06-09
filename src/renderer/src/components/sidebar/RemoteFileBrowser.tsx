@@ -16,6 +16,7 @@ import {
   type DirEntry
 } from './remote-file-browser-helpers'
 import { browseRuntimeServerDirectory } from '@/runtime/runtime-server-directory-browser'
+import { translate } from '@/i18n/i18n'
 
 type RemoteFileBrowserProps = (
   | { targetId: string; runtimeEnvironmentId?: never }
@@ -638,7 +639,7 @@ export function RemoteFileBrowser({
           onChange={(e) => handleInputChange(e.target.value)}
           onPaste={handleInputPaste}
           onKeyDown={handleFilterKeyDown}
-          placeholder="Type to filter or enter a path…"
+          placeholder={translate("auto.components.sidebar.RemoteFileBrowser.2300612806", "Type to filter or enter a path…")}
           aria-invalid={!!preview?.error}
           aria-describedby={preview?.error ? 'remote-file-browser-path-error' : undefined}
           className={cn(
@@ -682,7 +683,7 @@ export function RemoteFileBrowser({
             </div>
           ) : !isPreviewActive && entries.length === 0 ? (
             <div className="flex items-center justify-center h-full">
-              <p className="text-xs text-muted-foreground">Empty directory</p>
+              <p className="text-xs text-muted-foreground">{translate("auto.components.sidebar.RemoteFileBrowser.51001182e3", "Empty directory")}</p>
             </div>
           ) : displayEntries.length === 0 && !preview?.error ? (
             // Directory has contents; filter hides them all. Distinguishing
@@ -735,8 +736,7 @@ export function RemoteFileBrowser({
       </p>
       <div className="flex items-center justify-end gap-2">
         <Button variant="outline" size="sm" className="h-7 text-xs" onClick={onCancel}>
-          Cancel
-        </Button>
+          {translate("auto.components.sidebar.RemoteFileBrowser.f8b1deb1a4", "Cancel")}</Button>
         <Button
           size="sm"
           className="h-7 text-xs"
@@ -744,8 +744,7 @@ export function RemoteFileBrowser({
           disabled={selectDisabled}
           title={resolvedPath}
         >
-          Select folder
-        </Button>
+          {translate("auto.components.sidebar.RemoteFileBrowser.9e060f5815", "Select folder")}</Button>
       </div>
     </div>
   )

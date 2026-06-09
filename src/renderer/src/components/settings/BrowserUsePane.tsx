@@ -41,6 +41,7 @@ import { BrowserUseComputerUseNotice } from './BrowserUseComputerUseNotice'
 import { BrowserUseEnableSwitch } from './BrowserUseEnableSwitch'
 import { StepBadge } from './BrowserUseStepBadge'
 import { BrowserUseSkillStep } from './BrowserUseSkillStep'
+import { translate } from '@/i18n/i18n'
 
 type BrowserUseSetupProps = {
   onConfigureMoreBrowsers?: () => void
@@ -94,7 +95,7 @@ export function BrowserUseSetup({
       handleCliStatusChange(await window.api.cli.getInstallStatus())
     } catch (error) {
       if (mountedRef.current) {
-        toast.error(error instanceof Error ? error.message : 'Failed to load CLI status.')
+        toast.error(error instanceof Error ? error.message : translate("auto.components.settings.BrowserUsePane.180a9abf3a", "Failed to load CLI status."))
       }
     } finally {
       if (mountedRef.current) {
@@ -141,7 +142,7 @@ export function BrowserUseSetup({
         onStatusChange: handleCliStatusChange
       })
       if (mountedRef.current && isOrcaCliAvailableOnPath(next)) {
-        toast.success('Registered the Orca CLI in PATH.')
+        toast.success(translate("auto.components.settings.BrowserUsePane.721aee31b4", "Registered the Orca CLI in PATH."))
       }
     } finally {
       if (mountedRef.current) {
@@ -161,7 +162,7 @@ export function BrowserUseSetup({
     if (result.ok) {
       const browser = detectedBrowsers.find((b) => b.family === browserFamily)
       toast.success(
-        `Imported ${result.summary.importedCookies} cookies from ${browser?.label ?? browserFamily}${browserProfile ? ` (${browserProfile})` : ''}.`
+        translate("auto.components.settings.BrowserUsePane.2ea4617e3a", "Imported {{value0}} cookies from {{value1}}{{value2}}.", { value0: result.summary.importedCookies, value1: browser?.label ?? browserFamily, value2: browserProfile ? ` (${browserProfile})` : '' })
       )
     } else {
       toast.error(result.reason)
@@ -171,7 +172,7 @@ export function BrowserUseSetup({
   const handleImportFromFile = async (): Promise<void> => {
     const result = await useAppStore.getState().importCookiesToProfile('default')
     if (result.ok) {
-      toast.success(`Imported ${result.summary.importedCookies} cookies from file.`)
+      toast.success(translate("auto.components.settings.BrowserUsePane.2ea4617e3a", "Imported {{value0}} cookies from file.", { value0: result.summary.importedCookies }))
     } else if (result.reason !== 'canceled') {
       toast.error(result.reason)
     }
@@ -196,10 +197,9 @@ export function BrowserUseSetup({
     return (
       <div className="flex items-center justify-between gap-4 py-2">
         <div className="space-y-0.5">
-          <p className="text-sm font-medium">Agent Browser Use</p>
+          <p className="text-sm font-medium">{translate("auto.components.settings.BrowserUsePane.b8a1f2d84d", "Agent Browser Use")}</p>
           <p className="text-xs text-muted-foreground">
-            Let coding agents drive this browser with your logins.
-          </p>
+            {translate("auto.components.settings.BrowserUsePane.96b91c6349", "Let coding agents drive this browser with your logins.")}</p>
         </div>
         <BrowserUseEnableSwitch
           enabled={browserUseEnabled}
@@ -213,10 +213,9 @@ export function BrowserUseSetup({
     <div className="space-y-3 rounded-2xl border border-border/60 bg-card/30 p-4">
       <div className="flex items-center justify-between gap-3">
         <div className="space-y-0.5">
-          <p className="text-sm font-semibold">Agent Browser Use</p>
+          <p className="text-sm font-semibold">{translate("auto.components.settings.BrowserUsePane.b8a1f2d84d", "Agent Browser Use")}</p>
           <p className="text-xs text-muted-foreground">
-            Let coding agents drive this browser with your logins. Finish the three steps below.
-          </p>
+            {translate("auto.components.settings.BrowserUsePane.702488a5f7", "Let coding agents drive this browser with your logins. Finish the three steps below.")}</p>
         </div>
         <div className="flex shrink-0 items-center gap-2">
           <span
@@ -241,8 +240,8 @@ export function BrowserUseSetup({
 
       {showStep1 ? (
         <SearchableSetting
-          title="Enable Orca CLI"
-          description="Register the Orca CLI so agents can drive the browser."
+          title={translate("auto.components.settings.BrowserUsePane.c6065d205d", "Enable Orca CLI")}
+          description={translate("auto.components.settings.BrowserUsePane.c79eff0213", "Register the Orca CLI so agents can drive the browser.")}
           keywords={BROWSER_USE_PANE_SEARCH_ENTRIES[0].keywords}
           className="rounded-xl border border-border/60 bg-card/50 p-4"
         >
@@ -252,14 +251,12 @@ export function BrowserUseSetup({
               state={cliEnabled ? 'done' : cliBusy ? 'in-progress' : 'pending'}
             />
             <div className="min-w-0 flex-1 space-y-1">
-              <p className="text-sm font-medium">Enable Orca CLI</p>
+              <p className="text-sm font-medium">{translate("auto.components.settings.BrowserUsePane.c6065d205d", "Enable Orca CLI")}</p>
               <p className="text-xs text-muted-foreground">
-                Registers the Orca CLI command so agents can orchestrate the browser from their
-                shell.
-              </p>
+                {translate("auto.components.settings.BrowserUsePane.9fca1f7f5d", "Registers the Orca CLI command so agents can orchestrate the browser from their shell.")}</p>
               {cliStatus?.commandPath && cliEnabled ? (
                 <p className="text-[11px] text-muted-foreground">
-                  Installed at{' '}
+                  {translate("auto.components.settings.BrowserUsePane.e9f3f3b488", "Installed at")}{' '}
                   <code className="rounded bg-muted px-1 py-0.5">{cliStatus.commandPath}</code>
                 </p>
               ) : null}
@@ -300,8 +297,8 @@ export function BrowserUseSetup({
 
       {showStep2 ? (
         <SearchableSetting
-          title="Install Browser Use Skill"
-          description="Install the Browser Use skill so agents can operate Orca's browser."
+          title={translate("auto.components.settings.BrowserUsePane.2d6ead9ab2", "Install Browser Use Skill")}
+          description={translate("auto.components.settings.BrowserUsePane.68ea76eb71", "Install the Browser Use skill so agents can operate Orca's browser.")}
           keywords={BROWSER_USE_PANE_SEARCH_ENTRIES[1].keywords}
           className={cn(
             'rounded-xl border border-border/60 bg-card/50 p-4',
@@ -328,8 +325,8 @@ export function BrowserUseSetup({
 
       {showStep3 ? (
         <SearchableSetting
-          title="Import Browser Cookies"
-          description="Import cookies from Chrome, Edge, or other browsers so agents can reuse your logins."
+          title={translate("auto.components.settings.BrowserUsePane.2eb906706c", "Import Browser Cookies")}
+          description={translate("auto.components.settings.BrowserUsePane.af8c83ed61", "Import cookies from Chrome, Edge, or other browsers so agents can reuse your logins.")}
           keywords={BROWSER_USE_PANE_SEARCH_ENTRIES[2].keywords}
           className={cn(
             'rounded-xl border border-border/60 bg-card/50 p-4',
@@ -342,14 +339,12 @@ export function BrowserUseSetup({
               state={cookiesImported ? 'done' : isImportingDefault ? 'in-progress' : 'pending'}
             />
             <div className="min-w-0 flex-1 space-y-1">
-              <p className="text-sm font-medium">Import Browser Cookies</p>
+              <p className="text-sm font-medium">{translate("auto.components.settings.BrowserUsePane.2eb906706c", "Import Browser Cookies")}</p>
               <p className="text-xs text-muted-foreground">
-                Bring your existing logins into Orca so agents can reach authenticated pages.
-                Imports into the default profile.
-              </p>
+                {translate("auto.components.settings.BrowserUsePane.72d4815523", "Bring your existing logins into Orca so agents can reach authenticated pages. Imports into the default profile.")}</p>
               {sourceLabel ? (
                 <p className="text-[11px] text-muted-foreground">
-                  Last imported from {sourceLabel}
+                  {translate("auto.components.settings.BrowserUsePane.112f70adc4", "Last imported from")}{sourceLabel}
                 </p>
               ) : null}
               {onConfigureMoreBrowsers ? (
@@ -358,8 +353,7 @@ export function BrowserUseSetup({
                   onClick={onConfigureMoreBrowsers}
                   className="text-[11px] text-muted-foreground underline underline-offset-2 hover:text-foreground"
                 >
-                  Manage profiles for separate logins
-                </button>
+                  {translate("auto.components.settings.BrowserUsePane.67d9a53f47", "Manage profiles for separate logins")}</button>
               ) : null}
             </div>
             <DropdownMenu
@@ -390,7 +384,7 @@ export function BrowserUseSetup({
                 {detectedBrowsers.map((browser) =>
                   browser.profiles.length > 1 ? (
                     <DropdownMenuSub key={browser.family}>
-                      <DropdownMenuSubTrigger>From {browser.label}</DropdownMenuSubTrigger>
+                      <DropdownMenuSubTrigger>{translate("auto.components.settings.BrowserUsePane.e44c5d681e", "From")}{browser.label}</DropdownMenuSubTrigger>
                       <DropdownMenuPortal>
                         <DropdownMenuSubContent>
                           {browser.profiles.map((bp) => (
@@ -411,14 +405,13 @@ export function BrowserUseSetup({
                       key={browser.family}
                       onSelect={() => void handleImportFromBrowser(browser.family)}
                     >
-                      From {browser.label}
+                      {translate("auto.components.settings.BrowserUsePane.e44c5d681e", "From")}{browser.label}
                     </DropdownMenuItem>
                   )
                 )}
                 {detectedBrowsers.length > 0 ? <DropdownMenuSeparator /> : null}
                 <DropdownMenuItem onSelect={() => void handleImportFromFile()}>
-                  From File…
-                </DropdownMenuItem>
+                  {translate("auto.components.settings.BrowserUsePane.be6df68384", "From File…")}</DropdownMenuItem>
               </DropdownMenuContent>
             </DropdownMenu>
           </div>

@@ -7,6 +7,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '.
 import { GENERAL_CACHE_TIMER_SEARCH_ENTRIES } from './general-search'
 import { SearchableSetting } from './SearchableSetting'
 import { SettingsSubsectionHeader, SettingsSwitch } from './SettingsFormControls'
+import { translate } from '@/i18n/i18n'
 
 type GeneralCacheTimerSectionProps = {
   settings: GlobalSettings
@@ -20,13 +21,13 @@ export function GeneralCacheTimerSection({
   return (
     <section key="cache-timer" className="space-y-4">
       <SettingsSubsectionHeader
-        title="Prompt Cache Timer"
-        description="Claude caches your conversation to reduce costs. When idle too long the cache expires and the next message resends full context at higher cost. This shows a countdown so you know when to resume."
+        title={translate("auto.components.settings.GeneralCacheTimerSection.a137f8854d", "Prompt Cache Timer")}
+        description={translate("auto.components.settings.GeneralCacheTimerSection.fe590653c1", "Claude caches your conversation to reduce costs. When idle too long the cache expires and the next message resends full context at higher cost. This shows a countdown so you know when to resume.")}
       />
 
       <SearchableSetting
-        title="Cache Timer"
-        description="Show a countdown after a Claude agent becomes idle."
+        title={translate("auto.components.settings.GeneralCacheTimerSection.b4e7302944", "Cache Timer")}
+        description={translate("auto.components.settings.GeneralCacheTimerSection.9c20253679", "Show a countdown after a Claude agent becomes idle.")}
         keywords={GENERAL_CACHE_TIMER_SEARCH_ENTRIES.flatMap((entry) => [
           entry.title,
           entry.description ?? '',
@@ -37,14 +38,13 @@ export function GeneralCacheTimerSection({
         <div className="min-w-0 flex-1 space-y-0.5">
           <div className="flex items-center gap-2">
             <Timer className="size-4 text-muted-foreground" />
-            <Label>Cache Timer</Label>
+            <Label>{translate("auto.components.settings.GeneralCacheTimerSection.b4e7302944", "Cache Timer")}</Label>
           </div>
           <p className="text-xs text-muted-foreground">
-            Show a countdown in the sidebar after a Claude agent becomes idle.
-          </p>
+            {translate("auto.components.settings.GeneralCacheTimerSection.487b176240", "Show a countdown in the sidebar after a Claude agent becomes idle.")}</p>
         </div>
         <SettingsSwitch
-          ariaLabel="Cache Timer"
+          ariaLabel={translate("auto.components.settings.GeneralCacheTimerSection.b4e7302944", "Cache Timer")}
           checked={settings.promptCacheTimerEnabled}
           onChange={() => {
             const enabling = !settings.promptCacheTimerEnabled
@@ -64,10 +64,9 @@ export function GeneralCacheTimerSection({
           className="flex items-center justify-between gap-4 py-2 pl-7"
         >
           <div className="min-w-0 flex-1 space-y-0.5">
-            <Label>Timer Duration</Label>
+            <Label>{translate("auto.components.settings.GeneralCacheTimerSection.a2a8962138", "Timer Duration")}</Label>
             <p className="text-xs text-muted-foreground">
-              Match this to your provider&apos;s cache TTL. The default is 5 minutes.
-            </p>
+              {translate("auto.components.settings.GeneralCacheTimerSection.8b9e202e0a", "Match this to your provider's cache TTL. The default is 5 minutes.")}</p>
           </div>
           <Select
             value={String(settings.promptCacheTtlMs)}
@@ -77,8 +76,8 @@ export function GeneralCacheTimerSection({
               <SelectValue />
             </SelectTrigger>
             <SelectContent>
-              <SelectItem value="300000">5 minutes</SelectItem>
-              <SelectItem value="3600000">1 hour</SelectItem>
+              <SelectItem value="300000">{translate("auto.components.settings.GeneralCacheTimerSection.54395ecd7c", "5 minutes")}</SelectItem>
+              <SelectItem value="3600000">{translate("auto.components.settings.GeneralCacheTimerSection.05de84a104", "1 hour")}</SelectItem>
             </SelectContent>
           </Select>
         </SearchableSetting>

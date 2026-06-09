@@ -2,6 +2,7 @@ import type React from 'react'
 import { AppWindow } from 'lucide-react'
 import type { OpenInApplication } from '../../../shared/types'
 import { cn } from './utils'
+import { translate } from '@/i18n/i18n'
 
 export type OpenInAppPreset = {
   id: string
@@ -14,14 +15,14 @@ export type OpenInAppPreset = {
 export const OPEN_IN_APP_PRESETS: OpenInAppPreset[] = [
   {
     id: 'vscode',
-    label: 'VS Code',
+    label: translate("auto.lib.open.in.app.catalog.173553f73a", "VS Code"),
     command: 'code',
     faviconDomain: 'code.visualstudio.com'
   },
-  { id: 'cursor', label: 'Cursor', command: 'cursor', faviconDomain: 'cursor.com' },
+  { id: 'cursor', label: translate("auto.lib.open.in.app.catalog.d62b12e98a", "Cursor"), command: 'cursor', faviconDomain: 'cursor.com' },
   {
     id: 'zed',
-    label: 'Zed',
+    label: translate("auto.lib.open.in.app.catalog.f8b8ca2711", "Zed"),
     command: 'zed',
     faviconDomain: 'zed.dev',
     // Why: Zed's favicon is a black transparent mark, which disappears on dark menus.

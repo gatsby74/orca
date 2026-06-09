@@ -19,6 +19,7 @@ import { TUI_AGENT_CONFIG } from '../../../shared/tui-agent-config'
 import { makePaneKey } from '../../../shared/stable-pane-id'
 import type { TuiAgent } from '../../../shared/types'
 import type { LaunchSource } from '../../../shared/telemetry-events'
+import { translate } from '@/i18n/i18n'
 
 const WIN32_INLINE_DRAFT_LIMIT_CHARS = 24_000
 
@@ -231,7 +232,7 @@ export function launchAgentInNewTab(args: LaunchAgentInNewTabArgs): LaunchAgentI
       // exists; keep pruning stale local rows until the snapshot mirrors.
       removeStaleLocalAgentTabsForWebHostLaunch(worktreeId)
       if (!created) {
-        toast.error(`Could not launch ${agent} in a new terminal.`)
+        toast.error(translate("auto.lib.launch.agent.in.new.tab.11cce5cc77", "Could not launch {{value0}} in a new terminal.", { value0: agent }))
         return
       }
       store.setActiveTabType('terminal')

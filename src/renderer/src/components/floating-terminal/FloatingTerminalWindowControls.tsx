@@ -11,6 +11,7 @@ import { tuiAgentToAgentKind } from '@/lib/telemetry'
 import { useAppStore } from '@/store'
 import { FLOATING_TERMINAL_WORKTREE_ID } from '../../../../shared/constants'
 import { isTuiAgentEnabled } from '../../../../shared/tui-agent-selection'
+import { translate } from '@/i18n/i18n'
 
 type FloatingTerminalWindowControlsProps = {
   maximized: boolean
@@ -58,7 +59,7 @@ export function FloatingTerminalWindowControls({
       allowEmptyPromptLaunch: true
     })
     if (!startupPlan) {
-      toast.error(`Could not build launch command for ${defaultAgentLabel ?? defaultAgent}.`)
+      toast.error(translate("auto.components.floating.terminal.FloatingTerminalWindowControls.82da3701e7", "Could not build launch command for {{value0}}.", { value0: defaultAgentLabel ?? defaultAgent }))
       return
     }
     const tab = createTab(FLOATING_TERMINAL_WORKTREE_ID, undefined, undefined, { activate: false })
@@ -97,14 +98,14 @@ export function FloatingTerminalWindowControls({
               variant="outline"
               size="icon-xs"
               className={controlButtonClassName}
-              aria-label={`Open ${defaultAgentLabel ?? defaultAgent} in floating workspace`}
+              aria-label={translate("auto.components.floating.terminal.FloatingTerminalWindowControls.648352c51f", "Open {{value0}} in floating workspace", { value0: defaultAgentLabel ?? defaultAgent })}
               onClick={launchDefaultAgent}
             >
               <AgentIcon agent={defaultAgent} size={14} />
             </Button>
           </TooltipTrigger>
           <TooltipContent side="bottom" sideOffset={6}>
-            Open {defaultAgentLabel ?? defaultAgent}
+            {translate("auto.components.floating.terminal.FloatingTerminalWindowControls.648352c51f", "Open")}{defaultAgentLabel ?? defaultAgent}
           </TooltipContent>
         </Tooltip>
       ) : null}
@@ -115,7 +116,7 @@ export function FloatingTerminalWindowControls({
             variant="outline"
             size="icon-xs"
             className={controlButtonClassName}
-            aria-label={maximized ? 'Restore floating workspace' : 'Maximize floating workspace'}
+            aria-label={maximized ? translate("auto.components.floating.terminal.FloatingTerminalWindowControls.1c79cba25d", "Restore floating workspace") : translate("auto.components.floating.terminal.FloatingTerminalWindowControls.3f4ca29961", "Maximize floating workspace")}
             aria-pressed={maximized}
             onClick={onToggleMaximized}
           >
@@ -133,15 +134,14 @@ export function FloatingTerminalWindowControls({
             variant="outline"
             size="icon-xs"
             className={controlButtonClassName}
-            aria-label="Minimize floating workspace"
+            aria-label={translate("auto.components.floating.terminal.FloatingTerminalWindowControls.1bbaa0302f", "Minimize floating workspace")}
             onClick={onMinimize}
           >
             <Minus className="size-3.5" />
           </Button>
         </TooltipTrigger>
         <TooltipContent side="bottom" sideOffset={6}>
-          Minimize
-        </TooltipContent>
+          {translate("auto.components.floating.terminal.FloatingTerminalWindowControls.2f6054342c", "Minimize")}</TooltipContent>
       </Tooltip>
     </div>
   )

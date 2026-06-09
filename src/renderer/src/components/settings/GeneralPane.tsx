@@ -23,6 +23,7 @@ import {
 import { RecentTabOrderControl } from './RecentTabOrderControl'
 import { matchesSettingsSearch } from './settings-search'
 import { SettingsSubsectionHeader } from './SettingsFormControls'
+import { translate } from '@/i18n/i18n'
 
 export {
   createAutoSaveDelayDraftState,
@@ -72,7 +73,7 @@ export function GeneralPane({
   const visibleSections = [
     matchesSettingsSearch(searchQuery, GENERAL_NAVIGATION_SEARCH_ENTRIES) ? (
       <section key="navigation" className="space-y-4">
-        <SettingsSubsectionHeader title="Navigation" />
+        <SettingsSubsectionHeader title={translate("auto.components.settings.GeneralPane.d58fccfd84", "Navigation")} />
         <RecentTabOrderControl
           ctrlTabOrderMode={settings.ctrlTabOrderMode ?? 'mru'}
           keywords={GENERAL_NAVIGATION_SEARCH_ENTRIES.flatMap((entry) => [

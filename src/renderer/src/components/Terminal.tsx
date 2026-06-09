@@ -94,6 +94,7 @@ import { showTerminalShortcutCaptureNotification } from '@/lib/terminal-shortcut
 import { useContextualTour } from './contextual-tours/use-contextual-tour'
 import { openTabBarEntry, type TabCreateEntryArgs } from './tab-bar/tab-create-entry-action'
 import { closeTerminalTab } from './terminal/terminal-tab-actions'
+import { translate } from '@/i18n/i18n'
 
 const EditorPanel = lazy(() => import('./editor/EditorPanel'))
 
@@ -545,7 +546,7 @@ function Terminal(): React.JSX.Element | null {
         releaseCloseDialogGuardAfterDebounce()
         return
       }
-      toast.error('Save timed out or failed. Fix errors before closing.')
+      toast.error(translate("auto.components.Terminal.a2a279b32a", "Save timed out or failed. Fix errors before closing."))
       setSaveDialogFileId(fileId)
       // Why: a genuine timeout leaves the user back on the same dialog, so
       // release the guard immediately — a new click here is a deliberate
@@ -860,7 +861,7 @@ function Terminal(): React.JSX.Element | null {
       return
     }
     createBrowserTab(activeWorktreeId, defaultUrl, {
-      title: 'New Browser Tab',
+      title: translate("auto.components.Terminal.37da0d736f", "New Browser Tab"),
       focusAddressBar: true
     })
   }, [
@@ -1291,7 +1292,7 @@ function Terminal(): React.JSX.Element | null {
         if (floatingWorkspaceFocused) {
           void createFloatingWorkspaceMarkdownTab(useAppStore.getState()).catch((err) => {
             toast.error(
-              err instanceof Error ? err.message : 'Failed to create untitled markdown file.'
+              err instanceof Error ? err.message : translate("auto.components.Terminal.f0600556b3", "Failed to create untitled markdown file.")
             )
           })
           return
@@ -1809,8 +1810,7 @@ function Terminal(): React.JSX.Element | null {
             <Suspense
               fallback={
                 <div className="flex-1 flex items-center justify-center text-muted-foreground text-sm">
-                  Loading editor...
-                </div>
+                  {translate("auto.components.Terminal.5c1d2a32bb", "Loading editor...")}</div>
               }
             >
               <EditorPanel />
@@ -1830,7 +1830,7 @@ function Terminal(): React.JSX.Element | null {
       >
         <DialogContent className="max-w-sm">
           <DialogHeader>
-            <DialogTitle className="text-sm">Unsaved Changes</DialogTitle>
+            <DialogTitle className="text-sm">{translate("auto.components.Terminal.21295c6b8c", "Unsaved Changes")}</DialogTitle>
             <DialogDescription className="text-xs">
               {saveDialogFile
                 ? `"${basename(saveDialogFile.relativePath)}" has unsaved changes. Do you want to save before closing?`
@@ -1839,14 +1839,11 @@ function Terminal(): React.JSX.Element | null {
           </DialogHeader>
           <DialogFooter className="gap-2">
             <Button type="button" variant="outline" size="sm" onClick={handleSaveDialogCancel}>
-              Cancel
-            </Button>
+              {translate("auto.components.Terminal.f82e9f02df", "Cancel")}</Button>
             <Button type="button" variant="outline" size="sm" onClick={handleSaveDialogDiscard}>
-              Don&apos;t Save
-            </Button>
+              {translate("auto.components.Terminal.0037b21794", "Don't Save")}</Button>
             <Button type="button" size="sm" onClick={handleSaveDialogSave}>
-              Save
-            </Button>
+              {translate("auto.components.Terminal.cd51e28d8b", "Save")}</Button>
           </DialogFooter>
         </DialogContent>
       </Dialog>
@@ -1862,10 +1859,9 @@ function Terminal(): React.JSX.Element | null {
       >
         <DialogContent className="max-w-sm" showCloseButton={false}>
           <DialogHeader>
-            <DialogTitle className="text-sm">Close Window?</DialogTitle>
+            <DialogTitle className="text-sm">{translate("auto.components.Terminal.2fa9c69ff3", "Close Window?")}</DialogTitle>
             <DialogDescription className="text-xs">
-              There are local terminals with running processes. Close the window anyway?
-            </DialogDescription>
+              {translate("auto.components.Terminal.7958465754", "There are local terminals with running processes. Close the window anyway?")}</DialogDescription>
           </DialogHeader>
           <DialogFooter className="gap-2">
             <Button
@@ -1874,8 +1870,7 @@ function Terminal(): React.JSX.Element | null {
               size="sm"
               onClick={() => setWindowCloseDialogOpen(false)}
             >
-              Cancel
-            </Button>
+              {translate("auto.components.Terminal.f82e9f02df", "Cancel")}</Button>
             <Button
               type="button"
               variant="destructive"
@@ -1886,8 +1881,7 @@ function Terminal(): React.JSX.Element | null {
                 window.api.ui.confirmWindowClose()
               }}
             >
-              Close
-            </Button>
+              {translate("auto.components.Terminal.73768427cf", "Close")}</Button>
           </DialogFooter>
         </DialogContent>
       </Dialog>

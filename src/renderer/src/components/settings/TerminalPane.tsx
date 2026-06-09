@@ -35,6 +35,7 @@ import { useDetectedOptionAsAlt } from '@/lib/keyboard-layout/use-effective-mac-
 import { ManageSessionsSection } from './ManageSessionsSection'
 import { OSC52_CLIPBOARD_SETTING_ID } from '../terminal-pane/osc52-clipboard-setting-anchor'
 import { WINDOWS_GIT_BASH_SHELL } from '../../../../shared/windows-terminal-shell'
+import { translate } from '@/i18n/i18n'
 
 const EMPTY_WSL_DISTROS: string[] = []
 
@@ -103,14 +104,14 @@ export function TerminalPane({
     matchesSettingsSearch(searchQuery, TERMINAL_WINDOWS_SHELL_SEARCH_ENTRY) ? (
       <section key="windows-shell" className="space-y-3">
         <SettingsSubsectionHeader
-          title="Windows Shell"
-          description="Default shell for new terminal panes on Windows."
+          title={translate("auto.components.settings.TerminalPane.87e678a8af", "Windows Shell")}
+          description={translate("auto.components.settings.TerminalPane.a55eee649f", "Default shell for new terminal panes on Windows.")}
         />
 
         <div className="divide-y divide-border/40">
           <SearchableSetting
-            title="Default Shell"
-            description="Choose the default shell for new terminal panes on Windows."
+            title={translate("auto.components.settings.TerminalPane.27e301f22c", "Default Shell")}
+            description={translate("auto.components.settings.TerminalPane.bd68f3170d", "Choose the default shell for new terminal panes on Windows.")}
             keywords={[
               'terminal',
               'windows',
@@ -124,26 +125,26 @@ export function TerminalPane({
             ]}
           >
             <SettingsRow
-              label="Default Shell"
-              description="Shell used when opening a new terminal pane. Takes effect for new terminals."
+              label={translate("auto.components.settings.TerminalPane.27e301f22c", "Default Shell")}
+              description={translate("auto.components.settings.TerminalPane.09bf02de9a", "Shell used when opening a new terminal pane. Takes effect for new terminals.")}
               control={
                 <SettingsSegmentedControl
-                  ariaLabel="Default Shell"
+                  ariaLabel={translate("auto.components.settings.TerminalPane.27e301f22c", "Default Shell")}
                   value={windowsShell}
                   onChange={(value) => updateSettings({ terminalWindowsShell: value })}
                   options={[
-                    { value: 'powershell.exe', label: 'PowerShell' },
-                    { value: 'cmd.exe', label: 'Command Prompt' },
+                    { value: 'powershell.exe', label: translate("auto.components.settings.TerminalPane.eb7fc4d98a", "PowerShell") },
+                    { value: 'cmd.exe', label: translate("auto.components.settings.TerminalPane.0f1b8669e6", "Command Prompt") },
                     ...(showGitBashOption
                       ? [
                           {
                             value: WINDOWS_GIT_BASH_SHELL,
-                            label: 'Git Bash',
+                            label: translate("auto.components.settings.TerminalPane.f61ac77f16", "Git Bash"),
                             disabled: !gitBashAvailable
                           }
                         ]
                       : []),
-                    ...(wslAvailable ? [{ value: 'wsl.exe', label: 'WSL' }] : [])
+                    ...(wslAvailable ? [{ value: 'wsl.exe', label: translate("auto.components.settings.TerminalPane.b637dd57a7", "WSL") }] : [])
                   ]}
                 />
               }
@@ -151,13 +152,13 @@ export function TerminalPane({
           </SearchableSetting>
           {windowsShell === 'wsl.exe' ? (
             <SearchableSetting
-              title="WSL Distribution"
-              description="Choose which WSL distribution new WSL terminals and local agent scans use."
+              title={translate("auto.components.settings.TerminalPane.219aaa59f4", "WSL Distribution")}
+              description={translate("auto.components.settings.TerminalPane.5fe79a5e56", "Choose which WSL distribution new WSL terminals and local agent scans use.")}
               keywords={['terminal', 'windows', 'wsl', 'linux', 'distribution', 'distro', 'ubuntu']}
             >
               <SettingsRow
-                label="WSL Distribution"
-                description="Used for new WSL terminal panes and local agent detection when the active workspace is not already inside WSL."
+                label={translate("auto.components.settings.TerminalPane.219aaa59f4", "WSL Distribution")}
+                description={translate("auto.components.settings.TerminalPane.2503f1e86b", "Used for new WSL terminal panes and local agent detection when the active workspace is not already inside WSL.")}
                 control={
                   <Select
                     value={selectedWslDistro}
@@ -168,15 +169,15 @@ export function TerminalPane({
                     }
                     disabled={wslCapabilitiesLoading || !wslAvailable}
                   >
-                    <SelectTrigger size="sm" aria-label="WSL Distribution" className="min-w-44">
+                    <SelectTrigger size="sm" aria-label={translate("auto.components.settings.TerminalPane.219aaa59f4", "WSL Distribution")} className="min-w-44">
                       <SelectValue
                         placeholder={
-                          wslCapabilitiesLoading ? 'Loading distributions' : 'Windows default'
+                          wslCapabilitiesLoading ? translate("auto.components.settings.TerminalPane.d78fc4fdef", "Loading distributions") : translate("auto.components.settings.TerminalPane.cc8c5ca224", "Windows default")
                         }
                       />
                     </SelectTrigger>
                     <SelectContent>
-                      <SelectItem value="__default__">Windows default</SelectItem>
+                      <SelectItem value="__default__">{translate("auto.components.settings.TerminalPane.cc8c5ca224", "Windows default")}</SelectItem>
                       {wslDistroOptions.map((distro) => (
                         <SelectItem key={distro} value={distro}>
                           {distro}
@@ -194,14 +195,14 @@ export function TerminalPane({
     matchesSettingsSearch(searchQuery, TERMINAL_RENDERING_SEARCH_ENTRIES) ? (
       <section key="rendering" className="space-y-3">
         <SettingsSubsectionHeader
-          title="Rendering"
-          description="Terminal renderer behavior for live panes and new panes."
+          title={translate("auto.components.settings.TerminalPane.2fba319f21", "Rendering")}
+          description={translate("auto.components.settings.TerminalPane.72bc9334a0", "Terminal renderer behavior for live panes and new panes.")}
         />
 
         <div className="divide-y divide-border/40">
           <SearchableSetting
-            title="GPU Acceleration"
-            description="Controls whether the terminal uses xterm.js WebGL rendering. Auto tries WebGL when the renderer is supported, with a conservative Linux fallback for software or unknown GPU renderers."
+            title={translate("auto.components.settings.TerminalPane.c1fc9e9444", "GPU Acceleration")}
+            description={translate("auto.components.settings.TerminalPane.f07dfb4466", "Controls whether the terminal uses xterm.js WebGL rendering. Auto tries WebGL when the renderer is supported, with a conservative Linux fallback for software or unknown GPU renderers.")}
             keywords={[
               'terminal',
               'gpu',
@@ -214,23 +215,23 @@ export function TerminalPane({
             ]}
           >
             <SettingsRow
-              label="GPU Acceleration"
+              label={translate("auto.components.settings.TerminalPane.c1fc9e9444", "GPU Acceleration")}
               description={
                 settings.terminalGpuAcceleration === 'off'
-                  ? 'WebGL disabled; DOM renderer for max compatibility.'
+                  ? translate("auto.components.settings.TerminalPane.fe4acf36c6", "WebGL disabled; DOM renderer for max compatibility.")
                   : settings.terminalGpuAcceleration === 'on'
-                    ? 'WebGL is always attempted for terminal panes.'
-                    : 'Auto tries WebGL, with DOM fallback for unsupported or risky renderers.'
+                    ? translate("auto.components.settings.TerminalPane.7eaccc1424", "WebGL is always attempted for terminal panes.")
+                    : translate("auto.components.settings.TerminalPane.e0996d141a", "Auto tries WebGL, with DOM fallback for unsupported or risky renderers.")
               }
               control={
                 <SettingsSegmentedControl
-                  ariaLabel="GPU Acceleration"
+                  ariaLabel={translate("auto.components.settings.TerminalPane.c1fc9e9444", "GPU Acceleration")}
                   value={settings.terminalGpuAcceleration ?? 'auto'}
                   onChange={(option) => updateSettings({ terminalGpuAcceleration: option })}
                   options={[
-                    { value: 'auto', label: 'Auto' },
-                    { value: 'on', label: 'On' },
-                    { value: 'off', label: 'Off' }
+                    { value: 'auto', label: translate("auto.components.settings.TerminalPane.43c2ff7b0e", "Auto") },
+                    { value: 'on', label: translate("auto.components.settings.TerminalPane.9c0b1c1792", "On") },
+                    { value: 'off', label: translate("auto.components.settings.TerminalPane.3fe1c5bfe0", "Off") }
                   ]}
                 />
               }
@@ -244,8 +245,8 @@ export function TerminalPane({
       matchesSettingsSearch(searchQuery, TERMINAL_RIGHT_CLICK_TO_PASTE_SEARCH_ENTRY)) ? (
       <section key="pane-interaction" className="space-y-3">
         <SettingsSubsectionHeader
-          title="Terminal Interaction"
-          description="Mouse and clipboard behavior for terminal panes."
+          title={translate("auto.components.settings.TerminalPane.45721f3e67", "Terminal Interaction")}
+          description={translate("auto.components.settings.TerminalPane.96fe15def8", "Mouse and clipboard behavior for terminal panes.")}
         />
 
         <div className="divide-y divide-border/40">
@@ -273,13 +274,13 @@ export function TerminalPane({
             )}
 
           <SearchableSetting
-            title="Focus Follows Mouse"
-            description="Hovering a terminal pane activates it without needing to click."
+            title={translate("auto.components.settings.TerminalPane.8eefeaa3da", "Focus Follows Mouse")}
+            description={translate("auto.components.settings.TerminalPane.9129b7e805", "Hovering a terminal pane activates it without needing to click.")}
             keywords={['focus', 'follows', 'mouse', 'hover', 'pane', 'ghostty', 'active']}
           >
             <SettingsSwitchRow
-              label="Focus Follows Mouse"
-              description="Hovering a terminal pane activates it without needing to click."
+              label={translate("auto.components.settings.TerminalPane.8eefeaa3da", "Focus Follows Mouse")}
+              description={translate("auto.components.settings.TerminalPane.9129b7e805", "Hovering a terminal pane activates it without needing to click.")}
               checked={settings.terminalFocusFollowsMouse}
               onChange={() =>
                 updateSettings({
@@ -290,8 +291,8 @@ export function TerminalPane({
           </SearchableSetting>
 
           <SearchableSetting
-            title="Copy on Select"
-            description="Automatically copy terminal selections to the clipboard."
+            title={translate("auto.components.settings.TerminalPane.902f5dee1f", "Copy on Select")}
+            description={translate("auto.components.settings.TerminalPane.4729c645fc", "Automatically copy terminal selections to the clipboard.")}
             keywords={[
               'clipboard',
               'copy',
@@ -306,8 +307,8 @@ export function TerminalPane({
             ]}
           >
             <SettingsSwitchRow
-              label="Copy on Select"
-              description="Automatically copy terminal selections to the clipboard."
+              label={translate("auto.components.settings.TerminalPane.902f5dee1f", "Copy on Select")}
+              description={translate("auto.components.settings.TerminalPane.4729c645fc", "Automatically copy terminal selections to the clipboard.")}
               checked={settings.terminalClipboardOnSelect}
               onChange={() =>
                 updateSettings({
@@ -319,8 +320,8 @@ export function TerminalPane({
 
           <SearchableSetting
             id={OSC52_CLIPBOARD_SETTING_ID}
-            title="Allow TUI Clipboard Writes (OSC 52)"
-            description="Let tmux, Neovim, and fzf copy to the system clipboard over the PTY (including over SSH)."
+            title={translate("auto.components.settings.TerminalPane.3338dcf8c1", "Allow TUI Clipboard Writes (OSC 52)")}
+            description={translate("auto.components.settings.TerminalPane.69c64a479c", "Let tmux, Neovim, and fzf copy to the system clipboard over the PTY (including over SSH).")}
             keywords={[
               'osc 52',
               'osc52',
@@ -336,8 +337,8 @@ export function TerminalPane({
             ]}
           >
             <SettingsSwitchRow
-              label="Allow TUI Clipboard Writes (OSC 52)"
-              description="Let programs in the terminal (tmux, Neovim, fzf, SSH) copy to your system clipboard."
+              label={translate("auto.components.settings.TerminalPane.3338dcf8c1", "Allow TUI Clipboard Writes (OSC 52)")}
+              description={translate("auto.components.settings.TerminalPane.6e6480a7df", "Let programs in the terminal (tmux, Neovim, fzf, SSH) copy to your system clipboard.")}
               checked={settings.terminalAllowOsc52Clipboard}
               onChange={() =>
                 updateSettings({
@@ -352,14 +353,14 @@ export function TerminalPane({
     matchesSettingsSearch(searchQuery, TERMINAL_SETUP_SCRIPT_SEARCH_ENTRIES) ? (
       <section key="setup-script" className="space-y-3">
         <SettingsSubsectionHeader
-          title="Workspace Setup Script"
-          description="Where the repository setup script runs when a new workspace is created."
+          title={translate("auto.components.settings.TerminalPane.21f8da2078", "Workspace Setup Script")}
+          description={translate("auto.components.settings.TerminalPane.34a0dfa06e", "Where the repository setup script runs when a new workspace is created.")}
         />
 
         <div className="divide-y divide-border/40">
           <SearchableSetting
-            title="Setup Script Location"
-            description="Where the repository setup script runs when a new workspace is created."
+            title={translate("auto.components.settings.TerminalPane.d23b43c5be", "Setup Script Location")}
+            description={translate("auto.components.settings.TerminalPane.34a0dfa06e", "Where the repository setup script runs when a new workspace is created.")}
             keywords={[
               'setup',
               'script',
@@ -374,8 +375,8 @@ export function TerminalPane({
             ]}
           >
             <SettingsRow
-              label="Setup Script Location"
-              description='"New Tab" opens the setup command in a background tab titled "Setup" without stealing focus.'
+              label={translate("auto.components.settings.TerminalPane.d23b43c5be", "Setup Script Location")}
+              description={translate("auto.components.settings.TerminalPane.a9d47451d1", "\"New Tab\" opens the setup command in a background tab titled \"Setup\" without stealing focus.")}
               control={
                 <ToggleGroup
                   type="single"
@@ -395,24 +396,21 @@ export function TerminalPane({
                   <ToggleGroupItem
                     value="new-tab"
                     className="h-8 px-3 text-xs"
-                    aria-label="Run in a new tab"
+                    aria-label={translate("auto.components.settings.TerminalPane.6c6a054a1c", "Run in a new tab")}
                   >
-                    New Tab
-                  </ToggleGroupItem>
+                    {translate("auto.components.settings.TerminalPane.1158f8fd55", "New Tab")}</ToggleGroupItem>
                   <ToggleGroupItem
                     value="split-vertical"
                     className="h-8 px-3 text-xs"
-                    aria-label="Split vertically"
+                    aria-label={translate("auto.components.settings.TerminalPane.691ce810e0", "Split vertically")}
                   >
-                    Split Vertically
-                  </ToggleGroupItem>
+                    {translate("auto.components.settings.TerminalPane.332e8a2872", "Split Vertically")}</ToggleGroupItem>
                   <ToggleGroupItem
                     value="split-horizontal"
                     className="h-8 px-3 text-xs"
-                    aria-label="Split horizontally"
+                    aria-label={translate("auto.components.settings.TerminalPane.623e62df99", "Split horizontally")}
                   >
-                    Split Horizontally
-                  </ToggleGroupItem>
+                    {translate("auto.components.settings.TerminalPane.003df129fe", "Split Horizontally")}</ToggleGroupItem>
                 </ToggleGroup>
               }
             />
@@ -434,20 +432,20 @@ export function TerminalPane({
         matchesSettingsSearch(searchQuery, TERMINAL_MAC_YEN_SEARCH_ENTRIES))) ? (
       <section key="advanced" className="space-y-3">
         <SettingsSubsectionHeader
-          title="Advanced"
-          description="Scrollback, word boundaries, and platform-specific terminal behaviors."
+          title={translate("auto.components.settings.TerminalPane.5e5f06c82c", "Advanced")}
+          description={translate("auto.components.settings.TerminalPane.267d020745", "Scrollback, word boundaries, and platform-specific terminal behaviors.")}
         />
 
         <div className="divide-y divide-border/40">
           <SearchableSetting
-            title="Scrollback Size"
-            description="Maximum terminal scrollback buffer size."
+            title={translate("auto.components.settings.TerminalPane.9df53f7c14", "Scrollback Size")}
+            description={translate("auto.components.settings.TerminalPane.c3810b2b42", "Maximum terminal scrollback buffer size.")}
             keywords={['terminal', 'scrollback', 'buffer', 'memory']}
           >
             <SettingsRow
               alignTop={scrollbackMode === 'custom'}
-              label="Scrollback Size"
-              description="Maximum terminal scrollback buffer size for new terminal panes."
+              label={translate("auto.components.settings.TerminalPane.9df53f7c14", "Scrollback Size")}
+              description={translate("auto.components.settings.TerminalPane.81d86b2dd2", "Maximum terminal scrollback buffer size for new terminal panes.")}
               control={
                 <div className="flex flex-col items-end gap-2">
                   <ToggleGroup
@@ -476,18 +474,16 @@ export function TerminalPane({
                         key={preset}
                         value={`${preset}`}
                         className="h-8 px-3 text-xs"
-                        aria-label={`${preset} megabytes`}
+                        aria-label={translate("auto.components.settings.TerminalPane.5336c096af", "{{value0}} megabytes", { value0: preset })}
                       >
-                        {preset} MB
-                      </ToggleGroupItem>
+                        {preset} {translate("auto.components.settings.TerminalPane.12e06178fa", "MB")}</ToggleGroupItem>
                     ))}
                     <ToggleGroupItem
                       value="custom"
                       className="h-8 px-3 text-xs"
-                      aria-label="Custom"
+                      aria-label={translate("auto.components.settings.TerminalPane.907b0b9d3e", "Custom")}
                     >
-                      Custom
-                    </ToggleGroupItem>
+                      {translate("auto.components.settings.TerminalPane.907b0b9d3e", "Custom")}</ToggleGroupItem>
                   </ToggleGroup>
                   {scrollbackMode === 'custom' ? (
                     <div className="flex items-center gap-2">
@@ -507,7 +503,7 @@ export function TerminalPane({
                         }}
                         className="number-input-clean w-24 tabular-nums"
                       />
-                      <span className="text-xs text-muted-foreground">MB</span>
+                      <span className="text-xs text-muted-foreground">{translate("auto.components.settings.TerminalPane.12e06178fa", "MB")}</span>
                     </div>
                   ) : null}
                 </div>
@@ -516,13 +512,13 @@ export function TerminalPane({
           </SearchableSetting>
 
           <SearchableSetting
-            title="Word Separators"
-            description="Characters treated as word boundaries for double-click selection."
+            title={translate("auto.components.settings.TerminalPane.4bebcc2b2c", "Word Separators")}
+            description={translate("auto.components.settings.TerminalPane.8a956cc91e", "Characters treated as word boundaries for double-click selection.")}
             keywords={['word', 'separator', 'boundary', 'double-click', 'selection']}
           >
             <SettingsRow
-              label="Word Separators"
-              description="Characters treated as word boundaries for double-click selection."
+              label={translate("auto.components.settings.TerminalPane.4bebcc2b2c", "Word Separators")}
+              description={translate("auto.components.settings.TerminalPane.8a956cc91e", "Characters treated as word boundaries for double-click selection.")}
               control={
                 <Input
                   value={settings.terminalWordSeparator ?? ''}
@@ -543,8 +539,8 @@ export function TerminalPane({
             TERMINAL_WINDOWS_POWERSHELL_IMPLEMENTATION_SEARCH_ENTRY
           ) ? (
             <SearchableSetting
-              title="PowerShell Version"
-              description="Choose whether the PowerShell shell option launches Windows PowerShell or PowerShell 7+ for new terminal panes."
+              title={translate("auto.components.settings.TerminalPane.fe20f79dd1", "PowerShell Version")}
+              description={translate("auto.components.settings.TerminalPane.3d88af864d", "Choose whether the PowerShell shell option launches Windows PowerShell or PowerShell 7+ for new terminal panes.")}
               keywords={[
                 'terminal',
                 'windows',
@@ -558,36 +554,38 @@ export function TerminalPane({
             >
               <SettingsRow
                 alignTop
-                label="PowerShell Version"
+                label={translate("auto.components.settings.TerminalPane.fe20f79dd1", "PowerShell Version")}
                 description={
                   pwshAvailable ? (
-                    'Choose between Windows PowerShell and PowerShell 7+ for new terminal panes.'
+                    translate(
+                      'auto.components.settings.TerminalPane.5ed5c95344',
+                      'Choose between Windows PowerShell and PowerShell 7+ for new terminal panes.'
+                    )
                   ) : (
                     <>
-                      Auto uses Windows PowerShell now and switches to PowerShell 7+ when installed.{' '}
+                      {translate("auto.components.settings.TerminalPane.a016ffbeed", "Auto uses Windows PowerShell now and switches to PowerShell 7+ when installed.")}{' '}
                       <a
                         href="https://github.com/PowerShell/PowerShell/releases/latest"
                         target="_blank"
                         rel="noopener noreferrer"
                         className="underline hover:text-foreground"
                       >
-                        Download PowerShell 7+
-                      </a>
+                        {translate("auto.components.settings.TerminalPane.822f62ddcd", "Download PowerShell 7+")}</a>
                       .
                     </>
                   )
                 }
                 control={
                   <SettingsSegmentedControl
-                    ariaLabel="PowerShell Version"
+                    ariaLabel={translate("auto.components.settings.TerminalPane.fe20f79dd1", "PowerShell Version")}
                     value={powerShellImplementation}
                     onChange={(value) =>
                       updateSettings({ terminalWindowsPowerShellImplementation: value })
                     }
                     options={[
-                      { value: 'auto', label: 'Auto' },
-                      { value: 'powershell.exe', label: 'Windows PowerShell' },
-                      { value: 'pwsh.exe', label: 'PowerShell 7+', disabled: !pwshAvailable }
+                      { value: 'auto', label: translate("auto.components.settings.TerminalPane.43c2ff7b0e", "Auto") },
+                      { value: 'powershell.exe', label: translate("auto.components.settings.TerminalPane.d26174e1dd", "Windows PowerShell") },
+                      { value: 'pwsh.exe', label: translate("auto.components.settings.TerminalPane.96be03b8eb", "PowerShell 7+"), disabled: !pwshAvailable }
                     ]}
                   />
                 }
@@ -598,8 +596,8 @@ export function TerminalPane({
           {isMac ? (
             <>
               <SearchableSetting
-                title="Option as Alt"
-                description="Controls whether the macOS Option key sends Alt/Esc sequences or composes characters."
+                title={translate("auto.components.settings.TerminalPane.0a10420e1a", "Option as Alt")}
+                description={translate("auto.components.settings.TerminalPane.2561d3fc1b", "Controls whether the macOS Option key sends Alt/Esc sequences or composes characters.")}
                 keywords={[
                   'terminal',
                   'option',
@@ -618,27 +616,27 @@ export function TerminalPane({
               >
                 <SettingsRow
                   alignTop
-                  label="Option as Alt"
+                  label={translate("auto.components.settings.TerminalPane.0a10420e1a", "Option as Alt")}
                   description={
                     settings.terminalMacOptionAsAlt === 'auto'
-                      ? `Auto — detected: ${detectedLayoutLabel}.`
+                      ? translate("auto.components.settings.TerminalPane.d21c493808", "Auto — detected: {{value0}}.", { value0: detectedLayoutLabel })
                       : settings.terminalMacOptionAsAlt === 'false'
-                        ? 'Option composes special characters for your keyboard layout.'
+                        ? translate("auto.components.settings.TerminalPane.d8998bb328", "Option composes special characters for your keyboard layout.")
                         : settings.terminalMacOptionAsAlt === 'true'
-                          ? 'Both Option keys send Alt/Esc sequences.'
-                          : `The ${settings.terminalMacOptionAsAlt} Option key sends Alt/Esc; the other composes special characters.`
+                          ? translate("auto.components.settings.TerminalPane.b62373091a", "Both Option keys send Alt/Esc sequences.")
+                          : translate("auto.components.settings.TerminalPane.ce3aadf0b2", "The {{value0}} Option key sends Alt/Esc; the other composes special characters.", { value0: settings.terminalMacOptionAsAlt })
                   }
                   control={
                     <SettingsSegmentedControl
-                      ariaLabel="Option as Alt"
+                      ariaLabel={translate("auto.components.settings.TerminalPane.0a10420e1a", "Option as Alt")}
                       value={settings.terminalMacOptionAsAlt}
                       onChange={(option) => updateSettings({ terminalMacOptionAsAlt: option })}
                       options={[
-                        { value: 'auto', label: 'Auto' },
-                        { value: 'true', label: 'Both' },
-                        { value: 'left', label: 'Left' },
-                        { value: 'right', label: 'Right' },
-                        { value: 'false', label: 'Off' }
+                        { value: 'auto', label: translate("auto.components.settings.TerminalPane.43c2ff7b0e", "Auto") },
+                        { value: 'true', label: translate("auto.components.settings.TerminalPane.badb1219fc", "Both") },
+                        { value: 'left', label: translate("auto.components.settings.TerminalPane.e7aec1fd60", "Left") },
+                        { value: 'right', label: translate("auto.components.settings.TerminalPane.c73d510938", "Right") },
+                        { value: 'false', label: translate("auto.components.settings.TerminalPane.3fe1c5bfe0", "Off") }
                       ]}
                     />
                   }
@@ -646,8 +644,8 @@ export function TerminalPane({
               </SearchableSetting>
 
               <SearchableSetting
-                title="JIS Yen (¥) to Backslash (\\)"
-                description="Controls whether pressing the JIS Yen (¥) key sends a backslash (\\) instead."
+                title={translate("auto.components.settings.TerminalPane.19f4935159", "JIS Yen (¥) to Backslash (\\\\)")}
+                description={translate("auto.components.settings.TerminalPane.1c337bef4a", "Controls whether pressing the JIS Yen (¥) key sends a backslash (\\\\) instead.")}
                 keywords={[
                   'terminal',
                   'yen',
@@ -661,8 +659,8 @@ export function TerminalPane({
                 ]}
               >
                 <SettingsSwitchRow
-                  label="JIS Yen (¥) to Backslash (\\)"
-                  description="Pressing the JIS Yen (¥) key sends a backslash (\\) instead."
+                  label={translate("auto.components.settings.TerminalPane.19f4935159", "JIS Yen (¥) to Backslash (\\\\)")}
+                  description={translate("auto.components.settings.TerminalPane.4263e940e0", "Pressing the JIS Yen (¥) key sends a backslash (\\\\) instead.")}
                   checked={settings.terminalJISYenToBackslash ?? false}
                   onChange={() =>
                     updateSettings({

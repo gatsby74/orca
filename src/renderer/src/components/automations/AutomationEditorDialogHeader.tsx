@@ -6,6 +6,7 @@ import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover
 import { ToggleGroup, ToggleGroupItem } from '@/components/ui/toggle-group'
 import type { AutomationCreateTarget } from './AutomationEditorDialog'
 import type { AutomationTemplate } from './automation-templates'
+import { translate } from '@/i18n/i18n'
 
 type AutomationEditorDialogHeaderProps = {
   isEditing: boolean
@@ -77,8 +78,8 @@ export function AutomationEditorDialogHeader({
           </DialogTitle>
           <Input
             value={draftName}
-            placeholder="Weekday repo audit"
-            aria-label="Automation name"
+            placeholder={translate("auto.components.automations.AutomationEditorDialogHeader.1d9826933e", "Weekday repo audit")}
+            aria-label={translate("auto.components.automations.AutomationEditorDialogHeader.58f56b73d9", "Automation name")}
             className="h-10 max-w-md border-input bg-input/30 px-3 text-lg font-semibold text-foreground shadow-xs placeholder:text-muted-foreground dark:bg-input/30"
             onChange={(event) => onDraftNameChange(event.target.value)}
           />
@@ -96,11 +97,9 @@ export function AutomationEditorDialogHeader({
               className="grid grid-cols-2"
             >
               <ToggleGroupItem value="orca" className={modeToggleItemClassName}>
-                Orca
-              </ToggleGroupItem>
+                {translate("auto.components.automations.AutomationEditorDialogHeader.6f309eef8d", "Orca")}</ToggleGroupItem>
               <ToggleGroupItem value="hermes" className={modeToggleItemClassName}>
-                Hermes
-              </ToggleGroupItem>
+                {translate("auto.components.automations.AutomationEditorDialogHeader.7e35393632", "Hermes")}</ToggleGroupItem>
             </ToggleGroup>
             <Popover open={templateOpen} onOpenChange={onTemplateOpenChange}>
               <PopoverTrigger asChild>
@@ -111,8 +110,7 @@ export function AutomationEditorDialogHeader({
                   className={pickerTriggerClassName}
                 >
                   <Sparkles className="size-4" />
-                  Use template
-                </Button>
+                  {translate("auto.components.automations.AutomationEditorDialogHeader.31f9253920", "Use template")}</Button>
               </PopoverTrigger>
               <PopoverContent align="end" className="w-96 p-3">
                 <div className="grid gap-2">

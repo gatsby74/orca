@@ -8,6 +8,7 @@ import {
   getWorkspaceSpaceProgressLabel,
   getWorkspaceSpaceScanTimeLabel
 } from './workspace-space-format'
+import { translate } from '@/i18n/i18n'
 
 export function WorkspaceSpaceCompactPanel({
   onOpenFullPage
@@ -39,10 +40,9 @@ export function WorkspaceSpaceCompactPanel({
           <HardDrive className="size-3.5 shrink-0 text-muted-foreground" />
           <div className="min-w-0">
             <div className="flex min-w-0 items-center gap-1.5 text-[11px] font-medium text-foreground">
-              <span className="truncate">Space</span>
+              <span className="truncate">{translate("auto.components.status.bar.WorkspaceSpaceCompactPanel.8ff597593d", "Space")}</span>
               <Badge variant="secondary" className="px-1.5 py-0 text-[9px]">
-                Beta
-              </Badge>
+                {translate("auto.components.status.bar.WorkspaceSpaceCompactPanel.c361440dc0", "Beta")}</Badge>
             </div>
             <div className="truncate text-[11px] text-muted-foreground">
               {analysis
@@ -84,27 +84,26 @@ export function WorkspaceSpaceCompactPanel({
                 : 'Scan'}
           </Button>
           <Button variant="ghost" size="xs" onClick={onOpenFullPage}>
-            Review
-          </Button>
+            {translate("auto.components.status.bar.WorkspaceSpaceCompactPanel.6a5dc3c61a", "Review")}</Button>
         </div>
       </div>
 
       {analysis ? (
         <div className="mt-2 grid grid-cols-3 gap-1 text-[10px] tabular-nums">
           <div className="rounded border border-border/60 bg-background/40 px-2 py-1">
-            <div className="text-muted-foreground">Scanned</div>
+            <div className="text-muted-foreground">{translate("auto.components.status.bar.WorkspaceSpaceCompactPanel.f4d2651498", "Scanned")}</div>
             <div className="truncate font-medium text-foreground">
               {formatBytes(analysis.totalSizeBytes)}
             </div>
           </div>
           <div className="rounded border border-border/60 bg-background/40 px-2 py-1">
-            <div className="text-muted-foreground">Freeable</div>
+            <div className="text-muted-foreground">{translate("auto.components.status.bar.WorkspaceSpaceCompactPanel.9be86c46a0", "Freeable")}</div>
             <div className="truncate font-medium text-foreground">
               {formatBytes(analysis.reclaimableBytes)}
             </div>
           </div>
           <div className="rounded border border-border/60 bg-background/40 px-2 py-1">
-            <div className="text-muted-foreground">Updated</div>
+            <div className="text-muted-foreground">{translate("auto.components.status.bar.WorkspaceSpaceCompactPanel.a471aa9c24", "Updated")}</div>
             <div className="truncate font-medium text-foreground">
               {getWorkspaceSpaceScanTimeLabel(analysis.scannedAt)}
             </div>

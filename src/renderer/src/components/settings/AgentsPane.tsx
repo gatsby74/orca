@@ -27,6 +27,7 @@ import {
   isTuiAgentEnabled,
   normalizeDisabledTuiAgents
 } from '../../../../shared/tui-agent-selection'
+import { translate } from '@/i18n/i18n'
 
 export { AGENTS_PANE_SEARCH_ENTRIES } from './agents-search'
 
@@ -131,11 +132,11 @@ export function AgentAvailabilityControl({
           onSetEnabled(next === 'enabled')
         }
       }}
-      ariaLabel={`${label} availability`}
+      ariaLabel={translate("auto.components.settings.AgentsPane.1c9a9679ec", "{{value0}} availability", { value0: label })}
       size="sm"
       options={[
-        { value: 'enabled', label: 'Enabled' },
-        { value: 'disabled', label: 'Disabled' }
+        { value: 'enabled', label: translate("auto.components.settings.AgentsPane.d4d2a45d63", "Enabled") },
+        { value: 'disabled', label: translate("auto.components.settings.AgentsPane.8dc0192e48", "Disabled") }
       ]}
     />
   )
@@ -161,7 +162,7 @@ function AgentCommandOverrideInput({
 
   return (
     <div className="flex items-center gap-2">
-      <span className="shrink-0 text-xs text-muted-foreground">Command</span>
+      <span className="shrink-0 text-xs text-muted-foreground">{translate("auto.components.settings.AgentsPane.2e45ca29b6", "Command")}</span>
       <Input
         value={cmdDraft}
         onChange={(e) => setCmdDraft(e.target.value)}
@@ -191,8 +192,7 @@ function AgentCommandOverrideInput({
           }}
           className="h-7 shrink-0 text-xs text-muted-foreground hover:text-foreground"
         >
-          Reset
-        </Button>
+          {translate("auto.components.settings.AgentsPane.5200dac9da", "Reset")}</Button>
       )}
     </div>
   )
@@ -224,11 +224,11 @@ function AgentRow({
           <div className="flex items-center gap-2">
             <span className="text-sm font-medium leading-none">{label}</span>
             {isDetected ? (
-              <SettingsBadge tone="accent">Detected</SettingsBadge>
+              <SettingsBadge tone="accent">{translate("auto.components.settings.AgentsPane.c8794e622e", "Detected")}</SettingsBadge>
             ) : (
-              <SettingsBadge tone="muted">Not installed</SettingsBadge>
+              <SettingsBadge tone="muted">{translate("auto.components.settings.AgentsPane.df123171d1", "Not installed")}</SettingsBadge>
             )}
-            {!isEnabled && <SettingsBadge tone="muted">Disabled</SettingsBadge>}
+            {!isEnabled && <SettingsBadge tone="muted">{translate("auto.components.settings.AgentsPane.8dc0192e48", "Disabled")}</SettingsBadge>}
           </div>
           <div className="mt-1 truncate font-mono text-[11px] text-muted-foreground">
             {cmdOverride ? (
@@ -288,7 +288,7 @@ function AgentRow({
             href={homepageUrl}
             target="_blank"
             rel="noopener noreferrer"
-            title={isDetected ? 'Docs' : 'Install'}
+            title={isDetected ? translate("auto.components.settings.AgentsPane.fe4d630c94", "Docs") : translate("auto.components.settings.AgentsPane.f95b5c79b8", "Install")}
             className="flex size-7 items-center justify-center rounded-md text-muted-foreground transition-colors hover:bg-muted/50 hover:text-foreground"
           >
             <ExternalLink className="size-3.5" />
@@ -323,8 +323,7 @@ function AgentRow({
             onSaveOverride={onSaveOverride}
           />
           <p className="mt-1.5 text-[11px] text-muted-foreground">
-            Override the binary path or name used to launch this agent.
-          </p>
+            {translate("auto.components.settings.AgentsPane.f9f127d664", "Override the binary path or name used to launch this agent.")}</p>
         </div>
       )}
     </div>
@@ -438,15 +437,14 @@ export function AgentsPane({
 
       <section className="space-y-4">
         <SettingsSubsectionHeader
-          title="Default Agent"
-          description="Pre-selected agent when opening a new workspace."
+          title={translate("auto.components.settings.AgentsPane.385212c7a1", "Default Agent")}
+          description={translate("auto.components.settings.AgentsPane.9b175d0f5e", "Pre-selected agent when opening a new workspace.")}
         />
 
         <div className="flex flex-wrap gap-2">
           <DefaultAgentPill active={isAutoDefault} onClick={() => setDefault(null)}>
             {isAutoDefault && <Check className="size-3.5" />}
-            Auto
-          </DefaultAgentPill>
+            {translate("auto.components.settings.AgentsPane.92033495ff", "Auto")}</DefaultAgentPill>
 
           {/* Why: users who prefer to open a raw shell by default need a
               first-class "no agent" choice here — without it, the Auto pill
@@ -454,8 +452,7 @@ export function AgentsPane({
               agent, which is the opposite of what they want. */}
           <DefaultAgentPill active={isBlankDefault} onClick={() => setDefault('blank')}>
             <Terminal className="size-3.5" />
-            No agent (blank terminal)
-            {isBlankDefault && <Check className="size-3.5" />}
+            {translate("auto.components.settings.AgentsPane.110b74b022", "No agent (blank terminal)")}{isBlankDefault && <Check className="size-3.5" />}
           </DefaultAgentPill>
 
           {enabledDetectedAgents.map((agent) => {
@@ -486,8 +483,7 @@ export function AgentsPane({
           <SettingsSubsectionHeader
             title={
               <span className="flex items-center gap-2">
-                Installed
-                <SettingsBadge tone="accent">{detectedAgents.length} detected</SettingsBadge>
+                {translate("auto.components.settings.AgentsPane.02e0143be5", "Installed")}<SettingsBadge tone="accent">{detectedAgents.length} {translate("auto.components.settings.AgentsPane.ed3e110e61", "detected")}</SettingsBadge>
               </span>
             }
             action={
@@ -532,8 +528,7 @@ export function AgentsPane({
           <SettingsSubsectionHeader
             title={
               <span className="flex items-center gap-2 text-muted-foreground">
-                Available to install
-                <SettingsBadge tone="muted">{undetectedAgents.length} agents</SettingsBadge>
+                {translate("auto.components.settings.AgentsPane.e8da2af684", "Available to install")}<SettingsBadge tone="muted">{undetectedAgents.length} {translate("auto.components.settings.AgentsPane.024bd95089", "agents")}</SettingsBadge>
               </span>
             }
           />
@@ -561,8 +556,7 @@ export function AgentsPane({
 
       {detectedIds === null && (
         <div className="flex items-center justify-center rounded-md border border-dashed border-border/50 py-6 text-sm text-muted-foreground">
-          Detecting installed agents…
-        </div>
+          {translate("auto.components.settings.AgentsPane.d83834f5e6", "Detecting installed agents…")}</div>
       )}
     </div>
   )

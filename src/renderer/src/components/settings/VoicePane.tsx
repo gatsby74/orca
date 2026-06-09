@@ -24,6 +24,7 @@ import { OpenAiTranscriptionSettingsRow } from './OpenAiTranscriptionSettingsRow
 import { handleVoiceDictationToggle } from './voice-dictation-toggle'
 import { matchesSettingsSearch } from './settings-search'
 import { OPENAI_TRANSCRIPTION_SEARCH_ENTRY } from './voice-pane-search'
+import { translate } from '@/i18n/i18n'
 
 export { handleVoiceDictationToggle }
 
@@ -154,9 +155,9 @@ export function VoicePane({ settings, updateSettings }: VoicePaneProps): React.J
       setOpenAiDialogOpen(false)
       setOpenAiApiKeyDraft('')
       setPendingCloudModelId(null)
-      toast.success('OpenAI API key saved')
+      toast.success(translate("auto.components.settings.VoicePane.506df81ba6", "OpenAI API key saved"))
     } catch (err) {
-      toast.error(err instanceof Error ? err.message : 'Failed to save OpenAI API key')
+      toast.error(err instanceof Error ? err.message : translate("auto.components.settings.VoicePane.8572bbb537", "Failed to save OpenAI API key"))
     } finally {
       if (mountedRef.current) {
         setOpenAiKeyPending(false)
@@ -176,9 +177,9 @@ export function VoicePane({ settings, updateSettings }: VoicePaneProps): React.J
       setOpenAiDialogOpen(false)
       setOpenAiApiKeyDraft('')
       setPendingCloudModelId(null)
-      toast.success('OpenAI API key cleared')
+      toast.success(translate("auto.components.settings.VoicePane.37aba8bb63", "OpenAI API key cleared"))
     } catch (err) {
-      toast.error(err instanceof Error ? err.message : 'Failed to clear OpenAI API key')
+      toast.error(err instanceof Error ? err.message : translate("auto.components.settings.VoicePane.62d2a84d31", "Failed to clear OpenAI API key"))
     } finally {
       if (mountedRef.current) {
         setOpenAiKeyPending(false)
@@ -190,15 +191,14 @@ export function VoicePane({ settings, updateSettings }: VoicePaneProps): React.J
     <div ref={handlePaneRef} className="space-y-1">
       <div className="flex items-center justify-between gap-4 py-2">
         <div className="space-y-0.5">
-          <Label>Enable Voice Dictation</Label>
+          <Label>{translate("auto.components.settings.VoicePane.0121960365", "Enable Voice Dictation")}</Label>
           <p className="text-xs text-muted-foreground">
-            Press {shortcutLabel} to dictate text into any focused pane.
-          </p>
+            {translate("auto.components.settings.VoicePane.4465596675", "Press")}{shortcutLabel} {translate("auto.components.settings.VoicePane.366e1b4f36", "to dictate text into any focused pane.")}</p>
         </div>
         <button
           role="switch"
           aria-checked={voiceSettings.enabled}
-          aria-label="Enable Voice Dictation"
+          aria-label={translate("auto.components.settings.VoicePane.0121960365", "Enable Voice Dictation")}
           aria-busy={permissionPending}
           disabled={permissionPending}
           onClick={() => void toggleVoiceDictation()}
@@ -218,11 +218,10 @@ export function VoicePane({ settings, updateSettings }: VoicePaneProps): React.J
 
       <div className="flex items-center justify-between gap-4 py-2">
         <div className="space-y-0.5">
-          <Label>Dictation Mode</Label>
+          <Label>{translate("auto.components.settings.VoicePane.ba4a900d1d", "Dictation Mode")}</Label>
           <p className="text-xs text-muted-foreground">
-            Toggle: press {shortcutLabel} once to start, again to stop. Hold: dictate while{' '}
-            {shortcutLabel} is held.
-          </p>
+            {translate("auto.components.settings.VoicePane.ff9a680010", "Toggle: press")}{shortcutLabel} {translate("auto.components.settings.VoicePane.295d84b849", "once to start, again to stop. Hold: dictate while")}{' '}
+            {shortcutLabel} {translate("auto.components.settings.VoicePane.7cf715f891", "is held.")}</p>
         </div>
         <div className="flex shrink-0 items-center rounded-md border border-border/60 bg-background/50 p-0.5">
           {(['toggle', 'hold'] as const).map((mode) => (
@@ -246,7 +245,7 @@ export function VoicePane({ settings, updateSettings }: VoicePaneProps): React.J
 
       <div className="flex items-center justify-between gap-4 py-2">
         <div className="space-y-0.5">
-          <Label>Speech Model</Label>
+          <Label>{translate("auto.components.settings.VoicePane.43fd4f454b", "Speech Model")}</Label>
           <p className="text-xs text-muted-foreground">
             {selectedModel && selectedIsReady
               ? `${selectedModel.label} — ${selectedModel.description}`
@@ -287,7 +286,7 @@ export function VoicePane({ settings, updateSettings }: VoicePaneProps): React.J
                     } else if (!isDownloading) {
                       void window.api.speech
                         .downloadModel(manifest.id)
-                        .catch(() => toast.error('Failed to download model.'))
+                        .catch(() => toast.error(translate("auto.components.settings.VoicePane.cfde55c7b0", "Failed to download model.")))
                     }
                   }}
                   className={`group flex items-center gap-2.5 py-2.5 ${
@@ -313,8 +312,7 @@ export function VoicePane({ settings, updateSettings }: VoicePaneProps): React.J
                       )}
                       {manifest.recommended && (
                         <span className="text-[10px] px-1 py-px rounded-full leading-none bg-status-success-background text-status-success">
-                          recommended
-                        </span>
+                          {translate("auto.components.settings.VoicePane.1ba81c0ff0", "recommended")}</span>
                       )}
                       <span className="text-[10px] text-muted-foreground/60">
                         {isDownloading && mState?.progress !== undefined
@@ -337,7 +335,7 @@ export function VoicePane({ settings, updateSettings }: VoicePaneProps): React.J
                         void window.api.speech
                           .deleteModel(manifest.id)
                           .then(refreshModelStates)
-                          .catch(() => toast.error('Failed to delete model.'))
+                          .catch(() => toast.error(translate("auto.components.settings.VoicePane.68de13f72c", "Failed to delete model.")))
                       }}
                       className="shrink-0 p-1 text-muted-foreground opacity-0 group-hover:opacity-100 hover:text-destructive transition-all rounded"
                     >

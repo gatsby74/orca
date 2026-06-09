@@ -10,6 +10,7 @@ import {
 import { Button } from '@/components/ui/button'
 import { useAppStore } from '@/store'
 import type { OrcaHookScriptKind } from '@/lib/orca-hook-trust'
+import { translate } from '@/i18n/i18n'
 
 type ScriptKind = OrcaHookScriptKind
 
@@ -109,13 +110,13 @@ const OrcaYamlTrustDialog = React.memo(function OrcaYamlTrustDialog() {
           <DialogDescription className="text-xs">
             {previouslyApproved ? (
               <>
-                <code>orca.yaml</code> changed since you last approved. Re-review before it runs{' '}
+                <code>{translate("auto.components.sidebar.OrcaYamlTrustDialog.79afc6772b", "orca.yaml")}</code> {translate("auto.components.sidebar.OrcaYamlTrustDialog.c55beddbf8", "changed since you last approved. Re-review before it runs")}{' '}
                 {SCRIPT_KIND_TRIGGER[scriptKind]}.
               </>
             ) : (
               <>
-                This repository&apos;s <code>orca.yaml</code> runs on your machine{' '}
-                {SCRIPT_KIND_TRIGGER[scriptKind]}. Only run if you trust {repoName}.
+                {translate("auto.components.sidebar.OrcaYamlTrustDialog.aa3ffb33fb", "This repository's")}<code>{translate("auto.components.sidebar.OrcaYamlTrustDialog.79afc6772b", "orca.yaml")}</code> {translate("auto.components.sidebar.OrcaYamlTrustDialog.831f2cd9f0", "runs on your machine")}{' '}
+                {SCRIPT_KIND_TRIGGER[scriptKind]}{translate("auto.components.sidebar.OrcaYamlTrustDialog.bf800b7e04", ". Only run if you trust")}{repoName}.
               </>
             )}
           </DialogDescription>
@@ -146,15 +147,14 @@ const OrcaYamlTrustDialog = React.memo(function OrcaYamlTrustDialog() {
             onChange={(event) => setAlwaysTrust(event.target.checked)}
           />
           <span className="text-xs font-medium text-foreground">
-            Always trust <code>orca.yaml</code> in {repoName}
+            {translate("auto.components.sidebar.OrcaYamlTrustDialog.531689199b", "Always trust")}<code>{translate("auto.components.sidebar.OrcaYamlTrustDialog.79afc6772b", "orca.yaml")}</code> {translate("auto.components.sidebar.OrcaYamlTrustDialog.c494b3ccb1", "in")}{repoName}
           </span>
         </label>
 
         <DialogFooter>
           <Button variant="outline" onClick={() => resolveAndClose('skip')}>
-            Don&apos;t run
-          </Button>
-          <Button onClick={() => resolveAndClose('run')}>Run hooks</Button>
+            {translate("auto.components.sidebar.OrcaYamlTrustDialog.43b7bec4cd", "Don't run")}</Button>
+          <Button onClick={() => resolveAndClose('run')}>{translate("auto.components.sidebar.OrcaYamlTrustDialog.f3e2b868fb", "Run hooks")}</Button>
         </DialogFooter>
       </DialogContent>
     </Dialog>

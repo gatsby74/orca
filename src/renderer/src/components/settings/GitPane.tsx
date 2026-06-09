@@ -10,6 +10,7 @@ import { GitHubRateLimitPanel } from '../github/github-rate-limit-display'
 import { GitLabRateLimitPanel } from '../gitlab/gitlab-rate-limit-display'
 import { AutoRenameBranchFromWorkSetting } from './AutoRenameBranchFromWorkSetting'
 import { AUTO_RENAME_BRANCH_SEARCH_ENTRIES } from './auto-rename-branch-search'
+import { translate } from '@/i18n/i18n'
 
 export { GIT_PANE_SEARCH_ENTRIES }
 
@@ -67,22 +68,21 @@ export function GitPane({
 
   const visibleSections = [
     matchesSettingsSearch(searchQuery, {
-      title: 'Branch Prefix',
-      description: 'Prefix added to branch names when creating worktrees.',
-      keywords: ['branch naming', 'git username', 'custom']
+      title: translate("auto.components.settings.GitPane.330f584b50", "Branch Prefix"),
+      description: translate("auto.components.settings.GitPane.1ffaadf0a0", "Prefix added to branch names when creating worktrees."),
+      keywords: [translate("auto.components.settings.GitPane.cc63fce906", "branch naming"), translate("auto.components.settings.GitPane.2351aa5a31", "git username"), translate("auto.components.settings.GitPane.813e15b346", "custom")]
     }) ? (
       <SearchableSetting
         key="branch-prefix"
-        title="Branch Prefix"
-        description="Prefix added to branch names when creating worktrees."
+        title={translate("auto.components.settings.GitPane.330f584b50", "Branch Prefix")}
+        description={translate("auto.components.settings.GitPane.1ffaadf0a0", "Prefix added to branch names when creating worktrees.")}
         keywords={['branch naming', 'git username', 'custom']}
         className="space-y-3"
       >
         <div className="space-y-0.5">
-          <Label>Branch Prefix</Label>
+          <Label>{translate("auto.components.settings.GitPane.330f584b50", "Branch Prefix")}</Label>
           <p className="text-xs text-muted-foreground">
-            Choose whether branch names use your Git username, a custom prefix, or no prefix.
-          </p>
+            {translate("auto.components.settings.GitPane.1ec5c91e1d", "Choose whether branch names use your Git username, a custom prefix, or no prefix.")}</p>
         </div>
         <div className="flex w-fit gap-1 rounded-md border border-border/50 p-1">
           {(['git-username', 'custom', 'none'] as const).map((option) => (
@@ -133,11 +133,7 @@ export function GitPane({
         <div className="space-y-0.5">
           <Label>{KEEP_LOCAL_MAIN_UP_TO_DATE_TITLE}</Label>
           <p className="text-xs text-muted-foreground">
-            When you create a workspace, Orca refreshes the remote base and safely fast-forwards
-            your matching local branch, such as <code>main</code> or <code>master</code>. This keeps
-            commands like <code>git diff main...HEAD</code> from comparing against stale history.
-            Orca skips the update if that branch has uncommitted changes or local-only commits.
-          </p>
+            {translate("auto.components.settings.GitPane.976afc6b3e", "When you create a workspace, Orca refreshes the remote base and safely fast-forwards your matching local branch, such as")}<code>{translate("auto.components.settings.GitPane.ffba483bae", "main")}</code> {translate("auto.components.settings.GitPane.5bf885be48", "or")}<code>{translate("auto.components.settings.GitPane.3ae3de8898", "master")}</code>{translate("auto.components.settings.GitPane.db3a127eb1", ". This keeps commands like")}<code>{translate("auto.components.settings.GitPane.d072a12995", "git diff main...HEAD")}</code> {translate("auto.components.settings.GitPane.36e3de3619", "from comparing against stale history. Orca skips the update if that branch has uncommitted changes or local-only commits.")}</p>
         </div>
         <button
           role="switch"
@@ -174,14 +170,14 @@ export function GitPane({
       />
     ) : null,
     matchesSettingsSearch(searchQuery, {
-      title: 'GitHub API Budget',
-      description: 'Current GitHub CLI REST, Search, and GraphQL rate limits.',
-      keywords: ['github', 'gh', 'graphql', 'rate limit', 'api budget']
+      title: translate("auto.components.settings.GitPane.612a440e57", "GitHub API Budget"),
+      description: translate("auto.components.settings.GitPane.aa204f185f", "Current GitHub CLI REST, Search, and GraphQL rate limits."),
+      keywords: [translate("auto.components.settings.GitPane.32dca11189", "github"), translate("auto.components.settings.GitPane.895d3f70b8", "gh"), translate("auto.components.settings.GitPane.2cde9044a8", "graphql"), translate("auto.components.settings.GitPane.b9c011fbc2", "rate limit"), translate("auto.components.settings.GitPane.cdd793134e", "api budget")]
     }) ? (
       <SearchableSetting
         key="github-api-budget"
-        title="GitHub API Budget"
-        description="Current GitHub CLI REST, Search, and GraphQL rate limits."
+        title={translate("auto.components.settings.GitPane.612a440e57", "GitHub API Budget")}
+        description={translate("auto.components.settings.GitPane.aa204f185f", "Current GitHub CLI REST, Search, and GraphQL rate limits.")}
         keywords={['github', 'gh', 'graphql', 'rate limit', 'api budget']}
         className="space-y-3"
       >
@@ -189,14 +185,14 @@ export function GitPane({
       </SearchableSetting>
     ) : null,
     matchesSettingsSearch(searchQuery, {
-      title: 'GitLab API Budget',
-      description: 'Current GitLab CLI REST rate-limit headers when available.',
-      keywords: ['gitlab', 'glab', 'rate limit', 'api budget']
+      title: translate("auto.components.settings.GitPane.0de4ae556c", "GitLab API Budget"),
+      description: translate("auto.components.settings.GitPane.c4f610d057", "Current GitLab CLI REST rate-limit headers when available."),
+      keywords: [translate("auto.components.settings.GitPane.8a527d48e3", "gitlab"), translate("auto.components.settings.GitPane.3072428ac7", "glab"), translate("auto.components.settings.GitPane.b9c011fbc2", "rate limit"), translate("auto.components.settings.GitPane.cdd793134e", "api budget")]
     }) ? (
       <SearchableSetting
         key="gitlab-api-budget"
-        title="GitLab API Budget"
-        description="Current GitLab CLI REST rate-limit headers when available."
+        title={translate("auto.components.settings.GitPane.0de4ae556c", "GitLab API Budget")}
+        description={translate("auto.components.settings.GitPane.c4f610d057", "Current GitLab CLI REST rate-limit headers when available.")}
         keywords={['gitlab', 'glab', 'rate limit', 'api budget']}
         className="space-y-3"
       >
@@ -204,22 +200,21 @@ export function GitPane({
       </SearchableSetting>
     ) : null,
     matchesSettingsSearch(searchQuery, {
-      title: 'Orca Attribution',
-      description: 'Add Orca attribution to commits, PRs, and issues.',
-      keywords: ['github', 'gh', 'pr', 'issue', 'co-author', 'coauthored', 'attribution', 'orca']
+      title: translate("auto.components.settings.GitPane.e02ea23a32", "Orca Attribution"),
+      description: translate("auto.components.settings.GitPane.d2eede4c54", "Add Orca attribution to commits, PRs, and issues."),
+      keywords: [translate("auto.components.settings.GitPane.32dca11189", "github"), translate("auto.components.settings.GitPane.895d3f70b8", "gh"), translate("auto.components.settings.GitPane.b4ef5428a7", "pr"), translate("auto.components.settings.GitPane.afada55042", "issue"), translate("auto.components.settings.GitPane.9838c921ed", "co-author"), translate("auto.components.settings.GitPane.b5f534717a", "coauthored"), translate("auto.components.settings.GitPane.b9b5771bb1", "attribution"), translate("auto.components.settings.GitPane.e71ce09c42", "orca")]
     }) ? (
       <SearchableSetting
         key="github-attribution"
-        title="Orca Attribution"
-        description="Add Orca attribution to commits, PRs, and issues."
+        title={translate("auto.components.settings.GitPane.e02ea23a32", "Orca Attribution")}
+        description={translate("auto.components.settings.GitPane.d2eede4c54", "Add Orca attribution to commits, PRs, and issues.")}
         keywords={['github', 'gh', 'pr', 'issue', 'co-author', 'coauthored', 'attribution', 'orca']}
         className="flex items-center justify-between gap-4 py-2"
       >
         <div className="space-y-0.5">
-          <Label>Orca Attribution</Label>
+          <Label>{translate("auto.components.settings.GitPane.e02ea23a32", "Orca Attribution")}</Label>
           <p className="text-xs text-muted-foreground">
-            Add Orca attribution to commits, PRs, and issues.
-          </p>
+            {translate("auto.components.settings.GitPane.d2eede4c54", "Add Orca attribution to commits, PRs, and issues.")}</p>
         </div>
         <button
           role="switch"

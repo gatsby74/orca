@@ -9,6 +9,7 @@ import {
   normalizeRuntimePathForComparison
 } from '../../../../shared/cross-platform-path'
 import type { Worktree } from '../../../../shared/types'
+import { translate } from '@/i18n/i18n'
 
 type WorktreeBatchDeleteOptions = {
   forceConfirm?: boolean
@@ -124,12 +125,12 @@ export function runWorktreeDeleteWithToast(
         description: toastCopy.description,
         duration: 10000,
         cancel: {
-          label: 'View',
+          label: translate("auto.components.sidebar.delete.worktree.flow.7488ed8711", "View"),
           onClick: () => viewWorktreeDiff(worktreeId)
         },
         action: canForceDelete
           ? {
-              label: 'Force Delete',
+              label: translate("auto.components.sidebar.delete.worktree.flow.2b20ce87b3", "Force Delete"),
               onClick: () => {
                 useAppStore
                   .getState()
@@ -139,7 +140,7 @@ export function runWorktreeDeleteWithToast(
                       toast.error('Force delete failed', {
                         description: forceResult.error,
                         action: {
-                          label: 'View',
+                          label: translate("auto.components.sidebar.delete.worktree.flow.7488ed8711", "View"),
                           onClick: () => viewWorktreeDiff(worktreeId)
                         }
                       })
@@ -151,7 +152,7 @@ export function runWorktreeDeleteWithToast(
                     toast.error('Failed to delete workspace', {
                       description: err instanceof Error ? err.message : String(err),
                       action: {
-                        label: 'View',
+                        label: translate("auto.components.sidebar.delete.worktree.flow.7488ed8711", "View"),
                         onClick: () => viewWorktreeDiff(worktreeId)
                       }
                     })
@@ -163,7 +164,7 @@ export function runWorktreeDeleteWithToast(
       return false
     })
     .catch((err: unknown) => {
-      toast.error('Failed to delete workspace', {
+      toast.error(translate("auto.components.sidebar.delete.worktree.flow.ae57cbf6e4", "Failed to delete workspace"), {
         description: err instanceof Error ? err.message : String(err)
       })
       return false
@@ -226,8 +227,8 @@ export function runWorktreeBatchDelete(
     .filter((worktree): worktree is Worktree => worktree != null && !worktree.isMainWorktree)
 
   if (targets.length === 0) {
-    toast.info('No deletable workspaces selected', {
-      description: 'Refresh Space and try again if the workspace list looks stale.'
+    toast.info(translate("auto.components.sidebar.delete.worktree.flow.7243145cd6", "No deletable workspaces selected"), {
+      description: translate("auto.components.sidebar.delete.worktree.flow.b81b4e40ca", "Refresh Space and try again if the workspace list looks stale.")
     })
     return false
   }

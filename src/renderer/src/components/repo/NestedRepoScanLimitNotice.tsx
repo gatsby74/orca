@@ -2,6 +2,7 @@ import { CircleHelp } from 'lucide-react'
 import { useState } from 'react'
 import type { NestedRepoScanResult } from '../../../../shared/types'
 import { Popover, PopoverContent, PopoverTrigger } from '../ui/popover'
+import { translate } from '@/i18n/i18n'
 
 function formatTimeout(timeoutMs: number): string {
   if (timeoutMs >= 1000 && timeoutMs % 1000 === 0) {
@@ -35,7 +36,7 @@ export function NestedRepoScanLimitNotice({ scan }: { scan: NestedRepoScanResult
         <PopoverTrigger asChild>
           <button
             type="button"
-            aria-label="Nested repository scan limits"
+            aria-label={translate("auto.components.repo.NestedRepoScanLimitNotice.642a43c139", "Nested repository scan limits")}
             aria-expanded={detailsOpen}
             title={detailsText}
             className="inline-flex size-4 shrink-0 items-center justify-center rounded-sm text-muted-foreground transition hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring/50"

@@ -3,6 +3,7 @@ import type { GitHubOwnerRepo, IssueSourcePreference } from '../../../../shared/
 import { sameGitHubOwnerRepo } from '@/components/github/IssueSourceIndicator'
 import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip'
 import { cn } from '@/lib/utils'
+import { translate } from '@/i18n/i18n'
 
 export type IssueSourceSelectorProps = {
   /** The repo's persisted preference (`undefined` is rendered identically to
@@ -113,7 +114,7 @@ export default function IssueSourceSelector({
   const group = (
     <div
       role="group"
-      aria-label="Issue source"
+      aria-label={translate("auto.components.github.IssueSourceSelector.787c970baf", "Issue source")}
       className={cn(
         // Why: an inner rounded track with subtle divider between segments.
         // Thin border matches the outer chip's border weight so the control
@@ -170,7 +171,7 @@ export default function IssueSourceSelector({
     <Tooltip>
       <TooltipTrigger asChild>{group}</TooltipTrigger>
       <TooltipContent side="bottom" sideOffset={4} className="max-w-[260px]">
-        Showing issues from{' '}
+        {translate("auto.components.github.IssueSourceSelector.d6aeb2012b", "Showing issues from")}{' '}
         <span className="font-mono">{effective === 'upstream' ? upstreamSlug : originSlug}</span>
       </TooltipContent>
     </Tooltip>

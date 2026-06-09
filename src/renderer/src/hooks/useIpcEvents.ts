@@ -109,6 +109,7 @@ import {
 import { showTerminalShortcutCaptureNotification } from '@/lib/terminal-shortcut-capture-notification'
 import { resolveAgentStatusTerminalTitle } from '@/lib/agent-status-terminal-title'
 import { titleHasAgentName } from '../../../shared/agent-detection'
+import { translate } from '@/i18n/i18n'
 
 function getShortcutPlatform(): NodeJS.Platform {
   if (navigator.userAgent.includes('Mac')) {
@@ -510,7 +511,7 @@ async function applyRemoteWorkspaceSnapshot(
       revision: snapshot.revision,
       updatedAt: snapshot.updatedAt,
       lastSyncedAt: Date.now(),
-      message: 'Workspace synced'
+      message: translate("auto.hooks.useIpcEvents.4f78ba5885", "Workspace synced")
     })
     await useAppStore.getState().reconnectPersistedTerminals()
   } finally {
@@ -529,7 +530,7 @@ async function syncRemoteWorkspaceAfterConnect(targetId: string): Promise<void> 
     store.setRemoteWorkspaceSyncStatus(targetId, {
       phase: 'error',
       direction: 'pull',
-      message: 'Workspace sync waited for local session hydration and timed out'
+      message: translate("auto.hooks.useIpcEvents.88214a785b", "Workspace sync waited for local session hydration and timed out")
     })
     return
   }
@@ -543,7 +544,7 @@ async function syncRemoteWorkspaceAfterConnect(targetId: string): Promise<void> 
     useAppStore.getState().setRemoteWorkspaceSyncStatus(targetId, {
       phase: 'offline',
       direction: 'pull',
-      message: 'Remote workspace sync unavailable'
+      message: translate("auto.hooks.useIpcEvents.2fe88c2e06", "Remote workspace sync unavailable")
     })
     return
   }
@@ -573,7 +574,7 @@ async function syncRemoteWorkspaceAfterConnect(targetId: string): Promise<void> 
     phase: 'idle',
     revision: snapshot.revision,
     updatedAt: snapshot.updatedAt,
-    message: 'No remote workspace yet'
+    message: translate("auto.hooks.useIpcEvents.2ec42e1c52", "No remote workspace yet")
   })
 }
 
@@ -586,7 +587,7 @@ function applyRemoteWorkspacePatchStatus(
       phase: 'offline',
       direction: 'push',
       lastSyncedAt: Date.now(),
-      message: 'Remote workspace sync unavailable'
+      message: translate("auto.hooks.useIpcEvents.2fe88c2e06", "Remote workspace sync unavailable")
     })
     return
   }
@@ -597,7 +598,7 @@ function applyRemoteWorkspacePatchStatus(
       revision: result.snapshot.revision,
       updatedAt: result.snapshot.updatedAt,
       lastSyncedAt: Date.now(),
-      message: 'Workspace uploaded'
+      message: translate("auto.hooks.useIpcEvents.f8aaf2bde3", "Workspace uploaded")
     })
     return
   }
@@ -1106,7 +1107,7 @@ export function useIpcEvents(): void {
               if (requestId) {
                 window.api.ui.replyTerminalCreate({
                   requestId,
-                  error: 'Local terminal reveal is unavailable while a remote runtime is active'
+                  error: translate("auto.hooks.useIpcEvents.60428567b4", "Local terminal reveal is unavailable while a remote runtime is active")
                 })
               }
               return
@@ -1256,7 +1257,7 @@ export function useIpcEvents(): void {
           if (isRuntimeEnvironmentActive()) {
             window.api.ui.replyTerminalCreate({
               requestId: data.requestId,
-              error: 'Local terminal creation is unavailable while a remote runtime is active'
+              error: translate("auto.hooks.useIpcEvents.7a64b31991", "Local terminal creation is unavailable while a remote runtime is active")
             })
             return
           }
@@ -1265,7 +1266,7 @@ export function useIpcEvents(): void {
           if (!worktreeId) {
             window.api.ui.replyTerminalCreate({
               requestId: data.requestId,
-              error: 'No active worktree'
+              error: translate("auto.hooks.useIpcEvents.f000b2ff76", "No active worktree")
             })
             return
           }
@@ -1673,7 +1674,7 @@ export function useIpcEvents(): void {
             const environmentId = getActiveRuntimeEnvironmentId()
             if (!isWebRuntimeSessionActive(environmentId)) {
               store.createBrowserTab(worktreeId, store.browserDefaultUrl ?? 'about:blank', {
-                title: 'New Browser Tab',
+                title: translate("auto.hooks.useIpcEvents.f6300deb8b", "New Browser Tab"),
                 focusAddressBar: true
               })
               return
@@ -1690,7 +1691,7 @@ export function useIpcEvents(): void {
             return
           }
           store.createBrowserTab(worktreeId, store.browserDefaultUrl ?? 'about:blank', {
-            title: 'New Browser Tab',
+            title: translate("auto.hooks.useIpcEvents.f6300deb8b", "New Browser Tab"),
             focusAddressBar: true
           })
         }
@@ -1703,7 +1704,7 @@ export function useIpcEvents(): void {
         if (isFloatingWorkspacePanelFocused()) {
           void createFloatingWorkspaceMarkdownTab(store).catch((err) => {
             toast.error(
-              err instanceof Error ? err.message : 'Failed to create untitled markdown file.'
+              err instanceof Error ? err.message : translate("auto.hooks.useIpcEvents.56d3ec4203", "Failed to create untitled markdown file.")
             )
           })
           return
@@ -1784,14 +1785,14 @@ export function useIpcEvents(): void {
             // Runtime agents cannot see or control those surfaces.
             window.api.ui.replyTabCreate({
               requestId: data.requestId,
-              error: 'Browser tabs are unavailable while a remote runtime is active'
+              error: translate("auto.hooks.useIpcEvents.291c8ed902", "Browser tabs are unavailable while a remote runtime is active")
             })
             return
           }
           const store = useAppStore.getState()
           const worktreeId = data.worktreeId ?? store.activeWorktreeId
           if (!worktreeId) {
-            window.api.ui.replyTabCreate({ requestId: data.requestId, error: 'No active worktree' })
+            window.api.ui.replyTabCreate({ requestId: data.requestId, error: translate("auto.hooks.useIpcEvents.f000b2ff76", "No active worktree") })
             return
           }
           // Why: CLI-created tabs should land in the same group as the active
@@ -1832,7 +1833,7 @@ export function useIpcEvents(): void {
           if (isRuntimeEnvironmentActive()) {
             window.api.ui.replyTabSetProfile({
               requestId: data.requestId,
-              error: 'Browser profiles are unavailable while a remote runtime is active'
+              error: translate("auto.hooks.useIpcEvents.f45fa2b03c", "Browser profiles are unavailable while a remote runtime is active")
             })
             return
           }
@@ -1849,7 +1850,7 @@ export function useIpcEvents(): void {
           if (!owningWorkspace) {
             window.api.ui.replyTabSetProfile({
               requestId: data.requestId,
-              error: `Browser tab ${data.browserPageId} not found`
+              error: translate("auto.hooks.useIpcEvents.0e3cf53060", "Browser tab {{value0}} not found", { value0: data.browserPageId })
             })
             return
           }
@@ -1880,7 +1881,7 @@ export function useIpcEvents(): void {
           if (isRuntimeEnvironmentActive()) {
             window.api.ui.replyTabClose({
               requestId: data.requestId,
-              error: 'Browser tabs are unavailable while a remote runtime is active'
+              error: translate("auto.hooks.useIpcEvents.291c8ed902", "Browser tabs are unavailable while a remote runtime is active")
             })
             return
           }
@@ -1894,7 +1895,7 @@ export function useIpcEvents(): void {
           if (!tabToClose) {
             window.api.ui.replyTabClose({
               requestId: data.requestId,
-              error: 'No active browser tab to close'
+              error: translate("auto.hooks.useIpcEvents.a8d2bf8e9e", "No active browser tab to close")
             })
             return
           }
@@ -1920,7 +1921,7 @@ export function useIpcEvents(): void {
                 if (owningWorktreeId && isPinnedSessionTab(store, owningWorktreeId, workspaceId)) {
                   window.api.ui.replyTabClose({
                     requestId: data.requestId,
-                    error: `Browser tab ${workspaceId} is pinned`
+                    error: translate("auto.hooks.useIpcEvents.0e3cf53060", "Browser tab {{value0}} is pinned", { value0: workspaceId })
                   })
                   return
                 }
@@ -1935,7 +1936,7 @@ export function useIpcEvents(): void {
           if (explicitTargetId) {
             window.api.ui.replyTabClose({
               requestId: data.requestId,
-              error: `Browser tab ${explicitTargetId} not found`
+              error: translate("auto.hooks.useIpcEvents.0e3cf53060", "Browser tab {{value0}} not found", { value0: explicitTargetId })
             })
             return
           }
@@ -1946,7 +1947,7 @@ export function useIpcEvents(): void {
           if (owningWorktreeId && isPinnedSessionTab(store, owningWorktreeId, tabToClose)) {
             window.api.ui.replyTabClose({
               requestId: data.requestId,
-              error: `Browser tab ${tabToClose} is pinned`
+              error: translate("auto.hooks.useIpcEvents.0e3cf53060", "Browser tab {{value0}} is pinned", { value0: tabToClose })
             })
             return
           }

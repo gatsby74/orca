@@ -17,6 +17,7 @@ import {
   getRuntimeRepoBaseRefDefault,
   searchRuntimeRepoBaseRefs
 } from '@/runtime/runtime-repo-client'
+import { translate } from '@/i18n/i18n'
 
 const DEFAULT_VALUE = '__project_default__'
 
@@ -175,7 +176,7 @@ export function CreateFromPicker({
             className={cn('h-9 w-full justify-between px-3 text-sm font-normal', triggerClassName)}
           >
             <span className="flex min-w-0 items-center gap-1.5">
-              <span className="shrink-0 text-muted-foreground">Branch from</span>
+              <span className="shrink-0 text-muted-foreground">{translate("auto.components.automations.CreateFromPicker.dd3841b442", "Branch from")}</span>
               <span className="truncate">{selectedLabel}</span>
             </span>
             <ChevronsUpDown className="size-4 opacity-50" />
@@ -194,7 +195,7 @@ export function CreateFromPicker({
               ref={setInputNode}
               value={query}
               onValueChange={setQuery}
-              placeholder="Search repo branches..."
+              placeholder={translate("auto.components.automations.CreateFromPicker.f061f49e3f", "Search repo branches...")}
             />
             <CommandList className="max-h-72">
               <CommandEmpty>

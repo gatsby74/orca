@@ -9,6 +9,7 @@ import {
   WORKSPACE_STATUS_ICON_OPTIONS,
   getWorkspaceStatusVisualMeta
 } from './workspace-status'
+import { translate } from '@/i18n/i18n'
 
 type WorkspaceStatusAppearancePopoverProps = {
   status: WorkspaceStatusDefinition
@@ -33,7 +34,7 @@ export default function WorkspaceStatusAppearancePopover({
               variant="ghost"
               size="icon-xs"
               className="relative size-7"
-              aria-label={`Customize ${status.label} appearance`}
+              aria-label={translate("auto.components.sidebar.WorkspaceStatusAppearancePopover.ccbd1e2c69", "Customize {{value0}} appearance", { value0: status.label })}
             >
               <span className={cn('absolute size-4 rounded-full opacity-20', meta.swatch)} />
               <meta.icon className={cn('relative size-3.5', meta.tone)} />
@@ -41,8 +42,7 @@ export default function WorkspaceStatusAppearancePopover({
           </PopoverTrigger>
         </TooltipTrigger>
         <TooltipContent side="top" sideOffset={4}>
-          Appearance
-        </TooltipContent>
+          {translate("auto.components.sidebar.WorkspaceStatusAppearancePopover.74b1413279", "Appearance")}</TooltipContent>
       </Tooltip>
 
       <PopoverContent
@@ -53,7 +53,7 @@ export default function WorkspaceStatusAppearancePopover({
         data-workspace-status-appearance-popover=""
         onOpenAutoFocus={(event) => event.preventDefault()}
       >
-        <div className="px-1 py-1 text-[11px] font-semibold text-muted-foreground">Color</div>
+        <div className="px-1 py-1 text-[11px] font-semibold text-muted-foreground">{translate("auto.components.sidebar.WorkspaceStatusAppearancePopover.2ac106f6b2", "Color")}</div>
         <div className="grid grid-cols-8 gap-1">
           {WORKSPACE_STATUS_COLOR_OPTIONS.map((color) => (
             <Tooltip key={color.id}>
@@ -65,7 +65,7 @@ export default function WorkspaceStatusAppearancePopover({
                     status.color === color.id && 'border-ring bg-accent'
                   )}
                   onClick={() => onChangeColor(status.id, color.id)}
-                  aria-label={`Set ${status.label} color to ${color.label}`}
+                  aria-label={translate("auto.components.sidebar.WorkspaceStatusAppearancePopover.514be2f569", "Set {{value0}} color to {{value1}}", { value0: status.label, value1: color.label })}
                 >
                   <span className={cn('size-3.5 rounded-full', color.swatch)} />
                 </button>
@@ -77,7 +77,7 @@ export default function WorkspaceStatusAppearancePopover({
           ))}
         </div>
 
-        <div className="mt-2 px-1 py-1 text-[11px] font-semibold text-muted-foreground">Icon</div>
+        <div className="mt-2 px-1 py-1 text-[11px] font-semibold text-muted-foreground">{translate("auto.components.sidebar.WorkspaceStatusAppearancePopover.8be427206b", "Icon")}</div>
         <div className="grid grid-cols-6 gap-1">
           {WORKSPACE_STATUS_ICON_OPTIONS.map((icon) => (
             <Tooltip key={icon.id}>
@@ -88,7 +88,7 @@ export default function WorkspaceStatusAppearancePopover({
                   size="icon-xs"
                   className="size-8"
                   onClick={() => onChangeIcon(status.id, icon.id)}
-                  aria-label={`Set ${status.label} icon to ${icon.label}`}
+                  aria-label={translate("auto.components.sidebar.WorkspaceStatusAppearancePopover.514be2f569", "Set {{value0}} icon to {{value1}}", { value0: status.label, value1: icon.label })}
                 >
                   <icon.icon className="size-3.5" />
                 </Button>

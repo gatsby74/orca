@@ -27,6 +27,7 @@ import type { GitHubPRMergeMethod } from '../../../../shared/types'
 import { resolveGitHubPRMergeMethods } from '../../../../shared/github-pr-merge-methods'
 import { runWorktreeDelete } from '../sidebar/delete-worktree-flow'
 import { presentGitLabMRMergeState } from './gitlab-mr-merge-state'
+import { translate } from '@/i18n/i18n'
 
 type HostedReviewActionInfo = Pick<
   HostedReviewInfo,
@@ -176,8 +177,8 @@ export default function HostedReviewActions({
       const confirmed = await confirm({
         title: `${label} ${shortLabel} ${isGitLab ? '!' : '#'}${review.number}?`,
         description: isClosing
-          ? `This will close the ${reviewLabel}.`
-          : `This will reopen the ${reviewLabel}.`,
+          ? translate("auto.components.right.sidebar.HostedReviewActions.a3d572a4de", "This will close the {{value0}}.", { value0: reviewLabel })
+          : translate("auto.components.right.sidebar.HostedReviewActions.78f5ff294c", "This will reopen the {{value0}}.", { value0: reviewLabel }),
         confirmLabel: label,
         confirmVariant: isClosing ? 'destructive' : 'default'
       })
@@ -201,7 +202,7 @@ export default function HostedReviewActions({
           setActionError(result.error)
           toast.error(result.error)
         } else {
-          toast.success(isClosing ? `${shortLabel} closed` : `${shortLabel} reopened`)
+          toast.success(isClosing ? translate("auto.components.right.sidebar.HostedReviewActions.fa3ee9a515", "{{value0}} closed", { value0: shortLabel }) : translate("auto.components.right.sidebar.HostedReviewActions.377269db6f", "{{value0}} reopened", { value0: shortLabel }))
           await onRefreshReview()
         }
       } catch (err) {
@@ -295,8 +296,8 @@ export default function HostedReviewActions({
                     'disabled:opacity-50 disabled:cursor-not-allowed'
                   )}
                   disabled={menuDisabled}
-                  aria-label={`More ${reviewLabel} actions`}
-                  title="More actions"
+                  aria-label={translate("auto.components.right.sidebar.HostedReviewActions.2bfaf4379c", "More {{value0}} actions", { value0: reviewLabel })}
+                  title={translate("auto.components.right.sidebar.HostedReviewActions.9845a71e17", "More actions")}
                 >
                   {stateUpdating === 'closed' ? (
                     <LoaderCircle className="size-3.5 animate-spin" />
@@ -335,7 +336,7 @@ export default function HostedReviewActions({
                   onSelect={() => void handleCloseReview()}
                 >
                   <GitPullRequestClosed className="size-3.5" />
-                  Close {shortLabel}
+                  {translate("auto.components.right.sidebar.HostedReviewActions.4d5fb5a284", "Close")}{shortLabel}
                 </DropdownMenuItem>
               </DropdownMenuContent>
             </DropdownMenu>

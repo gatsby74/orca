@@ -5,13 +5,14 @@ import { ArrowRight, CircleDot } from 'lucide-react'
 import { AgentStateDot } from '@/components/AgentStateDot'
 import { ClaudeIcon } from '../status-bar/icons'
 import { FeatureWallClickRing } from './FeatureWallClickRing'
+import { translate } from '@/i18n/i18n'
 
 type Issue = {
   number: number
   title: string
 }
 
-const ISSUES: readonly Issue[] = [{ number: 1842, title: 'Worktree picker truncates names' }]
+const ISSUES: readonly Issue[] = [{ number: 1842, title: translate("auto.components.feature.wall.TasksAnimatedVisual.b13375617e", "Worktree picker truncates names") }]
 
 type Phase =
   | { kind: 'idle' }
@@ -244,8 +245,7 @@ export function TasksAnimatedVisual(props: { reducedMotion: boolean }): JSX.Elem
               <div className="relative flex items-center justify-end">
                 {!isActive ? (
                   <span className="inline-flex items-center justify-center rounded-full border border-emerald-500/35 bg-emerald-500/10 px-2 py-px text-[10px] font-semibold text-emerald-700 dark:text-emerald-300">
-                    Open
-                  </span>
+                    {translate("auto.components.feature.wall.TasksAnimatedVisual.4331c4d0f8", "Open")}</span>
                 ) : (
                   <button
                     type="button"
@@ -258,8 +258,7 @@ export function TasksAnimatedVisual(props: { reducedMotion: boolean }): JSX.Elem
                       isPressing ? 'scale-[0.94] brightness-[1.4]' : 'scale-100'
                     }`}
                   >
-                    Start workspace
-                    <ArrowRight className="size-2.5" aria-hidden />
+                    {translate("auto.components.feature.wall.TasksAnimatedVisual.b68c92fbdc", "Start workspace")}<ArrowRight className="size-2.5" aria-hidden />
                   </button>
                 )}
               </div>
@@ -303,7 +302,7 @@ export function TasksAnimatedVisual(props: { reducedMotion: boolean }): JSX.Elem
                 </span>
                 <ClaudeIcon size={14} />
                 <span className="truncate font-mono text-[11px] leading-[1.2] text-muted-foreground">
-                  Reading issue #{workspaceIssue.number}…
+                  {translate("auto.components.feature.wall.TasksAnimatedVisual.efba6f77eb", "Reading issue #")}{workspaceIssue.number}…
                 </span>
               </div>
             </div>

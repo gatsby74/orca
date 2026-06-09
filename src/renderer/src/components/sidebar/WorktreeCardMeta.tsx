@@ -29,6 +29,7 @@ import {
 } from './WorktreeCardMetadataStatusBadges'
 import type { WorktreeCardPrDisplay } from './worktree-card-pr-display'
 import type { IssueInfo } from '../../../../shared/types'
+import { translate } from '@/i18n/i18n'
 
 export type WorktreeCardIssueDisplay =
   | IssueInfo
@@ -159,7 +160,7 @@ export const WorktreeCardMetaBadges = React.forwardRef<
       ref={ref}
       {...props}
       className={cn('ml-auto flex shrink-0 items-center gap-1 pr-1.5', className)}
-      aria-label="Workspace metadata"
+      aria-label={translate("auto.components.sidebar.WorktreeCardMeta.3e65e11cc6", "Workspace metadata")}
     >
       {hasComment(comment) && (
         <MetaIconBadge label="Workspace notes">

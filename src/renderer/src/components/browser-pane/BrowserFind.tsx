@@ -1,6 +1,7 @@
 import { useCallback, useEffect, useRef, useState } from 'react'
 import { ChevronUp, ChevronDown, X } from 'lucide-react'
 import { Button } from '@/components/ui/button'
+import { translate } from '@/i18n/i18n'
 
 type BrowserFindProps = {
   isOpen: boolean
@@ -151,7 +152,7 @@ export default function BrowserFind({
         type="text"
         value={query}
         onChange={(e) => setQuery(e.target.value)}
-        placeholder="Find in page..."
+        placeholder={translate("auto.components.browser.pane.BrowserFind.636a69cd66", "Find in page...")}
         className="min-w-0 flex-1 border-none bg-transparent text-sm text-white outline-none placeholder:text-zinc-500"
       />
 
@@ -169,7 +170,7 @@ export default function BrowserFind({
         size="icon-xs"
         onClick={findPrevious}
         className="flex size-6 shrink-0 items-center justify-center rounded text-zinc-400 hover:text-zinc-200"
-        title="Previous match"
+        title={translate("auto.components.browser.pane.BrowserFind.ca7aebbd7f", "Previous match")}
       >
         <ChevronUp size={14} />
       </Button>
@@ -180,7 +181,7 @@ export default function BrowserFind({
         size="icon-xs"
         onClick={findNext}
         className="flex size-6 shrink-0 items-center justify-center rounded text-zinc-400 hover:text-zinc-200"
-        title="Next match"
+        title={translate("auto.components.browser.pane.BrowserFind.5c0c02ae76", "Next match")}
       >
         <ChevronDown size={14} />
       </Button>
@@ -193,7 +194,7 @@ export default function BrowserFind({
         size="icon-xs"
         onClick={onClose}
         className="flex size-6 shrink-0 items-center justify-center rounded text-zinc-400 hover:text-zinc-200"
-        title="Close"
+        title={translate("auto.components.browser.pane.BrowserFind.c9d5f63fdc", "Close")}
       >
         <X size={14} />
       </Button>

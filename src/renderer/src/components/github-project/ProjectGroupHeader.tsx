@@ -2,6 +2,7 @@ import React from 'react'
 import { ChevronDown, ChevronRight } from 'lucide-react'
 import { cn } from '@/lib/utils'
 import { isIterationCurrent, type ProjectGroup } from '../../../../shared/github-project-group-sort'
+import { translate } from '@/i18n/i18n'
 
 type Props = {
   group: ProjectGroup
@@ -35,8 +36,7 @@ export default function ProjectGroupHeader({
       {dateRange ? <span className="text-[10px] text-muted-foreground">{dateRange}</span> : null}
       {isCurrent ? (
         <span className="rounded-full border border-emerald-500/30 bg-emerald-500/10 px-1.5 text-[10px] text-emerald-700 dark:text-emerald-300">
-          Current
-        </span>
+          {translate("auto.components.github.project.ProjectGroupHeader.82a22d2079", "Current")}</span>
       ) : null}
     </button>
   )

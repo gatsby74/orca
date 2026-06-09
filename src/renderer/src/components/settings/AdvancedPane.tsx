@@ -8,6 +8,7 @@ import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '../ui/
 import { SearchableSetting } from './SearchableSetting'
 import { SettingsSubsectionHeader, SettingsSwitch } from './SettingsFormControls'
 import { ADVANCED_PANE_SEARCH_ENTRIES, ADVANCED_SEARCH_ENTRY } from './advanced-search'
+import { translate } from '@/i18n/i18n'
 
 export { ADVANCED_PANE_SEARCH_ENTRIES }
 
@@ -42,8 +43,8 @@ export function AdvancedPane({ settings, updateSettings }: AdvancedPaneProps): R
     <div className="space-y-4">
       <section className="space-y-3">
         <SettingsSubsectionHeader
-          title="Compatibility"
-          description="Low-level workarounds for support troubleshooting."
+          title={translate("auto.components.settings.AdvancedPane.8d8d8ac599", "Compatibility")}
+          description={translate("auto.components.settings.AdvancedPane.8b7a8df299", "Low-level workarounds for support troubleshooting.")}
         />
 
         <SearchableSetting
@@ -56,13 +57,13 @@ export function AdvancedPane({ settings, updateSettings }: AdvancedPaneProps): R
           <div className="flex items-center justify-between gap-4">
             <div className="min-w-0 shrink">
               <div className="flex items-center gap-1.5">
-                <Label id="advanced-http1-compatibility-label">HTTP/1.1 Compatibility</Label>
+                <Label id="advanced-http1-compatibility-label">{translate("auto.components.settings.AdvancedPane.e9506d3377", "HTTP/1.1 Compatibility")}</Label>
                 <TooltipProvider delayDuration={250}>
                   <Tooltip>
                     <TooltipTrigger asChild>
                       <button
                         type="button"
-                        aria-label="Explain HTTP/1.1 compatibility"
+                        aria-label={translate("auto.components.settings.AdvancedPane.6627e75c92", "Explain HTTP/1.1 compatibility")}
                         className="inline-flex size-6 items-center justify-center rounded-md text-muted-foreground outline-none transition-colors hover:text-foreground focus-visible:ring-[3px] focus-visible:ring-ring/50"
                       >
                         <Info className="size-3.5" />
@@ -73,9 +74,7 @@ export function AdvancedPane({ settings, updateSettings }: AdvancedPaneProps): R
                       sideOffset={6}
                       className="max-w-[280px] leading-relaxed"
                     >
-                      Use only when a corporate VPN or proxy breaks update downloads with HTTP/2
-                      protocol errors. It affects all Electron networking after restart.
-                    </TooltipContent>
+                      {translate("auto.components.settings.AdvancedPane.b3ad629640", "Use only when a corporate VPN or proxy breaks update downloads with HTTP/2 protocol errors. It affects all Electron networking after restart.")}</TooltipContent>
                   </Tooltip>
                 </TooltipProvider>
               </div>
@@ -90,10 +89,9 @@ export function AdvancedPane({ settings, updateSettings }: AdvancedPaneProps): R
           {http1CompatibilityRestartRequired ? (
             <div className="flex items-center justify-between gap-3 rounded-md border border-border/50 bg-muted/30 px-3 py-2">
               <div className="min-w-0">
-                <p className="text-xs font-medium">Restart required</p>
+                <p className="text-xs font-medium">{translate("auto.components.settings.AdvancedPane.89958d7edf", "Restart required")}</p>
                 <p className="text-xs text-muted-foreground">
-                  Orca applies this networking mode at startup.
-                </p>
+                  {translate("auto.components.settings.AdvancedPane.87a2cb2ac8", "Orca applies this networking mode at startup.")}</p>
               </div>
               <Button
                 variant="outline"
@@ -107,8 +105,7 @@ export function AdvancedPane({ settings, updateSettings }: AdvancedPaneProps): R
                 ) : (
                   <RotateCw className="size-3.5" />
                 )}
-                Restart
-              </Button>
+                {translate("auto.components.settings.AdvancedPane.40b29e0bf3", "Restart")}</Button>
             </div>
           ) : null}
         </SearchableSetting>

@@ -5,6 +5,7 @@ import { SearchableSetting } from './SearchableSetting'
 import { matchesSettingsSearch } from './settings-search'
 import { EXPERIMENTAL_PANE_SEARCH_ENTRIES, EXPERIMENTAL_SEARCH_ENTRY } from './experimental-search'
 import { HiddenExperimentalGroup } from './HiddenExperimentalGroup'
+import { translate } from '@/i18n/i18n'
 
 export { EXPERIMENTAL_PANE_SEARCH_ENTRIES }
 
@@ -35,21 +36,17 @@ export function ExperimentalPane({
     <div className="space-y-4">
       {showPet ? (
         <SearchableSetting
-          title="Pet"
-          description="Floating animated pet in the bottom-right corner."
+          title={translate("auto.components.settings.ExperimentalPane.dd6f0a1d45", "Pet")}
+          description={translate("auto.components.settings.ExperimentalPane.0e89a574ae", "Floating animated pet in the bottom-right corner.")}
           keywords={EXPERIMENTAL_SEARCH_ENTRY.pet.keywords}
           className="space-y-3 py-2"
           id="experimental-pet"
         >
           <div className="flex items-start justify-between gap-4">
             <div className="min-w-0 shrink space-y-1.5">
-              <Label>Pet</Label>
+              <Label>{translate("auto.components.settings.ExperimentalPane.dd6f0a1d45", "Pet")}</Label>
               <p className="text-xs text-muted-foreground">
-                Shows a small animated pet pinned to the bottom-right corner. Pick a character
-                (Claudino, OpenCode, Gremlin) or upload your own PNG, APNG, GIF, WebP, JPG, or SVG
-                from the status-bar pet menu. Hide it any time from the same menu without disabling
-                this setting.
-              </p>
+                {translate("auto.components.settings.ExperimentalPane.ca2219fe5e", "Shows a small animated pet pinned to the bottom-right corner. Pick a character (Claudino, OpenCode, Gremlin) or upload your own PNG, APNG, GIF, WebP, JPG, or SVG from the status-bar pet menu. Hide it any time from the same menu without disabling this setting.")}</p>
             </div>
             <button
               type="button"
@@ -74,19 +71,16 @@ export function ExperimentalPane({
 
       {showAgentsView ? (
         <SearchableSetting
-          title="Agents View"
-          description="Threaded left-sidebar feed for agent completions and blocking states."
+          title={translate("auto.components.settings.ExperimentalPane.a05bcdaf57", "Agents View")}
+          description={translate("auto.components.settings.ExperimentalPane.f63ea281e3", "Threaded left-sidebar feed for agent completions and blocking states.")}
           keywords={EXPERIMENTAL_SEARCH_ENTRY.activity.keywords}
           className="space-y-3 py-2"
         >
           <div className="flex items-start justify-between gap-4">
             <div className="min-w-0 shrink space-y-0.5">
-              <Label>Agents View</Label>
+              <Label>{translate("auto.components.settings.ExperimentalPane.a05bcdaf57", "Agents View")}</Label>
               <p className="text-xs text-muted-foreground">
-                Adds an Agents entry to the left sidebar with a threaded worktree feed for completed
-                agents, blocking questions, unread state, and worktree creation events. Experimental
-                — the event model and UI may change.
-              </p>
+                {translate("auto.components.settings.ExperimentalPane.0277901cf7", "Adds an Agents entry to the left sidebar with a threaded worktree feed for completed agents, blocking questions, unread state, and worktree creation events. Experimental — the event model and UI may change.")}</p>
             </div>
             <button
               type="button"
@@ -113,18 +107,16 @@ export function ExperimentalPane({
 
       {showTerminalAttention ? (
         <SearchableSetting
-          title="Terminal attention"
-          description="Persistent pane highlight for terminal bell and agent-completion events."
+          title={translate("auto.components.settings.ExperimentalPane.ec897e8d89", "Terminal attention")}
+          description={translate("auto.components.settings.ExperimentalPane.88b7613afb", "Persistent pane highlight for terminal bell and agent-completion events.")}
           keywords={EXPERIMENTAL_SEARCH_ENTRY.terminalAttention.keywords}
           className="space-y-3 py-2"
         >
           <div className="flex items-start justify-between gap-4">
             <div className="min-w-0 shrink space-y-0.5">
-              <Label>Terminal attention</Label>
+              <Label>{translate("auto.components.settings.ExperimentalPane.ec897e8d89", "Terminal attention")}</Label>
               <p className="text-xs text-muted-foreground">
-                Keeps a pane-level highlight visible after terminal bell or agent-completion events
-                until you interact with that pane. Experimental while we tune the signal.
-              </p>
+                {translate("auto.components.settings.ExperimentalPane.a20d5ea365", "Keeps a pane-level highlight visible after terminal bell or agent-completion events until you interact with that pane. Experimental while we tune the signal.")}</p>
             </div>
             <button
               type="button"
@@ -151,18 +143,16 @@ export function ExperimentalPane({
 
       {showWorktreeSymlinks ? (
         <SearchableSetting
-          title="Symlinks on worktrees"
-          description="Automatically symlink configured files or folders into newly created worktrees."
+          title={translate("auto.components.settings.ExperimentalPane.24416f42cd", "Symlinks on worktrees")}
+          description={translate("auto.components.settings.ExperimentalPane.fb82ea1d7a", "Automatically symlink configured files or folders into newly created worktrees.")}
           keywords={EXPERIMENTAL_SEARCH_ENTRY.symlinks.keywords}
           className="space-y-3 py-2"
         >
           <div className="flex items-start justify-between gap-4">
             <div className="min-w-0 shrink space-y-0.5">
-              <Label>Symlinks on worktrees</Label>
+              <Label>{translate("auto.components.settings.ExperimentalPane.24416f42cd", "Symlinks on worktrees")}</Label>
               <p className="text-xs text-muted-foreground">
-                Allows for automatic symlinks of certain folders or files that must be connected to
-                created worktrees.
-              </p>
+                {translate("auto.components.settings.ExperimentalPane.9762364929", "Allows for automatic symlinks of certain folders or files that must be connected to created worktrees.")}</p>
             </div>
             <button
               type="button"

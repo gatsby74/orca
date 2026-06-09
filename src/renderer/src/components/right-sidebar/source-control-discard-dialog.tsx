@@ -16,6 +16,7 @@ import {
   getDiscardAreaConfirmationCopy,
   getDiscardEntryConfirmationCopy
 } from './source-control-discard-confirmation'
+import { translate } from '@/i18n/i18n'
 
 export type PendingDiscardConfirmation =
   | { kind: 'entry'; entry: GitStatusEntry }
@@ -88,8 +89,7 @@ export function SourceControlDiscardDialog({
         ) : null}
         <DialogFooter>
           <Button type="button" variant="outline" onClick={onCancel}>
-            Cancel
-          </Button>
+            {translate("auto.components.right.sidebar.source.control.discard.dialog.3bc61dc989", "Cancel")}</Button>
           <Button
             ref={confirmButtonRef}
             type="button"

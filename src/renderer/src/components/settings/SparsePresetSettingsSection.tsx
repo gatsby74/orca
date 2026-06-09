@@ -10,6 +10,7 @@ import { Input } from '../ui/input'
 import { Label } from '../ui/label'
 import { getSparsePresetOperationErrorMessage } from './sparse-preset-operation-error'
 import { formatSparsePresetUpdatedAt } from './sparse-preset-date'
+import { translate } from '@/i18n/i18n'
 
 type SparsePresetSettingsSectionProps = {
   repoId: string
@@ -43,8 +44,7 @@ function SparsePresetDirectoryPreview({
       ))}
       {hiddenCount > 0 ? (
         <span className="rounded-md border border-border/50 bg-muted/35 px-2 py-1 text-[11px] text-muted-foreground">
-          +{hiddenCount} more
-        </span>
+          +{hiddenCount} {translate("auto.components.settings.SparsePresetSettingsSection.8b64731aaf", "more")}</span>
       ) : null}
     </div>
   )
@@ -201,14 +201,13 @@ export function SparsePresetSettingsSection({
               {draft.mode === 'new' ? 'New Preset' : 'Edit Preset'}
             </h5>
             <p className="text-xs text-muted-foreground">
-              Saved directories are used when creating sparse worktrees for this repository.
-            </p>
+              {translate("auto.components.settings.SparsePresetSettingsSection.694cc55ecb", "Saved directories are used when creating sparse worktrees for this repository.")}</p>
           </div>
           <Button
             type="button"
             variant="ghost"
             size="icon-xs"
-            aria-label="Cancel preset edit"
+            aria-label={translate("auto.components.settings.SparsePresetSettingsSection.b9922ec194", "Cancel preset edit")}
             onClick={() => setDraft(null)}
             disabled={submitting}
           >
@@ -218,12 +217,12 @@ export function SparsePresetSettingsSection({
 
         <div className="grid gap-4 md:grid-cols-[minmax(0,0.8fr)_minmax(0,1.2fr)]">
           <div className="space-y-2">
-            <Label htmlFor="sparse-preset-settings-name">Name</Label>
+            <Label htmlFor="sparse-preset-settings-name">{translate("auto.components.settings.SparsePresetSettingsSection.a6fcdd9e3c", "Name")}</Label>
             <Input
               id="sparse-preset-settings-name"
               value={draft.name}
               onChange={(event) => setDraft({ ...draft, name: event.target.value })}
-              placeholder="e.g. web-only"
+              placeholder={translate("auto.components.settings.SparsePresetSettingsSection.3b6f1abd3e", "e.g. web-only")}
               maxLength={80}
               autoComplete="off"
               spellCheck={false}
@@ -233,12 +232,12 @@ export function SparsePresetSettingsSection({
           </div>
 
           <div className="space-y-2">
-            <Label htmlFor="sparse-preset-settings-directories">Directories</Label>
+            <Label htmlFor="sparse-preset-settings-directories">{translate("auto.components.settings.SparsePresetSettingsSection.caf33029cc", "Directories")}</Label>
             <textarea
               id="sparse-preset-settings-directories"
               value={draft.directoriesText}
               onChange={(event) => setDraft({ ...draft, directoriesText: event.target.value })}
-              placeholder={`packages/web\nshared/ui`}
+              placeholder={translate("auto.components.settings.SparsePresetSettingsSection.fde7ff2cc3", "packages/web shared/ui")}
               rows={5}
               spellCheck={false}
               className="w-full min-w-0 resize-y rounded-md border border-input bg-transparent px-3 py-2 font-mono text-xs shadow-xs outline-none transition-[color,box-shadow] placeholder:text-muted-foreground focus-visible:border-ring focus-visible:ring-[3px] focus-visible:ring-ring/50"
@@ -250,8 +249,7 @@ export function SparsePresetSettingsSection({
                 {parsedDirectories?.directories.length === 1
                   ? '1 directory will be saved.'
                   : `${parsedDirectories?.directories.length ?? 0} directories will be saved.`}{' '}
-                Use repo-relative paths like packages/web or apps/api.
-              </p>
+                {translate("auto.components.settings.SparsePresetSettingsSection.c240a16f25", "Use repo-relative paths like packages/web or apps/api.")}</p>
             )}
           </div>
         </div>
@@ -264,8 +262,7 @@ export function SparsePresetSettingsSection({
             onClick={() => setDraft(null)}
             disabled={submitting}
           >
-            Cancel
-          </Button>
+            {translate("auto.components.settings.SparsePresetSettingsSection.2d7d45e991", "Cancel")}</Button>
           <Button
             type="button"
             size="sm"
@@ -277,8 +274,7 @@ export function SparsePresetSettingsSection({
             ) : (
               <Save className="size-3.5" />
             )}
-            Save Preset
-          </Button>
+            {translate("auto.components.settings.SparsePresetSettingsSection.a05bc9183f", "Save Preset")}</Button>
         </div>
       </div>
     )
@@ -288,10 +284,9 @@ export function SparsePresetSettingsSection({
     <section className="space-y-4">
       <div className="flex items-start justify-between gap-4">
         <div className="space-y-1">
-          <h3 className="text-sm font-semibold">Sparse Checkout Presets</h3>
+          <h3 className="text-sm font-semibold">{translate("auto.components.settings.SparsePresetSettingsSection.388513be2d", "Sparse Checkout Presets")}</h3>
           <p className="text-xs text-muted-foreground">
-            Manage saved directory sets for sparse worktree creation.
-          </p>
+            {translate("auto.components.settings.SparsePresetSettingsSection.17f8c4ce10", "Manage saved directory sets for sparse worktree creation.")}</p>
         </div>
         <Button
           type="button"
@@ -301,8 +296,7 @@ export function SparsePresetSettingsSection({
           disabled={!!draft}
         >
           <Plus className="size-3.5" />
-          New Preset
-        </Button>
+          {translate("auto.components.settings.SparsePresetSettingsSection.d7565029a9", "New Preset")}</Button>
       </div>
 
       {visibleError ? (
@@ -322,8 +316,7 @@ export function SparsePresetSettingsSection({
         </div>
       ) : sortedPresets.length === 0 && !draft ? (
         <div className="rounded-xl border border-dashed border-border/60 bg-background/60 px-4 py-6 text-sm text-muted-foreground">
-          No sparse presets saved for this repository.
-        </div>
+          {translate("auto.components.settings.SparsePresetSettingsSection.88bfbf1a9c", "No sparse presets saved for this repository.")}</div>
       ) : (
         <div className="space-y-2">
           {sortedPresets.map((preset) => {
@@ -360,7 +353,7 @@ export function SparsePresetSettingsSection({
                       type="button"
                       variant="ghost"
                       size="icon-sm"
-                      aria-label={`Edit ${preset.name}`}
+                      aria-label={translate("auto.components.settings.SparsePresetSettingsSection.fe1f2c6572", "Edit {{value0}}", { value0: preset.name })}
                       onClick={() => startEditPreset(preset)}
                       disabled={submitting || deletingPresetId !== null}
                     >
@@ -370,7 +363,7 @@ export function SparsePresetSettingsSection({
                       type="button"
                       variant={confirmingDeleteId === preset.id ? 'destructive' : 'ghost'}
                       size="sm"
-                      aria-label={`Delete ${preset.name}`}
+                      aria-label={translate("auto.components.settings.SparsePresetSettingsSection.6fa754d20f", "Delete {{value0}}", { value0: preset.name })}
                       onClick={() => void handleDeletePreset(preset)}
                       onBlur={() => setConfirmingDeleteId(null)}
                       disabled={submitting || (deletingPresetId !== null && !isDeleting)}

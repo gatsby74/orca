@@ -14,6 +14,7 @@ import {
 } from 'lucide-react'
 import { basename } from '@/lib/path'
 import type { GlobalSettings } from '../../../shared/types'
+import { translate } from '@/i18n/i18n'
 
 export type NotificationSoundOption = {
   id: GlobalSettings['notifications']['customSoundId']
@@ -24,52 +25,52 @@ export type NotificationSoundOption = {
 export const BUILT_IN_NOTIFICATION_SOUND_OPTIONS: readonly NotificationSoundOption[] = [
   {
     id: 'system',
-    title: 'System Default',
+    title: translate("auto.components.notification.sound.options.017abebfa6", "System Default"),
     icon: Bell
   },
   {
     id: 'two-tone',
-    title: 'Two Tone',
+    title: translate("auto.components.notification.sound.options.80f7cc95b3", "Two Tone"),
     icon: AudioWaveform
   },
   {
     id: 'bong',
-    title: 'Bong',
+    title: translate("auto.components.notification.sound.options.86af8d938c", "Bong"),
     icon: CircleDot
   },
   {
     id: 'thump',
-    title: 'Thump',
+    title: translate("auto.components.notification.sound.options.1e4b81d892", "Thump"),
     icon: Volume1
   },
   {
     id: 'blip',
-    title: 'Blip',
+    title: translate("auto.components.notification.sound.options.588c90487d", "Blip"),
     icon: Zap
   },
   {
     id: 'sonar',
-    title: 'Sonar',
+    title: translate("auto.components.notification.sound.options.020826ef17", "Sonar"),
     icon: Radar
   },
   {
     id: 'blop',
-    title: 'Blop',
+    title: translate("auto.components.notification.sound.options.2b44847d8d", "Blop"),
     icon: Activity
   },
   {
     id: 'ding',
-    title: 'Ding',
+    title: translate("auto.components.notification.sound.options.79919c832d", "Ding"),
     icon: Radio
   },
   {
     id: 'clack',
-    title: 'Clack',
+    title: translate("auto.components.notification.sound.options.0acd3d384e", "Clack"),
     icon: Keyboard
   },
   {
     id: 'beep',
-    title: 'Beep',
+    title: translate("auto.components.notification.sound.options.e38b0a2e68", "Beep"),
     icon: MousePointer2
   }
 ]

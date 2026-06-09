@@ -24,6 +24,7 @@ import {
   type PreflightRefreshProvider
 } from './integrations-pane-status'
 import { JiraIntegrationCard } from './jira-integration-card'
+import { translate } from '@/i18n/i18n'
 export { INTEGRATIONS_PANE_SEARCH_ENTRIES } from './integrations-search'
 
 function LinearIcon({ className }: { className?: string }): React.JSX.Element {
@@ -143,18 +144,16 @@ export function IntegrationsPane(): React.JSX.Element {
         <div className="flex items-center gap-3">
           <Github className="size-5 shrink-0 text-muted-foreground" />
           <div className="min-w-0 flex-1 space-y-0.5">
-            <p className="text-sm font-medium">GitHub</p>
+            <p className="text-sm font-medium">{translate("auto.components.settings.IntegrationsPane.70c5f74f36", "GitHub")}</p>
             <p className="text-xs text-muted-foreground">
-              Pull requests, issues, and checks via the{' '}
-              <span className="font-mono text-[11px]">gh</span> CLI.
-            </p>
+              {translate("auto.components.settings.IntegrationsPane.de6a0d13ab", "Pull requests, issues, and checks via the")}{' '}
+              <span className="font-mono text-[11px]">{translate("auto.components.settings.IntegrationsPane.f36365ed45", "gh")}</span> {translate("auto.components.settings.IntegrationsPane.ea160a9978", "CLI.")}</p>
           </div>
           {ghStatus === 'checking' ? (
             <LoaderCircle className="size-4 shrink-0 animate-spin text-muted-foreground" />
           ) : ghStatus === 'connected' ? (
             <span className="shrink-0 rounded-full border border-emerald-500/30 bg-emerald-500/10 px-2.5 py-1 text-[11px] font-medium text-emerald-700 dark:text-emerald-300">
-              Connected
-            </span>
+              {translate("auto.components.settings.IntegrationsPane.6432f6522e", "Connected")}</span>
           ) : (
             <span className="shrink-0 rounded-full border border-amber-500/30 bg-amber-500/10 px-2.5 py-1 text-[11px] font-medium text-amber-700 dark:text-amber-300">
               {ghStatus === 'not-installed' ? 'Not installed' : 'Not authenticated'}
@@ -167,8 +166,7 @@ export function IntegrationsPane(): React.JSX.Element {
             {ghStatus === 'not-installed' ? (
               <>
                 <p className="text-xs text-muted-foreground">
-                  Install the GitHub CLI to enable pull requests, issues, and checks.
-                </p>
+                  {translate("auto.components.settings.IntegrationsPane.c0c8575e05", "Install the GitHub CLI to enable pull requests, issues, and checks.")}</p>
                 <div className="flex items-center gap-2">
                   <Button
                     variant="outline"
@@ -176,22 +174,18 @@ export function IntegrationsPane(): React.JSX.Element {
                     onClick={() => window.api.shell.openUrl('https://cli.github.com')}
                   >
                     <ExternalLink className="size-3.5 mr-1.5" />
-                    Install GitHub CLI
-                  </Button>
+                    {translate("auto.components.settings.IntegrationsPane.399cf46867", "Install GitHub CLI")}</Button>
                   <Button variant="ghost" size="sm" onClick={handleRefreshGh}>
-                    Re-check
-                  </Button>
+                    {translate("auto.components.settings.IntegrationsPane.4831ba1083", "Re-check")}</Button>
                 </div>
               </>
             ) : (
               <>
                 <p className="text-xs text-muted-foreground">
-                  The GitHub CLI is installed but not authenticated. Run this command in a terminal:
-                </p>
+                  {translate("auto.components.settings.IntegrationsPane.09285e9fe6", "The GitHub CLI is installed but not authenticated. Run this command in a terminal:")}</p>
                 <div className="flex items-center gap-2 rounded-md bg-muted/50 px-2.5 py-1.5 font-mono text-xs">
                   <Terminal className="size-3.5 shrink-0 text-muted-foreground" />
-                  gh auth login
-                </div>
+                  {translate("auto.components.settings.IntegrationsPane.51000487c4", "gh auth login")}</div>
                 <div className="flex items-center gap-2">
                   <Button
                     variant="outline"
@@ -201,11 +195,9 @@ export function IntegrationsPane(): React.JSX.Element {
                     }
                   >
                     <ExternalLink className="size-3.5 mr-1.5" />
-                    Learn more
-                  </Button>
+                    {translate("auto.components.settings.IntegrationsPane.01f6c7582e", "Learn more")}</Button>
                   <Button variant="ghost" size="sm" onClick={handleRefreshGh}>
-                    Re-check
-                  </Button>
+                    {translate("auto.components.settings.IntegrationsPane.4831ba1083", "Re-check")}</Button>
                 </div>
               </>
             )}
@@ -218,18 +210,16 @@ export function IntegrationsPane(): React.JSX.Element {
         <div className="flex items-center gap-3">
           <Gitlab className="size-5 shrink-0 text-muted-foreground" />
           <div className="min-w-0 flex-1 space-y-0.5">
-            <p className="text-sm font-medium">GitLab</p>
+            <p className="text-sm font-medium">{translate("auto.components.settings.IntegrationsPane.513abfe47d", "GitLab")}</p>
             <p className="text-xs text-muted-foreground">
-              Merge requests, issues, todos, and pipelines via the{' '}
-              <span className="font-mono text-[11px]">glab</span> CLI.
-            </p>
+              {translate("auto.components.settings.IntegrationsPane.027440e1cb", "Merge requests, issues, todos, and pipelines via the")}{' '}
+              <span className="font-mono text-[11px]">{translate("auto.components.settings.IntegrationsPane.a3326f6f1b", "glab")}</span> {translate("auto.components.settings.IntegrationsPane.ea160a9978", "CLI.")}</p>
           </div>
           {glabStatus === 'checking' ? (
             <LoaderCircle className="size-4 shrink-0 animate-spin text-muted-foreground" />
           ) : glabStatus === 'connected' ? (
             <span className="shrink-0 rounded-full border border-emerald-500/30 bg-emerald-500/10 px-2.5 py-1 text-[11px] font-medium text-emerald-700 dark:text-emerald-300">
-              Connected
-            </span>
+              {translate("auto.components.settings.IntegrationsPane.6432f6522e", "Connected")}</span>
           ) : (
             <span className="shrink-0 rounded-full border border-amber-500/30 bg-amber-500/10 px-2.5 py-1 text-[11px] font-medium text-amber-700 dark:text-amber-300">
               {glabStatus === 'not-installed' ? 'Not installed' : 'Not authenticated'}
@@ -242,8 +232,7 @@ export function IntegrationsPane(): React.JSX.Element {
             {glabStatus === 'not-installed' ? (
               <>
                 <p className="text-xs text-muted-foreground">
-                  Install the GitLab CLI to enable merge requests, issues, and pipelines.
-                </p>
+                  {translate("auto.components.settings.IntegrationsPane.35a3379372", "Install the GitLab CLI to enable merge requests, issues, and pipelines.")}</p>
                 <div className="flex items-center gap-2">
                   <Button
                     variant="outline"
@@ -253,22 +242,18 @@ export function IntegrationsPane(): React.JSX.Element {
                     }
                   >
                     <ExternalLink className="size-3.5 mr-1.5" />
-                    Install GitLab CLI
-                  </Button>
+                    {translate("auto.components.settings.IntegrationsPane.a83cac5726", "Install GitLab CLI")}</Button>
                   <Button variant="ghost" size="sm" onClick={handleRefreshGlab}>
-                    Re-check
-                  </Button>
+                    {translate("auto.components.settings.IntegrationsPane.4831ba1083", "Re-check")}</Button>
                 </div>
               </>
             ) : (
               <>
                 <p className="text-xs text-muted-foreground">
-                  The GitLab CLI is installed but not authenticated. Run this command in a terminal:
-                </p>
+                  {translate("auto.components.settings.IntegrationsPane.05e5245af7", "The GitLab CLI is installed but not authenticated. Run this command in a terminal:")}</p>
                 <div className="flex items-center gap-2 rounded-md bg-muted/50 px-2.5 py-1.5 font-mono text-xs">
                   <Terminal className="size-3.5 shrink-0 text-muted-foreground" />
-                  glab auth login
-                </div>
+                  {translate("auto.components.settings.IntegrationsPane.e74de656ce", "glab auth login")}</div>
                 <div className="flex items-center gap-2">
                   <Button
                     variant="outline"
@@ -280,11 +265,9 @@ export function IntegrationsPane(): React.JSX.Element {
                     }
                   >
                     <ExternalLink className="size-3.5 mr-1.5" />
-                    Learn more
-                  </Button>
+                    {translate("auto.components.settings.IntegrationsPane.01f6c7582e", "Learn more")}</Button>
                   <Button variant="ghost" size="sm" onClick={handleRefreshGlab}>
-                    Re-check
-                  </Button>
+                    {translate("auto.components.settings.IntegrationsPane.4831ba1083", "Re-check")}</Button>
                 </div>
               </>
             )}
@@ -297,7 +280,7 @@ export function IntegrationsPane(): React.JSX.Element {
         <div className="flex items-center gap-3">
           <GitPullRequestArrow className="size-5 shrink-0 text-muted-foreground" />
           <div className="min-w-0 flex-1 space-y-0.5">
-            <p className="text-sm font-medium">Bitbucket</p>
+            <p className="text-sm font-medium">{translate("auto.components.settings.IntegrationsPane.8489c0aa49", "Bitbucket")}</p>
             <p className="text-xs text-muted-foreground">
               {bitbucketStatus === 'connected'
                 ? bitbucketAccount
@@ -310,8 +293,7 @@ export function IntegrationsPane(): React.JSX.Element {
             <LoaderCircle className="size-4 shrink-0 animate-spin text-muted-foreground" />
           ) : bitbucketStatus === 'connected' ? (
             <span className="shrink-0 rounded-full border border-emerald-500/30 bg-emerald-500/10 px-2.5 py-1 text-[11px] font-medium text-emerald-700 dark:text-emerald-300">
-              Connected
-            </span>
+              {translate("auto.components.settings.IntegrationsPane.6432f6522e", "Connected")}</span>
           ) : (
             <span className="shrink-0 rounded-full border border-amber-500/30 bg-amber-500/10 px-2.5 py-1 text-[11px] font-medium text-amber-700 dark:text-amber-300">
               {bitbucketStatus === 'not-configured' ? 'Not configured' : 'Auth failed'}
@@ -324,9 +306,9 @@ export function IntegrationsPane(): React.JSX.Element {
             {bitbucketStatus === 'not-configured' ? (
               <>
                 <p className="text-xs text-muted-foreground">
-                  Set <span className="font-mono text-[11px]">ORCA_BITBUCKET_EMAIL</span> and{' '}
-                  <span className="font-mono text-[11px]">ORCA_BITBUCKET_API_TOKEN</span>, or set{' '}
-                  <span className="font-mono text-[11px]">ORCA_BITBUCKET_ACCESS_TOKEN</span>.
+                  {translate("auto.components.settings.IntegrationsPane.4ee74d1470", "Set")}<span className="font-mono text-[11px]">{translate("auto.components.settings.IntegrationsPane.b8a7efb3f6", "ORCA_BITBUCKET_EMAIL")}</span> {translate("auto.components.settings.IntegrationsPane.a6c2816115", "and")}{' '}
+                  <span className="font-mono text-[11px]">{translate("auto.components.settings.IntegrationsPane.44cde4aa01", "ORCA_BITBUCKET_API_TOKEN")}</span>{translate("auto.components.settings.IntegrationsPane.ce3c58cd63", ", or set")}{' '}
+                  <span className="font-mono text-[11px]">{translate("auto.components.settings.IntegrationsPane.6e0ff3403e", "ORCA_BITBUCKET_ACCESS_TOKEN")}</span>.
                 </p>
                 <div className="flex items-center gap-2">
                   <Button
@@ -339,19 +321,15 @@ export function IntegrationsPane(): React.JSX.Element {
                     }
                   >
                     <ExternalLink className="size-3.5 mr-1.5" />
-                    Learn more
-                  </Button>
+                    {translate("auto.components.settings.IntegrationsPane.01f6c7582e", "Learn more")}</Button>
                   <Button variant="ghost" size="sm" onClick={handleRefreshBitbucket}>
-                    Re-check
-                  </Button>
+                    {translate("auto.components.settings.IntegrationsPane.4831ba1083", "Re-check")}</Button>
                 </div>
               </>
             ) : (
               <>
                 <p className="text-xs text-muted-foreground">
-                  Bitbucket credentials are configured but could not authenticate. Check the token
-                  and repository permissions, then restart Orca if environment variables changed.
-                </p>
+                  {translate("auto.components.settings.IntegrationsPane.3c3cf05c63", "Bitbucket credentials are configured but could not authenticate. Check the token and repository permissions, then restart Orca if environment variables changed.")}</p>
                 <div className="flex items-center gap-2">
                   <Button
                     variant="outline"
@@ -363,11 +341,9 @@ export function IntegrationsPane(): React.JSX.Element {
                     }
                   >
                     <ExternalLink className="size-3.5 mr-1.5" />
-                    Learn more
-                  </Button>
+                    {translate("auto.components.settings.IntegrationsPane.01f6c7582e", "Learn more")}</Button>
                   <Button variant="ghost" size="sm" onClick={handleRefreshBitbucket}>
-                    Re-check
-                  </Button>
+                    {translate("auto.components.settings.IntegrationsPane.4831ba1083", "Re-check")}</Button>
                 </div>
               </>
             )}
@@ -380,7 +356,7 @@ export function IntegrationsPane(): React.JSX.Element {
         <div className="flex items-center gap-3">
           <GitPullRequestArrow className="size-5 shrink-0 text-muted-foreground" />
           <div className="min-w-0 flex-1 space-y-0.5">
-            <p className="text-sm font-medium">Azure DevOps</p>
+            <p className="text-sm font-medium">{translate("auto.components.settings.IntegrationsPane.5efce6953d", "Azure DevOps")}</p>
             <p className="text-xs text-muted-foreground">
               {azureDevOpsStatus === 'configured'
                 ? azureDevOpsAccount
@@ -409,11 +385,9 @@ export function IntegrationsPane(): React.JSX.Element {
             {azureDevOpsStatus === 'not-configured' ? (
               <>
                 <p className="text-xs text-muted-foreground">
-                  Set <span className="font-mono text-[11px]">ORCA_AZURE_DEVOPS_TOKEN</span>, or set{' '}
-                  <span className="font-mono text-[11px]">ORCA_AZURE_DEVOPS_ACCESS_TOKEN</span>. Set{' '}
-                  <span className="font-mono text-[11px]">ORCA_AZURE_DEVOPS_API_BASE_URL</span> only
-                  when Orca cannot derive the API base URL from the git remote.
-                </p>
+                  {translate("auto.components.settings.IntegrationsPane.4ee74d1470", "Set")}<span className="font-mono text-[11px]">{translate("auto.components.settings.IntegrationsPane.5ee6ef6405", "ORCA_AZURE_DEVOPS_TOKEN")}</span>{translate("auto.components.settings.IntegrationsPane.ce3c58cd63", ", or set")}{' '}
+                  <span className="font-mono text-[11px]">{translate("auto.components.settings.IntegrationsPane.8f960935c1", "ORCA_AZURE_DEVOPS_ACCESS_TOKEN")}</span>{translate("auto.components.settings.IntegrationsPane.67a9f26a80", ". Set")}{' '}
+                  <span className="font-mono text-[11px]">{translate("auto.components.settings.IntegrationsPane.ae6b7f5f40", "ORCA_AZURE_DEVOPS_API_BASE_URL")}</span> {translate("auto.components.settings.IntegrationsPane.6f317f5132", "only when Orca cannot derive the API base URL from the git remote.")}</p>
                 <div className="flex items-center gap-2">
                   <Button
                     variant="outline"
@@ -425,20 +399,15 @@ export function IntegrationsPane(): React.JSX.Element {
                     }
                   >
                     <ExternalLink className="size-3.5 mr-1.5" />
-                    Learn more
-                  </Button>
+                    {translate("auto.components.settings.IntegrationsPane.01f6c7582e", "Learn more")}</Button>
                   <Button variant="ghost" size="sm" onClick={handleRefreshAzureDevOps}>
-                    Re-check
-                  </Button>
+                    {translate("auto.components.settings.IntegrationsPane.4831ba1083", "Re-check")}</Button>
                 </div>
               </>
             ) : (
               <>
                 <p className="text-xs text-muted-foreground">
-                  Azure DevOps credentials are configured but could not authenticate. Check the
-                  token, API base URL, and repository permissions, then restart Orca if environment
-                  variables changed.
-                </p>
+                  {translate("auto.components.settings.IntegrationsPane.953b7bf6f7", "Azure DevOps credentials are configured but could not authenticate. Check the token, API base URL, and repository permissions, then restart Orca if environment variables changed.")}</p>
                 <div className="flex items-center gap-2">
                   <Button
                     variant="outline"
@@ -450,11 +419,9 @@ export function IntegrationsPane(): React.JSX.Element {
                     }
                   >
                     <ExternalLink className="size-3.5 mr-1.5" />
-                    Learn more
-                  </Button>
+                    {translate("auto.components.settings.IntegrationsPane.01f6c7582e", "Learn more")}</Button>
                   <Button variant="ghost" size="sm" onClick={handleRefreshAzureDevOps}>
-                    Re-check
-                  </Button>
+                    {translate("auto.components.settings.IntegrationsPane.4831ba1083", "Re-check")}</Button>
                 </div>
               </>
             )}
@@ -467,7 +434,7 @@ export function IntegrationsPane(): React.JSX.Element {
         <div className="flex items-center gap-3">
           <GitPullRequestArrow className="size-5 shrink-0 text-muted-foreground" />
           <div className="min-w-0 flex-1 space-y-0.5">
-            <p className="text-sm font-medium">Gitea</p>
+            <p className="text-sm font-medium">{translate("auto.components.settings.IntegrationsPane.4ab9b96925", "Gitea")}</p>
             <p className="text-xs text-muted-foreground">
               {giteaStatus === 'configured'
                 ? giteaAccount
@@ -496,12 +463,9 @@ export function IntegrationsPane(): React.JSX.Element {
             {giteaStatus === 'not-configured' ? (
               <>
                 <p className="text-xs text-muted-foreground">
-                  Public repositories are detected from their git remote. Set{' '}
-                  <span className="font-mono text-[11px]">ORCA_GITEA_TOKEN</span> for private
-                  repositories, and set{' '}
-                  <span className="font-mono text-[11px]">ORCA_GITEA_API_BASE_URL</span> only when
-                  Orca cannot derive the API URL from the remote.
-                </p>
+                  {translate("auto.components.settings.IntegrationsPane.d9467ab026", "Public repositories are detected from their git remote. Set")}{' '}
+                  <span className="font-mono text-[11px]">{translate("auto.components.settings.IntegrationsPane.e678d89e8c", "ORCA_GITEA_TOKEN")}</span> {translate("auto.components.settings.IntegrationsPane.2c0330ec3e", "for private repositories, and set")}{' '}
+                  <span className="font-mono text-[11px]">{translate("auto.components.settings.IntegrationsPane.6193444689", "ORCA_GITEA_API_BASE_URL")}</span> {translate("auto.components.settings.IntegrationsPane.5a1f86225a", "only when Orca cannot derive the API URL from the remote.")}</p>
                 <div className="flex items-center gap-2">
                   <Button
                     variant="outline"
@@ -511,20 +475,15 @@ export function IntegrationsPane(): React.JSX.Element {
                     }
                   >
                     <ExternalLink className="size-3.5 mr-1.5" />
-                    Learn more
-                  </Button>
+                    {translate("auto.components.settings.IntegrationsPane.01f6c7582e", "Learn more")}</Button>
                   <Button variant="ghost" size="sm" onClick={handleRefreshGitea}>
-                    Re-check
-                  </Button>
+                    {translate("auto.components.settings.IntegrationsPane.4831ba1083", "Re-check")}</Button>
                 </div>
               </>
             ) : (
               <>
                 <p className="text-xs text-muted-foreground">
-                  Gitea credentials are configured but could not authenticate. Check the token, API
-                  base URL, and repository permissions, then restart Orca if environment variables
-                  changed.
-                </p>
+                  {translate("auto.components.settings.IntegrationsPane.1a62c295c6", "Gitea credentials are configured but could not authenticate. Check the token, API base URL, and repository permissions, then restart Orca if environment variables changed.")}</p>
                 <div className="flex items-center gap-2">
                   <Button
                     variant="outline"
@@ -534,11 +493,9 @@ export function IntegrationsPane(): React.JSX.Element {
                     }
                   >
                     <ExternalLink className="size-3.5 mr-1.5" />
-                    Learn more
-                  </Button>
+                    {translate("auto.components.settings.IntegrationsPane.01f6c7582e", "Learn more")}</Button>
                   <Button variant="ghost" size="sm" onClick={handleRefreshGitea}>
-                    Re-check
-                  </Button>
+                    {translate("auto.components.settings.IntegrationsPane.4831ba1083", "Re-check")}</Button>
                 </div>
               </>
             )}
@@ -551,7 +508,7 @@ export function IntegrationsPane(): React.JSX.Element {
         <div className="flex items-center gap-3">
           <LinearIcon className="size-5 shrink-0 text-muted-foreground" />
           <div className="min-w-0 flex-1 space-y-0.5">
-            <p className="text-sm font-medium">Linear</p>
+            <p className="text-sm font-medium">{translate("auto.components.settings.IntegrationsPane.264a9b6128", "Linear")}</p>
             <p className="text-xs text-muted-foreground">
               {linearStatus.connected
                 ? `${linearWorkspaces.length} workspace${linearWorkspaces.length === 1 ? '' : 's'} connected`
@@ -561,19 +518,16 @@ export function IntegrationsPane(): React.JSX.Element {
           {linearStatus.connected ? (
             <div className="flex shrink-0 items-center gap-1.5">
               <Button variant="outline" size="sm" onClick={() => setLinearDialogOpen(true)}>
-                Add workspace access
-              </Button>
+                {translate("auto.components.settings.IntegrationsPane.077844591a", "Add workspace access")}</Button>
               <span className="rounded-full border border-emerald-500/30 bg-emerald-500/10 px-2.5 py-1 text-[11px] font-medium text-emerald-700 dark:text-emerald-300">
-                Connected
-              </span>
+                {translate("auto.components.settings.IntegrationsPane.6432f6522e", "Connected")}</span>
             </div>
           ) : (
             <button
               className="shrink-0 rounded-full border border-border/50 bg-muted/40 px-2.5 py-1 text-[11px] font-medium text-muted-foreground transition-colors hover:bg-muted hover:text-foreground"
               onClick={() => setLinearDialogOpen(true)}
             >
-              Add Linear access
-            </button>
+              {translate("auto.components.settings.IntegrationsPane.f5c5246514", "Add Linear access")}</button>
           )}
         </div>
 
@@ -599,8 +553,7 @@ export function IntegrationsPane(): React.JSX.Element {
                   {testResult?.state === 'ok' ? (
                     <span className="flex shrink-0 items-center gap-1 text-xs text-emerald-600 dark:text-emerald-400">
                       <CheckCircle2 className="size-3.5" />
-                      Verified
-                    </span>
+                      {translate("auto.components.settings.IntegrationsPane.fe4d378dc4", "Verified")}</span>
                   ) : null}
                   {testResult?.state === 'error' ? (
                     <span className="flex min-w-0 max-w-[220px] shrink items-center gap-1 truncate text-xs text-destructive">
@@ -617,8 +570,7 @@ export function IntegrationsPane(): React.JSX.Element {
                     {testing ? (
                       <>
                         <LoaderCircle className="size-3.5 mr-1.5 animate-spin" />
-                        Testing…
-                      </>
+                        {translate("auto.components.settings.IntegrationsPane.e7b2dd46f9", "Testing…")}</>
                     ) : (
                       'Test'
                     )}
@@ -634,10 +586,7 @@ export function IntegrationsPane(): React.JSX.Element {
               )
             })}
             <p className="text-[11px] text-muted-foreground/70">
-              Each connected Linear workspace has one key stored by the active runtime. Full-access
-              keys can cover all teams the key owner can access; restricted keys can be replaced any
-              time.
-            </p>
+              {translate("auto.components.settings.IntegrationsPane.2122e15517", "Each connected Linear workspace has one key stored by the active runtime. Full-access keys can cover all teams the key owner can access; restricted keys can be replaced any time.")}</p>
           </div>
         )}
       </div>

@@ -10,6 +10,7 @@ import { DashboardAgentRowMessage } from './DashboardAgentRowMessage'
 import { DashboardAgentRowToolStep } from './DashboardAgentRowToolStep'
 import type { AgentStatusState } from '../../../../shared/agent-status-types'
 import type { DashboardAgentRow as DashboardAgentRowData } from './useDashboardData'
+import { translate } from '@/i18n/i18n'
 
 // Why: the dashboard tracks its own rollup states (incl. 'idle'); narrow to the
 // shared dot states for rendering, falling back to 'idle' for any unknown
@@ -433,7 +434,7 @@ const DashboardAgentRow = React.memo(function DashboardAgentRow({
               title="Send to this agent"
             >
               <Send className="size-3" />
-              <span>Send</span>
+              <span>{translate("auto.components.dashboard.DashboardAgentRow.912e136cd9", "Send")}</span>
             </button>
           )}
           {/* Why: timestamp and dismiss-X share a single slot so passive

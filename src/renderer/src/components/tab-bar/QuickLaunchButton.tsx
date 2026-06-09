@@ -9,6 +9,7 @@ import { launchAgentInNewTab } from '@/lib/launch-agent-in-new-tab'
 import type { TuiAgent } from '../../../../shared/types'
 import type { LaunchSource } from '../../../../shared/telemetry-events'
 import { filterEnabledTuiAgents } from '../../../../shared/tui-agent-selection'
+import { translate } from '@/i18n/i18n'
 
 export type QuickLaunchAgentMenuItemsProps = {
   worktreeId: string
@@ -135,7 +136,7 @@ function QuickLaunchAgentMenuItemsInner({
         ...(onPromptDelivered !== undefined ? { onPromptDelivered } : {})
       })
       if (!result) {
-        toast.error(`Could not build launch command for ${label}.`)
+        toast.error(translate("auto.components.tab.bar.QuickLaunchButton.465e432ef1", "Could not build launch command for {{value0}}.", { value0: label }))
         return
       }
       if (!result.tabId) {
@@ -190,7 +191,7 @@ function QuickLaunchAgentMenuItemsInner({
             key={agent}
             onSelect={() => runLaunch(agent)}
             className="gap-2 rounded-[7px] px-2 py-1.5 text-[12px] leading-5 font-medium"
-            title={`Launch ${label} in a new terminal`}
+            title={translate("auto.components.tab.bar.QuickLaunchButton.ec2adf093e", "Launch {{value0}} in a new terminal", { value0: label })}
           >
             <AgentIcon agent={agent} size={14} />
             {label}
@@ -202,8 +203,7 @@ function QuickLaunchAgentMenuItemsInner({
         className="gap-2 rounded-[7px] px-2 py-1.5 text-[12px] leading-5 font-medium text-muted-foreground"
       >
         <SettingsIcon className="size-4" />
-        Agent settings…
-      </DropdownMenuItem>
+        {translate("auto.components.tab.bar.QuickLaunchButton.348a04c1ad", "Agent settings…")}</DropdownMenuItem>
     </>
   )
 }

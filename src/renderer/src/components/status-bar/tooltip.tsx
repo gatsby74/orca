@@ -1,6 +1,7 @@
 import type { ProviderRateLimits, RateLimitWindow } from '../../../../shared/rate-limit-types'
 import { AgentIcon } from '@/lib/agent-catalog'
 import { ClaudeIcon, GeminiIcon, OpenAIIcon, OpenCodeGoIcon } from './icons'
+import { translate } from '@/i18n/i18n'
 
 // ---------------------------------------------------------------------------
 // Formatting helpers
@@ -94,14 +95,14 @@ export function getWindowSections(
 ): { label: string; window: RateLimitWindow | null }[] {
   if (p.buckets?.length) {
     const bucketSections = p.buckets.map((b) => ({ label: b.name, window: b as RateLimitWindow }))
-    return [...bucketSections, { label: 'Weekly', window: p.weekly }]
+    return [...bucketSections, { label: translate("auto.components.status.bar.tooltip.252c096536", "Weekly"), window: p.weekly }]
   }
   const sections: { label: string; window: RateLimitWindow | null }[] = [
-    { label: 'Session', window: p.session },
-    { label: 'Weekly', window: p.weekly }
+    { label: translate("auto.components.status.bar.tooltip.94038ad2fa", "Session"), window: p.session },
+    { label: translate("auto.components.status.bar.tooltip.252c096536", "Weekly"), window: p.weekly }
   ]
   if (p.monthly !== undefined && p.monthly !== null) {
-    sections.push({ label: 'Monthly', window: p.monthly })
+    sections.push({ label: translate("auto.components.status.bar.tooltip.7f7f208060", "Monthly"), window: p.monthly })
   }
   return sections
 }
@@ -143,7 +144,7 @@ export function ProviderPanel({
   const emptyBarClass = inverted ? 'bg-background/20' : 'bg-muted'
 
   if (!p) {
-    return <span className={`text-xs ${mutedClass}`}>No data available</span>
+    return <span className={`text-xs ${mutedClass}`}>{translate("auto.components.status.bar.tooltip.6d6df77f41", "No data available")}</span>
   }
 
   const name =
@@ -210,7 +211,7 @@ export function ProviderPanel({
           />
         </div>
         <div className={`flex justify-between ${mutedClass}`}>
-          <span>{leftPct}% left</span>
+          <span>{leftPct}{translate("auto.components.status.bar.tooltip.cedb7b99e3", "% left")}</span>
           {resetLabel && <span>{resetLabel}</span>}
         </div>
       </div>

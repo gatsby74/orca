@@ -29,6 +29,7 @@ import {
   buildCommitMessageGenerationParams,
   type CommitMessageGenerationAgentChoice
 } from './SourceControlTextGenerationParams'
+import { translate } from '@/i18n/i18n'
 
 const UNCONFIGURED_AGENT_SELECT_VALUE = ''
 
@@ -185,7 +186,7 @@ export function SourceControlTextGenerationDialogForm({
     <>
       <div className="min-w-0 space-y-4">
         <div className="space-y-2">
-          <Label className="text-xs">Agent</Label>
+          <Label className="text-xs">{translate("auto.components.right.sidebar.SourceControlTextGenerationDialogForm.9c14186dd2", "Agent")}</Label>
           <Select
             value={agentId || UNCONFIGURED_AGENT_SELECT_VALUE}
             onValueChange={(value) => {
@@ -197,7 +198,7 @@ export function SourceControlTextGenerationDialogForm({
             }}
           >
             <SelectTrigger size="sm" className="h-8 text-xs">
-              <SelectValue placeholder="Choose agent" />
+              <SelectValue placeholder={translate("auto.components.right.sidebar.SourceControlTextGenerationDialogForm.cce2cbd01d", "Choose agent")} />
             </SelectTrigger>
             <SelectContent>
               {capabilities.map((capability) => (
@@ -212,8 +213,7 @@ export function SourceControlTextGenerationDialogForm({
                 <SelectItem value={CUSTOM_AGENT_ID}>
                   <span className="flex items-center gap-2">
                     <Terminal className="size-3.5 text-muted-foreground" />
-                    Custom command
-                  </span>
+                    {translate("auto.components.right.sidebar.SourceControlTextGenerationDialogForm.914c8f6ac2", "Custom command")}</span>
                 </SelectItem>
               ) : null}
             </SelectContent>
@@ -222,13 +222,12 @@ export function SourceControlTextGenerationDialogForm({
 
         <div className="space-y-2">
           <Label htmlFor={`source-control-${actionId}-cli-args`} className="text-xs">
-            CLI arguments
-          </Label>
+            {translate("auto.components.right.sidebar.SourceControlTextGenerationDialogForm.4eab815004", "CLI arguments")}</Label>
           <Input
             id={`source-control-${actionId}-cli-args`}
             value={agentArgs}
             spellCheck={false}
-            placeholder="--model sonnet"
+            placeholder={translate("auto.components.right.sidebar.SourceControlTextGenerationDialogForm.551ffd111b", "--model sonnet")}
             onChange={(event) => {
               setAgentArgs(event.target.value)
               setGenerationError(null)
@@ -239,8 +238,7 @@ export function SourceControlTextGenerationDialogForm({
 
         <div className="space-y-2">
           <Label htmlFor={commandTemplateId} className="text-xs">
-            Command template
-          </Label>
+            {translate("auto.components.right.sidebar.SourceControlTextGenerationDialogForm.1f6fcfb6cf", "Command template")}</Label>
           <textarea
             id={commandTemplateId}
             rows={8}
@@ -265,7 +263,7 @@ export function SourceControlTextGenerationDialogForm({
 
         {showSaveRecipeControl ? (
           <div className="space-y-2">
-            <Label className="text-xs">Save recipe</Label>
+            <Label className="text-xs">{translate("auto.components.right.sidebar.SourceControlTextGenerationDialogForm.d91b0a189d", "Save recipe")}</Label>
             <Select value={saveTargetKey} onValueChange={setSaveTargetKey}>
               <SelectTrigger size="sm" className="h-8 w-full text-xs">
                 <SelectValue />
@@ -306,8 +304,7 @@ export function SourceControlTextGenerationDialogForm({
             ) : (
               <Save className="size-4" />
             )}
-            Save defaults
-          </Button>
+            {translate("auto.components.right.sidebar.SourceControlTextGenerationDialogForm.25fcd8e49a", "Save defaults")}</Button>
         ) : null}
         <Button
           type="button"

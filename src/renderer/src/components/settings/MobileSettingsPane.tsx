@@ -8,6 +8,7 @@ import {
   MOBILE_ENABLE_SEARCH_ENTRY,
   MOBILE_SETTINGS_PANE_SEARCH_ENTRIES
 } from './mobile-settings-search'
+import { translate } from '@/i18n/i18n'
 export { MOBILE_SETTINGS_PANE_SEARCH_ENTRIES }
 
 const ORCA_IOS_APP_STORE_URL = 'https://apps.apple.com/app/orca-ide/id6766130217'
@@ -31,25 +32,23 @@ export function MobileSettingsPane({
     <div className="space-y-4">
       {showEnableSetting ? (
         <SearchableSetting
-          title="Mobile"
-          description="Control terminals and agents from your phone."
+          title={translate("auto.components.settings.MobileSettingsPane.e7a3ae8c4e", "Mobile")}
+          description={translate("auto.components.settings.MobileSettingsPane.174f4a3c6d", "Control terminals and agents from your phone.")}
           keywords={MOBILE_ENABLE_SEARCH_ENTRY.keywords}
           className="space-y-3 py-2"
         >
           <div className="flex items-start justify-between gap-4">
             <div className="min-w-0 shrink space-y-1.5">
-              <Label>Mobile</Label>
+              <Label>{translate("auto.components.settings.MobileSettingsPane.e7a3ae8c4e", "Mobile")}</Label>
               <p className="text-xs text-muted-foreground">
-                Control Orca from your phone by scanning a QR code. Beta / early preview &mdash;
-                expect bugs and breaking changes. Get the iOS app from the{' '}
+                {translate("auto.components.settings.MobileSettingsPane.c8491c17ef", "Control Orca from your phone by scanning a QR code. Beta / early preview - expect bugs and breaking changes. Get the iOS app from the")}{' '}
                 <button
                   type="button"
                   onClick={() => void window.api.shell.openUrl(ORCA_IOS_APP_STORE_URL)}
                   className="cursor-pointer underline underline-offset-2 hover:text-foreground"
                 >
-                  App Store
-                </button>{' '}
-                or the Android APK from{' '}
+                  {translate("auto.components.settings.MobileSettingsPane.b5a2ed83ff", "App Store")}</button>{' '}
+                {translate("auto.components.settings.MobileSettingsPane.b0088412a1", "or the Android APK from")}{' '}
                 <button
                   type="button"
                   // Why: Android is moving to Google Play soon, but until then
@@ -57,8 +56,7 @@ export function MobileSettingsPane({
                   onClick={() => void window.api.shell.openUrl(ORCA_ANDROID_APK_URL)}
                   className="cursor-pointer underline underline-offset-2 hover:text-foreground"
                 >
-                  GitHub Releases
-                </button>
+                  {translate("auto.components.settings.MobileSettingsPane.9a3c280e49", "GitHub Releases")}</button>
                 .
               </p>
             </div>

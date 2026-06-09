@@ -20,6 +20,7 @@ import {
 } from './drop-indicator'
 import { preventMiddleButtonDefault } from './middle-button-default-guard'
 import { SortableTabContextMenu } from './SortableTabContextMenu'
+import { translate } from '@/i18n/i18n'
 
 type SortableTabProps = {
   tab: TerminalTab
@@ -308,7 +309,7 @@ export default function SortableTab({
           ref={setRenameInputElement}
           data-tab-rename-input="true"
           value={renameValue}
-          aria-label={`Rename tab ${tabTitle}`}
+          aria-label={translate("auto.components.tab.bar.SortableTab.ab19f603eb", "Rename tab {{value0}}", { value0: tabTitle })}
           onChange={(event) => setRenameValue(event.target.value)}
           onBlur={commitRename}
           onKeyDown={(event) => {

@@ -40,6 +40,7 @@ import {
   DialogTitle
 } from '../ui/dialog'
 import { getCodexAccountAuthWarning } from './codex-account-auth-warning'
+import { translate } from '@/i18n/i18n'
 
 export { ACCOUNTS_PANE_SEARCH_ENTRIES }
 
@@ -215,7 +216,7 @@ function getSelectedAccountRuntime(
 ): LocalAccountRuntime {
   if (wslSupportedPlatform && settings.localAccountRuntime === 'wsl') {
     if (!wslAvailable && !wslCapabilitiesLoading) {
-      return { runtime: 'wsl', label: 'WSL' }
+      return { runtime: 'wsl', label: translate("auto.components.settings.AccountsPane.8619f9afa9", "WSL") }
     }
     const configuredDistro = settings.localAccountWslDistro?.trim() || null
     const selectedDistro =
@@ -314,7 +315,7 @@ export function AccountsPane({
         }
       } catch (error) {
         if (!stale) {
-          toast.error('Could not load Codex accounts.', {
+          toast.error(translate("auto.components.settings.AccountsPane.b8c2905c2b", "Could not load Codex accounts."), {
             description: String((error as Error)?.message ?? error)
           })
         }
@@ -329,7 +330,7 @@ export function AccountsPane({
         }
       } catch (error) {
         if (!stale) {
-          toast.error('Could not load Claude accounts.', {
+          toast.error(translate("auto.components.settings.AccountsPane.9107406589", "Could not load Claude accounts."), {
             description: String((error as Error)?.message ?? error)
           })
         }
@@ -366,22 +367,22 @@ export function AccountsPane({
 
   const accountRuntimeControls = wslSupportedPlatform ? (
     <SearchableSetting
-      title="Account Location"
-      description={`Choose whether provider accounts are inspected and added in ${getHostRuntimeLabel()} or WSL.`}
+      title={translate("auto.components.settings.AccountsPane.f54b4fbd71", "Account Location")}
+      description={translate("auto.components.settings.AccountsPane.2cd197025c", "Choose whether provider accounts are inspected and added in {{value0}} or WSL.", { value0: getHostRuntimeLabel() })}
       keywords={['account', 'location', 'windows', 'wsl', 'linux', 'provider', 'auth']}
     >
       <SettingsRow
-        label="Account location"
+        label={translate("auto.components.settings.AccountsPane.46cf7e7495", "Account location")}
         alignTop
         description={
           accountRuntime.runtime === 'wsl' && !wslAvailable && !wslCapabilitiesLoading
-            ? 'WSL is not available on this machine.'
-            : 'Choose which local environment to inspect and where new managed Claude and Codex accounts are added.'
+            ? translate("auto.components.settings.AccountsPane.0c67a2a1aa", "WSL is not available on this machine.")
+            : translate("auto.components.settings.AccountsPane.0b4591ff93", "Choose which local environment to inspect and where new managed Claude and Codex accounts are added.")
         }
         control={
           <div className="flex w-44 flex-col items-stretch gap-2">
             <SettingsSegmentedControl
-              ariaLabel="Account location"
+              ariaLabel={translate("auto.components.settings.AccountsPane.46cf7e7495", "Account location")}
               value={accountRuntime.runtime}
               onChange={(value) => updateSettings({ localAccountRuntime: value })}
               equalWidth
@@ -391,7 +392,7 @@ export function AccountsPane({
                   ? [
                       {
                         value: 'wsl',
-                        label: 'WSL',
+                        label: translate("auto.components.settings.AccountsPane.8619f9afa9", "WSL"),
                         disabled: wslCapabilitiesLoading || !wslAvailable
                       } as const
                     ]
@@ -411,11 +412,11 @@ export function AccountsPane({
               >
                 <SelectTrigger size="sm" className="w-full min-w-44">
                   <SelectValue
-                    placeholder={wslCapabilitiesLoading ? 'Loading WSL' : 'WSL default'}
+                    placeholder={wslCapabilitiesLoading ? translate("auto.components.settings.AccountsPane.ad47a33f72", "Loading WSL") : translate("auto.components.settings.AccountsPane.2358ac71d2", "WSL default")}
                   />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="__default__">WSL default</SelectItem>
+                  <SelectItem value="__default__">{translate("auto.components.settings.AccountsPane.2358ac71d2", "WSL default")}</SelectItem>
                   {wslDistros.map((distro) => (
                     <SelectItem key={distro} value={distro}>
                       {distro}
@@ -455,7 +456,7 @@ export function AccountsPane({
         })
       }
     } catch (error) {
-      toast.error('Codex account update failed.', {
+      toast.error(translate("auto.components.settings.AccountsPane.5bf8764953", "Codex account update failed."), {
         description: getCodexAccountErrorDescription(error)
       })
     } finally {
@@ -484,12 +485,12 @@ export function AccountsPane({
           nextActiveAccountId !== null &&
           action === `reauth:${nextActiveAccountId}`)
       if (shouldPromptRestart) {
-        toast.info('Claude account updated.', {
-          description: `${getClaudeAccountLabel(claudeAccounts, previousActiveAccountId)} -> ${getClaudeAccountLabel(next, nextActiveAccountId)}. Restart live Claude terminals before continuing old sessions.`
+        toast.info(translate("auto.components.settings.AccountsPane.f921d32606", "Claude account updated."), {
+          description: translate("auto.components.settings.AccountsPane.b15ce90870", "{{value0}} -> {{value1}}. Restart live Claude terminals before continuing old sessions.", { value0: getClaudeAccountLabel(claudeAccounts, previousActiveAccountId), value1: getClaudeAccountLabel(next, nextActiveAccountId) })
         })
       }
     } catch (error) {
-      toast.error('Claude account update failed.', {
+      toast.error(translate("auto.components.settings.AccountsPane.2743cdc0af", "Claude account update failed."), {
         description: getClaudeAccountErrorDescription(error)
       })
     } finally {
@@ -508,26 +509,22 @@ export function AccountsPane({
         <div className="space-y-1">
           <h3 className="flex items-center gap-2 text-sm font-semibold">
             <ClaudeIcon size={16} />
-            Claude
-          </h3>
+            {translate("auto.components.settings.AccountsPane.26ef4b55be", "Claude")}</h3>
           <p className="text-xs text-muted-foreground">
-            Optional. Orca can use your normal Claude login; add accounts only if you want quick
-            switching without moving chat sessions.
-          </p>
+            {translate("auto.components.settings.AccountsPane.72b36ea174", "Optional. Orca can use your normal Claude login; add accounts only if you want quick switching without moving chat sessions.")}</p>
         </div>
 
         <SearchableSetting
-          title="Claude Accounts"
-          description="Optional account switcher for the shared Claude auth files."
+          title={translate("auto.components.settings.AccountsPane.8bbfd74556", "Claude Accounts")}
+          description={translate("auto.components.settings.AccountsPane.79e484c3b2", "Optional account switcher for the shared Claude auth files.")}
           keywords={['claude', 'account', 'rate limit', 'status bar', 'quota']}
           className="space-y-3 py-2"
         >
           <div className="flex items-center justify-between gap-3">
             <div className="space-y-0.5">
-              <Label>Accounts</Label>
+              <Label>{translate("auto.components.settings.AccountsPane.94d351af4a", "Accounts")}</Label>
               <p className="text-xs text-muted-foreground">
-                Showing {accountRuntime.label} accounts. New accounts are added there.
-              </p>
+                {translate("auto.components.settings.AccountsPane.c0a52abfc5", "Showing")}{accountRuntime.label} {translate("auto.components.settings.AccountsPane.5568bb6d5c", "accounts. New accounts are added there.")}</p>
             </div>
             <Button
               variant="outline"
@@ -550,8 +547,7 @@ export function AccountsPane({
               ) : (
                 <Plus className="size-3" />
               )}
-              Add Account
-            </Button>
+              {translate("auto.components.settings.AccountsPane.b0e948a4f9", "Add Account")}</Button>
           </div>
 
           <div className="space-y-2">
@@ -575,26 +571,22 @@ export function AccountsPane({
             >
               <div className="flex min-w-0 flex-1 flex-col gap-0.5">
                 <div className="flex min-w-0 items-center gap-2">
-                  <span className="truncate text-sm font-medium">System default</span>
+                  <span className="truncate text-sm font-medium">{translate("auto.components.settings.AccountsPane.f2a265f8c7", "System default")}</span>
                   {activeClaudeAccountId === null ? (
                     <Badge
                       variant="outline"
                       className="h-4 shrink-0 rounded px-1.5 text-[10px] font-medium leading-none text-foreground/80"
                     >
-                      Active
-                    </Badge>
+                      {translate("auto.components.settings.AccountsPane.e74831fb6b", "Active")}</Badge>
                   ) : null}
                 </div>
                 <span className="truncate text-[11px] text-muted-foreground">
-                  Use your current {accountRuntime.label} Claude login.
-                </span>
+                  {translate("auto.components.settings.AccountsPane.fcc4093fc1", "Use your current")}{accountRuntime.label} {translate("auto.components.settings.AccountsPane.3455cf43fa", "Claude login.")}</span>
               </div>
             </button>
             {visibleClaudeAccounts.length === 0 ? (
               <div className="rounded-md border border-dashed border-border/70 px-3 py-4 text-xs text-muted-foreground">
-                No managed Claude accounts for {accountRuntime.label}. Orca will use that
-                environment&apos;s system default Claude login until you add one here.
-              </div>
+                {translate("auto.components.settings.AccountsPane.3fe7862418", "No managed Claude accounts for")}{accountRuntime.label}{translate("auto.components.settings.AccountsPane.dea08560b4", ". Orca will use that environment's system default Claude login until you add one here.")}</div>
             ) : (
               visibleClaudeAccounts.map((account) => {
                 const isActive = activeClaudeAccountId === account.id
@@ -638,8 +630,7 @@ export function AccountsPane({
                               variant="outline"
                               className="h-4 shrink-0 rounded px-1.5 text-[10px] font-medium leading-none text-foreground/80"
                             >
-                              Active
-                            </Badge>
+                              {translate("auto.components.settings.AccountsPane.e74831fb6b", "Active")}</Badge>
                           ) : null}
                         </div>
                         <span className="truncate text-[11px] text-muted-foreground">
@@ -666,8 +657,7 @@ export function AccountsPane({
                           ) : (
                             <RefreshCw className="size-3" />
                           )}
-                          Re-authenticate
-                        </Button>
+                          {translate("auto.components.settings.AccountsPane.8a0f870153", "Re-authenticate")}</Button>
                         <Button
                           variant="ghost"
                           size="xs"
@@ -679,8 +669,7 @@ export function AccountsPane({
                           className="h-6 px-2 text-muted-foreground hover:text-destructive"
                         >
                           <Trash2 className="size-3" />
-                          Remove
-                        </Button>
+                          {translate("auto.components.settings.AccountsPane.db209ee572", "Remove")}</Button>
                       </div>
                     </div>
                   </div>
@@ -696,21 +685,16 @@ export function AccountsPane({
         <div className="space-y-1">
           <h3 className="flex items-center gap-2 text-sm font-semibold">
             <OpenAIIcon size={16} />
-            Codex
-          </h3>
+            {translate("auto.components.settings.AccountsPane.ef91cfa06b", "Codex")}</h3>
           <p className="text-xs text-muted-foreground">
-            Optional. Orca can use your normal Codex login; add accounts only if you want quick
-            switching in Orca.
-          </p>
+            {translate("auto.components.settings.AccountsPane.cedfab35ab", "Optional. Orca can use your normal Codex login; add accounts only if you want quick switching in Orca.")}</p>
           <p className="text-xs text-muted-foreground">
-            Each account keeps its own local sign-in context in Orca. Account auth stays on this
-            device.
-          </p>
+            {translate("auto.components.settings.AccountsPane.340d6f7a85", "Each account keeps its own local sign-in context in Orca. Account auth stays on this device.")}</p>
         </div>
 
         <SearchableSetting
-          title="Codex Accounts"
-          description="Manage which Codex account Orca uses for live rate limit fetching."
+          title={translate("auto.components.settings.AccountsPane.3180536c7a", "Codex Accounts")}
+          description={translate("auto.components.settings.AccountsPane.d0d53b7eb0", "Manage which Codex account Orca uses for live rate limit fetching.")}
           // Why: this single SearchableSetting backs the whole Codex section,
           // including the "Active Codex Account" sub-control (account picker
           // below). Roll every Codex search entry's title/description/keywords
@@ -739,10 +723,9 @@ export function AccountsPane({
           ) : null}
           <div className="flex items-center justify-between gap-3">
             <div className="space-y-0.5">
-              <Label>Accounts</Label>
+              <Label>{translate("auto.components.settings.AccountsPane.94d351af4a", "Accounts")}</Label>
               <p className="text-xs text-muted-foreground">
-                Showing {accountRuntime.label} accounts. New accounts are added there.
-              </p>
+                {translate("auto.components.settings.AccountsPane.c0a52abfc5", "Showing")}{accountRuntime.label} {translate("auto.components.settings.AccountsPane.5568bb6d5c", "accounts. New accounts are added there.")}</p>
             </div>
             <Button
               variant="outline"
@@ -765,8 +748,7 @@ export function AccountsPane({
               ) : (
                 <Plus className="size-3" />
               )}
-              Add Account
-            </Button>
+              {translate("auto.components.settings.AccountsPane.b0e948a4f9", "Add Account")}</Button>
           </div>
 
           <div className="space-y-2">
@@ -792,22 +774,20 @@ export function AccountsPane({
             >
               <div className="flex min-w-0 flex-1 flex-col gap-0.5">
                 <div className="flex min-w-0 items-center gap-2">
-                  <span className="truncate text-sm font-medium">System default</span>
+                  <span className="truncate text-sm font-medium">{translate("auto.components.settings.AccountsPane.f2a265f8c7", "System default")}</span>
                   {activeCodexAccountId === null ? (
                     <Badge
                       variant="outline"
                       className="h-4 shrink-0 rounded px-1.5 text-[10px] font-medium leading-none text-foreground/80"
                     >
-                      Active
-                    </Badge>
+                      {translate("auto.components.settings.AccountsPane.e74831fb6b", "Active")}</Badge>
                   ) : null}
                   {systemCodexNeedsReauthentication ? (
                     <Badge
                       variant="destructive"
                       className="h-4 shrink-0 rounded px-1.5 text-[10px] font-medium leading-none"
                     >
-                      Needs sign-in
-                    </Badge>
+                      {translate("auto.components.settings.AccountsPane.93c47b333a", "Needs sign-in")}</Badge>
                   ) : null}
                 </div>
                 <span
@@ -823,9 +803,7 @@ export function AccountsPane({
             </button>
             {visibleCodexAccounts.length === 0 ? (
               <div className="rounded-md border border-dashed border-border/70 px-3 py-4 text-xs text-muted-foreground">
-                No managed Codex accounts for {accountRuntime.label}. Orca will use that
-                environment&apos;s system default Codex login until you add one here.
-              </div>
+                {translate("auto.components.settings.AccountsPane.b4c9450319", "No managed Codex accounts for")}{accountRuntime.label}{translate("auto.components.settings.AccountsPane.d46f735a85", ". Orca will use that environment's system default Codex login until you add one here.")}</div>
             ) : (
               visibleCodexAccounts.map((account) => {
                 const isActive = activeCodexAccountId === account.id
@@ -880,16 +858,14 @@ export function AccountsPane({
                               variant="outline"
                               className="h-4 shrink-0 rounded px-1.5 text-[10px] font-medium leading-none text-foreground/80"
                             >
-                              Active
-                            </Badge>
+                              {translate("auto.components.settings.AccountsPane.e74831fb6b", "Active")}</Badge>
                           ) : null}
                           {needsReauthentication ? (
                             <Badge
                               variant="destructive"
                               className="h-4 shrink-0 rounded px-1.5 text-[10px] font-medium leading-none"
                             >
-                              Needs re-auth
-                            </Badge>
+                              {translate("auto.components.settings.AccountsPane.589eba1eee", "Needs re-auth")}</Badge>
                           ) : null}
                         </div>
                         <div
@@ -899,8 +875,7 @@ export function AccountsPane({
                         >
                           {needsReauthentication ? (
                             <span className="truncate">
-                              Codex reported this sign-in is out of date
-                            </span>
+                              {translate("auto.components.settings.AccountsPane.3d245ef7d9", "Codex reported this sign-in is out of date")}</span>
                           ) : account.workspaceLabel ? (
                             <span className="truncate">{account.workspaceLabel}</span>
                           ) : null}
@@ -934,8 +909,7 @@ export function AccountsPane({
                           ) : (
                             <RefreshCw className="size-3" />
                           )}
-                          Re-authenticate
-                        </Button>
+                          {translate("auto.components.settings.AccountsPane.8a0f870153", "Re-authenticate")}</Button>
                         <Button
                           variant="ghost"
                           size="xs"
@@ -951,8 +925,7 @@ export function AccountsPane({
                           ) : (
                             <Trash2 className="size-3" />
                           )}
-                          Remove
-                        </Button>
+                          {translate("auto.components.settings.AccountsPane.db209ee572", "Remove")}</Button>
                       </div>
                     </div>
                   </div>
@@ -968,14 +941,13 @@ export function AccountsPane({
         <div className="space-y-1">
           <h3 className="flex items-center gap-2 text-sm font-semibold">
             <GeminiIcon size={16} />
-            Gemini
-          </h3>
-          <p className="text-xs text-muted-foreground">Configure Gemini provider settings.</p>
+            {translate("auto.components.settings.AccountsPane.0c64dc2a64", "Gemini")}</h3>
+          <p className="text-xs text-muted-foreground">{translate("auto.components.settings.AccountsPane.973741a871", "Configure Gemini provider settings.")}</p>
         </div>
 
         <SearchableSetting
-          title="Use Gemini CLI credentials"
-          description="Extracts OAuth credentials from your local Gemini CLI installation to authenticate with Google. This uses credentials issued to the Gemini CLI app, not Orca. May break if Google updates the CLI. Use at your own risk."
+          title={translate("auto.components.settings.AccountsPane.0c7f915b01", "Use Gemini CLI credentials")}
+          description={translate("auto.components.settings.AccountsPane.d676c41fc6", "Extracts OAuth credentials from your local Gemini CLI installation to authenticate with Google. This uses credentials issued to the Gemini CLI app, not Orca. May break if Google updates the CLI. Use at your own risk.")}
           keywords={[
             'gemini',
             'cli',
@@ -988,12 +960,9 @@ export function AccountsPane({
           className="flex items-center justify-between gap-4 py-2"
         >
           <div className="space-y-0.5">
-            <Label>Use Gemini CLI credentials (experimental)</Label>
+            <Label>{translate("auto.components.settings.AccountsPane.96f3649526", "Use Gemini CLI credentials (experimental)")}</Label>
             <p className="text-xs text-muted-foreground">
-              Extracts OAuth credentials from your local Gemini CLI installation to authenticate
-              with Google for {accountRuntime.label}. This uses credentials issued to the Gemini CLI
-              app, not Orca. May break if Google updates the CLI. Use at your own risk.
-            </p>
+              {translate("auto.components.settings.AccountsPane.c2aee76420", "Extracts OAuth credentials from your local Gemini CLI installation to authenticate with Google for")}{accountRuntime.label}{translate("auto.components.settings.AccountsPane.d708749337", ". This uses credentials issued to the Gemini CLI app, not Orca. May break if Google updates the CLI. Use at your own risk.")}</p>
           </div>
           <button
             role="switch"
@@ -1022,18 +991,17 @@ export function AccountsPane({
         <div className="space-y-1">
           <h3 className="flex items-center gap-2 text-sm font-semibold">
             <OpenCodeGoIcon size={16} />
-            OpenCode Go
-          </h3>
-          <p className="text-xs text-muted-foreground">Configure OpenCode Go provider settings.</p>
+            {translate("auto.components.settings.AccountsPane.4ac10b4d08", "OpenCode Go")}</h3>
+          <p className="text-xs text-muted-foreground">{translate("auto.components.settings.AccountsPane.ea631977b5", "Configure OpenCode Go provider settings.")}</p>
         </div>
 
         <SearchableSetting
-          title="OpenCode Go Session Cookie"
-          description="Paste your opencode.ai session cookie for rate limit fetching."
+          title={translate("auto.components.settings.AccountsPane.36223200ac", "OpenCode Go Session Cookie")}
+          description={translate("auto.components.settings.AccountsPane.b2b1aa936d", "Paste your opencode.ai session cookie for rate limit fetching.")}
           keywords={['opencode', 'cookie', 'session', 'rate limit', 'status bar']}
           className="space-y-2"
         >
-          <Label>OpenCode Go session cookie</Label>
+          <Label>{translate("auto.components.settings.AccountsPane.67e3c33670", "OpenCode Go session cookie")}</Label>
           <div className="flex gap-2">
             <Input
               type="password"
@@ -1042,7 +1010,7 @@ export function AccountsPane({
                 recordOpenCodeSettingEdit('cookie')
                 updateSettings({ opencodeSessionCookie: e.target.value })
               }}
-              placeholder="Fe26.2**… token or auth=Fe26.2**… header"
+              placeholder={translate("auto.components.settings.AccountsPane.a7e38affcd", "Fe26.2**… token or auth=Fe26.2**… header")}
               spellCheck={false}
               className="flex-1 text-xs"
             />
@@ -1056,25 +1024,20 @@ export function AccountsPane({
                 }}
                 className="h-7 shrink-0 text-xs text-muted-foreground hover:text-foreground"
               >
-                Clear
-              </Button>
+                {translate("auto.components.settings.AccountsPane.b398b834c9", "Clear")}</Button>
             )}
           </div>
           <p className="text-xs text-muted-foreground">
-            Paste either the raw token value (e.g. <code className="text-xs">Fe26.2**…</code>) or
-            the full cookie header (e.g. <code className="text-xs">auth=Fe26.2**…</code>). Find it
-            in your browser&apos;s DevTools → Network → any opencode.ai request → Cookie header.
-            OpenCode Go auth is web-based and shared across Windows and WSL terminals.
-          </p>
+            {translate("auto.components.settings.AccountsPane.0023cc336e", "Paste either the raw token value (e.g.")}<code className="text-xs">{translate("auto.components.settings.AccountsPane.922b51e02d", "Fe26.2**…")}</code>{translate("auto.components.settings.AccountsPane.338820326a", ") or the full cookie header (e.g.")}<code className="text-xs">{translate("auto.components.settings.AccountsPane.8951c5309f", "auth=Fe26.2**…")}</code>{translate("auto.components.settings.AccountsPane.7ce0e1907c", "). Find it in your browser's DevTools → Network → any opencode.ai request → Cookie header. OpenCode Go auth is web-based and shared across Windows and WSL terminals.")}</p>
         </SearchableSetting>
 
         <SearchableSetting
-          title="OpenCode Go Workspace ID"
-          description="Optional workspace ID override if the automatic lookup fails."
+          title={translate("auto.components.settings.AccountsPane.02cb127710", "OpenCode Go Workspace ID")}
+          description={translate("auto.components.settings.AccountsPane.d70a5287a4", "Optional workspace ID override if the automatic lookup fails.")}
           keywords={['opencode', 'workspace', 'id', 'wrk', 'rate limit', 'status bar']}
           className="space-y-2"
         >
-          <Label>Workspace ID override</Label>
+          <Label>{translate("auto.components.settings.AccountsPane.dbdb0b0bd8", "Workspace ID override")}</Label>
           <div className="flex gap-2">
             <Input
               type="text"
@@ -1083,7 +1046,7 @@ export function AccountsPane({
                 recordOpenCodeSettingEdit('workspaceId')
                 updateSettings({ opencodeWorkspaceId: e.target.value })
               }}
-              placeholder="wrk_…  (leave blank for automatic lookup)"
+              placeholder={translate("auto.components.settings.AccountsPane.a122332371", "wrk_… (leave blank for automatic lookup)")}
               spellCheck={false}
               className="flex-1 text-xs"
             />
@@ -1097,13 +1060,12 @@ export function AccountsPane({
                 }}
                 className="h-7 shrink-0 text-xs text-muted-foreground hover:text-foreground"
               >
-                Clear
-              </Button>
+                {translate("auto.components.settings.AccountsPane.b398b834c9", "Clear")}</Button>
             )}
           </div>
           <p className="text-xs text-muted-foreground">
-            Find this in the URL after logging into opencode.ai (e.g.{' '}
-            <code className="text-xs">opencode.ai/workspace/wrk_…/go</code>).
+            {translate("auto.components.settings.AccountsPane.51c9104e13", "Find this in the URL after logging into opencode.ai (e.g.")}{' '}
+            <code className="text-xs">{translate("auto.components.settings.AccountsPane.ae3b21eb6c", "opencode.ai/workspace/wrk_…/go")}</code>).
           </p>
         </SearchableSetting>
       </section>
@@ -1118,16 +1080,13 @@ export function AccountsPane({
       >
         <DialogContent showCloseButton={false}>
           <DialogHeader>
-            <DialogTitle>Remove Codex Account?</DialogTitle>
+            <DialogTitle>{translate("auto.components.settings.AccountsPane.0d47394635", "Remove Codex Account?")}</DialogTitle>
             <DialogDescription>
-              Orca will delete the managed Codex home for this saved account. If it is currently
-              active, Orca falls back to the system default Codex login.
-            </DialogDescription>
+              {translate("auto.components.settings.AccountsPane.99c8f9e498", "Orca will delete the managed Codex home for this saved account. If it is currently active, Orca falls back to the system default Codex login.")}</DialogDescription>
           </DialogHeader>
           <DialogFooter>
             <Button variant="outline" onClick={() => setRemoveAccountId(null)}>
-              Cancel
-            </Button>
+              {translate("auto.components.settings.AccountsPane.dbb9626ed1", "Cancel")}</Button>
             <Button
               variant="destructive"
               onClick={() => {
@@ -1141,8 +1100,7 @@ export function AccountsPane({
                 )
               }}
             >
-              Remove Account
-            </Button>
+              {translate("auto.components.settings.AccountsPane.c2d2751587", "Remove Account")}</Button>
           </DialogFooter>
         </DialogContent>
       </Dialog>
@@ -1152,16 +1110,13 @@ export function AccountsPane({
       >
         <DialogContent showCloseButton={false}>
           <DialogHeader>
-            <DialogTitle>Remove Claude Account?</DialogTitle>
+            <DialogTitle>{translate("auto.components.settings.AccountsPane.63843e37e2", "Remove Claude Account?")}</DialogTitle>
             <DialogDescription>
-              Orca will delete the managed Claude auth for this saved account. If it is currently
-              active, Orca falls back to the system default Claude login.
-            </DialogDescription>
+              {translate("auto.components.settings.AccountsPane.854ebbcc45", "Orca will delete the managed Claude auth for this saved account. If it is currently active, Orca falls back to the system default Claude login.")}</DialogDescription>
           </DialogHeader>
           <DialogFooter>
             <Button variant="outline" onClick={() => setRemoveClaudeAccountId(null)}>
-              Cancel
-            </Button>
+              {translate("auto.components.settings.AccountsPane.dbb9626ed1", "Cancel")}</Button>
             <Button
               variant="destructive"
               onClick={() => {
@@ -1175,8 +1130,7 @@ export function AccountsPane({
                 )
               }}
             >
-              Remove Account
-            </Button>
+              {translate("auto.components.settings.AccountsPane.c2d2751587", "Remove Account")}</Button>
           </DialogFooter>
         </DialogContent>
       </Dialog>

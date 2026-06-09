@@ -25,6 +25,7 @@ import {
   RUNTIME_ENVIRONMENTS_SEARCH_ENTRY,
   WEB_RUNTIME_ENVIRONMENTS_SEARCH_ENTRY
 } from './runtime-environments-search'
+import { translate } from '@/i18n/i18n'
 
 const LOCAL_RUNTIME_VALUE = '__local__'
 const NO_RUNTIME_VALUE = '__none__'
@@ -76,7 +77,7 @@ export function RuntimeEnvironmentsPane({
       }
     } catch (error) {
       if (mountedRef.current) {
-        toast.error(error instanceof Error ? error.message : 'Failed to load runtime environments.')
+        toast.error(error instanceof Error ? error.message : translate("auto.components.settings.RuntimeEnvironmentsPane.e6410d72c3", "Failed to load runtime environments."))
       }
     } finally {
       if (mountedRef.current) {
@@ -102,14 +103,14 @@ export function RuntimeEnvironmentsPane({
     const trimmedName = name.trim()
     const trimmedPairingCode = pairingCode.trim()
     if (!trimmedName || !trimmedPairingCode) {
-      toast.error('Name and pairing code are required.')
+      toast.error(translate("auto.components.settings.RuntimeEnvironmentsPane.0c55a47480", "Name and pairing code are required."))
       return
     }
     const duplicate = environments.find(
       (environment) => environment.name.trim().toLowerCase() === trimmedName.toLowerCase()
     )
     if (duplicate) {
-      toast.error(`A server named "${duplicate.name}" already exists.`)
+      toast.error(translate("auto.components.settings.RuntimeEnvironmentsPane.5ef712f407", "A server named \"{{value0}}\" already exists.", { value0: duplicate.name }))
       return
     }
     setIsSaving(true)
@@ -137,11 +138,11 @@ export function RuntimeEnvironmentsPane({
           return
         }
         if (mountedRef.current) {
-          toast.success(`Connected to ${result.environment.name}.`)
+          toast.success(translate("auto.components.settings.RuntimeEnvironmentsPane.a5b58465b6", "Connected to {{value0}}.", { value0: result.environment.name }))
         }
       } else {
         if (mountedRef.current) {
-          toast.success(`Saved ${result.environment.name}. Use Active Server to switch when ready.`)
+          toast.success(translate("auto.components.settings.RuntimeEnvironmentsPane.7b5986c8df", "Saved {{value0}}. Use Active Server to switch when ready.", { value0: result.environment.name }))
         }
       }
       if (mountedRef.current) {
@@ -149,7 +150,7 @@ export function RuntimeEnvironmentsPane({
       }
     } catch (error) {
       if (mountedRef.current) {
-        toast.error(error instanceof Error ? error.message : 'Failed to save runtime environment.')
+        toast.error(error instanceof Error ? error.message : translate("auto.components.settings.RuntimeEnvironmentsPane.6cb6eae14f", "Failed to save runtime environment."))
       }
     } finally {
       if (mountedRef.current) {
@@ -179,7 +180,7 @@ export function RuntimeEnvironmentsPane({
         if (!allowLocalRuntime) {
           await loadEnvironments()
           if (mountedRef.current) {
-            toast.success(`Removed ${environment.name}.`)
+            toast.success(translate("auto.components.settings.RuntimeEnvironmentsPane.b5b5114cb0", "Removed {{value0}}.", { value0: environment.name }))
           }
           return true
         }
@@ -187,7 +188,7 @@ export function RuntimeEnvironmentsPane({
       await window.api.runtimeEnvironments.remove({ selector: environment.id })
       await loadEnvironments()
       if (mountedRef.current) {
-        toast.success(`Removed ${environment.name}.`)
+        toast.success(translate("auto.components.settings.RuntimeEnvironmentsPane.b5b5114cb0", "Removed {{value0}}.", { value0: environment.name }))
       }
       return true
     } catch (error) {
@@ -217,7 +218,7 @@ export function RuntimeEnvironmentsPane({
       )
       if (switched) {
         if (mountedRef.current) {
-          toast.success(`Switched to ${getEnvironmentLabel(value)}.`)
+          toast.success(translate("auto.components.settings.RuntimeEnvironmentsPane.99ac81fb43", "Switched to {{value0}}.", { value0: getEnvironmentLabel(value) }))
         }
         return true
       }
@@ -258,7 +259,7 @@ export function RuntimeEnvironmentsPane({
     >
       <div className="space-y-2">
         <div className="space-y-1">
-          <Label id="runtime-active-server-label">Active Server</Label>
+          <Label id="runtime-active-server-label">{translate("auto.components.settings.RuntimeEnvironmentsPane.64b6bea541", "Active Server")}</Label>
           <p className="text-xs text-muted-foreground">
             {allowLocalRuntime
               ? "Local keeps today's desktop behavior. Saved servers route supported client calls through the remote runtime."
@@ -285,11 +286,10 @@ export function RuntimeEnvironmentsPane({
             </SelectTrigger>
             <SelectContent>
               {allowLocalRuntime ? (
-                <SelectItem value={LOCAL_RUNTIME_VALUE}>Local desktop</SelectItem>
+                <SelectItem value={LOCAL_RUNTIME_VALUE}>{translate("auto.components.settings.RuntimeEnvironmentsPane.78692becbd", "Local desktop")}</SelectItem>
               ) : environments.length === 0 ? (
                 <SelectItem value={NO_RUNTIME_VALUE} disabled>
-                  No server connected
-                </SelectItem>
+                  {translate("auto.components.settings.RuntimeEnvironmentsPane.b07070ed3c", "No server connected")}</SelectItem>
               ) : null}
               {environments.map((environment) => (
                 <SelectItem key={environment.id} value={environment.id}>
@@ -302,8 +302,8 @@ export function RuntimeEnvironmentsPane({
             type="button"
             variant="outline"
             size="icon-sm"
-            aria-label="Refresh servers"
-            title="Refresh servers"
+            aria-label={translate("auto.components.settings.RuntimeEnvironmentsPane.6ce4664003", "Refresh servers")}
+            title={translate("auto.components.settings.RuntimeEnvironmentsPane.6ce4664003", "Refresh servers")}
             onClick={() => void loadEnvironments()}
             disabled={isLoading || isBusy}
           >
@@ -314,7 +314,7 @@ export function RuntimeEnvironmentsPane({
 
       <div className="space-y-3">
         <div className="flex items-center justify-between gap-3">
-          <div className="text-sm font-medium">Saved Servers</div>
+          <div className="text-sm font-medium">{translate("auto.components.settings.RuntimeEnvironmentsPane.1826bd0608", "Saved Servers")}</div>
           {addServerFormOpen ? null : (
             <Button
               type="button"
@@ -325,8 +325,7 @@ export function RuntimeEnvironmentsPane({
               disabled={isBusy}
             >
               <Plus />
-              Add Server
-            </Button>
+              {translate("auto.components.settings.RuntimeEnvironmentsPane.9bee6bbeeb", "Add Server")}</Button>
           )}
         </div>
 
@@ -340,30 +339,29 @@ export function RuntimeEnvironmentsPane({
           >
             <div className="grid gap-3 sm:grid-cols-[minmax(0,180px)_minmax(0,1fr)]">
               <div className="space-y-1">
-                <Label htmlFor="runtime-server-name">Server name</Label>
+                <Label htmlFor="runtime-server-name">{translate("auto.components.settings.RuntimeEnvironmentsPane.54ebacc600", "Server name")}</Label>
                 <Input
                   id="runtime-server-name"
                   value={name}
                   onChange={(event) => setName(event.target.value)}
-                  placeholder="Dev box"
+                  placeholder={translate("auto.components.settings.RuntimeEnvironmentsPane.e038625857", "Dev box")}
                   className="h-8 text-xs"
                   autoFocus
                 />
               </div>
               <div className="space-y-1">
-                <Label htmlFor="runtime-server-pairing-code">Pairing code</Label>
+                <Label htmlFor="runtime-server-pairing-code">{translate("auto.components.settings.RuntimeEnvironmentsPane.9bc9b83474", "Pairing code")}</Label>
                 <Input
                   id="runtime-server-pairing-code"
                   aria-describedby="runtime-server-pairing-code-help"
                   value={pairingCode}
                   onChange={(event) => setPairingCode(event.target.value)}
-                  placeholder="orca://pair?code=..."
+                  placeholder={translate("auto.components.settings.RuntimeEnvironmentsPane.c3d772c514", "orca://pair?code=...")}
                   className="h-8 min-w-0 font-mono text-xs"
                 />
                 <p id="runtime-server-pairing-code-help" className="text-xs text-muted-foreground">
-                  Run <span className="font-mono">orca serve --pairing-address &lt;host&gt;</span>{' '}
-                  on the server and paste the printed pairing URL.
-                </p>
+                  {translate("auto.components.settings.RuntimeEnvironmentsPane.163671f7b5", "Run")}<span className="font-mono">{translate("auto.components.settings.RuntimeEnvironmentsPane.960e901ae4", "orca serve --pairing-address <host>")}</span>{' '}
+                  {translate("auto.components.settings.RuntimeEnvironmentsPane.55fcc964cd", "on the server and paste the printed pairing URL.")}</p>
               </div>
             </div>
             <div className="flex justify-end gap-2">
@@ -374,23 +372,21 @@ export function RuntimeEnvironmentsPane({
                 onClick={closeAddServerForm}
                 disabled={isSaving}
               >
-                Cancel
-              </Button>
+                {translate("auto.components.settings.RuntimeEnvironmentsPane.af53761f31", "Cancel")}</Button>
               <Button
                 type="submit"
                 size="sm"
                 disabled={isBusy || !name.trim() || !pairingCode.trim()}
               >
                 {isSaving ? <Loader2 className="animate-spin" /> : <Plus />}
-                Add Server
-              </Button>
+                {translate("auto.components.settings.RuntimeEnvironmentsPane.9bee6bbeeb", "Add Server")}</Button>
             </div>
           </form>
         ) : null}
 
         <div className="rounded-lg border border-border/50">
           {environments.length === 0 ? (
-            <div className="px-3 py-4 text-sm text-muted-foreground">No saved servers.</div>
+            <div className="px-3 py-4 text-sm text-muted-foreground">{translate("auto.components.settings.RuntimeEnvironmentsPane.9a3758d983", "No saved servers.")}</div>
           ) : (
             <div className="divide-y divide-border/50">
               {environments.map((environment) => (
@@ -413,7 +409,7 @@ export function RuntimeEnvironmentsPane({
                       setPendingRemove(environment)
                     }}
                     disabled={isBusy}
-                    aria-label={`Remove ${environment.name}`}
+                    aria-label={translate("auto.components.settings.RuntimeEnvironmentsPane.aeb26635d2", "Remove {{value0}}", { value0: environment.name })}
                   >
                     <Trash2 />
                   </Button>
@@ -428,10 +424,9 @@ export function RuntimeEnvironmentsPane({
         <div className="overflow-hidden rounded-lg border border-border/50">
           <div className="flex flex-wrap items-center justify-between gap-3 px-3 py-2.5">
             <div className="min-w-0 space-y-0.5">
-              <div className="text-sm font-medium">Share this Orca server</div>
+              <div className="text-sm font-medium">{translate("auto.components.settings.RuntimeEnvironmentsPane.6e1280ca55", "Share this Orca server")}</div>
               <p className="text-xs text-muted-foreground">
-                Create a revocable access grant so a browser or another Orca client can connect.
-              </p>
+                {translate("auto.components.settings.RuntimeEnvironmentsPane.84b9b2be05", "Create a revocable access grant so a browser or another Orca client can connect.")}</p>
             </div>
             <Button
               type="button"
@@ -465,15 +460,13 @@ export function RuntimeEnvironmentsPane({
       >
         <DialogContent className="max-w-sm sm:max-w-sm" showCloseButton={false}>
           <DialogHeader>
-            <DialogTitle className="text-sm">Switch Server</DialogTitle>
+            <DialogTitle className="text-sm">{translate("auto.components.settings.RuntimeEnvironmentsPane.d570c35a99", "Switch Server")}</DialogTitle>
             <DialogDescription>
-              Orca will close remote terminals and browser tabs from the current server before
-              loading projects from the next server.
-            </DialogDescription>
+              {translate("auto.components.settings.RuntimeEnvironmentsPane.b2290ed203", "Orca will close remote terminals and browser tabs from the current server before loading projects from the next server.")}</DialogDescription>
           </DialogHeader>
           {pendingSwitchValue ? (
             <div className="rounded-md border border-border/70 bg-muted/35 px-3 py-2 text-xs">
-              <div className="text-muted-foreground">Switch to</div>
+              <div className="text-muted-foreground">{translate("auto.components.settings.RuntimeEnvironmentsPane.05e0fc3ebf", "Switch to")}</div>
               <div className="mt-0.5 truncate font-medium">
                 {getEnvironmentLabel(pendingSwitchValue)}
               </div>
@@ -489,8 +482,7 @@ export function RuntimeEnvironmentsPane({
               }}
               disabled={switchingValue !== null}
             >
-              Cancel
-            </Button>
+              {translate("auto.components.settings.RuntimeEnvironmentsPane.af53761f31", "Cancel")}</Button>
             <Button
               onClick={() => {
                 const value = pendingSwitchValue
@@ -506,8 +498,7 @@ export function RuntimeEnvironmentsPane({
               disabled={switchingValue !== null}
             >
               {switchingValue !== null ? <Loader2 className="animate-spin" /> : null}
-              Switch
-            </Button>
+              {translate("auto.components.settings.RuntimeEnvironmentsPane.d2e00809e4", "Switch")}</Button>
           </DialogFooter>
         </DialogContent>
       </Dialog>
@@ -523,7 +514,7 @@ export function RuntimeEnvironmentsPane({
       >
         <DialogContent className="max-w-sm sm:max-w-sm" showCloseButton={false}>
           <DialogHeader>
-            <DialogTitle className="text-sm">Remove Server</DialogTitle>
+            <DialogTitle className="text-sm">{translate("auto.components.settings.RuntimeEnvironmentsPane.bb90dd6487", "Remove Server")}</DialogTitle>
             <DialogDescription>
               {removingActiveServer
                 ? allowLocalRuntime
@@ -550,8 +541,7 @@ export function RuntimeEnvironmentsPane({
               }}
               disabled={removingId !== null}
             >
-              Cancel
-            </Button>
+              {translate("auto.components.settings.RuntimeEnvironmentsPane.af53761f31", "Cancel")}</Button>
             <Button
               variant="destructive"
               onClick={() => {
@@ -568,8 +558,7 @@ export function RuntimeEnvironmentsPane({
               disabled={removingId !== null}
             >
               {removingId !== null ? <Loader2 className="animate-spin" /> : <Trash2 />}
-              Remove
-            </Button>
+              {translate("auto.components.settings.RuntimeEnvironmentsPane.aeb26635d2", "Remove")}</Button>
           </DialogFooter>
         </DialogContent>
       </Dialog>

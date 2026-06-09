@@ -49,6 +49,7 @@ import { settingsForRuntimeOwner } from '@/runtime/runtime-rpc-client'
 import { findWorktreeById, getRepoIdFromWorktreeId } from './worktree-helpers'
 import { createUntitledMarkdownFileWithTemplateSelection } from '@/lib/create-untitled-markdown'
 import { extractIpcErrorMessage } from '@/lib/ipc-error'
+import { translate } from '@/i18n/i18n'
 
 export type { RightSidebarTab } from '../../../../shared/types'
 
@@ -3987,7 +3988,7 @@ function toOpenConflictMetadata(entry: GitStatusEntry): OpenConflictMetadata | u
         conflictKind: entry.conflictKind,
         conflictStatus: entry.conflictStatus,
         conflictStatusSource: entry.conflictStatusSource,
-        message: 'This file is in a conflict state, but no working-tree file is available to edit.',
+        message: translate("auto.store.slices.editor.dcb521ed29", "This file is in a conflict state, but no working-tree file is available to edit."),
         guidance: 'Resolve the conflict in Git or restore one side before reopening it.'
       }
 }
