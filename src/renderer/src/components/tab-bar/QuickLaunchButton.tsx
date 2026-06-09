@@ -2,7 +2,7 @@ import React, { useCallback } from 'react'
 import { Settings as SettingsIcon } from 'lucide-react'
 import { toast } from 'sonner'
 import { DropdownMenuItem } from '@/components/ui/dropdown-menu'
-import { AGENT_CATALOG, AgentIcon } from '@/lib/agent-catalog'
+import { getAgentCatalog, AgentIcon } from '@/lib/agent-catalog'
 import { useAppStore } from '@/store'
 import { useDetectedAgents } from '@/hooks/useDetectedAgents'
 import { launchAgentInNewTab } from '@/lib/launch-agent-in-new-tab'
@@ -33,16 +33,16 @@ export type QuickLaunchAgentMenuItemsProps = {
 }
 
 function getCatalogEntry(agent: TuiAgent): { id: TuiAgent; label: string } | null {
-  return AGENT_CATALOG.find((a) => a.id === agent) ?? null
+  return getAgentCatalog().find((a) => a.id === agent) ?? null
 }
 
 function orderAgents(
   defaultAgent: TuiAgent | 'blank' | null | undefined,
   detected: TuiAgent[]
 ): TuiAgent[] {
-  const inCatalogOrder = AGENT_CATALOG.filter((entry) => detected.includes(entry.id)).map(
-    (entry) => entry.id
-  )
+  const inCatalogOrder = getAgentCatalog()
+    .filter((entry) => detected.includes(entry.id))
+    .map((entry) => entry.id)
   if (!defaultAgent || defaultAgent === 'blank' || !inCatalogOrder.includes(defaultAgent)) {
     return inCatalogOrder
   }
@@ -136,7 +136,13 @@ function QuickLaunchAgentMenuItemsInner({
         ...(onPromptDelivered !== undefined ? { onPromptDelivered } : {})
       })
       if (!result) {
-        toast.error(translate("auto.components.tab.bar.QuickLaunchButton.465e432ef1", "Could not build launch command for {{value0}}.", { value0: label }))
+        toast.error(
+          translate(
+            'auto.components.tab.bar.QuickLaunchButton.465e432ef1',
+            'Could not build launch command for {{value0}}.',
+            { value0: label }
+          )
+        )
         return
       }
       if (!result.tabId) {
@@ -180,7 +186,12 @@ function QuickLaunchAgentMenuItemsInner({
           disabled
           className="gap-2 rounded-[7px] px-2 py-1.5 text-[12px] leading-5 text-muted-foreground"
         >
-          {detectedIds && detectedIds.length > 0 ? translate("auto.components.tab.bar.QuickLaunchButton.8dea9b5cdf", "No enabled agents") : translate("auto.components.tab.bar.QuickLaunchButton.e518f544b1", "No agents detected")}
+          {detectedIds && detectedIds.length > 0
+            ? translate('auto.components.tab.bar.QuickLaunchButton.8dea9b5cdf', 'No enabled agents')
+            : translate(
+                'auto.components.tab.bar.QuickLaunchButton.e518f544b1',
+                'No agents detected'
+              )}
         </DropdownMenuItem>
       ) : null}
       {agents.map((agent) => {
@@ -191,7 +202,11 @@ function QuickLaunchAgentMenuItemsInner({
             key={agent}
             onSelect={() => runLaunch(agent)}
             className="gap-2 rounded-[7px] px-2 py-1.5 text-[12px] leading-5 font-medium"
-            title={translate("auto.components.tab.bar.QuickLaunchButton.ec2adf093e", "Launch {{value0}} in a new terminal", { value0: label })}
+            title={translate(
+              'auto.components.tab.bar.QuickLaunchButton.ec2adf093e',
+              'Launch {{value0}} in a new terminal',
+              { value0: label }
+            )}
           >
             <AgentIcon agent={agent} size={14} />
             {label}
@@ -203,7 +218,8 @@ function QuickLaunchAgentMenuItemsInner({
         className="gap-2 rounded-[7px] px-2 py-1.5 text-[12px] leading-5 font-medium text-muted-foreground"
       >
         <SettingsIcon className="size-4" />
-        {translate("auto.components.tab.bar.QuickLaunchButton.348a04c1ad", "Agent settings…")}</DropdownMenuItem>
+        {translate('auto.components.tab.bar.QuickLaunchButton.348a04c1ad', 'Agent settings…')}
+      </DropdownMenuItem>
     </>
   )
 }

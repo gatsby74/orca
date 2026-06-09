@@ -14,8 +14,46 @@
         "description": "Choose the language used by the Orca interface.",
         "system": "System",
         "english": "English"
+      },
+      "statusBar": {
+        "claudeToggleDescription": "Show Claude token and cost usage for the active workspace.",
+        "codexToggleDescription": "Show Codex token and cost usage for the active workspace.",
+        "geminiToggleDescription": "Show Gemini token and cost usage for the active workspace.",
+        "opencodeGoToggleDescription": "Show OpenCode Go token and cost usage for the active workspace.",
+        "kimiToggleDescription": "Show Kimi subscription usage for the active workspace.",
+        "sshToggleDescription": "Show the active SSH connection. Only visible once an SSH target is configured.",
+        "resourceUsageToggleDescription": "Show the Resource Manager. Click it for CPU, memory, sessions, daemon controls, and workspace disk scans.",
+        "portsToggleDescription": "Show live workspace ports. Click it for workspace-scoped ports and external listeners."
       }
     }
+  },
+  "menu": {
+    "checkForUpdates": "Check for Updates...",
+    "settings": "Settings",
+    "exploreOrca": "Explore Orca",
+    "gettingStarted": "Getting Started with Orca",
+    "reportCrash": "Report Crash...",
+    "exportPdf": "Export as PDF...",
+    "file": "File",
+    "exit": "Exit",
+    "edit": "Edit",
+    "appearance": "Appearance",
+    "toggleLeftSidebar": "Toggle Left Sidebar",
+    "toggleRightSidebar": "Toggle Right Sidebar",
+    "showStatusBar": "Show Status Bar",
+    "showTasksButton": "Show Tasks Button",
+    "showAutomationsButton": "Show Automations Button",
+    "showMobileButton": "Show Orca Mobile Button",
+    "showTitlebarAppName": "Show Titlebar App Name",
+    "view": "View",
+    "reload": "Reload",
+    "forceReload": "Force Reload",
+    "resetSize": "Reset Size",
+    "zoomIn": "Zoom In",
+    "zoomOut": "Zoom Out",
+    "openWorktreePalette": "Open Worktree Palette",
+    "window": "Window",
+    "help": "Help"
   },
   "worktreeJumpPalette": {
     "matchLabel": {
@@ -338,7 +376,12 @@
           "audience": {
             "64deee36a9": "Bots",
             "a7150a17bc": "Humans",
-            "27ce73211c": "All"
+            "27ce73211c": "All",
+            "empty": {
+              "bot": "No bot comments.",
+              "human": "No human comments.",
+              "all": "No comments yet."
+            }
           }
         }
       },
@@ -6980,6 +7023,22 @@
               "ebfd0b32e5": "OpenAI Transcription"
             }
           }
+        },
+        "source": {
+          "control": {
+            "action": {
+              "recipe": {
+                "options": {
+                  "commitMessage": "Generate the commit message from staged changes.",
+                  "pullRequest": "Generate the hosted review title and description.",
+                  "branchName": "Rename Orca-created branches from the initial agent task.",
+                  "fixCommitFailure": "Start an agent when a commit hook or git commit fails.",
+                  "fixChecks": "Start an agent from failed hosted-review checks.",
+                  "resolveConflicts": "Start an agent for local or hosted-review merge conflicts."
+                }
+              }
+            }
+          }
         }
       },
       "right": {
@@ -9149,7 +9208,31 @@
               "f2a1b33f8d": "Create an untitled markdown file in the active workspace.",
               "25349b66fc": "New Markdown File",
               "784812ca24": "Open a browser tab in the active workspace.",
-              "892bfa9339": "New Browser Tab"
+              "892bfa9339": "New Browser Tab",
+              "verbs": {
+                "newBrowser": "new browser",
+                "newBrowserTab": "new browser tab",
+                "openBrowser": "open browser",
+                "browserTab": "browser tab",
+                "newMarkdown": "new markdown",
+                "newMarkdownFile": "new markdown file",
+                "newMark": "new mark",
+                "newFile": "new file",
+                "markdownFile": "markdown file",
+                "newTerminal": "new terminal",
+                "newTerminalTab": "new terminal tab",
+                "newShell": "new shell",
+                "terminalTab": "terminal tab",
+                "createWorktree": "create worktree",
+                "addWorktree": "add worktree",
+                "newWorktree": "new worktree",
+                "deleteWorktree": "delete worktree",
+                "deleteCurrentWorktree": "delete current worktree",
+                "removeWorktree": "remove worktree",
+                "trashWorktree": "trash worktree",
+                "addQuickCommand": "add quick command",
+                "newQuickCommand": "new quick command"
+              }
             }
           }
         }
@@ -9557,7 +9640,27 @@
             "513401db93": "Prepare a weekly release risk summary from the current project state.",
             "39ed39280a": "Release readiness",
             "a7fbd32ddb": "Check dependencies, failing tests, and risky open changes each weekday.",
-            "b84757677d": "Weekday repo audit"
+            "b84757677d": "Weekday repo audit",
+            "repoHealth": {
+              "category": "Repo health",
+              "name": "Weekday repo audit",
+              "prompt": "Review the repository health. Check dependency updates, failing tests, lint/typecheck status, and risky open changes. Summarize findings and suggest the next action."
+            },
+            "releasePrep": {
+              "category": "Release prep",
+              "name": "Release readiness review",
+              "prompt": "Prepare a release readiness summary. Look for blockers, unmerged risky changes, missing validation, and documentation gaps. End with a concise release/no-release recommendation."
+            },
+            "recurringReview": {
+              "category": "Recurring review",
+              "name": "Daily change review",
+              "prompt": "Review recent changes in this workspace. Focus on correctness risks, UX regressions, missing tests, and follow-up tasks. Keep the report short and actionable."
+            },
+            "maintenance": {
+              "category": "Maintenance",
+              "name": "Hourly maintenance check",
+              "prompt": "Check for stuck work, stale generated files, failing validation, and anything that needs human attention. Report only actionable issues."
+            }
           }
         },
         "external": {

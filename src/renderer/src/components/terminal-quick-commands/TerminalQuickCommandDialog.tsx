@@ -28,7 +28,7 @@ import {
   SelectTrigger,
   SelectValue
 } from '@/components/ui/select'
-import { AGENT_CATALOG, AgentIcon } from '@/lib/agent-catalog'
+import { getAgentCatalog, AgentIcon } from '@/lib/agent-catalog'
 import { getScreenSubmitShortcutLabel, isScreenSubmitShortcut } from '@/lib/screen-submit-shortcut'
 import type { TuiAgent } from '../../../../shared/types'
 import { TerminalQuickCommandActionToggle } from './TerminalQuickCommandActionToggle'
@@ -79,7 +79,7 @@ export function TerminalQuickCommandDialog({
   onSave
 }: TerminalQuickCommandDialogProps): React.JSX.Element {
   const fallbackAgent: TuiAgent =
-    AGENT_CATALOG.find((entry) => supportsTerminalAgentQuickCommand(entry.id))?.id ?? 'claude'
+    getAgentCatalog().find((entry) => supportsTerminalAgentQuickCommand(entry.id))?.id ?? 'claude'
   const [draft, setDraft] = useState<TerminalQuickCommand>(command)
   const wasOpenRef = useRef(open)
   const syncedCommandRef = useRef(command)
@@ -183,10 +183,22 @@ export function TerminalQuickCommandDialog({
       <DialogContent className="max-w-md sm:max-w-md" showCloseButton={false}>
         <DialogHeader>
           <DialogTitle className="text-sm">
-            {mode === "edit" ? translate("auto.components.terminal.quick.commands.TerminalQuickCommandDialog.f9b184fc16", "Edit Quick Command") : translate("auto.components.terminal.quick.commands.TerminalQuickCommandDialog.5b3f634a55", "Add Quick Command")}
+            {mode === 'edit'
+              ? translate(
+                  'auto.components.terminal.quick.commands.TerminalQuickCommandDialog.f9b184fc16',
+                  'Edit Quick Command'
+                )
+              : translate(
+                  'auto.components.terminal.quick.commands.TerminalQuickCommandDialog.5b3f634a55',
+                  'Add Quick Command'
+                )}
           </DialogTitle>
           <DialogDescription className="text-xs">
-            {translate("auto.components.terminal.quick.commands.TerminalQuickCommandDialog.ed04233b3e", "Save terminal commands or agent prompts for quick access.")}</DialogDescription>
+            {translate(
+              'auto.components.terminal.quick.commands.TerminalQuickCommandDialog.ed04233b3e',
+              'Save terminal commands or agent prompts for quick access.'
+            )}
+          </DialogDescription>
         </DialogHeader>
 
         <div
@@ -201,7 +213,12 @@ export function TerminalQuickCommandDialog({
           <TerminalQuickCommandLabelField label={draft.label} setDraft={setDraft} />
 
           <div className="space-y-2">
-            <Label>{translate("auto.components.terminal.quick.commands.TerminalQuickCommandDialog.ec8f081919", "Action")}</Label>
+            <Label>
+              {translate(
+                'auto.components.terminal.quick.commands.TerminalQuickCommandDialog.ec8f081919',
+                'Action'
+              )}
+            </Label>
             <TerminalQuickCommandActionToggle
               selectedAction={selectedAction}
               onActionChange={setAction}
@@ -227,7 +244,12 @@ export function TerminalQuickCommandDialog({
                       : '-translate-y-1 opacity-0 delay-0'
                   )}
                 >
-                  <Label>{translate("auto.components.terminal.quick.commands.TerminalQuickCommandDialog.0adba8fa0c", "Agent")}</Label>
+                  <Label>
+                    {translate(
+                      'auto.components.terminal.quick.commands.TerminalQuickCommandDialog.0adba8fa0c',
+                      'Agent'
+                    )}
+                  </Label>
                   <Select
                     value={selectedAgent}
                     disabled={!isAgentAction}
@@ -245,7 +267,12 @@ export function TerminalQuickCommandDialog({
                     }}
                   >
                     <SelectTrigger>
-                      <SelectValue placeholder={translate("auto.components.terminal.quick.commands.TerminalQuickCommandDialog.346d409ab2", "Choose agent")} />
+                      <SelectValue
+                        placeholder={translate(
+                          'auto.components.terminal.quick.commands.TerminalQuickCommandDialog.346d409ab2',
+                          'Choose agent'
+                        )}
+                      />
                     </SelectTrigger>
                     <SelectContent
                       position="popper"
@@ -264,7 +291,11 @@ export function TerminalQuickCommandDialog({
                                 <span className="truncate">{entry.label}</span>
                                 {!supported ? (
                                   <span className="truncate text-xs text-muted-foreground">
-                                    {translate("auto.components.terminal.quick.commands.TerminalQuickCommandDialog.026cfb232a", "Does not support prompt commands")}</span>
+                                    {translate(
+                                      'auto.components.terminal.quick.commands.TerminalQuickCommandDialog.026cfb232a',
+                                      'Does not support prompt commands'
+                                    )}
+                                  </span>
                                 ) : null}
                               </span>
                             </span>
@@ -278,7 +309,17 @@ export function TerminalQuickCommandDialog({
             </div>
 
             <div className="space-y-2">
-              <Label>{isAgentAction ? translate("auto.components.terminal.quick.commands.TerminalQuickCommandDialog.dc921c17ee", "Prompt") : translate("auto.components.terminal.quick.commands.TerminalQuickCommandDialog.ca414324ee", "Command Text")}</Label>
+              <Label>
+                {isAgentAction
+                  ? translate(
+                      'auto.components.terminal.quick.commands.TerminalQuickCommandDialog.dc921c17ee',
+                      'Prompt'
+                    )
+                  : translate(
+                      'auto.components.terminal.quick.commands.TerminalQuickCommandDialog.ca414324ee',
+                      'Command Text'
+                    )}
+              </Label>
               <textarea
                 value={isAgentAction ? draft.prompt : draft.command}
                 onChange={(event) => {
@@ -299,7 +340,15 @@ export function TerminalQuickCommandDialog({
                   )
                 }}
                 placeholder={
-                  isAgentAction ? translate("auto.components.terminal.quick.commands.TerminalQuickCommandDialog.577a342c7d", "Ask the agent to investigate this workspace") : translate("auto.components.terminal.quick.commands.TerminalQuickCommandDialog.79af0c0841", "npm run dev")
+                  isAgentAction
+                    ? translate(
+                        'auto.components.terminal.quick.commands.TerminalQuickCommandDialog.577a342c7d',
+                        'Ask the agent to investigate this workspace'
+                      )
+                    : translate(
+                        'auto.components.terminal.quick.commands.TerminalQuickCommandDialog.79af0c0841',
+                        'npm run dev'
+                      )
                 }
                 rows={4}
                 className={cn(
@@ -325,8 +374,17 @@ export function TerminalQuickCommandDialog({
                       : '-translate-y-1 opacity-0 delay-0'
                   )}
                 >
-                  {translate("auto.components.terminal.quick.commands.TerminalQuickCommandDialog.e604bd40d6", "Supports skills, file paths, and built-in commands like")}{' '}
-                  <code className="rounded bg-muted px-1 font-mono text-[11px]">{translate("auto.components.terminal.quick.commands.TerminalQuickCommandDialog.97e96cc027", "/goal")}</code>.
+                  {translate(
+                    'auto.components.terminal.quick.commands.TerminalQuickCommandDialog.e604bd40d6',
+                    'Supports skills, file paths, and built-in commands like'
+                  )}{' '}
+                  <code className="rounded bg-muted px-1 font-mono text-[11px]">
+                    {translate(
+                      'auto.components.terminal.quick.commands.TerminalQuickCommandDialog.97e96cc027',
+                      '/goal'
+                    )}
+                  </code>
+                  .
                 </p>
               </div>
             </div>
@@ -340,7 +398,11 @@ export function TerminalQuickCommandDialog({
               onClick={() => setAdvancedOpen((current) => !current)}
               className="-ml-2 text-xs"
             >
-              {translate("auto.components.terminal.quick.commands.TerminalQuickCommandDialog.925b8e0f6e", "Advanced")}<ChevronDown
+              {translate(
+                'auto.components.terminal.quick.commands.TerminalQuickCommandDialog.925b8e0f6e',
+                'Advanced'
+              )}
+              <ChevronDown
                 className={cn('size-4 transition-transform', advancedOpen && 'rotate-180')}
               />
             </Button>

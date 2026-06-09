@@ -6,12 +6,16 @@ import {
   DialogHeader,
   DialogTitle
 } from '@/components/ui/dialog'
-import { AGENT_CATALOG, getAgentLabel } from '@/lib/agent-catalog'
+import { getAgentCatalog, getAgentLabel } from '@/lib/agent-catalog'
 import { focusTerminalTabSurface } from '@/lib/focus-terminal-tab-surface'
 import { launchAgentInNewTab } from '@/lib/launch-agent-in-new-tab'
 import { useAppStore } from '@/store'
 import { useRepoById } from '@/store/selectors'
-import { renderSourceControlActionCommandTemplate, type SourceControlActionRecipe, type SourceControlLaunchActionId } from '../../../../shared/source-control-ai-actions'
+import {
+  renderSourceControlActionCommandTemplate,
+  type SourceControlActionRecipe,
+  type SourceControlLaunchActionId
+} from '../../../../shared/source-control-ai-actions'
 import { isTuiAgentEnabled } from '../../../../shared/tui-agent-selection'
 import type { TuiAgent } from '../../../../shared/types'
 import type { LaunchSource } from '../../../../shared/telemetry-events'
@@ -107,9 +111,23 @@ export function SourceControlAgentActionDialog({
   })
   const [isStarting, setIsStarting] = useState(false)
   const saveTargets = useMemo(() => {
-    const targets = [{ value: 'none', label: translate("auto.components.right.sidebar.SourceControlAgentActionDialog.994cddd1f7", "Don't save") }]
+    const targets = [
+      {
+        value: 'none',
+        label: translate(
+          'auto.components.right.sidebar.SourceControlAgentActionDialog.994cddd1f7',
+          "Don't save"
+        )
+      }
+    ]
     if (repoId) {
-      targets.push({ value: 'repo', label: translate("auto.components.right.sidebar.SourceControlAgentActionDialog.808cfe0a3b", "Save for this repository only") })
+      targets.push({
+        value: 'repo',
+        label: translate(
+          'auto.components.right.sidebar.SourceControlAgentActionDialog.808cfe0a3b',
+          'Save for this repository only'
+        )
+      })
     }
     targets.push({
       value: 'global',
@@ -202,7 +220,7 @@ export function SourceControlAgentActionDialog({
   )
   const agentOptions = useMemo(
     () =>
-      AGENT_CATALOG.filter(
+      getAgentCatalog().filter(
         (entry) => enabledDetectedAgents.includes(entry.id) || entry.id === selectedAgent
       ),
     [enabledDetectedAgents, selectedAgent]
@@ -227,7 +245,13 @@ export function SourceControlAgentActionDialog({
     async (agentsOverride?: TuiAgent[]): Promise<SourceControlAgentActionDeliveryPlanState> => {
       const currentDetectedAgents = agentsOverride ?? (await refreshDetectedAgents())
       if (connectionUnavailable) {
-        return { status: 'error', error: translate("auto.components.right.sidebar.SourceControlAgentActionDialog.c075d00de1", "Unable to resolve the workspace connection.") }
+        return {
+          status: 'error',
+          error: translate(
+            'auto.components.right.sidebar.SourceControlAgentActionDialog.c075d00de1',
+            'Unable to resolve the workspace connection.'
+          )
+        }
       }
       const result = planSourceControlAgentActionLaunch({
         agent: selectedAgent,
@@ -265,7 +289,13 @@ export function SourceControlAgentActionDialog({
       return
     }
     if (connectionUnavailable) {
-      setDeliveryPlan({ status: 'error', error: translate("auto.components.right.sidebar.SourceControlAgentActionDialog.c075d00de1", "Unable to resolve the workspace connection.") })
+      setDeliveryPlan({
+        status: 'error',
+        error: translate(
+          'auto.components.right.sidebar.SourceControlAgentActionDialog.c075d00de1',
+          'Unable to resolve the workspace connection.'
+        )
+      })
       return
     }
     setIsStarting(true)
@@ -302,7 +332,12 @@ export function SourceControlAgentActionDialog({
         }
       }
       if (!launched) {
-        toast.error(translate("auto.components.right.sidebar.SourceControlAgentActionDialog.8e856842d1", "Could not start the selected agent."))
+        toast.error(
+          translate(
+            'auto.components.right.sidebar.SourceControlAgentActionDialog.8e856842d1',
+            'Could not start the selected agent.'
+          )
+        )
         return
       }
       const saveTarget =

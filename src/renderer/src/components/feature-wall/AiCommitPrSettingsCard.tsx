@@ -11,7 +11,7 @@ import {
   type CommitMessageModelCapability
 } from '../../../../shared/commit-message-agent-spec'
 import { CUSTOM_PROMPT_PLACEHOLDER } from '../../../../shared/commit-message-prompt'
-import { AgentIcon, AGENT_CATALOG } from '@/lib/agent-catalog'
+import { AgentIcon, getAgentCatalog } from '@/lib/agent-catalog'
 import { cn } from '@/lib/utils'
 import { useAppStore } from '@/store'
 import { Input } from '../ui/input'
@@ -33,7 +33,7 @@ function readCommitMessageAiSettings(settings: GlobalSettings): CommitMessageAiS
 }
 
 function agentLabel(agentId: TuiAgent, capability: CommitMessageAgentCapability): string {
-  return AGENT_CATALOG.find((a) => a.id === agentId)?.label ?? capability.label
+  return getAgentCatalog().find((a) => a.id === agentId)?.label ?? capability.label
 }
 
 function resolveSelectedModel(
@@ -123,7 +123,7 @@ export function AiCommitPrSettingsCard(): JSX.Element | null {
   const unsupportedConfiguredAgent =
     resolvedAgentId && !isCustom && !activeCapability ? resolvedAgentId : null
   const unsupportedConfiguredAgentLabel = unsupportedConfiguredAgent
-    ? (AGENT_CATALOG.find((a) => a.id === unsupportedConfiguredAgent)?.label ??
+    ? (getAgentCatalog().find((a) => a.id === unsupportedConfiguredAgent)?.label ??
       unsupportedConfiguredAgent)
     : null
   const agentSelectValue = activeCapability
@@ -141,7 +141,7 @@ export function AiCommitPrSettingsCard(): JSX.Element | null {
       ? settings.defaultTuiAgent
       : null
   const unsupportedDefaultAgentLabel = unsupportedDefaultAgent
-    ? (AGENT_CATALOG.find((a) => a.id === unsupportedDefaultAgent)?.label ??
+    ? (getAgentCatalog().find((a) => a.id === unsupportedDefaultAgent)?.label ??
       unsupportedDefaultAgent)
     : null
   const unsupportedAgentLabel = unsupportedConfiguredAgentLabel ?? unsupportedDefaultAgentLabel
@@ -260,15 +260,32 @@ export function AiCommitPrSettingsCard(): JSX.Element | null {
       <div className="space-y-2.5">
         <div className="flex items-start justify-between gap-4">
           <div className="min-w-0">
-            <div className="text-[15px] font-semibold leading-tight text-foreground">{translate("auto.components.feature.wall.AiCommitPrSettingsCard.1c0cb4fabb", "AI author")}</div>
+            <div className="text-[15px] font-semibold leading-tight text-foreground">
+              {translate(
+                'auto.components.feature.wall.AiCommitPrSettingsCard.1c0cb4fabb',
+                'AI author'
+              )}
+            </div>
           </div>
-          <SettingsSwitch checked={config.enabled} label={translate("auto.components.feature.wall.AiCommitPrSettingsCard.f9382b48a1", "Enable AI author")} onToggle={toggleAi} />
+          <SettingsSwitch
+            checked={config.enabled}
+            label={translate(
+              'auto.components.feature.wall.AiCommitPrSettingsCard.f9382b48a1',
+              'Enable AI author'
+            )}
+            onToggle={toggleAi}
+          />
         </div>
 
         {config.enabled ? (
           <div className="flex flex-col gap-2.5">
             <div className="grid grid-cols-[92px_minmax(0,1fr)] items-center gap-3">
-              <Label className="text-xs">{translate("auto.components.feature.wall.AiCommitPrSettingsCard.29d119fe95", "Agent")}</Label>
+              <Label className="text-xs">
+                {translate(
+                  'auto.components.feature.wall.AiCommitPrSettingsCard.29d119fe95',
+                  'Agent'
+                )}
+              </Label>
               <Select value={agentSelectValue} onValueChange={onAgentChange}>
                 <SelectTrigger size="sm" className="h-8 w-full text-xs">
                   <span
@@ -287,13 +304,25 @@ export function AiCommitPrSettingsCard(): JSX.Element | null {
                     ) : isCustom ? (
                       <>
                         <Terminal className="size-3.5" />
-                        <span>{translate("auto.components.feature.wall.AiCommitPrSettingsCard.560d4feb00", "Custom")}</span>
+                        <span>
+                          {translate(
+                            'auto.components.feature.wall.AiCommitPrSettingsCard.560d4feb00',
+                            'Custom'
+                          )}
+                        </span>
                       </>
                     ) : (
                       <span className="truncate">
                         {unsupportedAgentLabel
-                          ? translate("auto.components.feature.wall.AiCommitPrSettingsCard.1f9468c5c9", "{{value0}} unsupported", { value0: unsupportedAgentLabel })
-                          : translate("auto.components.feature.wall.AiCommitPrSettingsCard.bd14e9c42a", "Not configured")}
+                          ? translate(
+                              'auto.components.feature.wall.AiCommitPrSettingsCard.1f9468c5c9',
+                              '{{value0}} unsupported',
+                              { value0: unsupportedAgentLabel }
+                            )
+                          : translate(
+                              'auto.components.feature.wall.AiCommitPrSettingsCard.bd14e9c42a',
+                              'Not configured'
+                            )}
                       </span>
                     )}
                   </span>
@@ -314,20 +343,35 @@ export function AiCommitPrSettingsCard(): JSX.Element | null {
                   <SelectItem value={CUSTOM_AGENT_ID} className="cursor-pointer">
                     <span className="flex items-center gap-2">
                       <Terminal className="size-3.5" />
-                      <span>{translate("auto.components.feature.wall.AiCommitPrSettingsCard.560d4feb00", "Custom")}</span>
+                      <span>
+                        {translate(
+                          'auto.components.feature.wall.AiCommitPrSettingsCard.560d4feb00',
+                          'Custom'
+                        )}
+                      </span>
                     </span>
                   </SelectItem>
                 </SelectContent>
               </Select>
               {unsupportedAgentLabel ? (
                 <p className="col-start-2 text-[11px] leading-snug text-muted-foreground">
-                  {unsupportedAgentLabel} {translate("auto.components.feature.wall.AiCommitPrSettingsCard.4d9b6d84df", "unsupported. Choose Claude, Codex, or Custom.")}</p>
+                  {unsupportedAgentLabel}{' '}
+                  {translate(
+                    'auto.components.feature.wall.AiCommitPrSettingsCard.4d9b6d84df',
+                    'unsupported. Choose Claude, Codex, or Custom.'
+                  )}
+                </p>
               ) : null}
             </div>
 
             {activeCapability && activeModel ? (
               <div className="grid grid-cols-[92px_minmax(0,1fr)] items-center gap-3">
-                <Label className="text-xs">{translate("auto.components.feature.wall.AiCommitPrSettingsCard.be8917699e", "Model")}</Label>
+                <Label className="text-xs">
+                  {translate(
+                    'auto.components.feature.wall.AiCommitPrSettingsCard.be8917699e',
+                    'Model'
+                  )}
+                </Label>
                 <Select value={activeModel.id} onValueChange={onModelChange}>
                   <SelectTrigger size="sm" className="h-8 w-full text-xs">
                     <SelectValue />
@@ -345,7 +389,12 @@ export function AiCommitPrSettingsCard(): JSX.Element | null {
 
             {activeModel?.thinkingLevels && activeThinking ? (
               <div className="grid grid-cols-[92px_minmax(0,1fr)] items-center gap-3">
-                <Label className="text-xs">{translate("auto.components.feature.wall.AiCommitPrSettingsCard.4b2fc4b80c", "Thinking effort")}</Label>
+                <Label className="text-xs">
+                  {translate(
+                    'auto.components.feature.wall.AiCommitPrSettingsCard.4b2fc4b80c',
+                    'Thinking effort'
+                  )}
+                </Label>
                 <Select value={activeThinking} onValueChange={onThinkingChange}>
                   <SelectTrigger size="sm" className="h-8 w-full text-xs">
                     <SelectValue />
@@ -364,12 +413,20 @@ export function AiCommitPrSettingsCard(): JSX.Element | null {
             {isCustom ? (
               <div className="space-y-1.5">
                 <Label htmlFor="feature-wall-ai-commit-custom-command" className="text-xs">
-                  {translate("auto.components.feature.wall.AiCommitPrSettingsCard.9ee54037a4", "Custom command")}</Label>
+                  {translate(
+                    'auto.components.feature.wall.AiCommitPrSettingsCard.9ee54037a4',
+                    'Custom command'
+                  )}
+                </Label>
                 <Input
                   id="feature-wall-ai-commit-custom-command"
                   value={config.customAgentCommand}
                   onChange={(event) => writeConfig({ customAgentCommand: event.target.value })}
-                  placeholder={translate("auto.components.feature.wall.AiCommitPrSettingsCard.8d4152701a", "e.g. ollama run llama3.1 {{value0}}", { value0: CUSTOM_PROMPT_PLACEHOLDER })}
+                  placeholder={translate(
+                    'auto.components.feature.wall.AiCommitPrSettingsCard.8d4152701a',
+                    'e.g. ollama run llama3.1 {{value0}}',
+                    { value0: CUSTOM_PROMPT_PLACEHOLDER }
+                  )}
                   spellCheck={false}
                   className="h-8 font-mono text-xs"
                 />

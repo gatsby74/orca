@@ -19,7 +19,7 @@ import { useMountedRef } from '@/hooks/useMountedRef'
 import { useAppStore } from '@/store'
 import { NotificationSettingToggle } from './NotificationSettingToggle'
 import { translate } from '@/i18n/i18n'
-export { NOTIFICATIONS_PANE_SEARCH_ENTRIES } from './notifications-search'
+export { getNotificationsPaneSearchEntries } from './notifications-search'
 
 type NotificationsPaneProps = {
   settings: GlobalSettings
@@ -92,7 +92,12 @@ export async function sendNotificationSettingsTestNotification(
 ): Promise<void> {
   const permissionStatus = await window.api.notifications.getPermissionStatus()
   if (!permissionStatus.supported) {
-    toast.error(translate("auto.components.settings.NotificationsPane.c83b05a055", "Notifications are not supported on this system"))
+    toast.error(
+      translate(
+        'auto.components.settings.NotificationsPane.c83b05a055',
+        'Notifications are not supported on this system'
+      )
+    )
     return
   }
 
@@ -112,25 +117,44 @@ export async function sendNotificationSettingsTestNotification(
           })
         : null
     if (notificationSettings.customSoundId !== 'system' && soundResult && !soundResult.played) {
-      toast.error(translate("auto.components.settings.NotificationsPane.98d70fb261", "Custom notification sound could not be played"))
+      toast.error(
+        translate(
+          'auto.components.settings.NotificationsPane.98d70fb261',
+          'Custom notification sound could not be played'
+        )
+      )
       return
     }
     const settingsCopy = getSystemNotificationSettingsCopy(permissionStatus.platform)
     if (permissionStatus.platform === 'darwin' && settingsCopy) {
       // Why: Electron's native 'show' event can fire even when macOS silently
       // drops the banner because the per-app Allow notifications switch is off.
-      toast.message(translate("auto.components.settings.NotificationsPane.7f45542625", "Test notification requested"), {
-        description: translate("auto.components.settings.NotificationsPane.115437bc35", "If no macOS banner appeared, enable Allow notifications for Orca."),
-        action: {
-          label: translate("auto.components.settings.NotificationsPane.145227ca2b", "Open Settings"),
-          onClick: () => {
-            void window.api.notifications.openSystemSettings()
+      toast.message(
+        translate(
+          'auto.components.settings.NotificationsPane.7f45542625',
+          'Test notification requested'
+        ),
+        {
+          description: translate(
+            'auto.components.settings.NotificationsPane.115437bc35',
+            'If no macOS banner appeared, enable Allow notifications for Orca.'
+          ),
+          action: {
+            label: translate(
+              'auto.components.settings.NotificationsPane.145227ca2b',
+              'Open Settings'
+            ),
+            onClick: () => {
+              void window.api.notifications.openSystemSettings()
+            }
           }
         }
-      })
+      )
       return
     }
-    toast.success(translate("auto.components.settings.NotificationsPane.d3d54e0915", "Test notification sent"))
+    toast.success(
+      translate('auto.components.settings.NotificationsPane.d3d54e0915', 'Test notification sent')
+    )
     return
   }
 
@@ -140,24 +164,42 @@ export async function sendNotificationSettingsTestNotification(
       toast.error(settingsCopy.failureTitle, {
         description: settingsCopy.failureDescription,
         action: {
-          label: translate("auto.components.settings.NotificationsPane.145227ca2b", "Open Settings"),
+          label: translate(
+            'auto.components.settings.NotificationsPane.145227ca2b',
+            'Open Settings'
+          ),
           onClick: () => {
             void window.api.notifications.openSystemSettings()
           }
         }
       })
     } else {
-      toast.error(translate("auto.components.settings.NotificationsPane.0cb93240b8", "System did not show the notification"), {
-        description: translate("auto.components.settings.NotificationsPane.4676a95bc3", "Check your desktop notification settings for Orca.")
-      })
+      toast.error(
+        translate(
+          'auto.components.settings.NotificationsPane.0cb93240b8',
+          'System did not show the notification'
+        ),
+        {
+          description: translate(
+            'auto.components.settings.NotificationsPane.4676a95bc3',
+            'Check your desktop notification settings for Orca.'
+          )
+        }
+      )
     }
     return
   }
 
   toast.error(
-    result.reason === "disabled"
-      ? translate("auto.components.settings.NotificationsPane.6fc3781729", "Notifications are disabled")
-      : translate("auto.components.settings.NotificationsPane.406feb0aa6", "Test notification was not delivered")
+    result.reason === 'disabled'
+      ? translate(
+          'auto.components.settings.NotificationsPane.6fc3781729',
+          'Notifications are disabled'
+        )
+      : translate(
+          'auto.components.settings.NotificationsPane.406feb0aa6',
+          'Test notification was not delivered'
+        )
   )
 }
 
@@ -233,7 +275,12 @@ export function NotificationsPane({
       volume: volumeDraft
     })
     if (!result.played) {
-      toast.error(translate("auto.components.settings.NotificationsPane.0fadad17ce", "Notification sound could not be played"))
+      toast.error(
+        translate(
+          'auto.components.settings.NotificationsPane.0fadad17ce',
+          'Notification sound could not be played'
+        )
+      )
     }
   }
 
@@ -267,8 +314,14 @@ export function NotificationsPane({
   return (
     <div className="space-y-1">
       <NotificationSettingToggle
-        label={translate("auto.components.settings.NotificationsPane.841c8c549f", "Enable Notifications")}
-        description={translate("auto.components.settings.NotificationsPane.deff6d30da", "Native system notifications for background events.")}
+        label={translate(
+          'auto.components.settings.NotificationsPane.841c8c549f',
+          'Enable Notifications'
+        )}
+        description={translate(
+          'auto.components.settings.NotificationsPane.deff6d30da',
+          'Native system notifications for background events.'
+        )}
         checked={notificationSettings.enabled}
         onToggle={() => {
           if (!notificationSettings.enabled) {
@@ -282,8 +335,14 @@ export function NotificationsPane({
 
       <NotificationSettingToggle
         icon={<Bot className="size-4" />}
-        label={translate("auto.components.settings.NotificationsPane.ca76d06fd2", "Agent Task Complete")}
-        description={translate("auto.components.settings.NotificationsPane.55f901a59b", "A coding agent finishes and becomes idle.")}
+        label={translate(
+          'auto.components.settings.NotificationsPane.ca76d06fd2',
+          'Agent Task Complete'
+        )}
+        description={translate(
+          'auto.components.settings.NotificationsPane.55f901a59b',
+          'A coding agent finishes and becomes idle.'
+        )}
         checked={notificationSettings.agentTaskComplete}
         disabled={!notificationSettings.enabled}
         onToggle={() =>
@@ -295,8 +354,11 @@ export function NotificationsPane({
 
       <NotificationSettingToggle
         icon={<Siren className="size-4" />}
-        label={translate("auto.components.settings.NotificationsPane.591fe605b9", "Terminal Bell")}
-        description={translate("auto.components.settings.NotificationsPane.b6fc369244", "A background terminal emits a bell character.")}
+        label={translate('auto.components.settings.NotificationsPane.591fe605b9', 'Terminal Bell')}
+        description={translate(
+          'auto.components.settings.NotificationsPane.b6fc369244',
+          'A background terminal emits a bell character.'
+        )}
         checked={notificationSettings.terminalBell}
         disabled={!notificationSettings.enabled}
         onToggle={() =>
@@ -312,10 +374,19 @@ export function NotificationsPane({
         <div className="space-y-0.5">
           <div className="flex items-center gap-2">
             <FileAudio className="size-4" />
-            <Label>{translate("auto.components.settings.NotificationsPane.88686e6ca8", "Notification Sound")}</Label>
+            <Label>
+              {translate(
+                'auto.components.settings.NotificationsPane.88686e6ca8',
+                'Notification Sound'
+              )}
+            </Label>
           </div>
           <p className="text-xs text-muted-foreground">
-            {translate("auto.components.settings.NotificationsPane.2a2033c388", "Choose the alert Orca plays when a desktop notification is delivered.")}</p>
+            {translate(
+              'auto.components.settings.NotificationsPane.2a2033c388',
+              'Choose the alert Orca plays when a desktop notification is delivered.'
+            )}
+          </p>
         </div>
         <Select
           value={selectedSoundId}
@@ -323,7 +394,12 @@ export function NotificationsPane({
           onValueChange={(value) => void handleSoundSelect(value as NotificationSoundSelectValue)}
         >
           <SelectTrigger className="w-full max-w-[360px]" size="sm">
-            <SelectValue placeholder={translate("auto.components.settings.NotificationsPane.c258cb96dc", "Choose notification sound")} />
+            <SelectValue
+              placeholder={translate(
+                'auto.components.settings.NotificationsPane.c258cb96dc',
+                'Choose notification sound'
+              )}
+            />
           </SelectTrigger>
           <SelectContent align="start" className="w-[--radix-select-trigger-width]">
             {soundOptions.map((option) => {
@@ -339,7 +415,15 @@ export function NotificationsPane({
             <SelectItem value={CHOOSE_CUSTOM_SOUND_VALUE}>
               <Upload className="size-4" />
               <span>
-                {notificationSettings.customSoundPath ? translate("auto.components.settings.NotificationsPane.76e02467b8", "Change Custom File") : translate("auto.components.settings.NotificationsPane.6e6df3a09a", "Choose Custom File")}
+                {notificationSettings.customSoundPath
+                  ? translate(
+                      'auto.components.settings.NotificationsPane.76e02467b8',
+                      'Change Custom File'
+                    )
+                  : translate(
+                      'auto.components.settings.NotificationsPane.6e6df3a09a',
+                      'Choose Custom File'
+                    )}
               </span>
             </SelectItem>
           </SelectContent>
@@ -349,10 +433,11 @@ export function NotificationsPane({
             className="truncate font-mono text-[11px] text-muted-foreground"
             title={notificationSettings.customSoundPath}
           >
-            {translate("auto.components.settings.NotificationsPane.4aa5085cd7", "Custom:")}{notificationSettings.customSoundPath}
+            {translate('auto.components.settings.NotificationsPane.4aa5085cd7', 'Custom:')}
+            {notificationSettings.customSoundPath}
           </p>
         ) : null}
-        {selectedSoundId !== "system" ? (
+        {selectedSoundId !== 'system' ? (
           <div className="flex items-center gap-3 pt-1">
             <Volume2 className="size-4 text-muted-foreground" />
             <Slider
@@ -364,7 +449,10 @@ export function NotificationsPane({
               onValueChange={([value]) => setVolumeDraft(value)}
               onValueCommit={([value]) => handleVolumeCommit(value)}
               className="flex-1"
-              aria-label={translate("auto.components.settings.NotificationsPane.2a42dd8d6f", "Notification sound volume")}
+              aria-label={translate(
+                'auto.components.settings.NotificationsPane.2a42dd8d6f',
+                'Notification sound volume'
+              )}
             />
             <span className="w-10 text-right font-mono text-xs tabular-nums text-muted-foreground">
               {volumeDraft}%
@@ -376,8 +464,14 @@ export function NotificationsPane({
       <Separator />
 
       <NotificationSettingToggle
-        label={translate("auto.components.settings.NotificationsPane.00cd406dbb", "Suppress While Focused")}
-        description={translate("auto.components.settings.NotificationsPane.2772d2f257", "Skip notifications when the triggering worktree is already visible.")}
+        label={translate(
+          'auto.components.settings.NotificationsPane.00cd406dbb',
+          'Suppress While Focused'
+        )}
+        description={translate(
+          'auto.components.settings.NotificationsPane.2772d2f257',
+          'Skip notifications when the triggering worktree is already visible.'
+        )}
         checked={notificationSettings.suppressWhenFocused}
         disabled={!notificationSettings.enabled}
         onToggle={() =>
@@ -396,7 +490,11 @@ export function NotificationsPane({
           className="gap-2"
         >
           <BellRing className="size-3.5" />
-          {translate("auto.components.settings.NotificationsPane.906b4afebf", "Send Test Notification")}</Button>
+          {translate(
+            'auto.components.settings.NotificationsPane.906b4afebf',
+            'Send Test Notification'
+          )}
+        </Button>
       </div>
     </div>
   )

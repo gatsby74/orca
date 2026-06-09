@@ -38,7 +38,7 @@ import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip
 import { useAppStore } from '@/store'
 import { cn } from '@/lib/utils'
 import RepoBadgeLabel from '@/components/repo/RepoBadgeLabel'
-import { AGENT_CATALOG } from '@/lib/agent-catalog'
+import { getAgentCatalog } from '@/lib/agent-catalog'
 import { useRepoMap, useWorktreeMap } from '@/store/selectors'
 import { activateAndRevealWorktree } from '@/lib/worktree-activation'
 import type {
@@ -88,14 +88,14 @@ import {
 } from './AutomationEditorDialog'
 import { AutomationRunPageFrame } from './AutomationRunPageFrame'
 import { AutomationRunHistory } from './AutomationRunHistory'
-import { AUTOMATION_TEMPLATES, type AutomationTemplate } from './automation-templates'
+import { getAutomationTemplates, type AutomationTemplate } from './automation-templates'
 import { getExternalAutomationScheduleDisplay } from './external-automation-schedule-display'
 import { ExternalAutomationManagers } from './ExternalAutomationManagers'
 import type { FetchExternalAutomationRuns } from './ExternalAutomationRunTable'
 import { useContextualTour } from '@/components/contextual-tours/use-contextual-tour'
 import { translate } from '@/i18n/i18n'
 
-const AGENTS = AGENT_CATALOG.map((agent) => agent.id)
+const AGENTS = getAgentCatalog().map((agent) => agent.id)
 const DEFAULT_TIME = '09:00'
 const AUTOMATIONS_CHANGED_EVENT = 'orca:automations-changed'
 type AutomationPaneTab = 'overview' | 'runs'
@@ -161,7 +161,7 @@ function buildHermesCronSchedule(draft: AutomationDraft): string {
 }
 
 function getAgentLabel(agentId: string): string {
-  return AGENT_CATALOG.find((agent) => agent.id === agentId)?.label ?? agentId
+  return getAgentCatalog().find((agent) => agent.id === agentId)?.label ?? agentId
 }
 
 function getExternalAutomationKey(
@@ -892,18 +892,33 @@ export default function AutomationsPage(): React.JSX.Element {
       ((draft.workspaceMode === 'existing' || isHermesSave) && !draft.workspaceId) ||
       !draft.prompt.trim()
     ) {
-      toast.error(translate("auto.components.automations.AutomationsPage.2430fecf53", "Choose a run location and enter a prompt before saving."))
+      toast.error(
+        translate(
+          'auto.components.automations.AutomationsPage.2430fecf53',
+          'Choose a run location and enter a prompt before saving.'
+        )
+      )
       return
     }
     if (draft.scheduleWarning) {
-      toast.error(translate("auto.components.automations.AutomationsPage.64bdb2304f", "Pick a supported schedule before saving."))
+      toast.error(
+        translate(
+          'auto.components.automations.AutomationsPage.64bdb2304f',
+          'Pick a supported schedule before saving.'
+        )
+      )
       return
     }
     const validateAdvancedSchedule = isHermesSave
       ? isValidAutomationCronSchedule
       : isValidAutomationSchedule
     if (draft.preset === 'custom' && !validateAdvancedSchedule(draft.customSchedule)) {
-      toast.error(translate("auto.components.automations.AutomationsPage.6e91dab317", "Enter a valid advanced schedule before saving."))
+      toast.error(
+        translate(
+          'auto.components.automations.AutomationsPage.6e91dab317',
+          'Enter a valid advanced schedule before saving.'
+        )
+      )
       return
     }
     if (
@@ -911,7 +926,12 @@ export default function AutomationsPage(): React.JSX.Element {
       !isHermesSave &&
       !isTuiAgentEnabled(draft.agentId, settings?.disabledTuiAgents)
     ) {
-      toast.error(translate("auto.components.automations.AutomationsPage.2360ffc956", "Choose an enabled agent before saving."))
+      toast.error(
+        translate(
+          'auto.components.automations.AutomationsPage.2360ffc956',
+          'Choose an enabled agent before saving.'
+        )
+      )
       return
     }
     setIsSaving(true)
@@ -920,14 +940,24 @@ export default function AutomationsPage(): React.JSX.Element {
         draft.workspaceMode !== 'existing' ||
         worktrees.some((worktree) => worktree.id === draft.workspaceId)
       if (!selectedWorkspaceExists) {
-        toast.error(translate("auto.components.automations.AutomationsPage.32534e7c9c", "Choose an available workspace before saving."))
+        toast.error(
+          translate(
+            'auto.components.automations.AutomationsPage.32534e7c9c',
+            'Choose an available workspace before saving.'
+          )
+        )
         return
       }
       if (isHermesSave) {
         const repo = repoMap.get(draft.projectId)
         const selectedWorktree = worktreeMap.get(draft.workspaceId) ?? null
         if (!repo || !selectedWorktree) {
-          toast.error(translate("auto.components.automations.AutomationsPage.32534e7c9c", "Choose an available workspace before saving."))
+          toast.error(
+            translate(
+              'auto.components.automations.AutomationsPage.32534e7c9c',
+              'Choose an available workspace before saving.'
+            )
+          )
           return
         }
         const target =
@@ -938,7 +968,12 @@ export default function AutomationsPage(): React.JSX.Element {
         const repoTargetMatches =
           target.type === 'local' ? !repo.connectionId : repo.connectionId === target.connectionId
         if (!repoTargetMatches) {
-          toast.error(translate("auto.components.automations.AutomationsPage.e431bb85d4", "Choose a workspace on the same host as this Hermes automation."))
+          toast.error(
+            translate(
+              'auto.components.automations.AutomationsPage.e431bb85d4',
+              'Choose a workspace on the same host as this Hermes automation.'
+            )
+          )
           return
         }
         const schedule = buildHermesCronSchedule(draft)
@@ -972,7 +1007,15 @@ export default function AutomationsPage(): React.JSX.Element {
             : null
         )
         toast.success(
-          editingExternalTarget ? translate("auto.components.automations.AutomationsPage.08efc3ae12", "Hermes automation updated.") : translate("auto.components.automations.AutomationsPage.77b81bc4ac", "Hermes automation created.")
+          editingExternalTarget
+            ? translate(
+                'auto.components.automations.AutomationsPage.08efc3ae12',
+                'Hermes automation updated.'
+              )
+            : translate(
+                'auto.components.automations.AutomationsPage.77b81bc4ac',
+                'Hermes automation created.'
+              )
         )
         return
       }
@@ -1057,12 +1100,26 @@ export default function AutomationsPage(): React.JSX.Element {
       if (!editingAutomationId) {
         useAppStore.getState().recordFeatureInteraction('automation-created')
       }
-      toast.success(editingAutomationId ? translate("auto.components.automations.AutomationsPage.244727e655", "Automation updated.") : translate("auto.components.automations.AutomationsPage.2a20596d6b", "Automation saved."))
+      toast.success(
+        editingAutomationId
+          ? translate(
+              'auto.components.automations.AutomationsPage.244727e655',
+              'Automation updated.'
+            )
+          : translate('auto.components.automations.AutomationsPage.2a20596d6b', 'Automation saved.')
+      )
     } catch (error) {
       if (isHermesSave) {
         await refresh().catch(() => undefined)
       }
-      toast.error(error instanceof Error ? error.message : translate("auto.components.automations.AutomationsPage.b11170a008", "Failed to save automation."))
+      toast.error(
+        error instanceof Error
+          ? error.message
+          : translate(
+              'auto.components.automations.AutomationsPage.b11170a008',
+              'Failed to save automation.'
+            )
+      )
     } finally {
       setIsSaving(false)
     }
@@ -1086,21 +1143,33 @@ export default function AutomationsPage(): React.JSX.Element {
 
   const persistDeleteAutomationPreference = (): void => {
     void updateSettings({ skipDeleteAutomationConfirm: true })
-    toast.success(translate("auto.components.automations.AutomationsPage.690b94da54", "We'll skip this confirmation next time."), {
-      description: translate("auto.components.automations.AutomationsPage.d2a01b0b6f", "You can change this in Settings."),
-      duration: 8000,
-      action: {
-        label: translate("auto.components.automations.AutomationsPage.8a3226f172", "Open Settings"),
-        onClick: () => {
-          openSettingsPage()
-          openSettingsTarget({
-            pane: 'general',
-            repoId: null,
-            sectionId: 'general-skip-delete-automation-confirm'
-          })
+    toast.success(
+      translate(
+        'auto.components.automations.AutomationsPage.690b94da54',
+        "We'll skip this confirmation next time."
+      ),
+      {
+        description: translate(
+          'auto.components.automations.AutomationsPage.d2a01b0b6f',
+          'You can change this in Settings.'
+        ),
+        duration: 8000,
+        action: {
+          label: translate(
+            'auto.components.automations.AutomationsPage.8a3226f172',
+            'Open Settings'
+          ),
+          onClick: () => {
+            openSettingsPage()
+            openSettingsTarget({
+              pane: 'general',
+              repoId: null,
+              sectionId: 'general-skip-delete-automation-confirm'
+            })
+          }
         }
       }
-    })
+    )
   }
 
   const requestDeleteAutomation = (automation: Automation): void => {
@@ -1130,7 +1199,9 @@ export default function AutomationsPage(): React.JSX.Element {
     useAppStore.getState().recordFeatureInteraction('automation-run')
     await hydratePersistedUIState()
     await refresh()
-    toast.message(translate("auto.components.automations.AutomationsPage.a1bdb57008", "Automation run queued."))
+    toast.message(
+      translate('auto.components.automations.AutomationsPage.a1bdb57008', 'Automation run queued.')
+    )
   }
 
   const rerunAutomationRun = async (automation: Automation, run: AutomationRun): Promise<void> => {
@@ -1146,9 +1217,21 @@ export default function AutomationsPage(): React.JSX.Element {
       await window.api.automations.runNow({ id: automationId })
       await hydratePersistedUIState()
       await refresh()
-      toast.message(translate("auto.components.automations.AutomationsPage.a1bdb57008", "Automation run queued."))
+      toast.message(
+        translate(
+          'auto.components.automations.AutomationsPage.a1bdb57008',
+          'Automation run queued.'
+        )
+      )
     } catch (error) {
-      toast.error(error instanceof Error ? error.message : translate("auto.components.automations.AutomationsPage.3a4c476aa0", "Failed to rerun automation."))
+      toast.error(
+        error instanceof Error
+          ? error.message
+          : translate(
+              'auto.components.automations.AutomationsPage.3a4c476aa0',
+              'Failed to rerun automation.'
+            )
+      )
       await refresh()
     } finally {
       // Why: fast skipped/failed reruns can settle before users or validation can see the guard.
@@ -1178,17 +1261,36 @@ export default function AutomationsPage(): React.JSX.Element {
       }
       await refresh()
       toast.success(
-        action === "delete"
-          ? translate("auto.components.automations.AutomationsPage.4c22bc9913", "External automation deleted.")
-          : action === "run"
-            ? translate("auto.components.automations.AutomationsPage.4d7878402c", "External automation queued.")
-            : action === "pause"
-              ? translate("auto.components.automations.AutomationsPage.77c518a34b", "External automation paused.")
-              : translate("auto.components.automations.AutomationsPage.37288942f0", "External automation resumed.")
+        action === 'delete'
+          ? translate(
+              'auto.components.automations.AutomationsPage.4c22bc9913',
+              'External automation deleted.'
+            )
+          : action === 'run'
+            ? translate(
+                'auto.components.automations.AutomationsPage.4d7878402c',
+                'External automation queued.'
+              )
+            : action === 'pause'
+              ? translate(
+                  'auto.components.automations.AutomationsPage.77c518a34b',
+                  'External automation paused.'
+                )
+              : translate(
+                  'auto.components.automations.AutomationsPage.37288942f0',
+                  'External automation resumed.'
+                )
       )
     } catch (error) {
       await refresh().catch(() => undefined)
-      toast.error(error instanceof Error ? error.message : translate("auto.components.automations.AutomationsPage.126d726546", "External automation action failed."))
+      toast.error(
+        error instanceof Error
+          ? error.message
+          : translate(
+              'auto.components.automations.AutomationsPage.126d726546',
+              'External automation action failed.'
+            )
+      )
     } finally {
       setExternalActionKey(null)
     }
@@ -1273,13 +1375,28 @@ export default function AutomationsPage(): React.JSX.Element {
     try {
       const state = await window.api.ssh.connect({ targetId: manager.target.connectionId })
       if (!state || state.status !== 'connected') {
-        toast.error(state?.error ?? translate("auto.components.automations.AutomationsPage.7b2e285552", "SSH connections are unavailable in this client."))
+        toast.error(
+          state?.error ??
+            translate(
+              'auto.components.automations.AutomationsPage.7b2e285552',
+              'SSH connections are unavailable in this client.'
+            )
+        )
         return
       }
       await refresh()
-      toast.success(translate("auto.components.automations.AutomationsPage.9f2855677c", "SSH connected."))
+      toast.success(
+        translate('auto.components.automations.AutomationsPage.9f2855677c', 'SSH connected.')
+      )
     } catch (error) {
-      toast.error(error instanceof Error ? error.message : translate("auto.components.automations.AutomationsPage.3e42a5cc1b", "SSH connection failed."))
+      toast.error(
+        error instanceof Error
+          ? error.message
+          : translate(
+              'auto.components.automations.AutomationsPage.3e42a5cc1b',
+              'SSH connection failed.'
+            )
+      )
     } finally {
       setConnectingExternalSourceKey(null)
     }
@@ -1310,7 +1427,12 @@ export default function AutomationsPage(): React.JSX.Element {
       }
     }
     if (!activateAndRevealWorktree(run.workspaceId)) {
-      toast.error(translate("auto.components.automations.AutomationsPage.e1bf9b1512", "Workspace is not available."))
+      toast.error(
+        translate(
+          'auto.components.automations.AutomationsPage.e1bf9b1512',
+          'Workspace is not available.'
+        )
+      )
       return
     }
     // Why: activation can create a fresh terminal for an empty workspace; tell
@@ -1365,23 +1487,32 @@ export default function AutomationsPage(): React.JSX.Element {
                 size="icon"
                 className="size-7 rounded-full"
                 onClick={closeAutomationsPage}
-                aria-label={translate("auto.components.automations.AutomationsPage.67c7ff795b", "Close automations")}
+                aria-label={translate(
+                  'auto.components.automations.AutomationsPage.67c7ff795b',
+                  'Close automations'
+                )}
               >
                 <X className="size-4" />
               </Button>
             </TooltipTrigger>
             <TooltipContent side="bottom" sideOffset={6}>
-              {translate("auto.components.automations.AutomationsPage.0329f9bef1", "Close · Esc")}</TooltipContent>
+              {translate('auto.components.automations.AutomationsPage.0329f9bef1', 'Close · Esc')}
+            </TooltipContent>
           </Tooltip>
           <div className="mx-1 h-5 w-px bg-border/50" aria-hidden />
           <CalendarClock className="size-4 text-muted-foreground" />
-          <h1 className="text-sm font-semibold">{translate("auto.components.automations.AutomationsPage.77c2778945", "Automations")}</h1>
+          <h1 className="text-sm font-semibold">
+            {translate('auto.components.automations.AutomationsPage.77c2778945', 'Automations')}
+          </h1>
           <Tooltip>
             <TooltipTrigger asChild>
               <Button
                 variant="ghost"
                 size="icon-sm"
-                aria-label={translate("auto.components.automations.AutomationsPage.8d1afa8269", "Add automation")}
+                aria-label={translate(
+                  'auto.components.automations.AutomationsPage.8d1afa8269',
+                  'Add automation'
+                )}
                 onClick={() => openCreateDialog()}
                 className="border border-border/50 bg-transparent hover:bg-muted/50"
                 data-contextual-tour-target="automations-create"
@@ -1390,7 +1521,11 @@ export default function AutomationsPage(): React.JSX.Element {
               </Button>
             </TooltipTrigger>
             <TooltipContent side="bottom" sideOffset={6}>
-              {translate("auto.components.automations.AutomationsPage.8d1afa8269", "Add automation")}</TooltipContent>
+              {translate(
+                'auto.components.automations.AutomationsPage.8d1afa8269',
+                'Add automation'
+              )}
+            </TooltipContent>
           </Tooltip>
         </div>
         <div className="flex items-center gap-2">
@@ -1399,7 +1534,10 @@ export default function AutomationsPage(): React.JSX.Element {
               <Button
                 variant="ghost"
                 size="icon-sm"
-                aria-label={translate("auto.components.automations.AutomationsPage.19a6e30eae", "Refresh automations")}
+                aria-label={translate(
+                  'auto.components.automations.AutomationsPage.19a6e30eae',
+                  'Refresh automations'
+                )}
                 onClick={refresh}
                 disabled={isLoading}
                 className="border border-border/50 bg-transparent hover:bg-muted/50"
@@ -1408,7 +1546,11 @@ export default function AutomationsPage(): React.JSX.Element {
               </Button>
             </TooltipTrigger>
             <TooltipContent side="bottom" sideOffset={6}>
-              {translate("auto.components.automations.AutomationsPage.19a6e30eae", "Refresh automations")}</TooltipContent>
+              {translate(
+                'auto.components.automations.AutomationsPage.19a6e30eae',
+                'Refresh automations'
+              )}
+            </TooltipContent>
           </Tooltip>
         </div>
       </header>
@@ -1451,19 +1593,34 @@ export default function AutomationsPage(): React.JSX.Element {
           }}
         >
           <DialogHeader>
-            <DialogTitle className="text-sm">{translate("auto.components.automations.AutomationsPage.080dcb5fbb", "Delete Automation")}</DialogTitle>
+            <DialogTitle className="text-sm">
+              {translate(
+                'auto.components.automations.AutomationsPage.080dcb5fbb',
+                'Delete Automation'
+              )}
+            </DialogTitle>
             <DialogDescription className="text-xs">
-              {translate("auto.components.automations.AutomationsPage.15e0bfb13b", "Delete")}{' '}
+              {translate('auto.components.automations.AutomationsPage.15e0bfb13b', 'Delete')}{' '}
               <span className="break-all font-medium text-foreground">{deleteTarget?.name}</span>{' '}
-              {translate("auto.components.automations.AutomationsPage.b264564427", "and its run history. Workspaces created by previous runs are not deleted.")}</DialogDescription>
+              {translate(
+                'auto.components.automations.AutomationsPage.b264564427',
+                'and its run history. Workspaces created by previous runs are not deleted.'
+              )}
+            </DialogDescription>
           </DialogHeader>
           {deleteTarget ? (
             <div className="rounded-md border border-border/70 bg-muted/35 px-3 py-2 text-xs">
               <div className="break-all font-medium text-foreground">{deleteTarget.name}</div>
               <div className="mt-1 text-muted-foreground">
-                {deleteTarget.workspaceMode === "new_per_run"
-                  ? translate("auto.components.automations.AutomationsPage.cd8397cc32", "New workspace each run")
-                  : translate("auto.components.automations.AutomationsPage.36f71740a7", "Selected workspace")}
+                {deleteTarget.workspaceMode === 'new_per_run'
+                  ? translate(
+                      'auto.components.automations.AutomationsPage.cd8397cc32',
+                      'New workspace each run'
+                    )
+                  : translate(
+                      'auto.components.automations.AutomationsPage.36f71740a7',
+                      'Selected workspace'
+                    )}
               </div>
             </div>
           ) : null}
@@ -1483,7 +1640,8 @@ export default function AutomationsPage(): React.JSX.Element {
             >
               {dontAskDeleteAgain ? <Check className="size-3" strokeWidth={3} /> : null}
             </span>
-            {translate("auto.components.automations.AutomationsPage.1e2e41392f", "Don't ask again")}</button>
+            {translate('auto.components.automations.AutomationsPage.1e2e41392f', "Don't ask again")}
+          </button>
           <DialogFooter>
             <Button
               variant="outline"
@@ -1492,14 +1650,16 @@ export default function AutomationsPage(): React.JSX.Element {
                 setDontAskDeleteAgain(false)
               }}
             >
-              {translate("auto.components.automations.AutomationsPage.73f630b49d", "Cancel")}</Button>
+              {translate('auto.components.automations.AutomationsPage.73f630b49d', 'Cancel')}
+            </Button>
             <Button
               ref={deleteConfirmButtonRef}
               variant="destructive"
               onClick={() => void confirmDeleteAutomation()}
             >
               <Trash2 className="size-4" />
-              {translate("auto.components.automations.AutomationsPage.15e0bfb13b", "Delete")}</Button>
+              {translate('auto.components.automations.AutomationsPage.15e0bfb13b', 'Delete')}
+            </Button>
           </DialogFooter>
         </DialogContent>
       </Dialog>
@@ -1520,17 +1680,26 @@ export default function AutomationsPage(): React.JSX.Element {
           }}
         >
           <DialogHeader>
-            <DialogTitle className="text-sm">{translate("auto.components.automations.AutomationsPage.9adfab2596", "Delete External Automation")}</DialogTitle>
+            <DialogTitle className="text-sm">
+              {translate(
+                'auto.components.automations.AutomationsPage.9adfab2596',
+                'Delete External Automation'
+              )}
+            </DialogTitle>
             <DialogDescription className="text-xs">
-              {translate("auto.components.automations.AutomationsPage.15e0bfb13b", "Delete")}{' '}
+              {translate('auto.components.automations.AutomationsPage.15e0bfb13b', 'Delete')}{' '}
               <span className="break-all font-medium text-foreground">
                 {externalDeleteTarget?.job.name}
               </span>{' '}
-              {translate("auto.components.automations.AutomationsPage.02a33e3204", "from")}{' '}
+              {translate('auto.components.automations.AutomationsPage.02a33e3204', 'from')}{' '}
               {externalDeleteTarget
                 ? getExternalProviderLabel(externalDeleteTarget.manager)
-                : translate("auto.components.automations.AutomationsPage.8500baacb4", "external source")}{' '}
-              {translate("auto.components.automations.AutomationsPage.1b586f0e2b", "on")}{externalDeleteTarget?.manager.targetLabel}.
+                : translate(
+                    'auto.components.automations.AutomationsPage.8500baacb4',
+                    'external source'
+                  )}{' '}
+              {translate('auto.components.automations.AutomationsPage.1b586f0e2b', 'on')}
+              {externalDeleteTarget?.manager.targetLabel}.
             </DialogDescription>
           </DialogHeader>
           {externalDeleteTarget ? (
@@ -1550,14 +1719,16 @@ export default function AutomationsPage(): React.JSX.Element {
           ) : null}
           <DialogFooter>
             <Button variant="outline" onClick={() => setExternalDeleteTarget(null)}>
-              {translate("auto.components.automations.AutomationsPage.73f630b49d", "Cancel")}</Button>
+              {translate('auto.components.automations.AutomationsPage.73f630b49d', 'Cancel')}
+            </Button>
             <Button
               ref={deleteConfirmButtonRef}
               variant="destructive"
               onClick={() => void confirmDeleteExternalAutomation()}
             >
               <Trash2 className="size-4" />
-              {translate("auto.components.automations.AutomationsPage.15e0bfb13b", "Delete")}</Button>
+              {translate('auto.components.automations.AutomationsPage.15e0bfb13b', 'Delete')}
+            </Button>
           </DialogFooter>
         </DialogContent>
       </Dialog>
@@ -1570,8 +1741,15 @@ export default function AutomationsPage(): React.JSX.Element {
           <div className="scrollbar-sleek min-h-0 flex-1 overflow-auto p-2">
             {automations.length + externalAutomationEntries.length > 0 ? (
               <div className="grid grid-cols-[1fr_auto] gap-2 px-2 pb-2 text-[11px] font-medium uppercase text-muted-foreground">
-                <span>{translate("auto.components.automations.AutomationsPage.761a35834d", "Automation")}</span>
-                <span>{translate("auto.components.automations.AutomationsPage.587a4b205c", "Next")}</span>
+                <span>
+                  {translate(
+                    'auto.components.automations.AutomationsPage.761a35834d',
+                    'Automation'
+                  )}
+                </span>
+                <span>
+                  {translate('auto.components.automations.AutomationsPage.587a4b205c', 'Next')}
+                </span>
               </div>
             ) : null}
             {automations.map((automation) => {
@@ -1635,7 +1813,12 @@ export default function AutomationsPage(): React.JSX.Element {
                               badgeClassName="size-1.5"
                             />
                           ) : (
-                            <span>{translate("auto.components.automations.AutomationsPage.13118faadf", "Unknown project")}</span>
+                            <span>
+                              {translate(
+                                'auto.components.automations.AutomationsPage.13118faadf',
+                                'Unknown project'
+                              )}
+                            </span>
                           )}
                           <span className="shrink-0">/</span>
                           <span className="truncate">{workspaceLabel}</span>
@@ -1655,17 +1838,30 @@ export default function AutomationsPage(): React.JSX.Element {
                   <ContextMenuContent className="w-48">
                     <ContextMenuItem onSelect={() => void runNow(automation)}>
                       <Play className="size-3.5" />
-                      {translate("auto.components.automations.AutomationsPage.2faecab10b", "Run Now")}</ContextMenuItem>
+                      {translate(
+                        'auto.components.automations.AutomationsPage.2faecab10b',
+                        'Run Now'
+                      )}
+                    </ContextMenuItem>
                     <ContextMenuItem onSelect={() => void openEditDialog(automation)}>
                       <Pencil className="size-3.5" />
-                      {translate("auto.components.automations.AutomationsPage.f4612e3f78", "Edit")}</ContextMenuItem>
+                      {translate('auto.components.automations.AutomationsPage.f4612e3f78', 'Edit')}
+                    </ContextMenuItem>
                     <ContextMenuItem onSelect={() => void toggleAutomation(automation)}>
                       {automation.enabled ? (
                         <Pause className="size-3.5" />
                       ) : (
                         <Play className="size-3.5" />
                       )}
-                      {automation.enabled ? translate("auto.components.automations.AutomationsPage.b457436d6a", "Pause") : translate("auto.components.automations.AutomationsPage.376631ef2b", "Resume")}
+                      {automation.enabled
+                        ? translate(
+                            'auto.components.automations.AutomationsPage.b457436d6a',
+                            'Pause'
+                          )
+                        : translate(
+                            'auto.components.automations.AutomationsPage.376631ef2b',
+                            'Resume'
+                          )}
                     </ContextMenuItem>
                     <ContextMenuSeparator />
                     <ContextMenuItem
@@ -1673,7 +1869,11 @@ export default function AutomationsPage(): React.JSX.Element {
                       onSelect={() => requestDeleteAutomation(automation)}
                     >
                       <Trash2 className="size-3.5" />
-                      {translate("auto.components.automations.AutomationsPage.15e0bfb13b", "Delete")}</ContextMenuItem>
+                      {translate(
+                        'auto.components.automations.AutomationsPage.15e0bfb13b',
+                        'Delete'
+                      )}
+                    </ContextMenuItem>
                   </ContextMenuContent>
                 </ContextMenu>
               )
@@ -1708,7 +1908,13 @@ export default function AutomationsPage(): React.JSX.Element {
                         <span className="truncate font-medium">{entry.manager.targetLabel}</span>
                       </span>
                       <span className="mt-1 flex min-w-0 items-center gap-1.5 text-xs text-muted-foreground">
-                        <span>{providerLabel} {translate("auto.components.automations.AutomationsPage.82eb6cb933", "source")}</span>
+                        <span>
+                          {providerLabel}{' '}
+                          {translate(
+                            'auto.components.automations.AutomationsPage.82eb6cb933',
+                            'source'
+                          )}
+                        </span>
                         <span className="shrink-0">/</span>
                         <span className="truncate">{targetKindLabel}</span>
                       </span>
@@ -1763,11 +1969,17 @@ export default function AutomationsPage(): React.JSX.Element {
                           </span>
                           <span className="shrink-0">·</span>
                           <span className="truncate">
-                            {entry.manager.provider === "hermes"
+                            {entry.manager.provider === 'hermes'
                               ? `${entry.job.runCount} ${entry.job.runCount === 1 ? 'run' : 'runs'}`
                               : entry.manager.canManage
-                                ? translate("auto.components.automations.AutomationsPage.aecdc3681f", "Manageable")
-                                : translate("auto.components.automations.AutomationsPage.e059042585", "Read-only")}
+                                ? translate(
+                                    'auto.components.automations.AutomationsPage.aecdc3681f',
+                                    'Manageable'
+                                  )
+                                : translate(
+                                    'auto.components.automations.AutomationsPage.e059042585',
+                                    'Read-only'
+                                  )}
                           </span>
                         </span>
                       </span>
@@ -1783,14 +1995,22 @@ export default function AutomationsPage(): React.JSX.Element {
                       onSelect={() => requestExternalAction(entry.manager, entry.job, 'run')}
                     >
                       <Play className="size-3.5" />
-                      {translate("auto.components.automations.AutomationsPage.2faecab10b", "Run Now")}</ContextMenuItem>
-                    {entry.manager.provider === "hermes" ? (
+                      {translate(
+                        'auto.components.automations.AutomationsPage.2faecab10b',
+                        'Run Now'
+                      )}
+                    </ContextMenuItem>
+                    {entry.manager.provider === 'hermes' ? (
                       <ContextMenuItem
                         disabled={!entry.manager.canManage || externalActionKey !== null}
                         onSelect={() => openEditExternalDialog(entry.manager, entry.job)}
                       >
                         <Pencil className="size-3.5" />
-                        {translate("auto.components.automations.AutomationsPage.f4612e3f78", "Edit")}</ContextMenuItem>
+                        {translate(
+                          'auto.components.automations.AutomationsPage.f4612e3f78',
+                          'Edit'
+                        )}
+                      </ContextMenuItem>
                     ) : null}
                     <ContextMenuItem
                       disabled={actionDisabled}
@@ -1807,7 +2027,15 @@ export default function AutomationsPage(): React.JSX.Element {
                       ) : (
                         <Play className="size-3.5" />
                       )}
-                      {entry.job.enabled ? translate("auto.components.automations.AutomationsPage.b457436d6a", "Pause") : translate("auto.components.automations.AutomationsPage.376631ef2b", "Resume")}
+                      {entry.job.enabled
+                        ? translate(
+                            'auto.components.automations.AutomationsPage.b457436d6a',
+                            'Pause'
+                          )
+                        : translate(
+                            'auto.components.automations.AutomationsPage.376631ef2b',
+                            'Resume'
+                          )}
                     </ContextMenuItem>
                     <ContextMenuSeparator />
                     <ContextMenuItem
@@ -1816,15 +2044,24 @@ export default function AutomationsPage(): React.JSX.Element {
                       onSelect={() => requestExternalAction(entry.manager, entry.job, 'delete')}
                     >
                       <Trash2 className="size-3.5" />
-                      {translate("auto.components.automations.AutomationsPage.15e0bfb13b", "Delete")}</ContextMenuItem>
+                      {translate(
+                        'auto.components.automations.AutomationsPage.15e0bfb13b',
+                        'Delete'
+                      )}
+                    </ContextMenuItem>
                   </ContextMenuContent>
                 </ContextMenu>
               )
             })}
             {automations.length === 0 && externalAutomationEntries.length === 0 ? (
               <div className="grid gap-2 p-2">
-                <div className="px-1 pb-1 text-sm font-medium">{translate("auto.components.automations.AutomationsPage.d207ab4c25", "Start from a template")}</div>
-                {AUTOMATION_TEMPLATES.map((template) => (
+                <div className="px-1 pb-1 text-sm font-medium">
+                  {translate(
+                    'auto.components.automations.AutomationsPage.d207ab4c25',
+                    'Start from a template'
+                  )}
+                </div>
+                {getAutomationTemplates().map((template) => (
                   <button
                     key={template.id}
                     type="button"
@@ -1847,7 +2084,8 @@ export default function AutomationsPage(): React.JSX.Element {
                   onClick={() => openCreateDialog()}
                 >
                   <Plus className="size-4" />
-                  {translate("auto.components.automations.AutomationsPage.25060635c6", "Add new")}</Button>
+                  {translate('auto.components.automations.AutomationsPage.25060635c6', 'Add new')}
+                </Button>
               </div>
             ) : null}
           </div>
@@ -1896,7 +2134,12 @@ export default function AutomationsPage(): React.JSX.Element {
                         {selectedExternal.manager.targetLabel}
                       </div>
                       <div className="text-xs text-muted-foreground">
-                        {getExternalProviderLabel(selectedExternal.manager)} {translate("auto.components.automations.AutomationsPage.aaa007846f", "source unavailable")}{selectedExternal.manager.error
+                        {getExternalProviderLabel(selectedExternal.manager)}{' '}
+                        {translate(
+                          'auto.components.automations.AutomationsPage.aaa007846f',
+                          'source unavailable'
+                        )}
+                        {selectedExternal.manager.error
                           ? ` - ${selectedExternal.manager.error}`
                           : null}
                       </div>
@@ -1914,12 +2157,24 @@ export default function AutomationsPage(): React.JSX.Element {
                         {isSelectedExternalSshConnecting ? (
                           <RefreshCw className="size-3.5 animate-spin" />
                         ) : null}
-                        {isSelectedExternalSshConnecting ? translate("auto.components.automations.AutomationsPage.f93ed7a6f8", "Connecting...") : translate("auto.components.automations.AutomationsPage.7934ee0d81", "Connect SSH")}
+                        {isSelectedExternalSshConnecting
+                          ? translate(
+                              'auto.components.automations.AutomationsPage.f93ed7a6f8',
+                              'Connecting...'
+                            )
+                          : translate(
+                              'auto.components.automations.AutomationsPage.7934ee0d81',
+                              'Connect SSH'
+                            )}
                       </Button>
                     ) : null}
                   </div>
                   <div className="px-3 py-6 text-sm text-muted-foreground">
-                    {translate("auto.components.automations.AutomationsPage.97ff587ee3", "Connect this source to check for Hermes automations in the remote profile.")}</div>
+                    {translate(
+                      'auto.components.automations.AutomationsPage.97ff587ee3',
+                      'Connect this source to check for Hermes automations in the remote profile.'
+                    )}
+                  </div>
                 </div>
               )}
             </div>
@@ -1934,9 +2189,15 @@ export default function AutomationsPage(): React.JSX.Element {
                 data-contextual-tour-target="automations-runs"
               >
                 <TabsList variant="line" className="h-8">
-                  <TabsTrigger value="overview">{translate("auto.components.automations.AutomationsPage.bb1b2cd31e", "Overview")}</TabsTrigger>
+                  <TabsTrigger value="overview">
+                    {translate(
+                      'auto.components.automations.AutomationsPage.bb1b2cd31e',
+                      'Overview'
+                    )}
+                  </TabsTrigger>
                   <TabsTrigger value="runs" disabled={!selected}>
-                    {translate("auto.components.automations.AutomationsPage.0e110a3469", "Runs")}<span className="text-xs text-muted-foreground">{selectedRuns.length}</span>
+                    {translate('auto.components.automations.AutomationsPage.0e110a3469', 'Runs')}
+                    <span className="text-xs text-muted-foreground">{selectedRuns.length}</span>
                   </TabsTrigger>
                 </TabsList>
               </div>
@@ -1997,7 +2258,11 @@ export default function AutomationsPage(): React.JSX.Element {
                                 isSelectedAutomationRunPageRerunPending && 'animate-spin'
                               )}
                             />
-                            {translate("auto.components.automations.AutomationsPage.295698292f", "Rerun")}</Button>
+                            {translate(
+                              'auto.components.automations.AutomationsPage.295698292f',
+                              'Rerun'
+                            )}
+                          </Button>
                         ) : null}
                         {selectedAutomationRunPageViewState ? (
                           <Button
@@ -2030,7 +2295,11 @@ export default function AutomationsPage(): React.JSX.Element {
                   />
                 ) : (
                   <div className="flex h-full items-center justify-center text-sm text-muted-foreground">
-                    {translate("auto.components.automations.AutomationsPage.c3a28c9793", "Select an automation to view runs.")}</div>
+                    {translate(
+                      'auto.components.automations.AutomationsPage.c3a28c9793',
+                      'Select an automation to view runs.'
+                    )}
+                  </div>
                 )}
               </TabsContent>
             </Tabs>

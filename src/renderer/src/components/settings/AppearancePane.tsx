@@ -22,24 +22,25 @@ import { DEFAULT_APP_FONT_FAMILY } from '../../../../shared/constants'
 import { normalizeAppIconId } from '../../../../shared/app-icon'
 import { useAvailableStatusBarToggles } from '../status-bar/use-available-status-bar-toggles'
 import {
-  APP_ICON_ENTRIES,
-  APPEARANCE_PANE_SEARCH_ENTRIES,
-  LAYOUT_ENTRIES,
-  SIDEBAR_ENTRIES,
-  STATUS_BAR_ENTRIES,
-  STATUS_BAR_TOGGLES,
-  THEME_ENTRIES,
-  TITLEBAR_ENTRIES,
-  TYPOGRAPHY_ENTRIES,
-  ZOOM_ENTRIES
+  getAppIconEntries,
+  getAppearancePaneSearchEntries,
+  getLanguageEntries,
+  getLayoutEntries,
+  getSidebarEntries,
+  getStatusBarEntries,
+  getStatusBarToggles,
+  getThemeEntries,
+  getTitlebarEntries,
+  getTypographyEntries,
+  getZoomEntries
 } from './appearance-search'
-import { TERMINAL_APPEARANCE_SEARCH_ENTRIES } from './terminal-search'
+import { getTerminalAppearanceSearchEntries } from './terminal-search'
 import { TerminalAppearanceSection } from './TerminalAppearanceSection'
 import type { UseGhosttyImportReturn } from './useGhosttyImport'
 import { AppIconSelector } from './AppIconSelector'
 import { UI_LANGUAGE_CHOICES } from '@/i18n/supported-languages'
 import { translate } from '@/i18n/i18n'
-export { APPEARANCE_PANE_SEARCH_ENTRIES }
+export { getAppearancePaneSearchEntries }
 
 type AppearancePaneProps = {
   settings: GlobalSettings
@@ -53,7 +54,11 @@ type AppearancePaneProps = {
 
 function ShortcutHintList({ combos }: { combos: string[][] }): React.JSX.Element {
   if (combos.length === 0) {
-    return <span className="text-xs text-muted-foreground">{translate("auto.components.settings.AppearancePane.3057983501", "Unassigned")}</span>
+    return (
+      <span className="text-xs text-muted-foreground">
+        {translate('auto.components.settings.AppearancePane.3057983501', 'Unassigned')}
+      </span>
+    )
   }
 
   return (
@@ -85,39 +90,73 @@ export function AppearancePane({
   const statusBarItems = useAppStore((state) => state.statusBarItems)
   const toggleStatusBarItem = useAppStore((state) => state.toggleStatusBarItem)
   const recordFeatureInteraction = useAppStore((state) => state.recordFeatureInteraction)
-  const visibleStatusBarToggles = useAvailableStatusBarToggles(STATUS_BAR_TOGGLES)
+  const visibleStatusBarToggles = useAvailableStatusBarToggles(getStatusBarToggles())
   const { t } = useTranslation()
 
   const visibleSections = [
-    matchesSettingsSearch(searchQuery, THEME_ENTRIES) ||
-    matchesSettingsSearch(searchQuery, ZOOM_ENTRIES) ||
-    matchesSettingsSearch(searchQuery, TYPOGRAPHY_ENTRIES) ? (
+    matchesSettingsSearch(searchQuery, getThemeEntries()) ||
+    matchesSettingsSearch(searchQuery, getLanguageEntries()) ||
+    matchesSettingsSearch(searchQuery, getZoomEntries()) ||
+    matchesSettingsSearch(searchQuery, getTypographyEntries()) ? (
       <section key="interface" className="divide-y divide-border/40">
-        {matchesSettingsSearch(searchQuery, THEME_ENTRIES) ? (
+        {matchesSettingsSearch(searchQuery, getThemeEntries()) ? (
           <SearchableSetting
-            title={translate("auto.components.settings.AppearancePane.932ff1fbff", "Theme")}
-            description={translate("auto.components.settings.AppearancePane.0f28e7b30c", "Choose how Orca looks in the app window.")}
-            keywords={['dark', 'light', 'system']}
+            title={translate('auto.components.settings.AppearancePane.932ff1fbff', 'Theme')}
+            description={translate(
+              'auto.components.settings.AppearancePane.0f28e7b30c',
+              'Choose how Orca looks in the app window.'
+            )}
+            keywords={getThemeEntries()[0]?.keywords ?? ['dark', 'light', 'system']}
           >
             <SettingsRow
-              label={translate("auto.components.settings.AppearancePane.932ff1fbff", "Theme")}
-              description={translate("auto.components.settings.AppearancePane.0f28e7b30c", "Choose how Orca looks in the app window.")}
+              label={translate('auto.components.settings.AppearancePane.932ff1fbff', 'Theme')}
+              description={translate(
+                'auto.components.settings.AppearancePane.0f28e7b30c',
+                'Choose how Orca looks in the app window.'
+              )}
               control={
                 <SettingsSegmentedControl
-                  ariaLabel={translate("auto.components.settings.AppearancePane.932ff1fbff", "Theme")}
+                  ariaLabel={translate(
+                    'auto.components.settings.AppearancePane.932ff1fbff',
+                    'Theme'
+                  )}
                   value={settings.theme}
                   onChange={(option) => {
                     updateSettings({ theme: option })
                     applyTheme(option)
                   }}
                   options={[
-                    { value: 'system', label: translate("auto.components.settings.AppearancePane.fb0e0b4453", "System") },
-                    { value: 'dark', label: translate("auto.components.settings.AppearancePane.7d26ccabe8", "Dark") },
-                    { value: 'light', label: translate("auto.components.settings.AppearancePane.fd89b5487c", "Light") }
+                    {
+                      value: 'system',
+                      label: translate(
+                        'auto.components.settings.AppearancePane.fb0e0b4453',
+                        'System'
+                      )
+                    },
+                    {
+                      value: 'dark',
+                      label: translate('auto.components.settings.AppearancePane.7d26ccabe8', 'Dark')
+                    },
+                    {
+                      value: 'light',
+                      label: translate(
+                        'auto.components.settings.AppearancePane.fd89b5487c',
+                        'Light'
+                      )
+                    }
                   ]}
                 />
               }
             />
+          </SearchableSetting>
+        ) : null}
+
+        {matchesSettingsSearch(searchQuery, getLanguageEntries()) ? (
+          <SearchableSetting
+            title={t('settings.appearance.language.title')}
+            description={t('settings.appearance.language.description')}
+            keywords={getLanguageEntries()[0]?.keywords ?? []}
+          >
             <SettingsRow
               label={t('settings.appearance.language.title')}
               description={t('settings.appearance.language.description')}
@@ -136,35 +175,52 @@ export function AppearancePane({
           </SearchableSetting>
         ) : null}
 
-        {matchesSettingsSearch(searchQuery, ZOOM_ENTRIES) ? (
+        {matchesSettingsSearch(searchQuery, getZoomEntries()) ? (
           <SearchableSetting
-            title={translate("auto.components.settings.AppearancePane.5e6d7aba8d", "UI Zoom")}
-            description={translate("auto.components.settings.AppearancePane.622e1c3465", "Scale the entire application interface.")}
-            keywords={['zoom', 'scale', 'shortcut']}
+            title={translate('auto.components.settings.AppearancePane.5e6d7aba8d', 'UI Zoom')}
+            description={translate(
+              'auto.components.settings.AppearancePane.622e1c3465',
+              'Scale the entire application interface.'
+            )}
+            keywords={getZoomEntries()[0]?.keywords ?? ['zoom', 'scale', 'shortcut']}
           >
             <SettingsRow
-              label={translate("auto.components.settings.AppearancePane.5e6d7aba8d", "UI Zoom")}
+              label={translate('auto.components.settings.AppearancePane.5e6d7aba8d', 'UI Zoom')}
               description={
                 <>
-                  {translate("auto.components.settings.AppearancePane.f687711a9b", "Scale the entire application interface. Use")}{' '}
+                  {translate(
+                    'auto.components.settings.AppearancePane.f687711a9b',
+                    'Scale the entire application interface. Use'
+                  )}{' '}
                   <ShortcutHintList combos={zoomInKeyCombos} /> /{' '}
-                  <ShortcutHintList combos={zoomOutKeyCombos} /> {translate("auto.components.settings.AppearancePane.ef89200c1f", "when not in a terminal pane.")}</>
+                  <ShortcutHintList combos={zoomOutKeyCombos} />{' '}
+                  {translate(
+                    'auto.components.settings.AppearancePane.ef89200c1f',
+                    'when not in a terminal pane.'
+                  )}
+                </>
               }
               control={<UIZoomControl />}
             />
           </SearchableSetting>
         ) : null}
 
-        {matchesSettingsSearch(searchQuery, TYPOGRAPHY_ENTRIES) ? (
+        {matchesSettingsSearch(searchQuery, getTypographyEntries()) ? (
           <SearchableSetting
-            title={translate("auto.components.settings.AppearancePane.102d6b5f9b", "IDE Font")}
-            description={translate("auto.components.settings.AppearancePane.42554f615f", "Choose the font used by the Orca interface.")}
-            keywords={['font', 'typeface', 'typography', 'ide', 'orca', 'interface', 'app', 'ui']}
+            title={translate('auto.components.settings.AppearancePane.102d6b5f9b', 'IDE Font')}
+            description={translate(
+              'auto.components.settings.AppearancePane.42554f615f',
+              'Choose the font used by the Orca interface.'
+            )}
+            keywords={getTypographyEntries()[0]?.keywords ?? ['font', 'typeface', 'typography']}
           >
             <SettingsRow
               alignTop
-              label={translate("auto.components.settings.AppearancePane.102d6b5f9b", "IDE Font")}
-              description={translate("auto.components.settings.AppearancePane.42554f615f", "Choose the font used by the Orca interface.")}
+              label={translate('auto.components.settings.AppearancePane.102d6b5f9b', 'IDE Font')}
+              description={translate(
+                'auto.components.settings.AppearancePane.42554f615f',
+                'Choose the font used by the Orca interface.'
+              )}
               control={
                 <FontAutocomplete
                   value={settings.appFontFamily}
@@ -180,7 +236,7 @@ export function AppearancePane({
         ) : null}
       </section>
     ) : null,
-    matchesSettingsSearch(searchQuery, TERMINAL_APPEARANCE_SEARCH_ENTRIES) ? (
+    matchesSettingsSearch(searchQuery, getTerminalAppearanceSearchEntries()) ? (
       <TerminalAppearanceSection
         key="terminal-appearance"
         settings={settings}
@@ -190,19 +246,33 @@ export function AppearancePane({
         ghostty={ghostty}
       />
     ) : null,
-    matchesSettingsSearch(searchQuery, LAYOUT_ENTRIES) ? (
+    matchesSettingsSearch(searchQuery, getLayoutEntries()) ? (
       <section key="layout" className="space-y-3">
-        <SettingsSubsectionHeader title={translate("auto.components.settings.AppearancePane.d496901cd0", "File Explorer")} />
+        <SettingsSubsectionHeader
+          title={translate('auto.components.settings.AppearancePane.d496901cd0', 'File Explorer')}
+        />
 
         <div className="divide-y divide-border/40">
           <SearchableSetting
-            title={translate("auto.components.settings.AppearancePane.0fafabcf35", "Show Git-Ignored Files")}
-            description={translate("auto.components.settings.AppearancePane.75f07ab60c", "Show files matched by .gitignore in the file explorer.")}
-            keywords={['git', 'gitignore', 'ignored', 'file explorer', 'sidebar', 'hide']}
+            title={translate(
+              'auto.components.settings.AppearancePane.0fafabcf35',
+              'Show Git-Ignored Files'
+            )}
+            description={translate(
+              'auto.components.settings.AppearancePane.75f07ab60c',
+              'Show files matched by .gitignore in the file explorer.'
+            )}
+            keywords={getLayoutEntries()[0]?.keywords ?? ['git', 'gitignore', 'ignored']}
           >
             <SettingsSwitchRow
-              label={translate("auto.components.settings.AppearancePane.0fafabcf35", "Show Git-Ignored Files")}
-              description={translate("auto.components.settings.AppearancePane.e9f2ca5582", "Turn off to hide files matched by .gitignore from the file explorer.")}
+              label={translate(
+                'auto.components.settings.AppearancePane.0fafabcf35',
+                'Show Git-Ignored Files'
+              )}
+              description={translate(
+                'auto.components.settings.AppearancePane.e9f2ca5582',
+                'Turn off to hide files matched by .gitignore from the file explorer.'
+              )}
               checked={settings.showGitIgnoredFiles ?? true}
               onChange={() =>
                 updateSettings({ showGitIgnoredFiles: !(settings.showGitIgnoredFiles ?? true) })
@@ -212,22 +282,37 @@ export function AppearancePane({
         </div>
       </section>
     ) : null,
-    matchesSettingsSearch(searchQuery, TITLEBAR_ENTRIES) ? (
+    matchesSettingsSearch(searchQuery, getTitlebarEntries()) ? (
       <section key="titlebar" className="space-y-3">
         <SettingsSubsectionHeader
-          title={translate("auto.components.settings.AppearancePane.6a272ca553", "Titlebar")}
-          description={translate("auto.components.settings.AppearancePane.4de76f6902", "Control what appears in the application titlebar.")}
+          title={translate('auto.components.settings.AppearancePane.6a272ca553', 'Titlebar')}
+          description={translate(
+            'auto.components.settings.AppearancePane.4de76f6902',
+            'Control what appears in the application titlebar.'
+          )}
         />
 
         <div className="divide-y divide-border/40">
           <SearchableSetting
-            title={translate("auto.components.settings.AppearancePane.9868f39007", "Titlebar App Name")}
-            description={translate("auto.components.settings.AppearancePane.2df8f79aa5", "Show Orca in the titlebar.")}
-            keywords={['titlebar', 'orca', 'app', 'name', 'brand']}
+            title={translate(
+              'auto.components.settings.AppearancePane.9868f39007',
+              'Titlebar App Name'
+            )}
+            description={translate(
+              'auto.components.settings.AppearancePane.2df8f79aa5',
+              'Show Orca in the titlebar.'
+            )}
+            keywords={getTitlebarEntries()[0]?.keywords ?? ['titlebar', 'orca', 'app', 'name']}
           >
             <SettingsSwitchRow
-              label={translate("auto.components.settings.AppearancePane.9868f39007", "Titlebar App Name")}
-              description={translate("auto.components.settings.AppearancePane.2df8f79aa5", "Show Orca in the titlebar.")}
+              label={translate(
+                'auto.components.settings.AppearancePane.9868f39007',
+                'Titlebar App Name'
+              )}
+              description={translate(
+                'auto.components.settings.AppearancePane.2df8f79aa5',
+                'Show Orca in the titlebar.'
+              )}
               checked={settings.showTitlebarAppName}
               onChange={() =>
                 updateSettings({ showTitlebarAppName: !settings.showTitlebarAppName })
@@ -237,11 +322,14 @@ export function AppearancePane({
         </div>
       </section>
     ) : null,
-    matchesSettingsSearch(searchQuery, STATUS_BAR_ENTRIES) ? (
+    matchesSettingsSearch(searchQuery, getStatusBarEntries()) ? (
       <section key="status-bar" className="space-y-3">
         <SettingsSubsectionHeader
-          title={translate("auto.components.settings.AppearancePane.3e4175e5c6", "Status Bar")}
-          description={translate("auto.components.settings.AppearancePane.ea943d0db0", "Choose which indicators appear at the bottom of the window. You can also right-click the status bar for the same toggles.")}
+          title={translate('auto.components.settings.AppearancePane.3e4175e5c6', 'Status Bar')}
+          description={translate(
+            'auto.components.settings.AppearancePane.ea943d0db0',
+            'Choose which indicators appear at the bottom of the window. You can also right-click the status bar for the same toggles.'
+          )}
         />
 
         <div className="divide-y divide-border/40">
@@ -283,19 +371,33 @@ export function AppearancePane({
         </div>
       </section>
     ) : null,
-    matchesSettingsSearch(searchQuery, SIDEBAR_ENTRIES) ? (
+    matchesSettingsSearch(searchQuery, getSidebarEntries()) ? (
       <section key="sidebar" className="space-y-3">
-        <SettingsSubsectionHeader title={translate("auto.components.settings.AppearancePane.dc29f3cc0d", "Sidebar")} />
+        <SettingsSubsectionHeader
+          title={translate('auto.components.settings.AppearancePane.dc29f3cc0d', 'Sidebar')}
+        />
 
         <div className="divide-y divide-border/40">
           <SearchableSetting
-            title={translate("auto.components.settings.AppearancePane.cf81907069", "Show Tasks Button")}
-            description={translate("auto.components.settings.AppearancePane.661942ab7f", "Show the Tasks button at the top of the left sidebar.")}
-            keywords={['tasks', 'sidebar', 'button', 'hide', 'show', 'github', 'linear']}
+            title={translate(
+              'auto.components.settings.AppearancePane.cf81907069',
+              'Show Tasks Button'
+            )}
+            description={translate(
+              'auto.components.settings.AppearancePane.661942ab7f',
+              'Show the Tasks button at the top of the left sidebar.'
+            )}
+            keywords={getSidebarEntries()[0]?.keywords ?? ['tasks', 'sidebar', 'button']}
           >
             <SettingsSwitchRow
-              label={translate("auto.components.settings.AppearancePane.cf81907069", "Show Tasks Button")}
-              description={translate("auto.components.settings.AppearancePane.661942ab7f", "Show the Tasks button at the top of the left sidebar.")}
+              label={translate(
+                'auto.components.settings.AppearancePane.cf81907069',
+                'Show Tasks Button'
+              )}
+              description={translate(
+                'auto.components.settings.AppearancePane.661942ab7f',
+                'Show the Tasks button at the top of the left sidebar.'
+              )}
               checked={settings.showTasksButton !== false}
               onChange={() =>
                 updateSettings({ showTasksButton: !(settings.showTasksButton !== false) })
@@ -304,21 +406,25 @@ export function AppearancePane({
           </SearchableSetting>
 
           <SearchableSetting
-            title={translate("auto.components.settings.AppearancePane.511f270ebb", "Show Automations Button")}
-            description={translate("auto.components.settings.AppearancePane.fa882a3e6b", "Show the Automations button at the top of the left sidebar.")}
-            keywords={[
-              'automations',
-              'automation',
-              'schedule',
-              'sidebar',
-              'button',
-              'hide',
-              'show'
-            ]}
+            title={translate(
+              'auto.components.settings.AppearancePane.511f270ebb',
+              'Show Automations Button'
+            )}
+            description={translate(
+              'auto.components.settings.AppearancePane.fa882a3e6b',
+              'Show the Automations button at the top of the left sidebar.'
+            )}
+            keywords={getSidebarEntries()[1]?.keywords ?? ['automations', 'automation', 'schedule']}
           >
             <SettingsSwitchRow
-              label={translate("auto.components.settings.AppearancePane.511f270ebb", "Show Automations Button")}
-              description={translate("auto.components.settings.AppearancePane.fa882a3e6b", "Show the Automations button at the top of the left sidebar.")}
+              label={translate(
+                'auto.components.settings.AppearancePane.511f270ebb',
+                'Show Automations Button'
+              )}
+              description={translate(
+                'auto.components.settings.AppearancePane.fa882a3e6b',
+                'Show the Automations button at the top of the left sidebar.'
+              )}
               checked={settings.showAutomationsButton !== false}
               onChange={() =>
                 updateSettings({
@@ -329,13 +435,25 @@ export function AppearancePane({
           </SearchableSetting>
 
           <SearchableSetting
-            title={translate("auto.components.settings.AppearancePane.9da1020447", "Show Orca Mobile Button")}
-            description={translate("auto.components.settings.AppearancePane.5db6ba961f", "Show the Orca Mobile button at the top of the left sidebar.")}
-            keywords={['mobile', 'phone', 'sidebar', 'button', 'hide', 'show', 'toolbox']}
+            title={translate(
+              'auto.components.settings.AppearancePane.9da1020447',
+              'Show Orca Mobile Button'
+            )}
+            description={translate(
+              'auto.components.settings.AppearancePane.5db6ba961f',
+              'Show the Orca Mobile button at the top of the left sidebar.'
+            )}
+            keywords={getSidebarEntries()[2]?.keywords ?? ['mobile', 'phone', 'sidebar']}
           >
             <SettingsSwitchRow
-              label={translate("auto.components.settings.AppearancePane.9da1020447", "Show Orca Mobile Button")}
-              description={translate("auto.components.settings.AppearancePane.61d842eca0", "Show the Orca Mobile shortcut in the sidebar. It remains available from Toolbox.")}
+              label={translate(
+                'auto.components.settings.AppearancePane.9da1020447',
+                'Show Orca Mobile Button'
+              )}
+              description={translate(
+                'auto.components.settings.AppearancePane.61d842eca0',
+                'Show the Orca Mobile shortcut in the sidebar. It remains available from Toolbox.'
+              )}
               checked={settings.showMobileButton !== false}
               onChange={() =>
                 updateSettings({ showMobileButton: !(settings.showMobileButton !== false) })
@@ -345,12 +463,15 @@ export function AppearancePane({
         </div>
       </section>
     ) : null,
-    matchesSettingsSearch(searchQuery, APP_ICON_ENTRIES) ? (
+    matchesSettingsSearch(searchQuery, getAppIconEntries()) ? (
       <section key="app-icon" className="space-y-3">
         <SearchableSetting
-          title={translate("auto.components.settings.AppearancePane.ca1590d42f", "App Icon")}
-          description={translate("auto.components.settings.AppearancePane.0cd9b8228f", "Choose the app icon shown in the Dock and window switcher.")}
-          keywords={APP_ICON_ENTRIES.flatMap((entry) => [
+          title={translate('auto.components.settings.AppearancePane.ca1590d42f', 'App Icon')}
+          description={translate(
+            'auto.components.settings.AppearancePane.0cd9b8228f',
+            'Choose the app icon shown in the Dock and window switcher.'
+          )}
+          keywords={getAppIconEntries().flatMap((entry) => [
             entry.title,
             entry.description ?? '',
             ...(entry.keywords ?? [])

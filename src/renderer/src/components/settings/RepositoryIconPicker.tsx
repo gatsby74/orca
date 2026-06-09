@@ -15,7 +15,7 @@ import { Label } from '../ui/label'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '../ui/tabs'
 import { Tooltip, TooltipContent, TooltipTrigger } from '../ui/tooltip'
 import { ColorPicker } from '../ui/color-picker'
-import { RepoIconGlyph, REPO_LUCIDE_ICON_OPTIONS } from '../repo/repo-icon'
+import { RepoIconGlyph, getRepoLucideIconOptions } from '../repo/repo-icon'
 import { cn } from '@/lib/utils'
 import { useAppStore } from '@/store'
 import { callRuntimeRpc, getActiveRuntimeTarget } from '@/runtime/runtime-rpc-client'
@@ -65,7 +65,7 @@ export function RepositoryIconPicker({
     }
     if (repo.repoIcon?.type === 'lucide') {
       const label =
-        REPO_LUCIDE_ICON_OPTIONS.find((option) => option.name === selectedLucideName)?.label ??
+        getRepoLucideIconOptions().find((option) => option.name === selectedLucideName)?.label ??
         'Folder'
       return `${label} icon with repo color`
     }
@@ -88,17 +88,37 @@ export function RepositoryIconPicker({
         label: result.fileName
       })
     } catch (error) {
-      toast.error(error instanceof Error ? error.message : translate("auto.components.settings.RepositoryIconPicker.868c5c9b56", "Failed to import repo icon"))
+      toast.error(
+        error instanceof Error
+          ? error.message
+          : translate(
+              'auto.components.settings.RepositoryIconPicker.868c5c9b56',
+              'Failed to import repo icon'
+            )
+      )
     }
   }
 
   const handleUseWebsiteFavicon = () => {
     const src = faviconUrlFromWebsite(website)
     if (!src) {
-      toast.error(translate("auto.components.settings.RepositoryIconPicker.acf31559a0", "Enter a valid website URL."))
+      toast.error(
+        translate(
+          'auto.components.settings.RepositoryIconPicker.acf31559a0',
+          'Enter a valid website URL.'
+        )
+      )
       return
     }
-    setIcon({ type: 'image', src, source: 'favicon', label: translate("auto.components.settings.RepositoryIconPicker.4d039317f4", "Website favicon") })
+    setIcon({
+      type: 'image',
+      src,
+      source: 'favicon',
+      label: translate(
+        'auto.components.settings.RepositoryIconPicker.4d039317f4',
+        'Website favicon'
+      )
+    })
   }
 
   // Why: SSH runtime repos only exist remotely, so resolve their git remotes
@@ -143,13 +163,23 @@ export function RepositoryIconPicker({
         return
       }
       if (!icon) {
-        toast.error(translate("auto.components.settings.RepositoryIconPicker.f79972271a", "No GitHub remote found for this repo."))
+        toast.error(
+          translate(
+            'auto.components.settings.RepositoryIconPicker.f79972271a',
+            'No GitHub remote found for this repo.'
+          )
+        )
         return
       }
       setIcon(icon)
     } catch {
       if (mountedRef.current) {
-        toast.error(translate("auto.components.settings.RepositoryIconPicker.d71df44587", "Failed to resolve the GitHub repo."))
+        toast.error(
+          translate(
+            'auto.components.settings.RepositoryIconPicker.d71df44587',
+            'Failed to resolve the GitHub repo.'
+          )
+        )
       }
     } finally {
       if (mountedRef.current) {
@@ -220,7 +250,9 @@ export function RepositoryIconPicker({
           iconClassName="size-5"
         />
         <div className="min-w-0 flex-1">
-          <Label className="text-sm font-semibold">{translate("auto.components.settings.RepositoryIconPicker.4e2a14f967", "Repo Icon")}</Label>
+          <Label className="text-sm font-semibold">
+            {translate('auto.components.settings.RepositoryIconPicker.4e2a14f967', 'Repo Icon')}
+          </Label>
           <div className="mt-1 truncate text-xs text-muted-foreground">{currentIconLabel}</div>
         </div>
         <Button
@@ -232,18 +264,25 @@ export function RepositoryIconPicker({
           onClick={() => void handleResetToDefault()}
         >
           <RotateCcw className="size-3.5" />
-          {translate("auto.components.settings.RepositoryIconPicker.549d126081", "Reset")}</Button>
+          {translate('auto.components.settings.RepositoryIconPicker.549d126081', 'Reset')}
+        </Button>
       </div>
 
       <div className="space-y-2">
-        <Label className="text-sm font-semibold">{translate("auto.components.settings.RepositoryIconPicker.642dc29c6d", "Color")}</Label>
+        <Label className="text-sm font-semibold">
+          {translate('auto.components.settings.RepositoryIconPicker.642dc29c6d', 'Color')}
+        </Label>
         <div className="flex flex-wrap items-center gap-2">
           {REPO_COLORS.map((color) => (
             <button
               key={color}
               type="button"
               onClick={() => setBadgeColor(color)}
-              aria-label={translate("auto.components.settings.RepositoryIconPicker.2b7d27b93c", "Use {{value0}} repo color", { value0: color })}
+              aria-label={translate(
+                'auto.components.settings.RepositoryIconPicker.2b7d27b93c',
+                'Use {{value0}} repo color',
+                { value0: color }
+              )}
               aria-pressed={selectedBadgeColor === color}
               className={cn(
                 'size-7 rounded-[4px] outline-none transition-all focus-visible:ring-[3px] focus-visible:ring-ring/50',
@@ -259,8 +298,15 @@ export function RepositoryIconPicker({
             onChange={setBadgeColor}
             label={
               isPresetBadgeColor
-                ? translate("auto.components.settings.RepositoryIconPicker.0e5f0693c1", "Choose custom repo color")
-                : translate("auto.components.settings.RepositoryIconPicker.913c55833d", "Custom repo color {{value0}}", { value0: selectedBadgeColor })
+                ? translate(
+                    'auto.components.settings.RepositoryIconPicker.0e5f0693c1',
+                    'Choose custom repo color'
+                  )
+                : translate(
+                    'auto.components.settings.RepositoryIconPicker.913c55833d',
+                    'Custom repo color {{value0}}',
+                    { value0: selectedBadgeColor }
+                  )
             }
             selected={!isPresetBadgeColor}
             triggerLabel="Custom"
@@ -273,11 +319,14 @@ export function RepositoryIconPicker({
       <Tabs defaultValue={initialTab} className="gap-3">
         <TabsList variant="line" className="h-8">
           <TabsTrigger value="avatar" className="h-7 text-xs">
-            {translate("auto.components.settings.RepositoryIconPicker.2d8bd302fa", "Avatar")}</TabsTrigger>
+            {translate('auto.components.settings.RepositoryIconPicker.2d8bd302fa', 'Avatar')}
+          </TabsTrigger>
           <TabsTrigger value="icon" className="h-7 text-xs">
-            {translate("auto.components.settings.RepositoryIconPicker.b2d7fd2116", "Icon")}</TabsTrigger>
+            {translate('auto.components.settings.RepositoryIconPicker.b2d7fd2116', 'Icon')}
+          </TabsTrigger>
           <TabsTrigger value="emoji" className="h-7 text-xs">
-            {translate("auto.components.settings.RepositoryIconPicker.c490787d24", "Emoji")}</TabsTrigger>
+            {translate('auto.components.settings.RepositoryIconPicker.c490787d24', 'Emoji')}
+          </TabsTrigger>
         </TabsList>
 
         <TabsContent value="avatar" className="space-y-3">
@@ -289,9 +338,17 @@ export function RepositoryIconPicker({
             onClick={() => void handleUseGitHubAvatar()}
           >
             <Github className="size-3.5" />
-            {translate("auto.components.settings.RepositoryIconPicker.39da8a10bf", "Use GitHub Avatar")}</Button>
+            {translate(
+              'auto.components.settings.RepositoryIconPicker.39da8a10bf',
+              'Use GitHub Avatar'
+            )}
+          </Button>
           <p className="text-xs text-muted-foreground">
-            {translate("auto.components.settings.RepositoryIconPicker.7da623abcc", "Used by default — GitHub always provides one, even when the owner hasn't set a custom image.")}</p>
+            {translate(
+              'auto.components.settings.RepositoryIconPicker.7da623abcc',
+              "Used by default — GitHub always provides one, even when the owner hasn't set a custom image."
+            )}
+          </p>
           <Button
             type="button"
             variant="outline"
@@ -300,12 +357,16 @@ export function RepositoryIconPicker({
             onClick={handleUploadImage}
           >
             <Image className="size-3.5" />
-            {translate("auto.components.settings.RepositoryIconPicker.381b4844fd", "Upload PNG")}</Button>
+            {translate('auto.components.settings.RepositoryIconPicker.381b4844fd', 'Upload PNG')}
+          </Button>
           <div className="flex gap-2">
             <Input
               value={website}
               onChange={(event) => setWebsite(event.target.value)}
-              placeholder={translate("auto.components.settings.RepositoryIconPicker.03ca1a4e9b", "example.com")}
+              placeholder={translate(
+                'auto.components.settings.RepositoryIconPicker.03ca1a4e9b',
+                'example.com'
+              )}
               className="h-9 text-sm"
             />
             <Button
@@ -316,14 +377,20 @@ export function RepositoryIconPicker({
               onClick={handleUseWebsiteFavicon}
             >
               <Link2 className="size-3.5" />
-              {translate("auto.components.settings.RepositoryIconPicker.cc1286e263", "Favicon")}</Button>
+              {translate('auto.components.settings.RepositoryIconPicker.cc1286e263', 'Favicon')}
+            </Button>
           </div>
-          <p className="text-xs text-muted-foreground">{translate("auto.components.settings.RepositoryIconPicker.fde066a63b", "PNG uploads must be 256KB or smaller.")}</p>
+          <p className="text-xs text-muted-foreground">
+            {translate(
+              'auto.components.settings.RepositoryIconPicker.fde066a63b',
+              'PNG uploads must be 256KB or smaller.'
+            )}
+          </p>
         </TabsContent>
 
         <TabsContent value="icon" className="space-y-3">
           <div className="grid grid-cols-10 gap-1.5">
-            {REPO_LUCIDE_ICON_OPTIONS.map((option) => (
+            {getRepoLucideIconOptions().map((option) => (
               <Tooltip key={option.name}>
                 <TooltipTrigger asChild>
                   <Button
@@ -332,7 +399,11 @@ export function RepositoryIconPicker({
                     size="icon-xs"
                     className="size-8"
                     onClick={() => setIcon({ type: 'lucide', name: option.name })}
-                    aria-label={translate("auto.components.settings.RepositoryIconPicker.2b7d27b93c", "Use {{value0}} repo icon", { value0: option.label })}
+                    aria-label={translate(
+                      'auto.components.settings.RepositoryIconPicker.2b7d27b93c',
+                      'Use {{value0}} repo icon',
+                      { value0: option.label }
+                    )}
                   >
                     <option.icon className="size-4" />
                   </Button>
@@ -354,7 +425,11 @@ export function RepositoryIconPicker({
               size="icon-xs"
               className="size-8 text-base"
               onClick={() => setIcon({ type: 'emoji', emoji })}
-              aria-label={translate("auto.components.settings.RepositoryIconPicker.2b7d27b93c", "Use {{value0}} repo icon", { value0: emoji })}
+              aria-label={translate(
+                'auto.components.settings.RepositoryIconPicker.2b7d27b93c',
+                'Use {{value0}} repo icon',
+                { value0: emoji }
+              )}
             >
               {emoji}
             </Button>

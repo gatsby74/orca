@@ -7,7 +7,7 @@ import ts from 'typescript'
 
 const SOURCE_EXTENSIONS = new Set(['.ts', '.tsx', '.js', '.jsx', '.mts', '.cts'])
 const SKIP_PATH_PARTS = new Set(['.git', 'dist', 'node_modules', 'out', '__snapshots__', 'assets'])
-const LOCALIZATION_FUNCTION_NAMES = new Set(['t', 'translate'])
+const LOCALIZATION_FUNCTION_NAMES = new Set(['t', 'translate', 'translateMain'])
 
 function normalizePath(root, filePath) {
   return path.relative(root, filePath).split(path.sep).join('/')
@@ -125,14 +125,16 @@ export async function main(root = process.cwd()) {
   const catalogPath = path.join(root, 'src', 'renderer', 'src', 'i18n', 'locales', 'en.json')
   const catalog = JSON.parse(await fs.readFile(catalogPath, 'utf8'))
   const catalogKeys = new Set(flattenCatalogKeys(catalog))
-  const sourceRoot = path.join(root, 'src', 'renderer', 'src')
-  const files = await collectSourceFiles(root, sourceRoot)
+  const sourceRoots = [path.join(root, 'src', 'renderer', 'src'), path.join(root, 'src', 'main')]
   const references = []
 
-  for (const filePath of files) {
-    references.push(
-      ...collectLocalizationKeyReferences(filePath, await fs.readFile(filePath, 'utf8'), root)
-    )
+  for (const sourceRoot of sourceRoots) {
+    const files = await collectSourceFiles(root, sourceRoot)
+    for (const filePath of files) {
+      references.push(
+        ...collectLocalizationKeyReferences(filePath, await fs.readFile(filePath, 'utf8'), root)
+      )
+    }
   }
 
   const missing = references.filter((reference) => !catalogKeys.has(reference.key))

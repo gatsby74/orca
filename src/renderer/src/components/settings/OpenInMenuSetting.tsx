@@ -18,7 +18,7 @@ import {
   getOpenInAppPreset,
   isOpenInAppPresetAdded,
   OpenInApplicationIcon,
-  OPEN_IN_APP_PRESETS,
+  getOpenInAppPresets,
   type OpenInAppPreset
 } from '@/lib/open-in-app-catalog'
 import { translate } from '@/i18n/i18n'
@@ -106,11 +106,13 @@ function OpenInMenuRow({
         <div className="min-w-0 flex-1 sm:min-w-[12rem]">
           <div className="flex items-center gap-2">
             <span className="text-sm font-medium leading-none">
-              {application.label.trim() || translate("auto.components.settings.OpenInMenuSetting.f79084947b", "New app")}
+              {application.label.trim() ||
+                translate('auto.components.settings.OpenInMenuSetting.f79084947b', 'New app')}
             </span>
           </div>
           <div className="mt-1 truncate font-mono text-[11px] text-muted-foreground">
-            {application.command.trim() || translate("auto.components.settings.OpenInMenuSetting.3743ed080c", "Set command")}
+            {application.command.trim() ||
+              translate('auto.components.settings.OpenInMenuSetting.3743ed080c', 'Set command')}
           </div>
         </div>
 
@@ -120,8 +122,22 @@ function OpenInMenuRow({
             variant="ghost"
             size="icon-sm"
             onClick={onEditToggle}
-            title={editing ? translate("auto.components.settings.OpenInMenuSetting.494ed535cd", "Collapse app details") : translate("auto.components.settings.OpenInMenuSetting.af7d1c3656", "Edit app")}
-            aria-label={editing ? translate("auto.components.settings.OpenInMenuSetting.494ed535cd", "Collapse app details") : translate("auto.components.settings.OpenInMenuSetting.af7d1c3656", "Edit app")}
+            title={
+              editing
+                ? translate(
+                    'auto.components.settings.OpenInMenuSetting.494ed535cd',
+                    'Collapse app details'
+                  )
+                : translate('auto.components.settings.OpenInMenuSetting.af7d1c3656', 'Edit app')
+            }
+            aria-label={
+              editing
+                ? translate(
+                    'auto.components.settings.OpenInMenuSetting.494ed535cd',
+                    'Collapse app details'
+                  )
+                : translate('auto.components.settings.OpenInMenuSetting.af7d1c3656', 'Edit app')
+            }
             aria-expanded={editing}
             className={cn(
               'size-7 text-muted-foreground hover:text-foreground',
@@ -135,8 +151,11 @@ function OpenInMenuRow({
             variant="ghost"
             size="icon-sm"
             onClick={onRemove}
-            title={translate("auto.components.settings.OpenInMenuSetting.a261931d29", "Remove app")}
-            aria-label={translate("auto.components.settings.OpenInMenuSetting.a261931d29", "Remove app")}
+            title={translate('auto.components.settings.OpenInMenuSetting.a261931d29', 'Remove app')}
+            aria-label={translate(
+              'auto.components.settings.OpenInMenuSetting.a261931d29',
+              'Remove app'
+            )}
             className="size-7 text-muted-foreground hover:text-destructive"
           >
             <Trash2 className="size-3.5" />
@@ -153,10 +172,15 @@ function OpenInMenuRow({
         >
           {!isPreset && (
             <div className="space-y-1">
-              <Label className="text-[11px] text-muted-foreground">{translate("auto.components.settings.OpenInMenuSetting.e1fc0085c6", "Menu label")}</Label>
+              <Label className="text-[11px] text-muted-foreground">
+                {translate('auto.components.settings.OpenInMenuSetting.e1fc0085c6', 'Menu label')}
+              </Label>
               <Input
                 value={application.label}
-                placeholder={translate("auto.components.settings.OpenInMenuSetting.3ebe650f74", "App name")}
+                placeholder={translate(
+                  'auto.components.settings.OpenInMenuSetting.3ebe650f74',
+                  'App name'
+                )}
                 onChange={(event) =>
                   onChange({ label: event.target.value, command: application.command })
                 }
@@ -171,10 +195,18 @@ function OpenInMenuRow({
             </div>
           )}
           <div className="space-y-1">
-            <Label className="text-[11px] text-muted-foreground">{translate("auto.components.settings.OpenInMenuSetting.ba1422ee07", "Terminal command")}</Label>
+            <Label className="text-[11px] text-muted-foreground">
+              {translate(
+                'auto.components.settings.OpenInMenuSetting.ba1422ee07',
+                'Terminal command'
+              )}
+            </Label>
             <Input
               value={application.command}
-              placeholder={translate("auto.components.settings.OpenInMenuSetting.810ef39b56", "cursor")}
+              placeholder={translate(
+                'auto.components.settings.OpenInMenuSetting.810ef39b56',
+                'cursor'
+              )}
               spellCheck={false}
               className="font-mono text-xs"
               onChange={(event) =>
@@ -189,7 +221,11 @@ function OpenInMenuRow({
               }}
             />
             <p className="text-[11px] text-muted-foreground">
-              {translate("auto.components.settings.OpenInMenuSetting.eb55b87570", "The command you would type in Terminal to open this app.")}</p>
+              {translate(
+                'auto.components.settings.OpenInMenuSetting.eb55b87570',
+                'The command you would type in Terminal to open this app.'
+              )}
+            </p>
           </div>
         </div>
       )}
@@ -254,9 +290,15 @@ export function OpenInMenuSetting({
     <div className="space-y-3">
       <div className="flex flex-wrap items-start justify-between gap-3">
         <div className="min-w-0 flex-1 space-y-1">
-          <Label>{translate("auto.components.settings.OpenInMenuSetting.6ed52fe71e", "Open In Apps")}</Label>
+          <Label>
+            {translate('auto.components.settings.OpenInMenuSetting.6ed52fe71e', 'Open In Apps')}
+          </Label>
           <p className="text-xs text-muted-foreground">
-            {translate("auto.components.settings.OpenInMenuSetting.9d0413817d", "Choose apps available from a workspace's Open in menu.")}</p>
+            {translate(
+              'auto.components.settings.OpenInMenuSetting.9d0413817d',
+              "Choose apps available from a workspace's Open in menu."
+            )}
+          </p>
         </div>
 
         <DropdownMenu>
@@ -268,11 +310,12 @@ export function OpenInMenuSetting({
               disabled={isAtLimit}
               className="h-8 shrink-0 gap-1.5"
             >
-              {translate("auto.components.settings.OpenInMenuSetting.e4064916aa", "Add app")}<ChevronDown className="size-3.5" />
+              {translate('auto.components.settings.OpenInMenuSetting.e4064916aa', 'Add app')}
+              <ChevronDown className="size-3.5" />
             </Button>
           </DropdownMenuTrigger>
           <DropdownMenuContent align="end" className="w-64">
-            {OPEN_IN_APP_PRESETS.map((preset) => {
+            {getOpenInAppPresets().map((preset) => {
               const isAdded = isOpenInAppPresetAdded(draft, preset)
               return (
                 <DropdownMenuItem
@@ -286,14 +329,17 @@ export function OpenInMenuSetting({
                   {isAdded && (
                     <DropdownMenuShortcut className="inline-flex items-center gap-1">
                       <Check className="size-3" />
-                      {translate("auto.components.settings.OpenInMenuSetting.c1d817e027", "Added")}</DropdownMenuShortcut>
+                      {translate('auto.components.settings.OpenInMenuSetting.c1d817e027', 'Added')}
+                    </DropdownMenuShortcut>
                   )}
                 </DropdownMenuItem>
               )
             })}
             <DropdownMenuItem disabled={isAtLimit} onSelect={addCustomApp} className="gap-2">
               <OpenInApplicationIcon application={{ command: '' }} size={14} />
-              <span className="min-w-0 truncate">{translate("auto.components.settings.OpenInMenuSetting.03b00b1f64", "Custom app")}</span>
+              <span className="min-w-0 truncate">
+                {translate('auto.components.settings.OpenInMenuSetting.03b00b1f64', 'Custom app')}
+              </span>
             </DropdownMenuItem>
           </DropdownMenuContent>
         </DropdownMenu>

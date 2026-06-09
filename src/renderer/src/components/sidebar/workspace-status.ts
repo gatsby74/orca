@@ -30,6 +30,7 @@ import {
   ConductorReviewIcon
 } from './workspace-status-icons'
 import { translate } from '@/i18n/i18n'
+import { createLocalizedCatalog } from '@/i18n/localized-catalog'
 
 export {
   DEFAULT_WORKSPACE_STATUS_COLOR_ID,
@@ -62,10 +63,10 @@ type WorkspaceStatusIconOption = {
   icon: React.ComponentType<{ className?: string }>
 }
 
-export const WORKSPACE_STATUS_COLOR_OPTIONS: WorkspaceStatusColorOption[] = [
+export const getWorkspaceStatusColorOptions = createLocalizedCatalog(() => [
   {
     id: 'neutral',
-    label: translate("auto.components.sidebar.workspace.status.52e3c6e2a4", "Neutral"),
+    label: translate('auto.components.sidebar.workspace.status.52e3c6e2a4', 'Neutral'),
     tone: 'text-muted-foreground',
     swatch: 'bg-muted-foreground',
     border: 'border-t-muted-foreground/45',
@@ -73,7 +74,7 @@ export const WORKSPACE_STATUS_COLOR_OPTIONS: WorkspaceStatusColorOption[] = [
   },
   {
     id: 'blue',
-    label: translate("auto.components.sidebar.workspace.status.fc3b92756c", "Blue"),
+    label: translate('auto.components.sidebar.workspace.status.fc3b92756c', 'Blue'),
     tone: 'text-blue-600 dark:text-blue-300',
     swatch: 'bg-blue-500',
     border: 'border-t-blue-500/70',
@@ -81,7 +82,7 @@ export const WORKSPACE_STATUS_COLOR_OPTIONS: WorkspaceStatusColorOption[] = [
   },
   {
     id: 'sky',
-    label: translate("auto.components.sidebar.workspace.status.6437a8c253", "Sky"),
+    label: translate('auto.components.sidebar.workspace.status.6437a8c253', 'Sky'),
     tone: 'text-sky-600 dark:text-sky-300',
     swatch: 'bg-sky-500',
     border: 'border-t-sky-500/70',
@@ -89,7 +90,7 @@ export const WORKSPACE_STATUS_COLOR_OPTIONS: WorkspaceStatusColorOption[] = [
   },
   {
     id: 'violet',
-    label: translate("auto.components.sidebar.workspace.status.1b81da243a", "Violet"),
+    label: translate('auto.components.sidebar.workspace.status.1b81da243a', 'Violet'),
     tone: 'text-violet-600 dark:text-violet-300',
     swatch: 'bg-violet-500',
     border: 'border-t-violet-500/70',
@@ -97,7 +98,7 @@ export const WORKSPACE_STATUS_COLOR_OPTIONS: WorkspaceStatusColorOption[] = [
   },
   {
     id: 'amber',
-    label: translate("auto.components.sidebar.workspace.status.7cebab6d4a", "Amber"),
+    label: translate('auto.components.sidebar.workspace.status.7cebab6d4a', 'Amber'),
     tone: 'text-amber-700 dark:text-amber-200',
     swatch: 'bg-amber-500',
     border: 'border-t-amber-500/70',
@@ -105,7 +106,7 @@ export const WORKSPACE_STATUS_COLOR_OPTIONS: WorkspaceStatusColorOption[] = [
   },
   {
     id: 'emerald',
-    label: translate("auto.components.sidebar.workspace.status.ddf25b6262", "Emerald"),
+    label: translate('auto.components.sidebar.workspace.status.ddf25b6262', 'Emerald'),
     tone: 'text-emerald-700 dark:text-emerald-200',
     swatch: 'bg-emerald-500',
     border: 'border-t-emerald-500/70',
@@ -113,7 +114,7 @@ export const WORKSPACE_STATUS_COLOR_OPTIONS: WorkspaceStatusColorOption[] = [
   },
   {
     id: 'rose',
-    label: translate("auto.components.sidebar.workspace.status.7adb43ecf0", "Rose"),
+    label: translate('auto.components.sidebar.workspace.status.7adb43ecf0', 'Rose'),
     tone: 'text-rose-600 dark:text-rose-300',
     swatch: 'bg-rose-500',
     border: 'border-t-rose-500/70',
@@ -121,7 +122,7 @@ export const WORKSPACE_STATUS_COLOR_OPTIONS: WorkspaceStatusColorOption[] = [
   },
   {
     id: 'zinc',
-    label: translate("auto.components.sidebar.workspace.status.caabd5ca85", "Zinc"),
+    label: translate('auto.components.sidebar.workspace.status.caabd5ca85', 'Zinc'),
     tone: 'text-zinc-600 dark:text-zinc-300',
     swatch: 'bg-zinc-500',
     border: 'border-t-zinc-500/70',
@@ -129,7 +130,7 @@ export const WORKSPACE_STATUS_COLOR_OPTIONS: WorkspaceStatusColorOption[] = [
   },
   {
     id: 'conductor-done',
-    label: translate("auto.components.sidebar.workspace.status.895f381714", "Conductor Done"),
+    label: translate('auto.components.sidebar.workspace.status.895f381714', 'Conductor Done'),
     tone: 'text-[#c7a594]',
     swatch: 'bg-[#c7a594]',
     border: 'border-t-[#c7a594]/70',
@@ -137,7 +138,7 @@ export const WORKSPACE_STATUS_COLOR_OPTIONS: WorkspaceStatusColorOption[] = [
   },
   {
     id: 'conductor-review',
-    label: translate("auto.components.sidebar.workspace.status.caebe3c10f", "Conductor Review"),
+    label: translate('auto.components.sidebar.workspace.status.caebe3c10f', 'Conductor Review'),
     tone: 'text-[#16a34a]',
     swatch: 'bg-[#16a34a]',
     border: 'border-t-[#16a34a]/70',
@@ -145,45 +146,111 @@ export const WORKSPACE_STATUS_COLOR_OPTIONS: WorkspaceStatusColorOption[] = [
   },
   {
     id: 'conductor-progress',
-    label: translate("auto.components.sidebar.workspace.status.1a9383112b", "Conductor Progress"),
+    label: translate('auto.components.sidebar.workspace.status.1a9383112b', 'Conductor Progress'),
     tone: 'text-[#d4a300]',
     swatch: 'bg-[#d4a300]',
     border: 'border-t-[#d4a300]/70',
     laneTint: 'bg-[#d4a300]/[0.04]'
   }
-]
+])
 
-export const WORKSPACE_STATUS_ICON_OPTIONS: WorkspaceStatusIconOption[] = [
-  { id: 'circle', label: translate("auto.components.sidebar.workspace.status.b4a7101fe1", "Circle"), icon: Circle },
-  { id: 'circle-dot', label: translate("auto.components.sidebar.workspace.status.a702bc08d4", "Dot"), icon: CircleDot },
-  { id: 'circle-progress', label: translate("auto.components.sidebar.workspace.status.226d1e7773", "Progress"), icon: ConductorProgressIcon },
-  { id: 'circle-dashed', label: translate("auto.components.sidebar.workspace.status.821d156f54", "Dashed"), icon: CircleDashed },
-  { id: 'circle-ellipsis', label: translate("auto.components.sidebar.workspace.status.5f9ca31a84", "Waiting"), icon: CircleEllipsis },
-  { id: 'git-pull-request', label: translate("auto.components.sidebar.workspace.status.409528031f", "Review"), icon: ConductorReviewIcon },
-  { id: 'timer', label: translate("auto.components.sidebar.workspace.status.251c817bdd", "Timer"), icon: Timer },
-  { id: 'flag', label: translate("auto.components.sidebar.workspace.status.6380517b10", "Flag"), icon: Flag },
-  { id: 'circle-alert', label: translate("auto.components.sidebar.workspace.status.642da473f2", "Alert"), icon: CircleAlert },
-  { id: 'circle-pause', label: translate("auto.components.sidebar.workspace.status.111db162bf", "Paused"), icon: CirclePause },
-  { id: 'circle-play', label: translate("auto.components.sidebar.workspace.status.2c19d1db33", "Play"), icon: CirclePlay },
-  { id: 'circle-check', label: translate("auto.components.sidebar.workspace.status.6b8285b8dd", "Done"), icon: ConductorDoneIcon },
-  { id: 'ban', label: translate("auto.components.sidebar.workspace.status.93ac840dcb", "Blocked"), icon: Ban },
-  { id: 'conductor-done', label: translate("auto.components.sidebar.workspace.status.6b8285b8dd", "Done"), icon: ConductorDoneIcon },
-  { id: 'conductor-review', label: translate("auto.components.sidebar.workspace.status.6c1efa2cf8", "In review"), icon: ConductorReviewIcon },
-  { id: 'conductor-progress', label: translate("auto.components.sidebar.workspace.status.cb387159f6", "In progress"), icon: ConductorProgressIcon }
-]
+export const getWorkspaceStatusIconOptions = createLocalizedCatalog(
+  (): WorkspaceStatusIconOption[] => [
+    {
+      id: 'circle',
+      label: translate('auto.components.sidebar.workspace.status.b4a7101fe1', 'Circle'),
+      icon: Circle
+    },
+    {
+      id: 'circle-dot',
+      label: translate('auto.components.sidebar.workspace.status.a702bc08d4', 'Dot'),
+      icon: CircleDot
+    },
+    {
+      id: 'circle-progress',
+      label: translate('auto.components.sidebar.workspace.status.226d1e7773', 'Progress'),
+      icon: ConductorProgressIcon
+    },
+    {
+      id: 'circle-dashed',
+      label: translate('auto.components.sidebar.workspace.status.821d156f54', 'Dashed'),
+      icon: CircleDashed
+    },
+    {
+      id: 'circle-ellipsis',
+      label: translate('auto.components.sidebar.workspace.status.5f9ca31a84', 'Waiting'),
+      icon: CircleEllipsis
+    },
+    {
+      id: 'git-pull-request',
+      label: translate('auto.components.sidebar.workspace.status.409528031f', 'Review'),
+      icon: ConductorReviewIcon
+    },
+    {
+      id: 'timer',
+      label: translate('auto.components.sidebar.workspace.status.251c817bdd', 'Timer'),
+      icon: Timer
+    },
+    {
+      id: 'flag',
+      label: translate('auto.components.sidebar.workspace.status.6380517b10', 'Flag'),
+      icon: Flag
+    },
+    {
+      id: 'circle-alert',
+      label: translate('auto.components.sidebar.workspace.status.642da473f2', 'Alert'),
+      icon: CircleAlert
+    },
+    {
+      id: 'circle-pause',
+      label: translate('auto.components.sidebar.workspace.status.111db162bf', 'Paused'),
+      icon: CirclePause
+    },
+    {
+      id: 'circle-play',
+      label: translate('auto.components.sidebar.workspace.status.2c19d1db33', 'Play'),
+      icon: CirclePlay
+    },
+    {
+      id: 'circle-check',
+      label: translate('auto.components.sidebar.workspace.status.6b8285b8dd', 'Done'),
+      icon: ConductorDoneIcon
+    },
+    {
+      id: 'ban',
+      label: translate('auto.components.sidebar.workspace.status.93ac840dcb', 'Blocked'),
+      icon: Ban
+    },
+    {
+      id: 'conductor-done',
+      label: translate('auto.components.sidebar.workspace.status.6b8285b8dd', 'Done'),
+      icon: ConductorDoneIcon
+    },
+    {
+      id: 'conductor-review',
+      label: translate('auto.components.sidebar.workspace.status.6c1efa2cf8', 'In review'),
+      icon: ConductorReviewIcon
+    },
+    {
+      id: 'conductor-progress',
+      label: translate('auto.components.sidebar.workspace.status.cb387159f6', 'In progress'),
+      icon: ConductorProgressIcon
+    }
+  ]
+)
 
-const FALLBACK_COLOR_OPTION: WorkspaceStatusColorOption = WORKSPACE_STATUS_COLOR_OPTIONS[0] ?? {
+const FALLBACK_COLOR_OPTION: WorkspaceStatusColorOption = getWorkspaceStatusColorOptions()[0] ?? {
   id: DEFAULT_WORKSPACE_STATUS_COLOR_ID,
-  label: translate("auto.components.sidebar.workspace.status.52e3c6e2a4", "Neutral"),
+  label: translate('auto.components.sidebar.workspace.status.52e3c6e2a4', 'Neutral'),
   tone: 'text-muted-foreground',
   swatch: 'bg-muted-foreground',
   border: 'border-t-muted-foreground/45',
   laneTint: 'bg-background/55'
 }
 
-const FALLBACK_ICON_OPTION: WorkspaceStatusIconOption = WORKSPACE_STATUS_ICON_OPTIONS[1] ?? {
+const FALLBACK_ICON_OPTION: WorkspaceStatusIconOption = getWorkspaceStatusIconOptions()[1] ?? {
   id: DEFAULT_WORKSPACE_STATUS_ICON_ID,
-  label: translate("auto.components.sidebar.workspace.status.a702bc08d4", "Dot"),
+  label: translate('auto.components.sidebar.workspace.status.a702bc08d4', 'Dot'),
   icon: CircleDot
 }
 
@@ -224,16 +291,15 @@ export function getWorkspaceStatusVisualMeta(status: WorkspaceStatus | Workspace
   const colorId = visual?.color ?? DEFAULT_STATUS_VISUALS[statusId]?.color
   const iconId = visual?.icon ?? DEFAULT_STATUS_VISUALS[statusId]?.icon
   const color =
-    WORKSPACE_STATUS_COLOR_OPTIONS.find((option) => option.id === colorId) ??
-    WORKSPACE_STATUS_COLOR_OPTIONS.find(
+    getWorkspaceStatusColorOptions().find((option) => option.id === colorId) ??
+    getWorkspaceStatusColorOptions().find(
       (option) => option.id === DEFAULT_WORKSPACE_STATUS_COLOR_ID
     ) ??
     FALLBACK_COLOR_OPTION
+  const iconOptions = getWorkspaceStatusIconOptions()
   const icon =
-    WORKSPACE_STATUS_ICON_OPTIONS.find((option) => option.id === iconId) ??
-    WORKSPACE_STATUS_ICON_OPTIONS.find(
-      (option) => option.id === DEFAULT_WORKSPACE_STATUS_ICON_ID
-    ) ??
+    iconOptions.find((option) => option.id === iconId) ??
+    iconOptions.find((option) => option.id === DEFAULT_WORKSPACE_STATUS_ICON_ID) ??
     FALLBACK_ICON_OPTION
 
   return {

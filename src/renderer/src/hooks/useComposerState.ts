@@ -7,7 +7,7 @@ import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { toast } from 'sonner'
 import { useShallow } from 'zustand/react/shallow'
 import { useAppStore } from '@/store'
-import { AGENT_CATALOG } from '@/lib/agent-catalog'
+import { getAgentCatalog } from '@/lib/agent-catalog'
 import {
   parseGitHubIssueOrPRNumber,
   parseGitHubIssueOrPRLink,
@@ -439,7 +439,7 @@ export function useComposerState(options: UseComposerStateOptions): UseComposerS
   const enabledCatalogAgents = useMemo(
     () =>
       filterEnabledTuiAgents(
-        AGENT_CATALOG.map((agent) => agent.id),
+        getAgentCatalog().map((agent) => agent.id),
         disabledTuiAgents
       ),
     [disabledTuiAgents]
@@ -867,12 +867,12 @@ export function useComposerState(options: UseComposerStateOptions): UseComposerS
       }
       const enabledIds = filterEnabledTuiAgents(ids, disabledTuiAgents)
       if (!newWorkspaceDraft?.agent && !settings?.defaultTuiAgent && enabledIds.length > 0) {
-        const firstInCatalogOrder = AGENT_CATALOG.find((a) => enabledIds.includes(a.id))
+        const firstInCatalogOrder = getAgentCatalog().find((a) => enabledIds.includes(a.id))
         if (firstInCatalogOrder) {
           setTuiAgent(firstInCatalogOrder.id)
         }
       } else if (!isTuiAgentEnabled(tuiAgent, disabledTuiAgents)) {
-        const firstEnabledDetected = AGENT_CATALOG.find((a) => enabledIds.includes(a.id))
+        const firstEnabledDetected = getAgentCatalog().find((a) => enabledIds.includes(a.id))
         setTuiAgent(firstEnabledDetected?.id ?? fallbackDefaultAgent)
       }
     })
@@ -968,7 +968,11 @@ export function useComposerState(options: UseComposerStateOptions): UseComposerS
     try {
       await window.api.ssh.connect({ targetId })
     } catch (error) {
-      toast.error(error instanceof Error ? error.message : translate("auto.hooks.useComposerState.ba6cb77082", "Failed to connect to project."))
+      toast.error(
+        error instanceof Error
+          ? error.message
+          : translate('auto.hooks.useComposerState.ba6cb77082', 'Failed to connect to project.')
+      )
     }
   }, [])
 
@@ -1387,7 +1391,12 @@ export function useComposerState(options: UseComposerStateOptions): UseComposerS
         return null
       }
       if (!targetRepoPath) {
-        toast.error(translate("auto.hooks.useComposerState.3db83fc58a", "No remote project path is available for attachments."))
+        toast.error(
+          translate(
+            'auto.hooks.useComposerState.3db83fc58a',
+            'No remote project path is available for attachments.'
+          )
+        )
         return { filePaths: [], folderPaths: [] }
       }
       const destinationDir = joinPath(targetRepoPath, '.orca/drops')
@@ -1417,7 +1426,12 @@ export function useComposerState(options: UseComposerStateOptions): UseComposerS
         }
       }
       if (skippedOrFailed > 0) {
-        toast.error(translate("auto.hooks.useComposerState.a9ff236145", "Some attachments could not be uploaded."))
+        toast.error(
+          translate(
+            'auto.hooks.useComposerState.a9ff236145',
+            'Some attachments could not be uploaded.'
+          )
+        )
       }
       return { filePaths, folderPaths }
     },
@@ -1703,7 +1717,11 @@ export function useComposerState(options: UseComposerStateOptions): UseComposerS
         .catch((error: unknown) => {
           setBaseBranch(undefined)
           setPushTarget(undefined)
-          toast.error(error instanceof Error ? error.message : translate("auto.hooks.useComposerState.b2ead86962", "Failed to resolve PR base."))
+          toast.error(
+            error instanceof Error
+              ? error.message
+              : translate('auto.hooks.useComposerState.b2ead86962', 'Failed to resolve PR base.')
+          )
         })
     },
     [applyLinkedWorkItem, eligibleRepos, handleBaseBranchPrSelect, selectedRepo, settings]
@@ -1875,7 +1893,12 @@ export function useComposerState(options: UseComposerStateOptions): UseComposerS
     }
     if (!isTuiAgentEnabled(tuiAgent, disabledTuiAgents)) {
       setTuiAgent(fallbackDefaultAgent)
-      toast.error(translate("auto.hooks.useComposerState.7eb3f44ff7", "Selected agent is disabled. Choose an enabled agent before creating."))
+      toast.error(
+        translate(
+          'auto.hooks.useComposerState.7eb3f44ff7',
+          'Selected agent is disabled. Choose an enabled agent before creating.'
+        )
+      )
       return
     }
 

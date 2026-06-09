@@ -3,7 +3,7 @@ import { Label } from '../ui/label'
 import { SearchableSetting } from './SearchableSetting'
 import { isDefaultPrimarySelectionMiddleClickPasteUserAgent } from '@/hooks/usePrimarySelectionPaste'
 import { translate } from '@/i18n/i18n'
-export { INPUT_PANE_SEARCH_ENTRIES } from './input-search'
+export { getInputPaneSearchEntries } from './input-search'
 
 type InputPaneProps = {
   settings: GlobalSettings
@@ -18,8 +18,14 @@ export function InputPane({ settings, updateSettings }: InputPaneProps): React.J
   return (
     <section className="space-y-4">
       <SearchableSetting
-        title={translate("auto.components.settings.InputPane.ad31c3c5fb", "Middle-click Paste from Selection")}
-        description={translate("auto.components.settings.InputPane.db15068196", "Enabled by default on Linux and macOS. Linux uses the system selection clipboard; other platforms use a private buffer.")}
+        title={translate(
+          'auto.components.settings.InputPane.ad31c3c5fb',
+          'Middle-click Paste from Selection'
+        )}
+        description={translate(
+          'auto.components.settings.InputPane.db15068196',
+          'Enabled by default on Linux and macOS. Linux uses the system selection clipboard; other platforms use a private buffer.'
+        )}
         keywords={[
           'input',
           'editing',
@@ -36,9 +42,18 @@ export function InputPane({ settings, updateSettings }: InputPaneProps): React.J
         className="flex items-center justify-between gap-4 py-2"
       >
         <div className="space-y-0.5">
-          <Label>{translate("auto.components.settings.InputPane.ad31c3c5fb", "Middle-click Paste from Selection")}</Label>
+          <Label>
+            {translate(
+              'auto.components.settings.InputPane.ad31c3c5fb',
+              'Middle-click Paste from Selection'
+            )}
+          </Label>
           <p className="text-xs text-muted-foreground">
-            {translate("auto.components.settings.InputPane.db15068196", "Enabled by default on Linux and macOS. Linux uses the system selection clipboard; other platforms use a private buffer.")}</p>
+            {translate(
+              'auto.components.settings.InputPane.db15068196',
+              'Enabled by default on Linux and macOS. Linux uses the system selection clipboard; other platforms use a private buffer.'
+            )}
+          </p>
         </div>
         <button
           type="button"

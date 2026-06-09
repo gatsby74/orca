@@ -29,7 +29,7 @@ import {
   serializeActionRecipeInputValues
 } from './source-control-ai-action-recipe-draft'
 import {
-  ACTION_DESCRIPTIONS,
+  getActionDescriptions,
   SOURCE_CONTROL_TEXT_ACTION_ID_SET,
   getAgentCatalogForAction,
   getSourceControlAgentArgsPlaceholder
@@ -250,21 +250,53 @@ export function SourceControlAiActionRecipeDefaults({
   if (
     !config.enabled ||
     !matchesSettingsSearch(searchQuery, {
-      title: translate("auto.components.settings.SourceControlAiActionRecipeDefaults.a79c567194", "Action recipes"),
-      description:
-        translate("auto.components.settings.SourceControlAiActionRecipeDefaults.cf01d41bce", "Agent, CLI arguments, and command template used by each Source Control AI button."),
+      title: translate(
+        'auto.components.settings.SourceControlAiActionRecipeDefaults.a79c567194',
+        'Action recipes'
+      ),
+      description: translate(
+        'auto.components.settings.SourceControlAiActionRecipeDefaults.cf01d41bce',
+        'Agent, CLI arguments, and command template used by each Source Control AI button.'
+      ),
       keywords: [
-        translate("auto.components.settings.SourceControlAiActionRecipeDefaults.926d58e87f", "agent"),
-        translate("auto.components.settings.SourceControlAiActionRecipeDefaults.db9bd75d10", "arguments"),
-        translate("auto.components.settings.SourceControlAiActionRecipeDefaults.2576299196", "args"),
-        translate("auto.components.settings.SourceControlAiActionRecipeDefaults.673369fe0c", "cli"),
-        translate("auto.components.settings.SourceControlAiActionRecipeDefaults.d74fdc776c", "command"),
-        translate("auto.components.settings.SourceControlAiActionRecipeDefaults.eb7e8f3b39", "model"),
-        translate("auto.components.settings.SourceControlAiActionRecipeDefaults.2037c78a6f", "template"),
-        translate("auto.components.settings.SourceControlAiActionRecipeDefaults.cb67b938c5", "fix"),
-        translate("auto.components.settings.SourceControlAiActionRecipeDefaults.06a9dab64d", "checks"),
-        translate("auto.components.settings.SourceControlAiActionRecipeDefaults.e5b24893ba", "commit"),
-        translate("auto.components.settings.SourceControlAiActionRecipeDefaults.7ab1437a12", "pull request")
+        translate(
+          'auto.components.settings.SourceControlAiActionRecipeDefaults.926d58e87f',
+          'agent'
+        ),
+        translate(
+          'auto.components.settings.SourceControlAiActionRecipeDefaults.db9bd75d10',
+          'arguments'
+        ),
+        translate(
+          'auto.components.settings.SourceControlAiActionRecipeDefaults.2576299196',
+          'args'
+        ),
+        translate('auto.components.settings.SourceControlAiActionRecipeDefaults.673369fe0c', 'cli'),
+        translate(
+          'auto.components.settings.SourceControlAiActionRecipeDefaults.d74fdc776c',
+          'command'
+        ),
+        translate(
+          'auto.components.settings.SourceControlAiActionRecipeDefaults.eb7e8f3b39',
+          'model'
+        ),
+        translate(
+          'auto.components.settings.SourceControlAiActionRecipeDefaults.2037c78a6f',
+          'template'
+        ),
+        translate('auto.components.settings.SourceControlAiActionRecipeDefaults.cb67b938c5', 'fix'),
+        translate(
+          'auto.components.settings.SourceControlAiActionRecipeDefaults.06a9dab64d',
+          'checks'
+        ),
+        translate(
+          'auto.components.settings.SourceControlAiActionRecipeDefaults.e5b24893ba',
+          'commit'
+        ),
+        translate(
+          'auto.components.settings.SourceControlAiActionRecipeDefaults.7ab1437a12',
+          'pull request'
+        )
       ]
     })
   ) {
@@ -273,8 +305,14 @@ export function SourceControlAiActionRecipeDefaults({
 
   return (
     <SearchableSetting
-      title={translate("auto.components.settings.SourceControlAiActionRecipeDefaults.a79c567194", "Action recipes")}
-      description={translate("auto.components.settings.SourceControlAiActionRecipeDefaults.cf01d41bce", "Agent, CLI arguments, and command template used by each Source Control AI button.")}
+      title={translate(
+        'auto.components.settings.SourceControlAiActionRecipeDefaults.a79c567194',
+        'Action recipes'
+      )}
+      description={translate(
+        'auto.components.settings.SourceControlAiActionRecipeDefaults.cf01d41bce',
+        'Agent, CLI arguments, and command template used by each Source Control AI button.'
+      )}
       keywords={[
         'agent',
         'arguments',
@@ -291,9 +329,18 @@ export function SourceControlAiActionRecipeDefaults({
       className="space-y-3 px-1 py-2"
     >
       <div className="space-y-0.5">
-        <Label>{translate("auto.components.settings.SourceControlAiActionRecipeDefaults.a79c567194", "Action recipes")}</Label>
+        <Label>
+          {translate(
+            'auto.components.settings.SourceControlAiActionRecipeDefaults.a79c567194',
+            'Action recipes'
+          )}
+        </Label>
         <p className="text-xs text-muted-foreground">
-          {translate("auto.components.settings.SourceControlAiActionRecipeDefaults.bf84dea6af", "Use variables only when you want Orca to inject context. Leave the agent as default to follow your normal agent preference.")}</p>
+          {translate(
+            'auto.components.settings.SourceControlAiActionRecipeDefaults.bf84dea6af',
+            'Use variables only when you want Orca to inject context. Leave the agent as default to follow your normal agent preference.'
+          )}
+        </p>
       </div>
       <div className="space-y-3">
         {SOURCE_CONTROL_ACTION_IDS.map((actionId) => {
@@ -318,7 +365,7 @@ export function SourceControlAiActionRecipeDefaults({
                     {SOURCE_CONTROL_ACTION_LABELS[actionId]}
                   </p>
                   <p className="text-[11px] text-muted-foreground">
-                    {ACTION_DESCRIPTIONS[actionId]}
+                    {getActionDescriptions()[actionId]}
                   </p>
                 </div>
                 <Select
@@ -332,13 +379,21 @@ export function SourceControlAiActionRecipeDefaults({
                     <SelectItem value={DEFAULT_AGENT_VALUE}>
                       <span className="flex items-center gap-2">
                         <Terminal className="size-3.5 text-muted-foreground" />
-                        {translate("auto.components.settings.SourceControlAiActionRecipeDefaults.ee0e5c2a48", "Use default agent")}</span>
+                        {translate(
+                          'auto.components.settings.SourceControlAiActionRecipeDefaults.ee0e5c2a48',
+                          'Use default agent'
+                        )}
+                      </span>
                     </SelectItem>
                     {SOURCE_CONTROL_TEXT_ACTION_ID_SET.has(actionId) ? (
                       <SelectItem value={CUSTOM_AGENT_ID}>
                         <span className="flex items-center gap-2">
                           <Terminal className="size-3.5 text-muted-foreground" />
-                          {translate("auto.components.settings.SourceControlAiActionRecipeDefaults.0740d30915", "Custom command")}</span>
+                          {translate(
+                            'auto.components.settings.SourceControlAiActionRecipeDefaults.0740d30915',
+                            'Custom command'
+                          )}
+                        </span>
                       </SelectItem>
                     ) : null}
                     {agentOptions.map((agent) => (
@@ -354,7 +409,12 @@ export function SourceControlAiActionRecipeDefaults({
               </div>
               <div className="mt-3 grid gap-3 sm:grid-cols-[220px_1fr]">
                 <div className="space-y-2">
-                  <Label className="text-[11px] text-muted-foreground">{translate("auto.components.settings.SourceControlAiActionRecipeDefaults.2cb4bb7e5d", "CLI arguments")}</Label>
+                  <Label className="text-[11px] text-muted-foreground">
+                    {translate(
+                      'auto.components.settings.SourceControlAiActionRecipeDefaults.2cb4bb7e5d',
+                      'CLI arguments'
+                    )}
+                  </Label>
                   <Input
                     value={agentArgs}
                     spellCheck={false}
@@ -364,7 +424,12 @@ export function SourceControlAiActionRecipeDefaults({
                   />
                 </div>
                 <div className="space-y-2">
-                  <Label className="text-[11px] text-muted-foreground">{translate("auto.components.settings.SourceControlAiActionRecipeDefaults.fb09da4345", "Command template")}</Label>
+                  <Label className="text-[11px] text-muted-foreground">
+                    {translate(
+                      'auto.components.settings.SourceControlAiActionRecipeDefaults.fb09da4345',
+                      'Command template'
+                    )}
+                  </Label>
                   <textarea
                     value={template}
                     rows={3}
@@ -380,7 +445,15 @@ export function SourceControlAiActionRecipeDefaults({
               </div>
               <div className="flex items-center justify-between gap-3">
                 <p className="text-[11px] text-muted-foreground">
-                  {templateDirty ? translate("auto.components.settings.SourceControlAiActionRecipeDefaults.817128d94e", "Unsaved changes") : translate("auto.components.settings.SourceControlAiActionRecipeDefaults.9d3cc627f8", "Saved")}
+                  {templateDirty
+                    ? translate(
+                        'auto.components.settings.SourceControlAiActionRecipeDefaults.817128d94e',
+                        'Unsaved changes'
+                      )
+                    : translate(
+                        'auto.components.settings.SourceControlAiActionRecipeDefaults.9d3cc627f8',
+                        'Saved'
+                      )}
                 </p>
                 <div className="flex items-center gap-2">
                   {templateDirty ? (
@@ -391,7 +464,11 @@ export function SourceControlAiActionRecipeDefaults({
                       onClick={() => discardActionTemplateDraft(actionId)}
                       disabled={isSavingTemplate}
                     >
-                      {translate("auto.components.settings.SourceControlAiActionRecipeDefaults.b3914ecbbc", "Discard")}</Button>
+                      {translate(
+                        'auto.components.settings.SourceControlAiActionRecipeDefaults.b3914ecbbc',
+                        'Discard'
+                      )}
+                    </Button>
                   ) : null}
                   <Button
                     type="button"
@@ -400,7 +477,15 @@ export function SourceControlAiActionRecipeDefaults({
                     onClick={() => void saveActionTemplateDraft(actionId)}
                     disabled={!templateDirty || isSavingTemplate}
                   >
-                    {isSavingTemplate ? translate("auto.components.settings.SourceControlAiActionRecipeDefaults.4f549a5fa8", "Saving...") : translate("auto.components.settings.SourceControlAiActionRecipeDefaults.d18d665e12", "Save")}
+                    {isSavingTemplate
+                      ? translate(
+                          'auto.components.settings.SourceControlAiActionRecipeDefaults.4f549a5fa8',
+                          'Saving...'
+                        )
+                      : translate(
+                          'auto.components.settings.SourceControlAiActionRecipeDefaults.d18d665e12',
+                          'Save'
+                        )}
                   </Button>
                 </div>
               </div>

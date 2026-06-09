@@ -3,7 +3,7 @@ import { Maximize2, Minimize2, Minus } from 'lucide-react'
 import { toast } from 'sonner'
 import { Button } from '@/components/ui/button'
 import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip'
-import { AGENT_CATALOG, AgentIcon } from '@/lib/agent-catalog'
+import { getAgentCatalog, AgentIcon } from '@/lib/agent-catalog'
 import { focusTerminalTabSurface } from '@/lib/focus-terminal-tab-surface'
 import { CLIENT_PLATFORM } from '@/lib/new-workspace'
 import { buildAgentStartupPlan } from '@/lib/tui-agent-startup'
@@ -41,7 +41,7 @@ export function FloatingTerminalWindowControls({
   const defaultAgentLabel = useMemo(
     () =>
       defaultAgent
-        ? (AGENT_CATALOG.find((agent) => agent.id === defaultAgent)?.label ?? defaultAgent)
+        ? (getAgentCatalog().find((agent) => agent.id === defaultAgent)?.label ?? defaultAgent)
         : null,
     [defaultAgent]
   )
@@ -59,7 +59,13 @@ export function FloatingTerminalWindowControls({
       allowEmptyPromptLaunch: true
     })
     if (!startupPlan) {
-      toast.error(translate("auto.components.floating.terminal.FloatingTerminalWindowControls.82da3701e7", "Could not build launch command for {{value0}}.", { value0: defaultAgentLabel ?? defaultAgent }))
+      toast.error(
+        translate(
+          'auto.components.floating.terminal.FloatingTerminalWindowControls.82da3701e7',
+          'Could not build launch command for {{value0}}.',
+          { value0: defaultAgentLabel ?? defaultAgent }
+        )
+      )
       return
     }
     const tab = createTab(FLOATING_TERMINAL_WORKTREE_ID, undefined, undefined, { activate: false })
@@ -98,14 +104,22 @@ export function FloatingTerminalWindowControls({
               variant="outline"
               size="icon-xs"
               className={controlButtonClassName}
-              aria-label={translate("auto.components.floating.terminal.FloatingTerminalWindowControls.648352c51f", "Open {{value0}} in floating workspace", { value0: defaultAgentLabel ?? defaultAgent })}
+              aria-label={translate(
+                'auto.components.floating.terminal.FloatingTerminalWindowControls.648352c51f',
+                'Open {{value0}} in floating workspace',
+                { value0: defaultAgentLabel ?? defaultAgent }
+              )}
               onClick={launchDefaultAgent}
             >
               <AgentIcon agent={defaultAgent} size={14} />
             </Button>
           </TooltipTrigger>
           <TooltipContent side="bottom" sideOffset={6}>
-            {translate("auto.components.floating.terminal.FloatingTerminalWindowControls.648352c51f", "Open")}{defaultAgentLabel ?? defaultAgent}
+            {translate(
+              'auto.components.floating.terminal.FloatingTerminalWindowControls.648352c51f',
+              'Open'
+            )}
+            {defaultAgentLabel ?? defaultAgent}
           </TooltipContent>
         </Tooltip>
       ) : null}
@@ -116,7 +130,17 @@ export function FloatingTerminalWindowControls({
             variant="outline"
             size="icon-xs"
             className={controlButtonClassName}
-            aria-label={maximized ? translate("auto.components.floating.terminal.FloatingTerminalWindowControls.1c79cba25d", "Restore floating workspace") : translate("auto.components.floating.terminal.FloatingTerminalWindowControls.3f4ca29961", "Maximize floating workspace")}
+            aria-label={
+              maximized
+                ? translate(
+                    'auto.components.floating.terminal.FloatingTerminalWindowControls.1c79cba25d',
+                    'Restore floating workspace'
+                  )
+                : translate(
+                    'auto.components.floating.terminal.FloatingTerminalWindowControls.3f4ca29961',
+                    'Maximize floating workspace'
+                  )
+            }
             aria-pressed={maximized}
             onClick={onToggleMaximized}
           >
@@ -124,7 +148,15 @@ export function FloatingTerminalWindowControls({
           </Button>
         </TooltipTrigger>
         <TooltipContent side="bottom" sideOffset={6}>
-          {maximized ? translate("auto.components.floating.terminal.FloatingTerminalWindowControls.b5686fee1e", "Restore") : translate("auto.components.floating.terminal.FloatingTerminalWindowControls.109870e023", "Maximize")}
+          {maximized
+            ? translate(
+                'auto.components.floating.terminal.FloatingTerminalWindowControls.b5686fee1e',
+                'Restore'
+              )
+            : translate(
+                'auto.components.floating.terminal.FloatingTerminalWindowControls.109870e023',
+                'Maximize'
+              )}
         </TooltipContent>
       </Tooltip>
       <Tooltip>
@@ -134,14 +166,21 @@ export function FloatingTerminalWindowControls({
             variant="outline"
             size="icon-xs"
             className={controlButtonClassName}
-            aria-label={translate("auto.components.floating.terminal.FloatingTerminalWindowControls.1bbaa0302f", "Minimize floating workspace")}
+            aria-label={translate(
+              'auto.components.floating.terminal.FloatingTerminalWindowControls.1bbaa0302f',
+              'Minimize floating workspace'
+            )}
             onClick={onMinimize}
           >
             <Minus className="size-3.5" />
           </Button>
         </TooltipTrigger>
         <TooltipContent side="bottom" sideOffset={6}>
-          {translate("auto.components.floating.terminal.FloatingTerminalWindowControls.2f6054342c", "Minimize")}</TooltipContent>
+          {translate(
+            'auto.components.floating.terminal.FloatingTerminalWindowControls.2f6054342c',
+            'Minimize'
+          )}
+        </TooltipContent>
       </Tooltip>
     </div>
   )

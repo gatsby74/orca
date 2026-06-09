@@ -15,7 +15,7 @@ import {
 } from '../ui/dropdown-menu'
 import { AgentIcon } from '@/lib/agent-catalog'
 import { translate } from '@/i18n/i18n'
-export { STATS_PANE_SEARCH_ENTRIES } from './stats-search'
+export { getStatsPaneSearchEntries } from './stats-search'
 
 function formatDuration(ms: number): string {
   if (ms <= 0) {
@@ -48,10 +48,10 @@ function formatTrackingSince(timestamp: number | null): string {
 type UsageTab = 'overview' | 'claude' | 'codex' | 'opencode'
 
 const USAGE_ANALYTICS_OPTIONS = [
-  { id: 'overview', label: translate("auto.components.stats.StatsPane.b2cf4310ce", "Overview") },
-  { id: 'claude', label: translate("auto.components.stats.StatsPane.85457c02fe", "Claude") },
-  { id: 'codex', label: translate("auto.components.stats.StatsPane.7d26110cea", "Codex") },
-  { id: 'opencode', label: translate("auto.components.stats.StatsPane.1e696db2f6", "OpenCode") }
+  { id: 'overview', label: translate('auto.components.stats.StatsPane.b2cf4310ce', 'Overview') },
+  { id: 'claude', label: translate('auto.components.stats.StatsPane.85457c02fe', 'Claude') },
+  { id: 'codex', label: translate('auto.components.stats.StatsPane.7d26110cea', 'Codex') },
+  { id: 'opencode', label: translate('auto.components.stats.StatsPane.1e696db2f6', 'OpenCode') }
 ] as const satisfies readonly { id: UsageTab; label: string }[]
 
 function UsageAnalyticsOptionIcon({ tab }: { tab: UsageTab }): React.JSX.Element {
@@ -81,22 +81,29 @@ export function StatsPane(): React.JSX.Element {
         <div className="space-y-3">
           {summary.totalAgentsSpawned === 0 && summary.totalPRsCreated === 0 ? (
             <div className="flex min-h-[8rem] items-center justify-center rounded-lg border border-dashed border-border/60 bg-card/30 text-sm text-muted-foreground">
-              {translate("auto.components.stats.StatsPane.73ed07859c", "Start your first agent to begin tracking")}</div>
+              {translate(
+                'auto.components.stats.StatsPane.73ed07859c',
+                'Start your first agent to begin tracking'
+              )}
+            </div>
           ) : (
             <>
               <div className="grid grid-cols-3 gap-3">
                 <StatCard
-                  label={translate("auto.components.stats.StatsPane.9dbec9e675", "Agents spawned")}
+                  label={translate('auto.components.stats.StatsPane.9dbec9e675', 'Agents spawned')}
                   value={summary.totalAgentsSpawned.toLocaleString()}
                   icon={<Bot className="size-4" />}
                 />
                 <StatCard
-                  label={translate("auto.components.stats.StatsPane.1c96f433e2", "Time agents worked")}
+                  label={translate(
+                    'auto.components.stats.StatsPane.1c96f433e2',
+                    'Time agents worked'
+                  )}
                   value={formatDuration(summary.totalAgentTimeMs)}
                   icon={<Clock className="size-4" />}
                 />
                 <StatCard
-                  label={translate("auto.components.stats.StatsPane.a58aba506f", "PRs created")}
+                  label={translate('auto.components.stats.StatsPane.a58aba506f', 'PRs created')}
                   value={summary.totalPRsCreated.toLocaleString()}
                   icon={<GitPullRequest className="size-4" />}
                 />
@@ -113,7 +120,9 @@ export function StatsPane(): React.JSX.Element {
 
       <div className="space-y-4">
         <div className="flex items-center justify-between gap-3">
-          <h3 className="text-sm font-semibold text-foreground">{translate("auto.components.stats.StatsPane.c79f073d4c", "Usage Analytics")}</h3>
+          <h3 className="text-sm font-semibold text-foreground">
+            {translate('auto.components.stats.StatsPane.c79f073d4c', 'Usage Analytics')}
+          </h3>
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
               <Button
@@ -121,7 +130,11 @@ export function StatsPane(): React.JSX.Element {
                 variant="outline"
                 size="sm"
                 data-testid="usage-provider-select"
-                aria-label={translate("auto.components.stats.StatsPane.42d3e0bdf7", "Usage analytics provider: {{value0}}", { value0: activeUsageOption.label })}
+                aria-label={translate(
+                  'auto.components.stats.StatsPane.42d3e0bdf7',
+                  'Usage analytics provider: {{value0}}',
+                  { value0: activeUsageOption.label }
+                )}
                 className="min-w-36 justify-between"
               >
                 <span className="flex min-w-0 items-center gap-2">
@@ -154,11 +167,11 @@ export function StatsPane(): React.JSX.Element {
             active panel mounted avoids hidden tab-content layout/focus churn that produced a visible
             vertical jitter below the usage card when switching disabled providers. */}
         <div>
-          {activeUsageTab === "overview" ? (
+          {activeUsageTab === 'overview' ? (
             <UsageOverviewPane />
-          ) : activeUsageTab === "claude" ? (
+          ) : activeUsageTab === 'claude' ? (
             <ClaudeUsagePane />
-          ) : activeUsageTab === "codex" ? (
+          ) : activeUsageTab === 'codex' ? (
             <CodexUsagePane />
           ) : (
             <OpenCodeUsagePane />

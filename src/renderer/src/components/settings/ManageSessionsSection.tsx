@@ -5,7 +5,7 @@ import type { PtyManagementSession } from '../../../../preload/api-types'
 import { Button } from '../ui/button'
 import { Tooltip, TooltipContent, TooltipTrigger } from '../ui/tooltip'
 import { SearchableSetting } from './SearchableSetting'
-import { MANAGE_SESSIONS_SEARCH_ENTRIES } from './terminal-search'
+import { getManageSessionsSearchEntries } from './terminal-search'
 import { splitWorktreeIdForFilesystem } from '../../../../shared/worktree-id'
 import { useAppStore } from '../../store'
 import { activateAndRevealWorktree } from '@/lib/worktree-activation'
@@ -164,9 +164,15 @@ export function ManageSessionsSection(): React.JSX.Element {
     } catch (err) {
       console.error('[manage-sessions] listSessions failed', err)
       if (isMounted.current && !mutationInFlight.current) {
-        toast.error(translate("auto.components.settings.ManageSessionsSection.c535cbdd09", "Couldn’t load sessions."), {
-          description: err instanceof Error ? err.message : undefined
-        })
+        toast.error(
+          translate(
+            'auto.components.settings.ManageSessionsSection.c535cbdd09',
+            'Couldn’t load sessions.'
+          ),
+          {
+            description: err instanceof Error ? err.message : undefined
+          }
+        )
       }
       return []
     } finally {
@@ -217,16 +223,32 @@ export function ManageSessionsSection(): React.JSX.Element {
           sessionId: session.sessionId
         })
         if (success) {
-          toast.success(translate("auto.components.settings.ManageSessionsSection.bfba05dccd", "Killed session."))
+          toast.success(
+            translate(
+              'auto.components.settings.ManageSessionsSection.bfba05dccd',
+              'Killed session.'
+            )
+          )
         } else {
-          toast.error(translate("auto.components.settings.ManageSessionsSection.0735b7a586", "Couldn’t kill session — it may already be gone."))
+          toast.error(
+            translate(
+              'auto.components.settings.ManageSessionsSection.0735b7a586',
+              'Couldn’t kill session — it may already be gone.'
+            )
+          )
         }
         mutationInFlight.current = false
         await refresh()
       } catch (err) {
-        toast.error(translate("auto.components.settings.ManageSessionsSection.8dbd96b463", "Couldn’t kill session."), {
-          description: err instanceof Error ? err.message : undefined
-        })
+        toast.error(
+          translate(
+            'auto.components.settings.ManageSessionsSection.8dbd96b463',
+            'Couldn’t kill session.'
+          ),
+          {
+            description: err instanceof Error ? err.message : undefined
+          }
+        )
       } finally {
         mutationInFlight.current = false
         if (isMounted.current) {
@@ -255,18 +277,31 @@ export function ManageSessionsSection(): React.JSX.Element {
     return (
       <section className="space-y-4">
         <div className="space-y-1">
-          <h3 className="text-sm font-semibold">{translate("auto.components.settings.ManageSessionsSection.d1b80fd5cd", "Manage Sessions")}</h3>
+          <h3 className="text-sm font-semibold">
+            {translate(
+              'auto.components.settings.ManageSessionsSection.d1b80fd5cd',
+              'Manage Sessions'
+            )}
+          </h3>
           <p className="text-xs text-muted-foreground">
-            {translate("auto.components.settings.ManageSessionsSection.ad467eaadc", "Session management is unavailable while a remote runtime server is active.")}</p>
+            {translate(
+              'auto.components.settings.ManageSessionsSection.ad467eaadc',
+              'Session management is unavailable while a remote runtime server is active.'
+            )}
+          </p>
         </div>
         <SearchableSetting
-          title={MANAGE_SESSIONS_SEARCH_ENTRIES[0].title}
-          description={MANAGE_SESSIONS_SEARCH_ENTRIES[0].description}
-          keywords={MANAGE_SESSIONS_SEARCH_ENTRIES[0].keywords}
+          title={getManageSessionsSearchEntries()[0].title}
+          description={getManageSessionsSearchEntries()[0].description}
+          keywords={getManageSessionsSearchEntries()[0].keywords}
           className="space-y-3"
         >
           <div className="rounded-lg border border-border/60 px-3 py-3 text-xs text-muted-foreground">
-            {translate("auto.components.settings.ManageSessionsSection.9c940434af", "Switch back to the local runtime to restart or kill local daemon sessions.")}</div>
+            {translate(
+              'auto.components.settings.ManageSessionsSection.9c940434af',
+              'Switch back to the local runtime to restart or kill local daemon sessions.'
+            )}
+          </div>
         </SearchableSetting>
       </section>
     )
@@ -275,15 +310,24 @@ export function ManageSessionsSection(): React.JSX.Element {
   return (
     <section className="space-y-4">
       <div className="space-y-1">
-        <h3 className="text-sm font-semibold">{translate("auto.components.settings.ManageSessionsSection.d1b80fd5cd", "Manage Sessions")}</h3>
+        <h3 className="text-sm font-semibold">
+          {translate(
+            'auto.components.settings.ManageSessionsSection.d1b80fd5cd',
+            'Manage Sessions'
+          )}
+        </h3>
         <p className="text-xs text-muted-foreground">
-          {translate("auto.components.settings.ManageSessionsSection.7c4889a724", "Recover from a frozen or misbehaving terminal by killing sessions or restarting the underlying daemon.")}</p>
+          {translate(
+            'auto.components.settings.ManageSessionsSection.7c4889a724',
+            'Recover from a frozen or misbehaving terminal by killing sessions or restarting the underlying daemon.'
+          )}
+        </p>
       </div>
 
       <SearchableSetting
-        title={MANAGE_SESSIONS_SEARCH_ENTRIES[0].title}
-        description={MANAGE_SESSIONS_SEARCH_ENTRIES[0].description}
-        keywords={MANAGE_SESSIONS_SEARCH_ENTRIES[0].keywords}
+        title={getManageSessionsSearchEntries()[0].title}
+        description={getManageSessionsSearchEntries()[0].description}
+        keywords={getManageSessionsSearchEntries()[0].keywords}
         className="space-y-3"
       >
         {/* Why: full-width sessions card. The table *is* the primary
@@ -296,14 +340,18 @@ export function ManageSessionsSection(): React.JSX.Element {
           <div className="flex shrink-0 flex-wrap items-center justify-between gap-2 border-b border-border/60 px-3 py-2">
             <div className="flex items-center gap-2">
               <span className="text-xs font-medium text-muted-foreground">
-                {translate("auto.components.settings.ManageSessionsSection.a795a9552a", "Sessions")}{hasLoadedOnce ? <span className="ml-1 tabular-nums">({sessionCount})</span> : null}
+                {translate('auto.components.settings.ManageSessionsSection.a795a9552a', 'Sessions')}
+                {hasLoadedOnce ? <span className="ml-1 tabular-nums">({sessionCount})</span> : null}
               </span>
               <Button
                 variant="ghost"
                 size="icon-xs"
                 onClick={() => void refresh()}
                 disabled={isBusy || isRefreshing}
-                aria-label={translate("auto.components.settings.ManageSessionsSection.b3b1cc5708", "Refresh")}
+                aria-label={translate(
+                  'auto.components.settings.ManageSessionsSection.b3b1cc5708',
+                  'Refresh'
+                )}
                 className="text-muted-foreground"
               >
                 <RefreshCw className={isRefreshing ? 'animate-spin' : ''} />
@@ -323,10 +371,13 @@ export function ManageSessionsSection(): React.JSX.Element {
                     size="icon-xs"
                     disabled={isBusy || sessionCount === 0}
                     onClick={() => daemonActions.setPending('killAll')}
-                    aria-label={translate("auto.components.settings.ManageSessionsSection.3282db098c", "Kill all sessions")}
+                    aria-label={translate(
+                      'auto.components.settings.ManageSessionsSection.3282db098c',
+                      'Kill all sessions'
+                    )}
                     className="text-muted-foreground hover:text-destructive"
                   >
-                    {daemonActions.busyKind === "killAll" ? (
+                    {daemonActions.busyKind === 'killAll' ? (
                       <LoaderCircle className="animate-spin" />
                     ) : (
                       <Trash2 />
@@ -334,7 +385,11 @@ export function ManageSessionsSection(): React.JSX.Element {
                   </Button>
                 </TooltipTrigger>
                 <TooltipContent side="bottom" sideOffset={6}>
-                  {translate("auto.components.settings.ManageSessionsSection.3282db098c", "Kill all sessions")}</TooltipContent>
+                  {translate(
+                    'auto.components.settings.ManageSessionsSection.3282db098c',
+                    'Kill all sessions'
+                  )}
+                </TooltipContent>
               </Tooltip>
               <Tooltip>
                 <TooltipTrigger asChild>
@@ -343,10 +398,13 @@ export function ManageSessionsSection(): React.JSX.Element {
                     size="icon-xs"
                     disabled={isBusy}
                     onClick={() => daemonActions.setPending('restart')}
-                    aria-label={translate("auto.components.settings.ManageSessionsSection.5ed15e778c", "Restart daemon")}
+                    aria-label={translate(
+                      'auto.components.settings.ManageSessionsSection.5ed15e778c',
+                      'Restart daemon'
+                    )}
                     className="text-muted-foreground"
                   >
-                    {daemonActions.busyKind === "restart" ? (
+                    {daemonActions.busyKind === 'restart' ? (
                       <LoaderCircle className="animate-spin" />
                     ) : (
                       <RotateCw />
@@ -354,17 +412,26 @@ export function ManageSessionsSection(): React.JSX.Element {
                   </Button>
                 </TooltipTrigger>
                 <TooltipContent side="bottom" sideOffset={6}>
-                  {translate("auto.components.settings.ManageSessionsSection.5ed15e778c", "Restart daemon")}</TooltipContent>
+                  {translate(
+                    'auto.components.settings.ManageSessionsSection.5ed15e778c',
+                    'Restart daemon'
+                  )}
+                </TooltipContent>
               </Tooltip>
             </div>
           </div>
 
           {!hasLoadedOnce ? (
             <div className="flex items-center justify-center px-3 py-8 text-xs text-muted-foreground">
-              {translate("auto.components.settings.ManageSessionsSection.39c53d6d74", "Loading…")}</div>
+              {translate('auto.components.settings.ManageSessionsSection.39c53d6d74', 'Loading…')}
+            </div>
           ) : sessions.length === 0 ? (
             <div className="flex items-center justify-center px-3 py-8 text-xs text-muted-foreground">
-              {translate("auto.components.settings.ManageSessionsSection.e26a60d9eb", "No sessions.")}</div>
+              {translate(
+                'auto.components.settings.ManageSessionsSection.e26a60d9eb',
+                'No sessions.'
+              )}
+            </div>
           ) : (
             <div className="max-h-[360px] overflow-y-auto scrollbar-sleek">
               <table className="w-full text-xs">
@@ -391,7 +458,13 @@ export function ManageSessionsSection(): React.JSX.Element {
                         }`}
                         onClick={rowClickable ? () => handleNavigate(tabId) : undefined}
                         aria-label={
-                          rowClickable ? translate("auto.components.settings.ManageSessionsSection.2896a50f50", "Go to terminal {{value0}}", { value0: formatWorkspace(session) }) : undefined
+                          rowClickable
+                            ? translate(
+                                'auto.components.settings.ManageSessionsSection.2896a50f50',
+                                'Go to terminal {{value0}}',
+                                { value0: formatWorkspace(session) }
+                              )
+                            : undefined
                         }
                       >
                         <td className="px-3 py-1.5">
@@ -424,7 +497,11 @@ export function ManageSessionsSection(): React.JSX.Element {
                               setPendingKillSession(session)
                             }}
                             disabled={isBusy}
-                            aria-label={translate("auto.components.settings.ManageSessionsSection.33c2a1e1b4", "Kill session {{value0}}", { value0: session.sessionId })}
+                            aria-label={translate(
+                              'auto.components.settings.ManageSessionsSection.33c2a1e1b4',
+                              'Kill session {{value0}}',
+                              { value0: session.sessionId }
+                            )}
                             className="text-muted-foreground hover:text-destructive"
                           >
                             <X />

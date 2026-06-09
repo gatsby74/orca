@@ -21,7 +21,7 @@ import type {
 } from '../../../../shared/developer-permissions-types'
 import { Button } from '../ui/button'
 import { translate } from '@/i18n/i18n'
-export { DEVELOPER_PERMISSIONS_PANE_SEARCH_ENTRIES } from './developer-permissions-search'
+export { getDeveloperPermissionsPaneSearchEntries } from './developer-permissions-search'
 
 type PermissionDefinition = {
   id: DeveloperPermissionId
@@ -34,64 +34,103 @@ type PermissionDefinition = {
 const PERMISSIONS: PermissionDefinition[] = [
   {
     id: 'microphone',
-    label: translate("auto.components.settings.DeveloperPermissionsPane.16381e040a", "Microphone"),
-    description: translate("auto.components.settings.DeveloperPermissionsPane.cc8151d9fa", "Voice input, transcription, audio recording, sox, ffmpeg, and Whisper CLIs."),
+    label: translate('auto.components.settings.DeveloperPermissionsPane.16381e040a', 'Microphone'),
+    description: translate(
+      'auto.components.settings.DeveloperPermissionsPane.cc8151d9fa',
+      'Voice input, transcription, audio recording, sox, ffmpeg, and Whisper CLIs.'
+    ),
     actionLabel: 'Request',
     icon: <Mic className="size-4" />
   },
   {
     id: 'camera',
-    label: translate("auto.components.settings.DeveloperPermissionsPane.e5b5f3d6b9", "Camera"),
-    description: translate("auto.components.settings.DeveloperPermissionsPane.550cfa3750", "Webcam capture and camera-driven local test apps."),
+    label: translate('auto.components.settings.DeveloperPermissionsPane.e5b5f3d6b9', 'Camera'),
+    description: translate(
+      'auto.components.settings.DeveloperPermissionsPane.550cfa3750',
+      'Webcam capture and camera-driven local test apps.'
+    ),
     actionLabel: 'Request',
     icon: <Camera className="size-4" />
   },
   {
     id: 'screen',
-    label: translate("auto.components.settings.DeveloperPermissionsPane.f24f31a884", "Screen Recording"),
-    description: translate("auto.components.settings.DeveloperPermissionsPane.0639db5496", "Screenshot, visual automation, and UI inspection tools."),
+    label: translate(
+      'auto.components.settings.DeveloperPermissionsPane.f24f31a884',
+      'Screen Recording'
+    ),
+    description: translate(
+      'auto.components.settings.DeveloperPermissionsPane.0639db5496',
+      'Screenshot, visual automation, and UI inspection tools.'
+    ),
     actionLabel: 'Open Settings',
     icon: <MonitorUp className="size-4" />
   },
   {
     id: 'accessibility',
-    label: translate("auto.components.settings.DeveloperPermissionsPane.5b2f22ca2d", "Accessibility"),
-    description: translate("auto.components.settings.DeveloperPermissionsPane.9f35980756", "Keystroke injection, window control, and UI automation tools."),
+    label: translate(
+      'auto.components.settings.DeveloperPermissionsPane.5b2f22ca2d',
+      'Accessibility'
+    ),
+    description: translate(
+      'auto.components.settings.DeveloperPermissionsPane.9f35980756',
+      'Keystroke injection, window control, and UI automation tools.'
+    ),
     actionLabel: 'Request',
     icon: <Accessibility className="size-4" />
   },
   {
     id: 'full-disk-access',
-    label: translate("auto.components.settings.DeveloperPermissionsPane.c566bca278", "Full Disk Access"),
-    description: translate("auto.components.settings.DeveloperPermissionsPane.7ca17b62c8", "Persistent access to protected folders from terminal sessions."),
+    label: translate(
+      'auto.components.settings.DeveloperPermissionsPane.c566bca278',
+      'Full Disk Access'
+    ),
+    description: translate(
+      'auto.components.settings.DeveloperPermissionsPane.7ca17b62c8',
+      'Persistent access to protected folders from terminal sessions.'
+    ),
     actionLabel: 'Open Settings',
     icon: <HardDrive className="size-4" />
   },
   {
     id: 'automation',
-    label: translate("auto.components.settings.DeveloperPermissionsPane.e119f0d66b", "Automation"),
-    description: translate("auto.components.settings.DeveloperPermissionsPane.4a73f5217a", "Apple Events for scripts that control other local apps."),
+    label: translate('auto.components.settings.DeveloperPermissionsPane.e119f0d66b', 'Automation'),
+    description: translate(
+      'auto.components.settings.DeveloperPermissionsPane.4a73f5217a',
+      'Apple Events for scripts that control other local apps.'
+    ),
     actionLabel: 'Trigger Prompt',
     icon: <Workflow className="size-4" />
   },
   {
     id: 'local-network',
-    label: translate("auto.components.settings.DeveloperPermissionsPane.e7bb06007c", "Local Network"),
-    description: translate("auto.components.settings.DeveloperPermissionsPane.f903bf20b5", "Discovery and access for development servers on your network."),
+    label: translate(
+      'auto.components.settings.DeveloperPermissionsPane.e7bb06007c',
+      'Local Network'
+    ),
+    description: translate(
+      'auto.components.settings.DeveloperPermissionsPane.f903bf20b5',
+      'Discovery and access for development servers on your network.'
+    ),
     actionLabel: 'Trigger Prompt',
     icon: <Network className="size-4" />
   },
   {
     id: 'usb',
-    label: translate("auto.components.settings.DeveloperPermissionsPane.bf51e4a542", "USB Devices"),
-    description: translate("auto.components.settings.DeveloperPermissionsPane.dfbc12c8c8", "Hardware debugging and device tools that talk to USB devices."),
+    label: translate('auto.components.settings.DeveloperPermissionsPane.bf51e4a542', 'USB Devices'),
+    description: translate(
+      'auto.components.settings.DeveloperPermissionsPane.dfbc12c8c8',
+      'Hardware debugging and device tools that talk to USB devices.'
+    ),
     actionLabel: 'Open Settings',
     icon: <Usb className="size-4" />
   },
   {
     id: 'bluetooth',
-    label: translate("auto.components.settings.DeveloperPermissionsPane.b2210b1b4f", "Bluetooth"),
-    description: translate("auto.components.settings.DeveloperPermissionsPane.4cfaa7e98a", "Bluetooth device tools and local hardware experiments."),
+    label: translate('auto.components.settings.DeveloperPermissionsPane.b2210b1b4f', 'Bluetooth'),
+    description: translate(
+      'auto.components.settings.DeveloperPermissionsPane.4cfaa7e98a',
+      'Bluetooth device tools and local hardware experiments.'
+    ),
     actionLabel: 'Open Settings',
     icon: <Bluetooth className="size-4" />
   }
@@ -158,7 +197,12 @@ export function DeveloperPermissionsPane(): React.JSX.Element {
       }
     } catch {
       if (mountedRef.current && refreshId === refreshSequenceRef.current) {
-        toast.error(translate("auto.components.settings.DeveloperPermissionsPane.a552887288", "Could not load developer permissions"))
+        toast.error(
+          translate(
+            'auto.components.settings.DeveloperPermissionsPane.a552887288',
+            'Could not load developer permissions'
+          )
+        )
       }
     } finally {
       if (mountedRef.current && refreshId === refreshSequenceRef.current) {
@@ -195,15 +239,35 @@ export function DeveloperPermissionsPane(): React.JSX.Element {
         return
       }
       if (result.status === 'granted') {
-        toast.success(translate("auto.components.settings.DeveloperPermissionsPane.48d87edcd2", "Permission granted"))
+        toast.success(
+          translate(
+            'auto.components.settings.DeveloperPermissionsPane.48d87edcd2',
+            'Permission granted'
+          )
+        )
       } else if (result.openedSystemSettings) {
-        toast.message(translate("auto.components.settings.DeveloperPermissionsPane.fa809e8ada", "Opened macOS Privacy & Security"))
+        toast.message(
+          translate(
+            'auto.components.settings.DeveloperPermissionsPane.fa809e8ada',
+            'Opened macOS Privacy & Security'
+          )
+        )
       } else {
-        toast.message(translate("auto.components.settings.DeveloperPermissionsPane.66e94d6cf3", "Permission request sent"))
+        toast.message(
+          translate(
+            'auto.components.settings.DeveloperPermissionsPane.66e94d6cf3',
+            'Permission request sent'
+          )
+        )
       }
     } catch {
       if (mountedRef.current) {
-        toast.error(translate("auto.components.settings.DeveloperPermissionsPane.bfa3402305", "Could not request permission"))
+        toast.error(
+          translate(
+            'auto.components.settings.DeveloperPermissionsPane.bfa3402305',
+            'Could not request permission'
+          )
+        )
       }
     } finally {
       if (mountedRef.current) {
@@ -218,13 +282,22 @@ export function DeveloperPermissionsPane(): React.JSX.Element {
         <div className="space-y-1">
           <div className="flex items-center gap-2 text-sm font-medium">
             <ShieldCheck className="size-4" />
-            {translate("auto.components.settings.DeveloperPermissionsPane.6f011b9bf6", "Terminal tools inherit Orca's macOS privacy envelope.")}</div>
+            {translate(
+              'auto.components.settings.DeveloperPermissionsPane.6f011b9bf6',
+              "Terminal tools inherit Orca's macOS privacy envelope."
+            )}
+          </div>
           <p className="text-xs text-muted-foreground">
-            {translate("auto.components.settings.DeveloperPermissionsPane.6326a4c5cc", "Use these controls when a CLI, local app, or automation tool needs macOS privacy access. Orca does not ask at startup.")}</p>
+            {translate(
+              'auto.components.settings.DeveloperPermissionsPane.6326a4c5cc',
+              'Use these controls when a CLI, local app, or automation tool needs macOS privacy access. Orca does not ask at startup.'
+            )}
+          </p>
         </div>
         <Button variant="outline" size="sm" className="gap-1.5" onClick={() => void refresh()}>
           <RefreshCw className={`size-3.5 ${loading ? 'animate-spin' : ''}`} />
-          {translate("auto.components.settings.DeveloperPermissionsPane.4c17304beb", "Refresh")}</Button>
+          {translate('auto.components.settings.DeveloperPermissionsPane.4c17304beb', 'Refresh')}
+        </Button>
       </div>
 
       <div className="divide-y divide-border/60 rounded-lg border border-border/60">
@@ -258,7 +331,12 @@ export function DeveloperPermissionsPane(): React.JSX.Element {
                 className="shrink-0 gap-1.5"
               >
                 <ExternalLink className="size-3.5" />
-                {pending ? translate("auto.components.settings.DeveloperPermissionsPane.dac08ec03e", "Working...") : permission.actionLabel}
+                {pending
+                  ? translate(
+                      'auto.components.settings.DeveloperPermissionsPane.dac08ec03e',
+                      'Working...'
+                    )
+                  : permission.actionLabel}
               </Button>
             </div>
           )

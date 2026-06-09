@@ -3,6 +3,7 @@ import type { Store } from '../persistence'
 import type { GlobalSettings, PersistedState } from '../../shared/types'
 import { listSystemFontFamilies } from '../system-fonts'
 import { previewGhosttyImport } from '../ghostty/index'
+import { setMainUiLanguage } from '../i18n/main-i18n'
 import { rebuildAppMenu } from '../menu/register-app-menu'
 import { track } from '../telemetry/client'
 import { SETTINGS_CHANGED_WHITELIST, type SettingsChangedKey } from '../../shared/telemetry-events'
@@ -97,6 +98,10 @@ export function registerSettingsHandlers(
       } catch (error) {
         console.warn('[settings] failed to apply agentStatusHooksEnabled:', error)
       }
+    }
+    if ('uiLanguage' in sanitizedArgs) {
+      await setMainUiLanguage(result.uiLanguage)
+      rebuildAppMenu()
     }
     if (APPEARANCE_MENU_KEYS.some((key) => key in sanitizedArgs)) {
       rebuildAppMenu()

@@ -71,7 +71,7 @@ import {
   type CmdJActiveGroupSnapshot
 } from '@/components/cmd-j/quick-action-context'
 import {
-  CMD_J_QUICK_ACTIONS,
+  getCmdJQuickActions,
   CREATE_WORKSPACE_QUICK_ACTION_ID
 } from '@/components/cmd-j/quick-actions'
 import {
@@ -81,7 +81,7 @@ import {
 import type { SettingsNavTarget } from '@/lib/settings-navigation-types'
 import type { BrowserPage, BrowserWorkspace, Worktree } from '../../../shared/types'
 import { isGitRepoKind } from '../../../shared/repo-kind'
-import { translate } from '@/i18n/i18n'
+import { i18n, translate } from '@/i18n/i18n'
 
 type WorktreePaletteItem = {
   id: string
@@ -579,7 +579,10 @@ export default function WorktreeJumpPalette(): React.JSX.Element | null {
     () => buildCmdJSettingsResults(settingsSections),
     [settingsSections]
   )
-  const actionResults = useMemo(() => buildCmdJActionResults(CMD_J_QUICK_ACTIONS), [])
+  const actionResults = useMemo(
+    () => buildCmdJActionResults(getCmdJQuickActions()),
+    [i18n.language]
+  )
 
   const prefetchCreateWorkspaceBaseForComposer = useCallback((initialRepoId?: string): void => {
     const state = useAppStore.getState()
@@ -743,7 +746,11 @@ export default function WorktreeJumpPalette(): React.JSX.Element | null {
         entries.push({
           id: '__hint_worktree_cap__',
           type: 'hint',
-          label: translate("auto.components.WorktreeJumpPalette.dabd819ca1", "Type to see all {{value0}} worktrees", { value0: worktreeItems.length })
+          label: translate(
+            'auto.components.WorktreeJumpPalette.dabd819ca1',
+            'Type to see all {{value0}} worktrees',
+            { value0: worktreeItems.length }
+          )
         })
       }
     }
@@ -752,7 +759,7 @@ export default function WorktreeJumpPalette(): React.JSX.Element | null {
         entries.push({
           id: '__header_actions_settings__',
           type: 'section-header',
-          label: translate("auto.components.WorktreeJumpPalette.088d66d980", "Actions & Settings")
+          label: translate('auto.components.WorktreeJumpPalette.088d66d980', 'Actions & Settings')
         })
       }
       appendPaletteListEntries(entries, visibleMiddleItems)
@@ -762,7 +769,7 @@ export default function WorktreeJumpPalette(): React.JSX.Element | null {
         entries.push({
           id: '__header_open_tabs__',
           type: 'section-header',
-          label: translate("auto.components.WorktreeJumpPalette.50a1d11d5b", "Open Tabs")
+          label: translate('auto.components.WorktreeJumpPalette.50a1d11d5b', 'Open Tabs')
         })
       }
       appendPaletteListEntries(entries, visibleOpenTabItems)
@@ -934,7 +941,9 @@ export default function WorktreeJumpPalette(): React.JSX.Element | null {
     (worktreeId: string) => {
       const worktree = findWorktreeById(useAppStore.getState().worktreesByRepo, worktreeId)
       if (!worktree) {
-        toast.error(translate("auto.components.WorktreeJumpPalette.2c38630a01", "Workspace no longer exists"))
+        toast.error(
+          translate('auto.components.WorktreeJumpPalette.2c38630a01', 'Workspace no longer exists')
+        )
         return
       }
       activateAndRevealWorktree(worktreeId)
@@ -951,7 +960,12 @@ export default function WorktreeJumpPalette(): React.JSX.Element | null {
       const { pageId, workspaceId, worktreeId } = result
       const selection = findBrowserSelection(pageId, workspaceId, worktreeId)
       if (!selection) {
-        toast.error(translate("auto.components.WorktreeJumpPalette.d7d496a451", "Browser page no longer exists"))
+        toast.error(
+          translate(
+            'auto.components.WorktreeJumpPalette.d7d496a451',
+            'Browser page no longer exists'
+          )
+        )
         return
       }
       // Why: capture the workspace and page info before activateAndRevealWorktree
@@ -960,7 +974,9 @@ export default function WorktreeJumpPalette(): React.JSX.Element | null {
       const { worktree, workspace, page } = selection
       const activated = activateAndRevealWorktree(worktree.id)
       if (!activated) {
-        toast.error(translate("auto.components.WorktreeJumpPalette.2c38630a01", "Workspace no longer exists"))
+        toast.error(
+          translate('auto.components.WorktreeJumpPalette.2c38630a01', 'Workspace no longer exists')
+        )
         return
       }
 
@@ -985,12 +1001,19 @@ export default function WorktreeJumpPalette(): React.JSX.Element | null {
         (candidate) => candidate.id === result.tabId && candidate.contentType === 'simulator'
       )
       if (!tab) {
-        toast.error(translate("auto.components.WorktreeJumpPalette.7726ce9970", "Mobile emulator tab no longer exists"))
+        toast.error(
+          translate(
+            'auto.components.WorktreeJumpPalette.7726ce9970',
+            'Mobile emulator tab no longer exists'
+          )
+        )
         return
       }
       const activated = activateAndRevealWorktree(result.worktreeId)
       if (!activated) {
-        toast.error(translate("auto.components.WorktreeJumpPalette.2c38630a01", "Workspace no longer exists"))
+        toast.error(
+          translate('auto.components.WorktreeJumpPalette.2c38630a01', 'Workspace no longer exists')
+        )
         return
       }
 
@@ -1250,8 +1273,14 @@ export default function WorktreeJumpPalette(): React.JSX.Element | null {
   const emptyState = (() => {
     if ((hasAnySearchableWorktrees || hasAnyMiddleResults || hasAnyOpenTabs) && hasQuery) {
       return {
-        title: translate("auto.components.WorktreeJumpPalette.dbd9d87eec", "No results match your search"),
-        subtitle: translate("auto.components.WorktreeJumpPalette.c4afa68159", "Try a worktree, setting, action, page title, emulator, URL, PR, or port.")
+        title: translate(
+          'auto.components.WorktreeJumpPalette.dbd9d87eec',
+          'No results match your search'
+        ),
+        subtitle: translate(
+          'auto.components.WorktreeJumpPalette.c4afa68159',
+          'Try a worktree, setting, action, page title, emulator, URL, PR, or port.'
+        )
       }
     }
     // Why: empty-query rows exclude the current worktree, so a single-worktree
@@ -1260,13 +1289,25 @@ export default function WorktreeJumpPalette(): React.JSX.Element | null {
     // — misleading. See docs/cmd-j-empty-query-ordering.md.
     if (!hasQuery && hasAnyWorktrees && !hasAnyOpenTabs) {
       return {
-        title: translate("auto.components.WorktreeJumpPalette.f60f8730be", "No other worktrees to switch to"),
-        subtitle: translate("auto.components.WorktreeJumpPalette.b781ae05e3", "Type to search worktrees, settings, tabs, and actions.")
+        title: translate(
+          'auto.components.WorktreeJumpPalette.f60f8730be',
+          'No other worktrees to switch to'
+        ),
+        subtitle: translate(
+          'auto.components.WorktreeJumpPalette.b781ae05e3',
+          'Type to search worktrees, settings, tabs, and actions.'
+        )
       }
     }
     return {
-      title: translate("auto.components.WorktreeJumpPalette.1628fd7dfa", "No active worktrees, settings, actions, or open tabs"),
-      subtitle: translate("auto.components.WorktreeJumpPalette.f7fda8d562", "Create a worktree or open a tab in Orca to get started.")
+      title: translate(
+        'auto.components.WorktreeJumpPalette.1628fd7dfa',
+        'No active worktrees, settings, actions, or open tabs'
+      ),
+      subtitle: translate(
+        'auto.components.WorktreeJumpPalette.f7fda8d562',
+        'Create a worktree or open a tab in Orca to get started.'
+      )
     }
   })()
 
@@ -1277,8 +1318,11 @@ export default function WorktreeJumpPalette(): React.JSX.Element | null {
       shouldFilter={false}
       onOpenAutoFocus={handleOpenAutoFocus}
       onCloseAutoFocus={handleCloseAutoFocus}
-      title={translate("auto.components.WorktreeJumpPalette.4ee378034d", "Jump to...")}
-      description={translate("auto.components.WorktreeJumpPalette.4e4ff044d5", "Search worktrees, settings, tabs, and actions")}
+      title={translate('auto.components.WorktreeJumpPalette.4ee378034d', 'Jump to...')}
+      description={translate(
+        'auto.components.WorktreeJumpPalette.4e4ff044d5',
+        'Search worktrees, settings, tabs, and actions'
+      )}
       overlayClassName="bg-black/55 backdrop-blur-[2px]"
       contentClassName="top-[13%] w-[736px] max-w-[94vw] overflow-hidden rounded-xl border border-border/70 bg-background/96 shadow-[0_26px_84px_rgba(0,0,0,0.32)] backdrop-blur-xl"
       commandProps={{
@@ -1289,7 +1333,10 @@ export default function WorktreeJumpPalette(): React.JSX.Element | null {
       }}
     >
       <CommandInput
-        placeholder={translate("auto.components.WorktreeJumpPalette.1ebe225fee", "Search worktrees, settings, tabs, and actions...")}
+        placeholder={translate(
+          'auto.components.WorktreeJumpPalette.1ebe225fee',
+          'Search worktrees, settings, tabs, and actions...'
+        )}
         value={query}
         onValueChange={handleQueryChange}
         wrapperClassName="mx-3 mt-3 rounded-lg border border-border/55 bg-muted/28 px-3.5 shadow-[inset_0_1px_0_rgba(255,255,255,0.04)]"
@@ -1299,8 +1346,14 @@ export default function WorktreeJumpPalette(): React.JSX.Element | null {
       <CommandList ref={listRef} className="max-h-[min(460px,62vh)] px-2.5 pb-2.5 pt-2">
         {isLoading && selectableItems.length === 0 && !showCreateAction ? (
           <PaletteState
-            title={translate("auto.components.WorktreeJumpPalette.ff908adfe9", "Loading jump targets")}
-            subtitle={translate("auto.components.WorktreeJumpPalette.684e8d7bc2", "Gathering your recent worktrees and open tabs.")}
+            title={translate(
+              'auto.components.WorktreeJumpPalette.ff908adfe9',
+              'Loading jump targets'
+            )}
+            subtitle={translate(
+              'auto.components.WorktreeJumpPalette.684e8d7bc2',
+              'Gathering your recent worktrees and open tabs.'
+            )}
           />
         ) : selectableItems.length === 0 && !showCreateAction ? (
           <CommandEmpty className="py-0">
@@ -1346,7 +1399,11 @@ export default function WorktreeJumpPalette(): React.JSX.Element | null {
                     </div>
                     <div className="min-w-0 flex-1">
                       <div className="text-[14px] font-semibold tracking-[-0.01em] text-foreground">
-                        {translate("auto.components.WorktreeJumpPalette.95be6587d3", "Create worktree \"{{value0}}\"", { value0: createWorktreeName })}
+                        {translate(
+                          'auto.components.WorktreeJumpPalette.95be6587d3',
+                          'Create worktree "{{value0}}"',
+                          { value0: createWorktreeName }
+                        )}
                       </div>
                     </div>
                   </CommandItem>
@@ -1393,7 +1450,17 @@ export default function WorktreeJumpPalette(): React.JSX.Element | null {
                           <div className="flex min-w-0 items-center gap-2">
                             {sshConnectionId && (
                               <span
-                                aria-label={isSshDisconnected ? translate("auto.components.WorktreeJumpPalette.63c2be1914", "SSH disconnected") : translate("auto.components.WorktreeJumpPalette.34c8fbb46e", "SSH remote")}
+                                aria-label={
+                                  isSshDisconnected
+                                    ? translate(
+                                        'auto.components.WorktreeJumpPalette.63c2be1914',
+                                        'SSH disconnected'
+                                      )
+                                    : translate(
+                                        'auto.components.WorktreeJumpPalette.34c8fbb46e',
+                                        'SSH remote'
+                                      )
+                                }
                                 className="shrink-0 inline-flex items-center"
                               >
                                 {isSshDisconnected ? (
@@ -1418,11 +1485,19 @@ export default function WorktreeJumpPalette(): React.JSX.Element | null {
                             </span>
                             {isCurrentWorktree && (
                               <span className="shrink-0 self-center rounded-[6px] border border-border/60 bg-background/45 px-1.5 py-px text-[9px] font-medium leading-normal text-muted-foreground/88">
-                                {translate("auto.components.WorktreeJumpPalette.556e7232ca", "Current")}</span>
+                                {translate(
+                                  'auto.components.WorktreeJumpPalette.556e7232ca',
+                                  'Current'
+                                )}
+                              </span>
                             )}
                             {worktree.isMainWorktree && (
                               <span className="shrink-0 self-center rounded border border-muted-foreground/30 bg-muted-foreground/5 px-1.5 py-px text-[9px] font-medium leading-normal text-muted-foreground">
-                                {translate("auto.components.WorktreeJumpPalette.739bda980c", "primary")}</span>
+                                {translate(
+                                  'auto.components.WorktreeJumpPalette.739bda980c',
+                                  'primary'
+                                )}
+                              </span>
                             )}
                             <span className="shrink-0 text-muted-foreground/45">·</span>
                             <span className="truncate text-[12px] font-medium text-muted-foreground/92">
@@ -1439,7 +1514,9 @@ export default function WorktreeJumpPalette(): React.JSX.Element | null {
                           {entry.match.supportingText && (
                             <div className="mt-1.5 flex min-w-0 items-center gap-2 text-[12px] leading-5 text-muted-foreground/88">
                               <span className="inline-flex h-[18px] shrink-0 items-center rounded border border-border bg-foreground/[0.04] px-1.5 text-[10px] font-semibold uppercase tracking-wide text-muted-foreground">
-                                {getPaletteSupportingTextLabel(entry.match.supportingText.labelKind)}
+                                {getPaletteSupportingTextLabel(
+                                  entry.match.supportingText.labelKind
+                                )}
                               </span>
                               <span className="truncate">
                                 <HighlightedText
@@ -1537,11 +1614,19 @@ export default function WorktreeJumpPalette(): React.JSX.Element | null {
                             </span>
                             {result.isCurrentTab && (
                               <span className="shrink-0 self-center rounded-[6px] border border-border/60 bg-background/45 px-1.5 py-px text-[9px] font-medium leading-normal text-muted-foreground/88">
-                                {translate("auto.components.WorktreeJumpPalette.52404f8096", "Current Tab")}</span>
+                                {translate(
+                                  'auto.components.WorktreeJumpPalette.52404f8096',
+                                  'Current Tab'
+                                )}
+                              </span>
                             )}
                             {!result.isCurrentTab && result.isCurrentWorktree && (
                               <span className="shrink-0 self-center rounded-[6px] border border-border/60 bg-background/45 px-1.5 py-px text-[9px] font-medium leading-normal text-muted-foreground/88">
-                                {translate("auto.components.WorktreeJumpPalette.c5081f2814", "Current Worktree")}</span>
+                                {translate(
+                                  'auto.components.WorktreeJumpPalette.c5081f2814',
+                                  'Current Worktree'
+                                )}
+                              </span>
                             )}
                             <span className="shrink-0 text-muted-foreground/45">·</span>
                             <span className="min-w-0 truncate text-[12px] font-medium text-muted-foreground/92">
@@ -1605,11 +1690,19 @@ export default function WorktreeJumpPalette(): React.JSX.Element | null {
                           </span>
                           {result.isCurrentPage && (
                             <span className="shrink-0 self-center rounded-[6px] border border-border/60 bg-background/45 px-1.5 py-px text-[9px] font-medium leading-normal text-muted-foreground/88">
-                              {translate("auto.components.WorktreeJumpPalette.52404f8096", "Current Tab")}</span>
+                              {translate(
+                                'auto.components.WorktreeJumpPalette.52404f8096',
+                                'Current Tab'
+                              )}
+                            </span>
                           )}
                           {!result.isCurrentPage && result.isCurrentWorktree && (
                             <span className="shrink-0 self-center rounded-[6px] border border-border/60 bg-background/45 px-1.5 py-px text-[9px] font-medium leading-normal text-muted-foreground/88">
-                              {translate("auto.components.WorktreeJumpPalette.c5081f2814", "Current Worktree")}</span>
+                              {translate(
+                                'auto.components.WorktreeJumpPalette.c5081f2814',
+                                'Current Worktree'
+                              )}
+                            </span>
                           )}
                           <span className="shrink-0 text-muted-foreground/45">·</span>
                           <span className="min-w-0 truncate text-[12px] font-medium text-muted-foreground/92">
@@ -1650,18 +1743,36 @@ export default function WorktreeJumpPalette(): React.JSX.Element | null {
       </CommandList>
       <div className="flex items-center justify-end border-t border-border/60 px-3.5 py-2.5 text-[11px] text-muted-foreground/82">
         <div className="flex items-center gap-2">
-          <FooterKey>{translate("auto.components.WorktreeJumpPalette.f65d992a11", "Enter")}</FooterKey>
-          <span>{translate("auto.components.WorktreeJumpPalette.45def60329", "Open")}</span>
-          <FooterKey>{translate("auto.components.WorktreeJumpPalette.66b5a67bee", "Esc")}</FooterKey>
-          <span>{translate("auto.components.WorktreeJumpPalette.75499e01d9", "Close")}</span>
+          <FooterKey>
+            {translate('auto.components.WorktreeJumpPalette.f65d992a11', 'Enter')}
+          </FooterKey>
+          <span>{translate('auto.components.WorktreeJumpPalette.45def60329', 'Open')}</span>
+          <FooterKey>
+            {translate('auto.components.WorktreeJumpPalette.66b5a67bee', 'Esc')}
+          </FooterKey>
+          <span>{translate('auto.components.WorktreeJumpPalette.75499e01d9', 'Close')}</span>
           <FooterKey>↑↓</FooterKey>
-          <span>{translate("auto.components.WorktreeJumpPalette.ac037cfac2", "Move")}</span>
+          <span>{translate('auto.components.WorktreeJumpPalette.ac037cfac2', 'Move')}</span>
         </div>
       </div>
       <div aria-live="polite" className="sr-only">
         {deferredQuery.trim()
-          ? translate("auto.components.WorktreeJumpPalette.bb72c08e63", "{{value0}} results found{{value1}}", { value0: resultCount, value1: showCreateAction ? ', create worktree action available' : '' })
-          : translate("auto.components.WorktreeJumpPalette.20af998bff", "{{value0}} items available{{value1}}", { value0: resultCount, value1: showCreateAction ? ', create worktree action available' : '' })}
+          ? translate(
+              'auto.components.WorktreeJumpPalette.bb72c08e63',
+              '{{value0}} results found{{value1}}',
+              {
+                value0: resultCount,
+                value1: showCreateAction ? ', create worktree action available' : ''
+              }
+            )
+          : translate(
+              'auto.components.WorktreeJumpPalette.20af998bff',
+              '{{value0}} items available{{value1}}',
+              {
+                value0: resultCount,
+                value1: showCreateAction ? ', create worktree action available' : ''
+              }
+            )}
       </div>
     </CommandDialog>
   )

@@ -16,12 +16,14 @@ const USER_VISIBLE_JSX_ATTRIBUTES = new Set([
   'description',
   'emptyText',
   'helperText',
+  'keywords',
   'label',
   'message',
   'placeholder',
   'subtitle',
   'text',
   'title',
+  'toggleDescription',
   'tooltip'
 ])
 const USER_VISIBLE_OBJECT_KEYS = new Set([
@@ -37,6 +39,7 @@ const USER_VISIBLE_OBJECT_KEYS = new Set([
   'placeholder',
   'subtitle',
   'title',
+  'toggleDescription',
   'tooltip'
 ])
 const USER_VISIBLE_FUNCTION_NAMES = new Set([
