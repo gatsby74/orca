@@ -70,7 +70,7 @@ function SuggestionToastBody({
       <p className="text-sm text-popover-foreground/80">
         Your new worktree is current, but local {suggestion.localBranch} is {suggestion.behind}{' '}
         {commitNoun} behind, so AI diffs may compare to stale history. Let Orca keep it up to date
-        automatically. Manage in{' '}
+        automatically. Change this anytime in{' '}
         <button
           type="button"
           onClick={openSetting}
