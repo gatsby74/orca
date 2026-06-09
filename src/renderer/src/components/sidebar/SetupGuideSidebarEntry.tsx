@@ -9,9 +9,11 @@ import {
   ContextMenuTrigger
 } from '@/components/ui/context-menu'
 import {
+  FEATURE_WALL_SETUP_STEP_IDS,
   getFirstIncompleteFeatureWallSetupStepId,
   type FeatureWallSetupStepId
 } from '../../../../shared/feature-wall-setup-steps'
+import type { FeatureWallSetupProgress } from '../feature-wall/feature-wall-setup-progress'
 import { SetupGuideProgressRing } from '../setup-guide/SetupGuideProgressRing'
 import { useSetupGuideProgress } from '../setup-guide/use-setup-guide-progress'
 
@@ -32,6 +34,19 @@ export function getSetupGuideSidebarEntryReady(
   return persistedUIReady && setupProgressReady
 }
 
+const PRE_BROWSER_SETUP_GUIDE_STEP_IDS = FEATURE_WALL_SETUP_STEP_IDS.filter(
+  (stepId) => stepId !== 'browser'
+)
+
+function isSetupGuideSidebarComplete(progress: FeatureWallSetupProgress): boolean {
+  if (progress.coreDoneCount >= progress.coreTotal) {
+    return true
+  }
+  // Why: adding the browser milestone should not make the sidebar checklist pop
+  // back up and surprise users who had already finished it.
+  return PRE_BROWSER_SETUP_GUIDE_STEP_IDS.every((stepId) => progress.stepDone[stepId])
+}
+
 export function SetupGuideSidebarEntry(): React.JSX.Element | null {
   const openModal = useAppStore((s) => s.openModal)
   const activeModal = useAppStore((s) => s.activeModal)
@@ -41,7 +56,7 @@ export function SetupGuideSidebarEntry(): React.JSX.Element | null {
   // Why: the sidebar count must be warmed before click so it matches the modal
   // count instead of changing while the lazy modal is mounting.
   const setupProgress = useSetupGuideProgress(true, false, false)
-  const setupComplete = setupProgress.coreDoneCount >= setupProgress.coreTotal
+  const setupComplete = isSetupGuideSidebarComplete(setupProgress)
   const setupActive = activeModal === 'setup-guide'
   const firstUnfinishedSetupStepId = React.useMemo<FeatureWallSetupStepId>(
     () => getFirstIncompleteFeatureWallSetupStepId(setupProgress.stepDone),

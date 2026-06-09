@@ -81,6 +81,17 @@ function makeAllDoneProgress(
   })
 }
 
+function makePreBrowserDoneProgress(): FeatureWallSetupProgress {
+  return makeAllDoneProgress({
+    stepDone: {
+      ...makeAllDoneProgress().stepDone,
+      browser: false
+    },
+    coreDoneCount: 8,
+    coreTotal: 9
+  })
+}
+
 describe('SetupGuideSidebarEntry', () => {
   beforeEach(() => {
     persistedUIReady = true
@@ -120,6 +131,12 @@ describe('SetupGuideSidebarEntry', () => {
 
   it('does not render after setup is complete and progress is ready', () => {
     mocks.useSetupGuideProgress.mockReturnValue(makeAllDoneProgress())
+
+    expect(renderToStaticMarkup(<SetupGuideSidebarEntry />)).not.toContain('Onboarding checklist')
+  })
+
+  it('does not render for users who finished the checklist before the browser step existed', () => {
+    mocks.useSetupGuideProgress.mockReturnValue(makePreBrowserDoneProgress())
 
     expect(renderToStaticMarkup(<SetupGuideSidebarEntry />)).not.toContain('Onboarding checklist')
   })

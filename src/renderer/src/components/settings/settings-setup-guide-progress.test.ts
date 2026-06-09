@@ -33,7 +33,7 @@ describe('settings setup guide progress', () => {
       ready: true,
       doneCount: 5,
       total: FEATURE_WALL_SETUP_STEPS.length,
-      firstIncompleteStepId: 'agent-capabilities'
+      firstIncompleteStepId: 'browser'
     })
   })
 

@@ -20,12 +20,13 @@ function makeProgress(): FeatureWallSetupProgress {
       notifications: true,
       'split-terminal': true,
       'two-worktrees': true,
+      browser: false,
       'task-sources': true,
       'agent-capabilities': false,
       'setup-script': false
     },
     coreDoneCount: 5,
-    coreTotal: 8
+    coreTotal: 9
   }
 }
 
@@ -38,7 +39,7 @@ describe('useSettingsSetupGuideProgress', () => {
   it('uses the same setup progress path as the main sidebar', () => {
     mocks.useSetupGuideProgress.mockReturnValue(makeProgress())
 
-    expect(renderToStaticMarkup(<SettingsProgressProbe />)).toContain('5/8')
+    expect(renderToStaticMarkup(<SettingsProgressProbe />)).toContain('5/9')
     expect(mocks.useSetupGuideProgress).toHaveBeenCalledWith(true, false, false)
   })
 })
