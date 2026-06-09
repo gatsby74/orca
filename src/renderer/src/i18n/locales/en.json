@@ -1565,7 +1565,11 @@
         "bb72c08e63": "{{value0}} results found{{value1}}",
         "34c8fbb46e": "SSH remote",
         "63c2be1914": "SSH disconnected",
-        "95be6587d3": "Create worktree \"{{value0}}\""
+        "95be6587d3": "Create worktree \"{{value0}}\"",
+        "worktreesHeader": "Worktrees",
+        "recentWorktreesHeader": "Recent Worktrees",
+        "settingsBadge": "Settings",
+        "actionBadge": "Action"
       },
       "github": {
         "pr": {
@@ -5803,7 +5807,12 @@
             "dea0a9a665": "anthropic",
             "c9fe3a7876": "claude",
             "de50c6f516": "Show Claude token and cost usage in the status bar.",
-            "9dc15020d7": "Claude Usage"
+            "9dc15020d7": "Claude Usage",
+            "language": {
+              "locale": "locale",
+              "i18n": "i18n",
+              "translation": "translation"
+            }
           }
         },
         "auto": {
@@ -7767,7 +7776,9 @@
           "d7b3ef168b": "Detected on your system",
           "9c163bb0e0": "Install instructions",
           "69af7e9c1c": "isn't on your PATH yet. Orca will set it as your default and you can install it any time.",
-          "1eee1c7bd8": "No agents detected on your PATH. Pick one to install later, or continue with a blank terminal."
+          "1eee1c7bd8": "No agents detected on your PATH. Pick one to install later, or continue with a blank terminal.",
+          "hideAgents": "Hide agents",
+          "showMoreAgents": "Show {{value0}} more agents→"
         },
         "FeatureSetupChecklist": {
           "77f74946f5": "Agents can message each other, take tasks, and coordinate handoffs.",

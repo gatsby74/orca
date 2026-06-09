@@ -1,5 +1,6 @@
 /* oxlint-disable max-lines */
 import React, { useCallback, useDeferredValue, useEffect, useMemo, useRef, useState } from 'react'
+import { useTranslation } from 'react-i18next'
 import { toast } from 'sonner'
 import { Globe, Plus, Server, ServerOff, Smartphone } from 'lucide-react'
 import { useAppStore } from '@/store'
@@ -81,7 +82,7 @@ import {
 import type { SettingsNavTarget } from '@/lib/settings-navigation-types'
 import type { BrowserPage, BrowserWorkspace, Worktree } from '../../../shared/types'
 import { isGitRepoKind } from '../../../shared/repo-kind'
-import { i18n, translate } from '@/i18n/i18n'
+import { translate } from '@/i18n/i18n'
 
 type WorktreePaletteItem = {
   id: string
@@ -246,6 +247,7 @@ function getSettingsTargetFromSectionId(sectionId: string): {
 }
 
 export default function WorktreeJumpPalette(): React.JSX.Element | null {
+  const { i18n } = useTranslation()
   const visible = useAppStore((s) => s.activeModal === 'worktree-palette')
   const closeModal = useAppStore((s) => s.closeModal)
   const openModal = useAppStore((s) => s.openModal)
@@ -733,7 +735,12 @@ export default function WorktreeJumpPalette(): React.JSX.Element | null {
         entries.push({
           id: '__header_worktrees__',
           type: 'section-header',
-          label: hasQuery ? 'Worktrees' : 'Recent Worktrees'
+          label: hasQuery
+            ? translate('auto.components.WorktreeJumpPalette.worktreesHeader', 'Worktrees')
+            : translate(
+                'auto.components.WorktreeJumpPalette.recentWorktreesHeader',
+                'Recent Worktrees'
+              )
         })
       }
       appendPaletteListEntries(entries, visibleWorktreeItems)
@@ -775,7 +782,7 @@ export default function WorktreeJumpPalette(): React.JSX.Element | null {
       appendPaletteListEntries(entries, visibleOpenTabItems)
     }
     return entries
-  }, [hasQuery, paletteSections, showCreateAction, worktreeItems.length])
+  }, [hasQuery, paletteSections, showCreateAction, worktreeItems.length, i18n.language])
 
   const selectionItemIds = useMemo(
     () => getWorktreePaletteSelectionItemIds(listEntries),
@@ -1553,7 +1560,10 @@ export default function WorktreeJumpPalette(): React.JSX.Element | null {
               if (entry.type === 'settings' || entry.type === 'quick-action') {
                 const result = entry.result
                 const Icon = result.icon
-                const kindLabel = entry.type === 'settings' ? 'Settings' : 'Action'
+                const kindLabel =
+                  entry.type === 'settings'
+                    ? translate('auto.components.WorktreeJumpPalette.settingsBadge', 'Settings')
+                    : translate('auto.components.WorktreeJumpPalette.actionBadge', 'Action')
                 return (
                   <CommandItem
                     key={entry.id}

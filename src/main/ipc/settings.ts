@@ -99,7 +99,7 @@ export function registerSettingsHandlers(
         console.warn('[settings] failed to apply agentStatusHooksEnabled:', error)
       }
     }
-    if ('uiLanguage' in sanitizedArgs) {
+    if ('uiLanguage' in sanitizedArgs && before.uiLanguage !== result.uiLanguage) {
       await setMainUiLanguage(result.uiLanguage)
       rebuildAppMenu()
     }

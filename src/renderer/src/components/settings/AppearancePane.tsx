@@ -254,14 +254,20 @@ export function AppearancePane({
 
         <div className="divide-y divide-border/40">
           <SearchableSetting
-            title={translate(
-              'auto.components.settings.AppearancePane.0fafabcf35',
-              'Show Git-Ignored Files'
-            )}
-            description={translate(
-              'auto.components.settings.AppearancePane.75f07ab60c',
-              'Show files matched by .gitignore in the file explorer.'
-            )}
+            title={
+              getLayoutEntries()[0]?.title ??
+              translate(
+                'auto.components.settings.AppearancePane.0fafabcf35',
+                'Show Git-Ignored Files'
+              )
+            }
+            description={
+              getLayoutEntries()[0]?.description ??
+              translate(
+                'auto.components.settings.AppearancePane.75f07ab60c',
+                'Show files matched by .gitignore in the file explorer.'
+              )
+            }
             keywords={getLayoutEntries()[0]?.keywords ?? ['git', 'gitignore', 'ignored']}
           >
             <SettingsSwitchRow

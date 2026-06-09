@@ -44,7 +44,15 @@ export function AgentStep({ selectedAgent, onSelect, detectedSet, isDetecting }:
       setOpenState(true)
     }
   }
-  const fallbackRestLabel = openState ? 'Hide agents' : `Show ${fallbackRest.length} more agents→`
+  const fallbackRestLabel = openState
+    ? translate('auto.components.onboarding.AgentStep.hideAgents', 'Hide agents')
+    : translate(
+        'auto.components.onboarding.AgentStep.showMoreAgents',
+        'Show {{value0}} more agents→',
+        {
+          value0: fallbackRest.length
+        }
+      )
   return (
     <div className="space-y-5">
       {!hasDetected && !isDetecting && (
