@@ -137,7 +137,7 @@ export function EmulatorPaneToolbar({
           onClick={onAttach}
           disabled={loading || devices.length === 0}
         >
-          {loading ? 'Working…' : 'Connect'}
+          {loading ? translate("auto.components.emulator.pane.emulator.pane.toolbar.868c0f2938", "Working…") : translate("auto.components.emulator.pane.emulator.pane.toolbar.81b3571a07", "Connect")}
         </Button>
       )}
     </div>

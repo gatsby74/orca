@@ -292,8 +292,8 @@ export function AiCommitPrSettingsCard(): JSX.Element | null {
                     ) : (
                       <span className="truncate">
                         {unsupportedAgentLabel
-                          ? `${unsupportedAgentLabel} unsupported`
-                          : 'Not configured'}
+                          ? translate("auto.components.feature.wall.AiCommitPrSettingsCard.1f9468c5c9", "{{value0}} unsupported", { value0: unsupportedAgentLabel })
+                          : translate("auto.components.feature.wall.AiCommitPrSettingsCard.bd14e9c42a", "Not configured")}
                       </span>
                     )}
                   </span>

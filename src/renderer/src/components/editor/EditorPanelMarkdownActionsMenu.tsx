@@ -54,7 +54,7 @@ export function EditorPanelMarkdownActionsMenu({
                 onToggleMarkdownFrontmatter()
               }}
             >
-              {markdownFrontmatterVisible ? 'Hide front matter' : 'Show front matter'}
+              {markdownFrontmatterVisible ? translate("auto.components.editor.EditorPanelMarkdownActionsMenu.10c39d58c1", "Hide front matter") : translate("auto.components.editor.EditorPanelMarkdownActionsMenu.8c8b7f5ff5", "Show front matter")}
             </DropdownMenuItem>
             {hasViewModeToggle ? <DropdownMenuSeparator /> : null}
           </>

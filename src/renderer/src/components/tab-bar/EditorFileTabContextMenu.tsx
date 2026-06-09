@@ -126,7 +126,7 @@ export function EditorFileTabContextMenu({
         <DropdownMenuSeparator />
         <DropdownMenuItem onSelect={onTogglePin}>
           {isPinned ? <PinOff className="mr-1.5 size-3.5" /> : <Pin className="mr-1.5 size-3.5" />}
-          {isPinned ? 'Unpin Tab' : 'Pin Tab'}
+          {isPinned ? translate("auto.components.tab.bar.EditorFileTabContextMenu.8e9d603a09", "Unpin Tab") : translate("auto.components.tab.bar.EditorFileTabContextMenu.fdd29eb669", "Pin Tab")}
         </DropdownMenuItem>
         <DropdownMenuSeparator />
         <DropdownMenuItem onSelect={() => !isPinned && onClose()} disabled={isPinned}>

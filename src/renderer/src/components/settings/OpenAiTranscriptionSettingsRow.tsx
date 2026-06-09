@@ -30,8 +30,8 @@ export function OpenAiTranscriptionSettingsRow({
         </div>
         <p className="text-xs text-muted-foreground">
           {configured
-            ? 'API key configured for cloud speech-to-text models.'
-            : 'Add an OpenAI API key before selecting cloud speech-to-text models.'}
+            ? translate("auto.components.settings.OpenAiTranscriptionSettingsRow.b59b9b2b51", "API key configured for cloud speech-to-text models.")
+            : translate("auto.components.settings.OpenAiTranscriptionSettingsRow.893790e13b", "Add an OpenAI API key before selecting cloud speech-to-text models.")}
         </p>
       </div>
       {configured ? (

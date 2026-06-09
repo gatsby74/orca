@@ -326,7 +326,7 @@ export function ManageSessionsSection(): React.JSX.Element {
                     aria-label={translate("auto.components.settings.ManageSessionsSection.3282db098c", "Kill all sessions")}
                     className="text-muted-foreground hover:text-destructive"
                   >
-                    {daemonActions.busyKind === 'killAll' ? (
+                    {daemonActions.busyKind === "killAll" ? (
                       <LoaderCircle className="animate-spin" />
                     ) : (
                       <Trash2 />
@@ -346,7 +346,7 @@ export function ManageSessionsSection(): React.JSX.Element {
                     aria-label={translate("auto.components.settings.ManageSessionsSection.5ed15e778c", "Restart daemon")}
                     className="text-muted-foreground"
                   >
-                    {daemonActions.busyKind === 'restart' ? (
+                    {daemonActions.busyKind === "restart" ? (
                       <LoaderCircle className="animate-spin" />
                     ) : (
                       <RotateCw />

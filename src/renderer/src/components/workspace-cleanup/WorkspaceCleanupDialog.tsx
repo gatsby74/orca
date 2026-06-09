@@ -575,16 +575,16 @@ export default function WorkspaceCleanupDialog(): React.JSX.Element {
                         onClick={toggleActiveSelection}
                         className="flex size-4 shrink-0 items-center justify-center rounded border border-border bg-background text-primary hover:bg-accent"
                       >
-                        {activeSelectionState === 'checked' ? (
+                        {activeSelectionState === "checked" ? (
                           <Check className="size-3" strokeWidth={3} />
-                        ) : activeSelectionState === 'mixed' ? (
+                        ) : activeSelectionState === "mixed" ? (
                           <Minus className="size-3" strokeWidth={3} />
                         ) : null}
                       </button>
                     ) : null}
                     <div className="min-w-0 truncate text-[11px] font-semibold uppercase tracking-[0.05em] text-muted-foreground">
                       {resolvedActiveView === 'hidden'
-                        ? 'Ignored cleanup suggestions'
+                        ? translate("auto.components.workspace.cleanup.WorkspaceCleanupDialog.0c6672f5e3", "Ignored cleanup suggestions")
                         : TIER_LABELS[resolvedActiveView]}
                     </div>
                   </div>

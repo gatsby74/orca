@@ -194,7 +194,7 @@ export function AutomationSchedulePicker({
               </SelectContent>
             </Select>
           </Field>
-          {draft.preset === 'custom' ? (
+          {draft.preset === "custom" ? (
             <AutomationCustomCronPanel
               draft={draft}
               customScheduleInvalid={customScheduleInvalid}
@@ -203,7 +203,7 @@ export function AutomationSchedulePicker({
             />
           ) : (
             <>
-              {draft.preset === 'weekly' ? (
+              {draft.preset === "weekly" ? (
                 <Field label={translate("auto.components.automations.AutomationSchedulePicker.6b914c5fbb", "Day")}>
                   <Select
                     value={draft.dayOfWeek}
@@ -224,7 +224,7 @@ export function AutomationSchedulePicker({
                   </Select>
                 </Field>
               ) : null}
-              {draft.preset === 'hourly' ? (
+              {draft.preset === "hourly" ? (
                 <Field label={translate("auto.components.automations.AutomationSchedulePicker.9e677335b0", "Minute")}>
                   <Select
                     value={String(clockParts.minute)}

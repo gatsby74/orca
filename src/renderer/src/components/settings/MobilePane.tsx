@@ -233,7 +233,7 @@ export function MobilePane(): React.JSX.Element {
             onClick={() => setQrEnlarged(true)}
             className="group relative cursor-pointer rounded-lg border border-border/60 bg-white p-3"
           >
-            <img src={qrDataUrl} alt="QR Code for mobile pairing" className="size-48" />
+            <img src={qrDataUrl} alt={translate("auto.components.settings.MobilePane.6436e56546", "QR Code for mobile pairing")} className="size-48" />
             <Maximize2 className="absolute top-1.5 right-1.5 size-3 text-black/30 opacity-0 transition-opacity group-hover:opacity-100" />
           </button>
           {endpoint && <span className="text-muted-foreground font-mono text-xs">{endpoint}</span>}
@@ -268,8 +268,8 @@ export function MobilePane(): React.JSX.Element {
         {devices.length === 0 ? (
           <p className="text-muted-foreground text-sm">
             {qrDataUrl
-              ? 'No devices paired yet. Scan the QR code with the Orca mobile app.'
-              : 'No devices paired yet.'}
+              ? translate("auto.components.settings.MobilePane.1592afcc7a", "No devices paired yet. Scan the QR code with the Orca mobile app.")
+              : translate("auto.components.settings.MobilePane.1b1b70279a", "No devices paired yet.")}
           </p>
         ) : (
           <div className="space-y-2">
@@ -342,7 +342,7 @@ export function MobilePane(): React.JSX.Element {
           {qrDataUrl && (
             <div className="flex flex-col items-center gap-3">
               <div className="rounded-lg bg-white p-4">
-                <img src={qrDataUrl} alt="QR Code for mobile pairing" className="size-72" />
+                <img src={qrDataUrl} alt={translate("auto.components.settings.MobilePane.6436e56546", "QR Code for mobile pairing")} className="size-72" />
               </div>
               {endpoint && (
                 <span className="text-muted-foreground font-mono text-xs">{endpoint}</span>

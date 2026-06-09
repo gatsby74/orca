@@ -201,7 +201,7 @@ export function InlineInputRow({
       style={{ paddingLeft: `${depth * 16 + 8}px` }}
     >
       <span className="size-3 shrink-0" />
-      {inlineInput.type === 'folder' ? (
+      {inlineInput.type === "folder" ? (
         <Folder className="size-3 shrink-0 text-muted-foreground" />
       ) : (
         <File className="size-3 shrink-0 text-muted-foreground" />
@@ -517,15 +517,15 @@ export function FileExplorerRow({
         <ContextMenuSeparator />
         <ContextMenuItem onSelect={() => onCopyPaths('absolute')}>
           <Copy />
-          {selectionSize > 1 ? 'Copy Paths' : 'Copy Path'}
-          {copyPathShortcutLabel !== 'Unassigned' ? (
+          {selectionSize > 1 ? translate("auto.components.right.sidebar.FileExplorerRow.f9d7ca753d", "Copy Paths") : translate("auto.components.right.sidebar.FileExplorerRow.b5d436aa30", "Copy Path")}
+          {copyPathShortcutLabel !== "Unassigned" ? (
             <ContextMenuShortcut>{copyPathShortcutLabel}</ContextMenuShortcut>
           ) : null}
         </ContextMenuItem>
         <ContextMenuItem onSelect={() => onCopyPaths('relative')}>
           <Copy />
-          {selectionSize > 1 ? 'Copy Relative Paths' : 'Copy Relative Path'}
-          {copyRelativePathShortcutLabel !== 'Unassigned' ? (
+          {selectionSize > 1 ? translate("auto.components.right.sidebar.FileExplorerRow.42e10cbf57", "Copy Relative Paths") : translate("auto.components.right.sidebar.FileExplorerRow.66a29dde82", "Copy Relative Path")}
+          {copyRelativePathShortcutLabel !== "Unassigned" ? (
             <ContextMenuShortcut>{copyRelativePathShortcutLabel}</ContextMenuShortcut>
           ) : null}
         </ContextMenuItem>
@@ -544,7 +544,7 @@ export function FileExplorerRow({
             <Globe />
             {translate("auto.components.right.sidebar.FileExplorerRow.dd112c81d2", "Open in Orca Browser")}</ContextMenuItem>
         )}
-        {!node.isDirectory && activeWorktreeId && detectLanguage(node.path) === 'markdown' && (
+        {!node.isDirectory && activeWorktreeId && detectLanguage(node.path) === "markdown" && (
           <ContextMenuItem
             onSelect={() =>
               openMarkdownPreview({
@@ -566,7 +566,7 @@ export function FileExplorerRow({
         {shouldShowFindInFolderAction(node) && (
           <ContextMenuItem onSelect={onFindInFolder}>
             <Search />
-            {translate("auto.components.right.sidebar.FileExplorerRow.0df0e5abac", "Find in Folder")}{findInFolderShortcutLabel !== 'Unassigned' ? (
+            {translate("auto.components.right.sidebar.FileExplorerRow.0df0e5abac", "Find in Folder")}{findInFolderShortcutLabel !== "Unassigned" ? (
               <ContextMenuShortcut>{findInFolderShortcutLabel}</ContextMenuShortcut>
             ) : null}
           </ContextMenuItem>
@@ -597,7 +597,7 @@ export function FileExplorerRow({
         <ContextMenuSeparator />
         <ContextMenuItem onSelect={() => onStartRename(node)}>
           <Pencil />
-          {translate("auto.components.right.sidebar.FileExplorerRow.fc747429bf", "Rename")}<ContextMenuShortcut>{isMac ? '↩' : 'Enter'}</ContextMenuShortcut>
+          {translate("auto.components.right.sidebar.FileExplorerRow.fc747429bf", "Rename")}<ContextMenuShortcut>{isMac ? '↩' : translate("auto.components.right.sidebar.FileExplorerRow.a06551beee", "Enter")}</ContextMenuShortcut>
         </ContextMenuItem>
         <ContextMenuItem variant="destructive" onSelect={onRequestDelete}>
           <Trash2 />

@@ -189,7 +189,8 @@ export default function OnboardingFlow({
               })}
             </TooltipProvider>
             <span className="ml-3 text-xs font-medium text-muted-foreground">
-              {flow.visibleStepIndex + 1} {translate("auto.components.onboarding.OnboardingFlow.4db04f2f57", "of")}{flow.visibleSteps.length}
+              {flow.visibleStepIndex + 1} {translate("auto.components.onboarding.OnboardingFlow.4db04f2f57", "of")}{' '}
+              {flow.visibleSteps.length}
             </span>
           </div>
 
@@ -216,7 +217,7 @@ export default function OnboardingFlow({
               cn('scrollbar-sleek overflow-y-auto pr-1', 'mt-10')
             )}
           >
-            {currentStep.id === 'agent' && (
+            {currentStep.id === "agent" && (
               <AgentStep
                 selectedAgent={flow.selectedAgent}
                 onSelect={flow.setSelectedAgent}
@@ -224,7 +225,7 @@ export default function OnboardingFlow({
                 isDetecting={flow.isDetectingAgents}
               />
             )}
-            {currentStep.id === 'theme' && (
+            {currentStep.id === "theme" && (
               <ThemeStep
                 theme={flow.theme}
                 onThemeChange={flow.setTheme}
@@ -232,10 +233,10 @@ export default function OnboardingFlow({
                 updateSettings={flow.updateSettings}
               />
             )}
-            {currentStep.id === 'notifications' && (
+            {currentStep.id === "notifications" && (
               <NotificationStep settings={flow.settings} updateSettings={flow.updateSettings} />
             )}
-            {currentStep.id === 'integrations' && <IntegrationsStep />}
+            {currentStep.id === "integrations" && <IntegrationsStep />}
           </div>
 
           <OnboardingFooter

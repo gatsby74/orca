@@ -385,7 +385,7 @@ const WorktreeMetaDialog = React.memo(function WorktreeMetaDialog() {
           >
             {translate("auto.components.sidebar.WorktreeMetaDialog.3db0a2a593", "Cancel")}</Button>
           <Button size="sm" onClick={handleSave} disabled={!canSave || saving} className="text-xs">
-            {saving ? 'Saving...' : 'Save'}
+            {saving ? translate("auto.components.sidebar.WorktreeMetaDialog.61d6f612cf", "Saving...") : translate("auto.components.sidebar.WorktreeMetaDialog.2174f17011", "Save")}
           </Button>
         </DialogFooter>
       </DialogContent>

@@ -218,7 +218,7 @@ export function CliSection({
             <Label>{translate("auto.components.settings.CliSection.38edbb5721", "Shell command")}</Label>
             <p className="text-xs text-muted-foreground">
               {loading
-                ? 'Checking CLI registration…'
+                ? translate("auto.components.settings.CliSection.d363e5929b", "Checking CLI registration…")
                 : (status?.detail ?? getInstallDescription(currentPlatform))}
             </p>
           </div>
@@ -267,13 +267,13 @@ export function CliSection({
           </p>
         ) : null}
 
-        {status?.state === 'stale' && status.currentTarget ? (
+        {status?.state === "stale" && status.currentTarget ? (
           <p className="text-xs text-amber-600 dark:text-amber-400">
             {translate("auto.components.settings.CliSection.b0c310ab46", "Existing launcher target:")}<code>{status.currentTarget}</code>
           </p>
         ) : null}
 
-        {status?.state === 'installed' && !status.pathConfigured && status.pathDirectory ? (
+        {status?.state === "installed" && !status.pathConfigured && status.pathDirectory ? (
           <p className="text-xs text-amber-600 dark:text-amber-400">
             {status.pathDirectory} {translate("auto.components.settings.CliSection.7f2747f7dd", "is not currently visible on PATH for this shell.")}</p>
         ) : null}
@@ -349,13 +349,13 @@ export function CliSection({
           <DialogHeader>
             <DialogTitle>
               {isEnabled
-                ? `Remove \`${commandName}\` from PATH?`
-                : `Register \`${commandName}\` in PATH?`}
+                ? translate("auto.components.settings.CliSection.14444243ba", "Remove `{{value0}}` from PATH?", { value0: commandName })
+                : translate("auto.components.settings.CliSection.fa87db3d6e", "Register `{{value0}}` in PATH?", { value0: commandName })}
             </DialogTitle>
             <DialogDescription>
               {isEnabled
-                ? 'This removes the shell command symlink. Orca itself remains installed.'
-                : `Orca will register ${status?.commandPath ?? commandName} so the command works from your terminal.`}
+                ? translate("auto.components.settings.CliSection.a030816e3e", "This removes the shell command symlink. Orca itself remains installed.")
+                : translate("auto.components.settings.CliSection.aa6536977e", "Orca will register {{value0}} so the command works from your terminal.", { value0: status?.commandPath ?? commandName })}
             </DialogDescription>
           </DialogHeader>
           {status?.commandPath ? (
@@ -375,13 +375,13 @@ export function CliSection({
               onClick={() => void (isEnabled ? handleRemove() : handleInstall())}
               disabled={busyAction !== null || !isSupported}
             >
-              {busyAction === 'remove'
-                ? 'Removing…'
-                : busyAction === 'install'
-                  ? 'Registering…'
+              {busyAction === "remove"
+                ? translate("auto.components.settings.CliSection.068552b191", "Removing…")
+                : busyAction === "install"
+                  ? translate("auto.components.settings.CliSection.b0fca411a0", "Registering…")
                   : isEnabled
-                    ? 'Remove'
-                    : 'Register'}
+                    ? translate("auto.components.settings.CliSection.9a5f8a4568", "Remove")
+                    : translate("auto.components.settings.CliSection.d00df2e397", "Register")}
             </Button>
           </DialogFooter>
         </DialogContent>

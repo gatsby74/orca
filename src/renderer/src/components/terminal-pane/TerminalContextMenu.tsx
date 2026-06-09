@@ -240,7 +240,7 @@ export default function TerminalContextMenu({
         {canExpandPane && (
           <DropdownMenuItem onSelect={onToggleExpand}>
             {menuPaneIsExpanded ? <Minimize2 /> : <Maximize2 />}
-            {menuPaneIsExpanded ? 'Collapse Pane' : 'Expand Pane'}
+            {menuPaneIsExpanded ? translate("auto.components.terminal.pane.TerminalContextMenu.df766809e0", "Collapse Pane") : translate("auto.components.terminal.pane.TerminalContextMenu.925f49f210", "Expand Pane")}
             <DropdownMenuShortcut>{shortcuts.expand}</DropdownMenuShortcut>
           </DropdownMenuItem>
         )}

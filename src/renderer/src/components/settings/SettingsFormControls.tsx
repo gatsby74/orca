@@ -299,12 +299,12 @@ export function ThemePicker({
       />
       <div className="rounded-lg border border-border/50">
         <div className="flex items-center justify-between border-b border-border/50 px-3 py-2 text-xs text-muted-foreground">
-          <span>{translate("auto.components.settings.SettingsFormControls.fbb428db98", "Selected:")}{selectedTheme}</span>
+          <span>{translate("auto.components.settings.SettingsFormControls.fbb428db98", "Selected:")} {selectedTheme}</span>
           <span>
-            {translate("auto.components.settings.SettingsFormControls.4e11f87ca6", "Showing")}{filteredThemes.length}
+            {translate("auto.components.settings.SettingsFormControls.4e11f87ca6", "Showing")} {filteredThemes.length}
             {normalizedQuery
-              ? ` matching "${query.trim()}"`
-              : ` of ${BUILTIN_TERMINAL_THEME_NAMES.length}`}
+              ? translate("auto.components.settings.SettingsFormControls.c822571b2e", " matching \"{{value0}}\"", { value0: query.trim() })
+              : translate("auto.components.settings.SettingsFormControls.cb330ef7f8", " of {{value0}}", { value0: BUILTIN_TERMINAL_THEME_NAMES.length })}
           </span>
         </div>
         <ScrollArea className="h-64">
@@ -414,7 +414,7 @@ export function NumberField({
         <>
           {description}
           {defaultValue !== undefined ? (
-            <span className="ml-1 text-muted-foreground/70">{translate("auto.components.settings.SettingsFormControls.b661b034ec", "· Default:")}{defaultValue}</span>
+            <span className="ml-1 text-muted-foreground/70">{translate("auto.components.settings.SettingsFormControls.b661b034ec", "· Default:")} {defaultValue}</span>
           ) : null}
         </>
       }

@@ -180,7 +180,7 @@ function QuickLaunchAgentMenuItemsInner({
           disabled
           className="gap-2 rounded-[7px] px-2 py-1.5 text-[12px] leading-5 text-muted-foreground"
         >
-          {detectedIds && detectedIds.length > 0 ? 'No enabled agents' : 'No agents detected'}
+          {detectedIds && detectedIds.length > 0 ? translate("auto.components.tab.bar.QuickLaunchButton.8dea9b5cdf", "No enabled agents") : translate("auto.components.tab.bar.QuickLaunchButton.e518f544b1", "No agents detected")}
         </DropdownMenuItem>
       ) : null}
       {agents.map((agent) => {

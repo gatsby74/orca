@@ -158,7 +158,7 @@ export default function BrowserFind({
 
       {query ? (
         <span className="shrink-0 text-xs text-zinc-400">
-          {totalMatches > 0 ? `${activeMatch} of ${totalMatches}` : 'No matches'}
+          {totalMatches > 0 ? translate("auto.components.browser.pane.BrowserFind.fc63f336aa", "{{value0}} of {{value1}}", { value0: activeMatch, value1: totalMatches }) : translate("auto.components.browser.pane.BrowserFind.7baca7b1b8", "No matches")}
         </span>
       ) : null}
 

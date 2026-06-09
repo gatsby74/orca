@@ -93,7 +93,7 @@ export function TerminalAgentSessionForkDialog({
             {translate("auto.components.terminal.pane.TerminalAgentSessionForkDialog.17fc841e59", "Copy context")}</Button>
           <Button disabled={busy} onClick={() => void handleStartFork()}>
             <GitFork className="size-4" />
-            {busy ? 'Creating...' : 'Create fork'}
+            {busy ? translate("auto.components.terminal.pane.TerminalAgentSessionForkDialog.2b10412cfc", "Creating...") : translate("auto.components.terminal.pane.TerminalAgentSessionForkDialog.9d25de2920", "Create fork")}
           </Button>
         </DialogFooter>
       </DialogContent>

@@ -134,7 +134,7 @@ export function SourceControlAgentActionDialogForm({
             />
           ) : (
             <div className="flex items-center justify-between gap-3 rounded-md border border-border bg-muted/30 px-3 py-2 text-xs text-muted-foreground">
-              <span>{detecting ? 'Detecting agents...' : 'No enabled agents'}</span>
+              <span>{detecting ? translate("auto.components.right.sidebar.SourceControlAgentActionDialogForm.c7ff8cef11", "Detecting agents...") : translate("auto.components.right.sidebar.SourceControlAgentActionDialogForm.1d47db9bf0", "No enabled agents")}</span>
               {onOpenSettings ? (
                 <Button type="button" variant="ghost" size="xs" onClick={onOpenSettings}>
                   <Settings className="size-3.5" />

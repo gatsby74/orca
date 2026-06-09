@@ -280,7 +280,7 @@ export function TasksAnimatedVisual(props: { reducedMotion: boolean }): JSX.Elem
           ) : (
             <span className="inline-block size-[9px] rounded-full bg-emerald-500" />
           )}
-          <span>{workspaceCreating ? 'Creating workspace' : 'Workspace ready'}</span>
+          <span>{workspaceCreating ? translate("auto.components.feature.wall.TasksAnimatedVisual.61ffda7601", "Creating workspace") : translate("auto.components.feature.wall.TasksAnimatedVisual.fe47c9c9e8", "Workspace ready")}</span>
         </div>
         {workspaceIssue ? (
           <div
@@ -319,7 +319,7 @@ export function TasksAnimatedVisual(props: { reducedMotion: boolean }): JSX.Elem
       >
         <div className="relative">
           <CursorIcon />
-          {phase.kind === 'pressing' ? <FeatureWallClickRing key={rippleKey} /> : null}
+          {phase.kind === "pressing" ? <FeatureWallClickRing key={rippleKey} /> : null}
         </div>
       </div>
     </div>

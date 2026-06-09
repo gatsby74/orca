@@ -75,7 +75,7 @@ export function WorkspaceCombobox({
           className={cn('h-9 w-full justify-between px-3 text-sm font-normal', triggerClassName)}
         >
           <span className={cn('truncate', !selected && 'text-muted-foreground')}>
-            {selected?.displayName ?? 'Select workspace'}
+            {selected?.displayName ?? translate("auto.components.automations.WorkspaceCombobox.66a0cd9628", "Select workspace")}
           </span>
           <ChevronsUpDown className="size-4 opacity-50" />
         </Button>

@@ -258,7 +258,7 @@ export function DeveloperPermissionsPane(): React.JSX.Element {
                 className="shrink-0 gap-1.5"
               >
                 <ExternalLink className="size-3.5" />
-                {pending ? 'Working...' : permission.actionLabel}
+                {pending ? translate("auto.components.settings.DeveloperPermissionsPane.dac08ec03e", "Working...") : permission.actionLabel}
               </Button>
             </div>
           )

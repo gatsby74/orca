@@ -296,7 +296,7 @@ export default function BrowserTab({
             ) : (
               <Pin className="mr-1.5 size-3.5" />
             )}
-            {isPinned ? 'Unpin Tab' : 'Pin Tab'}
+            {isPinned ? translate("auto.components.tab.bar.BrowserTab.c5aaee8c39", "Unpin Tab") : translate("auto.components.tab.bar.BrowserTab.911542656f", "Pin Tab")}
           </DropdownMenuItem>
           <DropdownMenuSeparator />
           <DropdownMenuItem onSelect={() => !isPinned && onClose()} disabled={isPinned}>

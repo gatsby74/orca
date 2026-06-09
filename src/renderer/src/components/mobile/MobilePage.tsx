@@ -417,9 +417,9 @@ export default function MobilePage(): React.JSX.Element {
       />
       <section className="mp-hero">
         <div className="mp-hero-copy">
-          {stage === null ? null : stage === 'intro' ? (
+          {stage === null ? null : stage === "intro" ? (
             <HeroIntro onStart={enterFlow} />
-          ) : stage === 'paired' ? (
+          ) : stage === "paired" ? (
             <HeroPaired
               devices={devices}
               onPairAnother={pairAnotherDevice}

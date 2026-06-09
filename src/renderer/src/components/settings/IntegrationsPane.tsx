@@ -151,19 +151,19 @@ export function IntegrationsPane(): React.JSX.Element {
           </div>
           {ghStatus === 'checking' ? (
             <LoaderCircle className="size-4 shrink-0 animate-spin text-muted-foreground" />
-          ) : ghStatus === 'connected' ? (
+          ) : ghStatus === "connected" ? (
             <span className="shrink-0 rounded-full border border-emerald-500/30 bg-emerald-500/10 px-2.5 py-1 text-[11px] font-medium text-emerald-700 dark:text-emerald-300">
               {translate("auto.components.settings.IntegrationsPane.6432f6522e", "Connected")}</span>
           ) : (
             <span className="shrink-0 rounded-full border border-amber-500/30 bg-amber-500/10 px-2.5 py-1 text-[11px] font-medium text-amber-700 dark:text-amber-300">
-              {ghStatus === 'not-installed' ? 'Not installed' : 'Not authenticated'}
+              {ghStatus === "not-installed" ? translate("auto.components.settings.IntegrationsPane.f7eb5f0b24", "Not installed") : translate("auto.components.settings.IntegrationsPane.15cf990798", "Not authenticated")}
             </span>
           )}
         </div>
 
-        {ghStatus !== 'checking' && ghStatus !== 'connected' && (
+        {ghStatus !== 'checking' && ghStatus !== "connected" && (
           <div className="mt-3 rounded-md border border-border/30 bg-background/50 px-3 py-2.5 space-y-2">
-            {ghStatus === 'not-installed' ? (
+            {ghStatus === "not-installed" ? (
               <>
                 <p className="text-xs text-muted-foreground">
                   {translate("auto.components.settings.IntegrationsPane.c0c8575e05", "Install the GitHub CLI to enable pull requests, issues, and checks.")}</p>
@@ -217,19 +217,19 @@ export function IntegrationsPane(): React.JSX.Element {
           </div>
           {glabStatus === 'checking' ? (
             <LoaderCircle className="size-4 shrink-0 animate-spin text-muted-foreground" />
-          ) : glabStatus === 'connected' ? (
+          ) : glabStatus === "connected" ? (
             <span className="shrink-0 rounded-full border border-emerald-500/30 bg-emerald-500/10 px-2.5 py-1 text-[11px] font-medium text-emerald-700 dark:text-emerald-300">
               {translate("auto.components.settings.IntegrationsPane.6432f6522e", "Connected")}</span>
           ) : (
             <span className="shrink-0 rounded-full border border-amber-500/30 bg-amber-500/10 px-2.5 py-1 text-[11px] font-medium text-amber-700 dark:text-amber-300">
-              {glabStatus === 'not-installed' ? 'Not installed' : 'Not authenticated'}
+              {glabStatus === "not-installed" ? translate("auto.components.settings.IntegrationsPane.f7eb5f0b24", "Not installed") : translate("auto.components.settings.IntegrationsPane.15cf990798", "Not authenticated")}
             </span>
           )}
         </div>
 
-        {glabStatus !== 'checking' && glabStatus !== 'connected' && (
+        {glabStatus !== 'checking' && glabStatus !== "connected" && (
           <div className="mt-3 rounded-md border border-border/30 bg-background/50 px-3 py-2.5 space-y-2">
-            {glabStatus === 'not-installed' ? (
+            {glabStatus === "not-installed" ? (
               <>
                 <p className="text-xs text-muted-foreground">
                   {translate("auto.components.settings.IntegrationsPane.35a3379372", "Install the GitLab CLI to enable merge requests, issues, and pipelines.")}</p>
@@ -282,28 +282,28 @@ export function IntegrationsPane(): React.JSX.Element {
           <div className="min-w-0 flex-1 space-y-0.5">
             <p className="text-sm font-medium">{translate("auto.components.settings.IntegrationsPane.8489c0aa49", "Bitbucket")}</p>
             <p className="text-xs text-muted-foreground">
-              {bitbucketStatus === 'connected'
+              {bitbucketStatus === "connected"
                 ? bitbucketAccount
-                  ? `${bitbucketAccount} · Pull requests and build statuses`
-                  : 'Pull requests and build statuses'
-                : 'Pull requests and build statuses via Bitbucket Cloud API tokens.'}
+                  ? translate("auto.components.settings.IntegrationsPane.277fc23929", "{{value0}} · Pull requests and build statuses", { value0: bitbucketAccount })
+                  : translate("auto.components.settings.IntegrationsPane.9707523939", "Pull requests and build statuses")
+                : translate("auto.components.settings.IntegrationsPane.0879860c58", "Pull requests and build statuses via Bitbucket Cloud API tokens.")}
             </p>
           </div>
           {bitbucketStatus === 'checking' ? (
             <LoaderCircle className="size-4 shrink-0 animate-spin text-muted-foreground" />
-          ) : bitbucketStatus === 'connected' ? (
+          ) : bitbucketStatus === "connected" ? (
             <span className="shrink-0 rounded-full border border-emerald-500/30 bg-emerald-500/10 px-2.5 py-1 text-[11px] font-medium text-emerald-700 dark:text-emerald-300">
               {translate("auto.components.settings.IntegrationsPane.6432f6522e", "Connected")}</span>
           ) : (
             <span className="shrink-0 rounded-full border border-amber-500/30 bg-amber-500/10 px-2.5 py-1 text-[11px] font-medium text-amber-700 dark:text-amber-300">
-              {bitbucketStatus === 'not-configured' ? 'Not configured' : 'Auth failed'}
+              {bitbucketStatus === "not-configured" ? translate("auto.components.settings.IntegrationsPane.f92fbf11aa", "Not configured") : translate("auto.components.settings.IntegrationsPane.45bf5e6e4b", "Auth failed")}
             </span>
           )}
         </div>
 
-        {bitbucketStatus !== 'checking' && bitbucketStatus !== 'connected' && (
+        {bitbucketStatus !== 'checking' && bitbucketStatus !== "connected" && (
           <div className="mt-3 rounded-md border border-border/30 bg-background/50 px-3 py-2.5 space-y-2">
-            {bitbucketStatus === 'not-configured' ? (
+            {bitbucketStatus === "not-configured" ? (
               <>
                 <p className="text-xs text-muted-foreground">
                   {translate("auto.components.settings.IntegrationsPane.4ee74d1470", "Set")}<span className="font-mono text-[11px]">{translate("auto.components.settings.IntegrationsPane.b8a7efb3f6", "ORCA_BITBUCKET_EMAIL")}</span> {translate("auto.components.settings.IntegrationsPane.a6c2816115", "and")}{' '}
@@ -358,31 +358,31 @@ export function IntegrationsPane(): React.JSX.Element {
           <div className="min-w-0 flex-1 space-y-0.5">
             <p className="text-sm font-medium">{translate("auto.components.settings.IntegrationsPane.5efce6953d", "Azure DevOps")}</p>
             <p className="text-xs text-muted-foreground">
-              {azureDevOpsStatus === 'configured'
+              {azureDevOpsStatus === "configured"
                 ? azureDevOpsAccount
-                  ? `${azureDevOpsAccount} · Pull requests and build statuses`
+                  ? translate("auto.components.settings.IntegrationsPane.277fc23929", "{{value0}} · Pull requests and build statuses", { value0: azureDevOpsAccount })
                   : azureDevOpsBaseUrl
-                    ? `${azureDevOpsBaseUrl} · Pull requests and build statuses`
-                    : 'Pull requests and build statuses for detected Azure Repos'
-                : 'Pull requests and build statuses via Azure DevOps REST API tokens.'}
+                    ? translate("auto.components.settings.IntegrationsPane.277fc23929", "{{value0}} · Pull requests and build statuses", { value0: azureDevOpsBaseUrl })
+                    : translate("auto.components.settings.IntegrationsPane.e3d5a24979", "Pull requests and build statuses for detected Azure Repos")
+                : translate("auto.components.settings.IntegrationsPane.6791d7af95", "Pull requests and build statuses via Azure DevOps REST API tokens.")}
             </p>
           </div>
           {azureDevOpsStatus === 'checking' ? (
             <LoaderCircle className="size-4 shrink-0 animate-spin text-muted-foreground" />
-          ) : azureDevOpsStatus === 'configured' ? (
+          ) : azureDevOpsStatus === "configured" ? (
             <span className="shrink-0 rounded-full border border-emerald-500/30 bg-emerald-500/10 px-2.5 py-1 text-[11px] font-medium text-emerald-700 dark:text-emerald-300">
-              {azureDevOpsAccount ? 'Connected' : 'Configured'}
+              {azureDevOpsAccount ? translate("auto.components.settings.IntegrationsPane.6432f6522e", "Connected") : translate("auto.components.settings.IntegrationsPane.e7a961e1c5", "Configured")}
             </span>
           ) : (
             <span className="shrink-0 rounded-full border border-amber-500/30 bg-amber-500/10 px-2.5 py-1 text-[11px] font-medium text-amber-700 dark:text-amber-300">
-              {azureDevOpsStatus === 'not-configured' ? 'Not configured' : 'Auth failed'}
+              {azureDevOpsStatus === "not-configured" ? translate("auto.components.settings.IntegrationsPane.f92fbf11aa", "Not configured") : translate("auto.components.settings.IntegrationsPane.45bf5e6e4b", "Auth failed")}
             </span>
           )}
         </div>
 
-        {azureDevOpsStatus !== 'checking' && azureDevOpsStatus !== 'configured' && (
+        {azureDevOpsStatus !== 'checking' && azureDevOpsStatus !== "configured" && (
           <div className="mt-3 rounded-md border border-border/30 bg-background/50 px-3 py-2.5 space-y-2">
-            {azureDevOpsStatus === 'not-configured' ? (
+            {azureDevOpsStatus === "not-configured" ? (
               <>
                 <p className="text-xs text-muted-foreground">
                   {translate("auto.components.settings.IntegrationsPane.4ee74d1470", "Set")}<span className="font-mono text-[11px]">{translate("auto.components.settings.IntegrationsPane.5ee6ef6405", "ORCA_AZURE_DEVOPS_TOKEN")}</span>{translate("auto.components.settings.IntegrationsPane.ce3c58cd63", ", or set")}{' '}
@@ -436,31 +436,31 @@ export function IntegrationsPane(): React.JSX.Element {
           <div className="min-w-0 flex-1 space-y-0.5">
             <p className="text-sm font-medium">{translate("auto.components.settings.IntegrationsPane.4ab9b96925", "Gitea")}</p>
             <p className="text-xs text-muted-foreground">
-              {giteaStatus === 'configured'
+              {giteaStatus === "configured"
                 ? giteaAccount
-                  ? `${giteaAccount} · Pull requests and commit statuses`
+                  ? translate("auto.components.settings.IntegrationsPane.1fac9b4910", "{{value0}} · Pull requests and commit statuses", { value0: giteaAccount })
                   : giteaBaseUrl
-                    ? `${giteaBaseUrl} · Pull requests and commit statuses`
-                    : 'Pull requests and commit statuses for detected repositories'
-                : 'Pull requests and commit statuses via the Gitea REST API.'}
+                    ? translate("auto.components.settings.IntegrationsPane.1fac9b4910", "{{value0}} · Pull requests and commit statuses", { value0: giteaBaseUrl })
+                    : translate("auto.components.settings.IntegrationsPane.6355fe585e", "Pull requests and commit statuses for detected repositories")
+                : translate("auto.components.settings.IntegrationsPane.6bd148dcb5", "Pull requests and commit statuses via the Gitea REST API.")}
             </p>
           </div>
           {giteaStatus === 'checking' ? (
             <LoaderCircle className="size-4 shrink-0 animate-spin text-muted-foreground" />
-          ) : giteaStatus === 'configured' ? (
+          ) : giteaStatus === "configured" ? (
             <span className="shrink-0 rounded-full border border-emerald-500/30 bg-emerald-500/10 px-2.5 py-1 text-[11px] font-medium text-emerald-700 dark:text-emerald-300">
-              {giteaAccount ? 'Connected' : 'Configured'}
+              {giteaAccount ? translate("auto.components.settings.IntegrationsPane.6432f6522e", "Connected") : translate("auto.components.settings.IntegrationsPane.e7a961e1c5", "Configured")}
             </span>
           ) : (
             <span className="shrink-0 rounded-full border border-amber-500/30 bg-amber-500/10 px-2.5 py-1 text-[11px] font-medium text-amber-700 dark:text-amber-300">
-              {giteaStatus === 'not-configured' ? 'Optional setup' : 'Auth failed'}
+              {giteaStatus === "not-configured" ? translate("auto.components.settings.IntegrationsPane.e1bd5364e6", "Optional setup") : translate("auto.components.settings.IntegrationsPane.45bf5e6e4b", "Auth failed")}
             </span>
           )}
         </div>
 
-        {giteaStatus !== 'checking' && giteaStatus !== 'configured' && (
+        {giteaStatus !== 'checking' && giteaStatus !== "configured" && (
           <div className="mt-3 rounded-md border border-border/30 bg-background/50 px-3 py-2.5 space-y-2">
-            {giteaStatus === 'not-configured' ? (
+            {giteaStatus === "not-configured" ? (
               <>
                 <p className="text-xs text-muted-foreground">
                   {translate("auto.components.settings.IntegrationsPane.d9467ab026", "Public repositories are detected from their git remote. Set")}{' '}
@@ -511,8 +511,8 @@ export function IntegrationsPane(): React.JSX.Element {
             <p className="text-sm font-medium">{translate("auto.components.settings.IntegrationsPane.264a9b6128", "Linear")}</p>
             <p className="text-xs text-muted-foreground">
               {linearStatus.connected
-                ? `${linearWorkspaces.length} workspace${linearWorkspaces.length === 1 ? '' : 's'} connected`
-                : 'Add Linear access to browse and link issues.'}
+                ? translate("auto.components.settings.IntegrationsPane.98ded79cd7", "{{value0}} workspace{{value1}} connected", { value0: linearWorkspaces.length, value1: linearWorkspaces.length === 1 ? '' : 's' })
+                : translate("auto.components.settings.IntegrationsPane.33ae9730a8", "Add Linear access to browse and link issues.")}
             </p>
           </div>
           {linearStatus.connected ? (
@@ -550,7 +550,7 @@ export function IntegrationsPane(): React.JSX.Element {
                       {workspace.email ? ` · ${workspace.email}` : ''}
                     </p>
                   </div>
-                  {testResult?.state === 'ok' ? (
+                  {testResult?.state === "ok" ? (
                     <span className="flex shrink-0 items-center gap-1 text-xs text-emerald-600 dark:text-emerald-400">
                       <CheckCircle2 className="size-3.5" />
                       {translate("auto.components.settings.IntegrationsPane.fe4d378dc4", "Verified")}</span>
@@ -572,12 +572,12 @@ export function IntegrationsPane(): React.JSX.Element {
                         <LoaderCircle className="size-3.5 mr-1.5 animate-spin" />
                         {translate("auto.components.settings.IntegrationsPane.e7b2dd46f9", "Testing…")}</>
                     ) : (
-                      'Test'
+                      translate("auto.components.settings.IntegrationsPane.95b9a87e7e", "Test")
                     )}
                   </Button>
                   <button
                     onClick={() => void handleLinearDisconnect(workspace.id)}
-                    aria-label={`Disconnect ${workspace.organizationName}`}
+                    aria-label={translate("auto.components.settings.IntegrationsPane.8e078e480c", "Disconnect {{value0}}", { value0: workspace.organizationName })}
                     className="rounded-md p-1 text-muted-foreground/50 transition-colors hover:text-destructive"
                   >
                     <Unlink className="size-3.5" />

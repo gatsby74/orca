@@ -302,7 +302,7 @@ function ExampleTemplateCard({
           }`}
           onClick={onCopyTemplate}
         >
-          {copiedTemplate ? 'Copied' : 'Copy'}
+          {copiedTemplate ? translate("auto.components.settings.RepositoryHooksSection.3149964b66", "Copied") : translate("auto.components.settings.RepositoryHooksSection.da37d6f10e", "Copy")}
         </Button>
         <pre className="overflow-x-auto whitespace-pre-wrap break-words p-3 pr-16 font-mono text-[11px] leading-5 text-muted-foreground">
           {EXAMPLE_TEMPLATE}
@@ -365,7 +365,7 @@ function SaveIndicator({ status }: { status: SaveStatus }): React.JSX.Element | 
           isSaving ? 'animate-pulse bg-amber-500' : 'bg-emerald-500'
         }`}
       />
-      {isSaving ? 'Saving...' : 'Saved'}
+      {isSaving ? translate("auto.components.settings.RepositoryHooksSection.81057d5f71", "Saving...") : translate("auto.components.settings.RepositoryHooksSection.2b6356e744", "Saved")}
     </span>
   )
 }
@@ -387,8 +387,8 @@ function LocalCommandSourceNotice({
             {translate("auto.components.settings.RepositoryHooksSection.5426ecbdcb", "Local scripts will not run")}</p>
           <p className="text-xs leading-5 text-muted-foreground">
             {isChecking
-              ? 'Local scripts are saved. Orca is still checking orca.yaml before it can recommend which script source to use.'
-              : 'Local scripts are saved, but Script Source is set to orca.yaml only.'}
+              ? translate("auto.components.settings.RepositoryHooksSection.7f78e5eea6", "Local scripts are saved. Orca is still checking orca.yaml before it can recommend which script source to use.")
+              : translate("auto.components.settings.RepositoryHooksSection.0ce113fd7b", "Local scripts are saved, but Script Source is set to orca.yaml only.")}
           </p>
         </div>
       </div>
@@ -754,16 +754,16 @@ export function RepositoryHooksSection({
   const advancedMatchesSearch =
     settingsSearchQuery.trim() !== '' &&
     matchesSettingsSearch(settingsSearchQuery, {
-      title: 'Advanced',
-      description: 'Command source and orca.yaml details.',
+      title: translate("auto.components.settings.RepositoryHooksSection.c9bc1bfd8f", "Advanced"),
+      description: translate("auto.components.settings.RepositoryHooksSection.610d90fdbd", "Command source and orca.yaml details."),
       keywords: [
-        'advanced',
-        'command source',
-        'orca.yaml',
-        'shared',
-        'local',
-        'both',
-        'authoritative'
+        translate("auto.components.settings.RepositoryHooksSection.c5a55a2d2e", "advanced"),
+        translate("auto.components.settings.RepositoryHooksSection.4611b78617", "command source"),
+        translate("auto.components.settings.RepositoryHooksSection.39da2ae12f", "orca.yaml"),
+        translate("auto.components.settings.RepositoryHooksSection.d2b3016c20", "shared"),
+        translate("auto.components.settings.RepositoryHooksSection.2d03a514db", "local"),
+        translate("auto.components.settings.RepositoryHooksSection.0518758f38", "both"),
+        translate("auto.components.settings.RepositoryHooksSection.fac13f8c1e", "authoritative")
       ]
     })
   const [isAdvancedOpen, setIsAdvancedOpen] = useState(false)
@@ -869,7 +869,7 @@ export function RepositoryHooksSection({
             <h5 className="text-sm font-semibold">{translate("auto.components.settings.RepositoryHooksSection.13394103bd", "Custom GitHub Issue Command")}</h5>
             <p className="text-xs text-muted-foreground">
               {translate("auto.components.settings.RepositoryHooksSection.b997331366", "Optional override. Use")}{' '}
-              <code className="rounded bg-muted px-1 py-0.5">{'{{artifact_url}}'}</code> {translate("auto.components.settings.RepositoryHooksSection.70ad20f883", "for the linked issue or PR URL.")}</p>
+              <code className="rounded bg-muted px-1 py-0.5">{translate("auto.components.settings.RepositoryHooksSection.c85c2c88a2", "{{artifact_url}}")}</code> {translate("auto.components.settings.RepositoryHooksSection.70ad20f883", "for the linked issue or PR URL.")}</p>
           </div>
           <textarea
             value={issueCommandDraft}
@@ -884,7 +884,7 @@ export function RepositoryHooksSection({
           <p className="text-[11px] text-muted-foreground">
             {translate("auto.components.settings.RepositoryHooksSection.52aef29e69", "Leave blank to use the repo default from")}{' '}
             <code className="rounded bg-muted px-1 py-0.5">{translate("auto.components.settings.RepositoryHooksSection.39da2ae12f", "orca.yaml")}</code>
-            {hasSharedIssueCommand ? '.' : ' when one exists.'}
+            {hasSharedIssueCommand ? '.' : translate("auto.components.settings.RepositoryHooksSection.9b12f15b1e", "when one exists.")}
           </p>
           {issueCommandSaveError ? (
             <p className="text-xs text-destructive">{issueCommandSaveError}</p>
@@ -964,9 +964,9 @@ export function RepositoryHooksSection({
                 </div>
               </div>
 
-              {yamlState === 'loaded' ? (
+              {yamlState === "loaded" ? (
                 <YamlScriptBlock content={renderYamlScriptPreview(yamlHooks)} />
-              ) : yamlState === 'invalid' ? (
+              ) : yamlState === "invalid" ? (
                 <div className="space-y-4">
                   <div className="flex items-start gap-3 rounded-lg border border-amber-500/20 bg-background/60 p-3">
                     <AlertTriangle className="mt-0.5 size-4 shrink-0 text-amber-600 dark:text-amber-300" />

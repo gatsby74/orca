@@ -729,7 +729,7 @@ function RightPaneScrollback(props: {
               ) : (
                 <span className="mr-1.5 text-foreground">●</span>
               )}
-              {props.isCodex ? 'Codex session started' : 'Claude Code session started'}
+              {props.isCodex ? translate("auto.components.feature.wall.WorkbenchAnimatedVisual.fc84f17fe7", "Codex session started") : translate("auto.components.feature.wall.WorkbenchAnimatedVisual.431ca9842a", "Claude Code session started")}
             </TermLine>
           )
         }

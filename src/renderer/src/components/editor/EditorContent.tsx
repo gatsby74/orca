@@ -744,19 +744,19 @@ export function EditorContent({
         <div className="min-h-0 flex-1 relative">
           {isMarkdown ? (
             renderMarkdownContent(fc)
-          ) : isMermaid && mdViewMode === 'rich' ? (
+          ) : isMermaid && mdViewMode === "rich" ? (
             <MermaidViewer
               key={activeFile.id}
               content={editBuffers[activeFile.id] ?? fc.content}
               filePath={activeFile.filePath}
             />
-          ) : isCsv && mdViewMode === 'rich' ? (
+          ) : isCsv && mdViewMode === "rich" ? (
             <CsvViewer
               key={activeFile.id}
               content={editBuffers[activeFile.id] ?? fc.content}
               filePath={activeFile.filePath}
             />
-          ) : isNotebook && mdViewMode === 'rich' ? (
+          ) : isNotebook && mdViewMode === "rich" ? (
             <IpynbViewer
               key={activeFile.id}
               content={editBuffers[activeFile.id] ?? fc.content}
@@ -802,9 +802,9 @@ export function EditorContent({
         <div className="space-y-2">
           <div className="text-sm font-medium text-foreground">{translate("auto.components.editor.EditorContent.78541e254e", "Binary file changed")}</div>
           <div className="text-xs text-muted-foreground">
-            {activeFile.diffSource === 'branch'
-              ? 'Text diff is unavailable for this file in branch compare.'
-              : 'Text diff is unavailable for this file.'}
+            {activeFile.diffSource === "branch"
+              ? translate("auto.components.editor.EditorContent.3c6e71df22", "Text diff is unavailable for this file in branch compare.")
+              : translate("auto.components.editor.EditorContent.8a0898ae4c", "Text diff is unavailable for this file.")}
           </div>
         </div>
       </div>

@@ -272,7 +272,7 @@ export default function HostedReviewActions({
                       <GitMerge className="size-3.5" />
                     )}
                     {merging
-                      ? 'Working...'
+                      ? translate("auto.components.right.sidebar.HostedReviewActions.d2ca293f3d", "Working...")
                       : mergePresentation.directMergeAvailable
                         ? mergeMethods.defaultLabel
                         : (mergePresentation.autoMergeAction?.label ?? mergePresentation.label)}
@@ -363,7 +363,7 @@ export default function HostedReviewActions({
           ) : (
             <CircleDot className="size-3.5" />
           )}
-          {stateUpdating === 'open' ? 'Reopening...' : `Reopen ${shortLabel}`}
+          {stateUpdating === 'open' ? translate("auto.components.right.sidebar.HostedReviewActions.6645ac7dd1", "Reopening...") : translate("auto.components.right.sidebar.HostedReviewActions.3ce211ece6", "Reopen {{value0}}", { value0: shortLabel })}
         </Button>
         {actionError && <div className="text-[10px] text-rose-500 break-words">{actionError}</div>}
       </div>
@@ -385,7 +385,7 @@ export default function HostedReviewActions({
         ) : (
           <Trash2 className="size-3.5" />
         )}
-        {isDeletingWorktree ? 'Deleting...' : 'Delete Workspace'}
+        {isDeletingWorktree ? translate("auto.components.right.sidebar.HostedReviewActions.eefd50457e", "Deleting...") : translate("auto.components.right.sidebar.HostedReviewActions.e4aca40024", "Delete Workspace")}
       </Button>
     )
   }

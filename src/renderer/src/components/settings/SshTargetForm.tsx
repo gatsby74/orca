@@ -34,7 +34,7 @@ export function SshTargetForm({
         onSave()
       }}
     >
-      <p className="text-sm font-medium">{editingId ? 'Edit SSH Target' : 'New SSH Target'}</p>
+      <p className="text-sm font-medium">{editingId ? translate("auto.components.settings.SshTargetForm.f2331ce599", "Edit SSH Target") : translate("auto.components.settings.SshTargetForm.29af933cd5", "New SSH Target")}</p>
 
       <div className="grid grid-cols-2 gap-4">
         <div className="space-y-1.5">
@@ -140,7 +140,7 @@ export function SshTargetForm({
 
       <div className="flex items-center gap-2">
         <Button type="submit" size="sm">
-          {editingId ? 'Save Changes' : 'Add Target'}
+          {editingId ? translate("auto.components.settings.SshTargetForm.a62b4cb39a", "Save Changes") : translate("auto.components.settings.SshTargetForm.9518545cb6", "Add Target")}
         </Button>
         <Button type="button" variant="ghost" size="sm" onClick={onCancel}>
           {translate("auto.components.settings.SshTargetForm.fea9cb402e", "Cancel")}</Button>

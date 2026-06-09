@@ -77,7 +77,7 @@ function SkillCard({ skill }: { skill: DiscoveredSkill }): React.JSX.Element {
                 variant={skill.installed ? 'secondary' : 'outline'}
                 className="h-5 text-[10px]"
               >
-                {skill.installed ? 'Local' : 'Available'}
+                {skill.installed ? translate("auto.components.skills.SkillsPage.0c74e7ff34", "Local") : translate("auto.components.skills.SkillsPage.35b9a724a0", "Available")}
               </Badge>
               <Badge variant="outline" className="h-5 text-[10px]">
                 {sourceLabels[skill.sourceKind]}
@@ -154,12 +154,12 @@ function EmptyState({
         )}
         <div className="space-y-1">
           <h3 className="text-sm font-semibold">
-            {loading ? 'Scanning skills' : hasSkills ? 'No matches' : 'No local skills found'}
+            {loading ? translate("auto.components.skills.SkillsPage.cd7893fbc1", "Scanning skills") : hasSkills ? translate("auto.components.skills.SkillsPage.6a62a0168c", "No matches") : translate("auto.components.skills.SkillsPage.4acd6d68ec", "No local skills found")}
           </h3>
           <p className="text-xs leading-5 text-muted-foreground">
             {hasSkills
-              ? 'Adjust the search or filters.'
-              : 'Checked local home, repository, bundled, and plugin skill folders.'}
+              ? translate("auto.components.skills.SkillsPage.08a321a984", "Adjust the search or filters.")
+              : translate("auto.components.skills.SkillsPage.ab5b777350", "Checked local home, repository, bundled, and plugin skill folders.")}
           </p>
         </div>
         {!loading ? (

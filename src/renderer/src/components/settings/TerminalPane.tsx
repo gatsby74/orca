@@ -150,7 +150,7 @@ export function TerminalPane({
               }
             />
           </SearchableSetting>
-          {windowsShell === 'wsl.exe' ? (
+          {windowsShell === "wsl.exe" ? (
             <SearchableSetting
               title={translate("auto.components.settings.TerminalPane.219aaa59f4", "WSL Distribution")}
               description={translate("auto.components.settings.TerminalPane.5fe79a5e56", "Choose which WSL distribution new WSL terminals and local agent scans use.")}
@@ -217,9 +217,9 @@ export function TerminalPane({
             <SettingsRow
               label={translate("auto.components.settings.TerminalPane.c1fc9e9444", "GPU Acceleration")}
               description={
-                settings.terminalGpuAcceleration === 'off'
+                settings.terminalGpuAcceleration === "off"
                   ? translate("auto.components.settings.TerminalPane.fe4acf36c6", "WebGL disabled; DOM renderer for max compatibility.")
-                  : settings.terminalGpuAcceleration === 'on'
+                  : settings.terminalGpuAcceleration === "on"
                     ? translate("auto.components.settings.TerminalPane.7eaccc1424", "WebGL is always attempted for terminal panes.")
                     : translate("auto.components.settings.TerminalPane.e0996d141a", "Auto tries WebGL, with DOM fallback for unsupported or risky renderers.")
               }
@@ -256,13 +256,13 @@ export function TerminalPane({
           {isWindows &&
             matchesSettingsSearch(searchQuery, TERMINAL_RIGHT_CLICK_TO_PASTE_SEARCH_ENTRY) && (
               <SearchableSetting
-                title="Right-click to paste"
-                description="On Windows, right-click pastes the clipboard into the terminal. Use Ctrl+right-click to open the context menu."
+                title={translate("auto.components.settings.TerminalPane.9c178cf8aa", "Right-click to paste")}
+                description={translate("auto.components.settings.TerminalPane.af0c3b6e39", "On Windows, right-click pastes the clipboard into the terminal. Use Ctrl+right-click to open the context menu.")}
                 keywords={['terminal', 'windows', 'right click', 'paste', 'context menu']}
               >
                 <SettingsSwitchRow
-                  label="Right-click to paste"
-                  description="On Windows, right-click pastes the clipboard. Ctrl+right-click opens the context menu."
+                  label={translate("auto.components.settings.TerminalPane.9c178cf8aa", "Right-click to paste")}
+                  description={translate("auto.components.settings.TerminalPane.16753eea48", "On Windows, right-click pastes the clipboard. Ctrl+right-click opens the context menu.")}
                   checked={settings.terminalRightClickToPaste}
                   onChange={() =>
                     updateSettings({
@@ -485,7 +485,7 @@ export function TerminalPane({
                     >
                       {translate("auto.components.settings.TerminalPane.907b0b9d3e", "Custom")}</ToggleGroupItem>
                   </ToggleGroup>
-                  {scrollbackMode === 'custom' ? (
+                  {scrollbackMode === "custom" ? (
                     <div className="flex items-center gap-2">
                       <Input
                         type="number"
@@ -618,11 +618,11 @@ export function TerminalPane({
                   alignTop
                   label={translate("auto.components.settings.TerminalPane.0a10420e1a", "Option as Alt")}
                   description={
-                    settings.terminalMacOptionAsAlt === 'auto'
+                    settings.terminalMacOptionAsAlt === "auto"
                       ? translate("auto.components.settings.TerminalPane.d21c493808", "Auto — detected: {{value0}}.", { value0: detectedLayoutLabel })
-                      : settings.terminalMacOptionAsAlt === 'false'
+                      : settings.terminalMacOptionAsAlt === "false"
                         ? translate("auto.components.settings.TerminalPane.d8998bb328", "Option composes special characters for your keyboard layout.")
-                        : settings.terminalMacOptionAsAlt === 'true'
+                        : settings.terminalMacOptionAsAlt === "true"
                           ? translate("auto.components.settings.TerminalPane.b62373091a", "Both Option keys send Alt/Esc sequences.")
                           : translate("auto.components.settings.TerminalPane.ce3aadf0b2", "The {{value0}} Option key sends Alt/Esc; the other composes special characters.", { value0: settings.terminalMacOptionAsAlt })
                   }

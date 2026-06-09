@@ -105,7 +105,7 @@ export function SshDisconnectedDialog({
             ) : (
               <ServerOff className="size-4 text-muted-foreground" />
             )}
-            {isConnecting ? 'Reconnecting...' : 'SSH Disconnected'}
+            {isConnecting ? translate("auto.components.sidebar.SshDisconnectedDialog.cb5938ae79", "Reconnecting...") : translate("auto.components.sidebar.SshDisconnectedDialog.11552bf786", "SSH Disconnected")}
           </DialogTitle>
           <DialogDescription className="text-xs">{message}</DialogDescription>
         </DialogHeader>
@@ -137,7 +137,7 @@ export function SshDisconnectedDialog({
                   <Loader2 className="size-3.5 animate-spin" />
                   {translate("auto.components.sidebar.SshDisconnectedDialog.ca4a7892af", "Connecting...")}</>
               ) : (
-                'Reconnect'
+                translate("auto.components.sidebar.SshDisconnectedDialog.4afcca1d24", "Reconnect")
               )}
             </Button>
           )}

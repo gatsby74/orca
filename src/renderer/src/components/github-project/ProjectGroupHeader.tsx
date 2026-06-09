@@ -29,7 +29,7 @@ export default function ProjectGroupHeader({
       )}
     >
       {expanded ? <ChevronDown className="size-3.5" /> : <ChevronRight className="size-3.5" />}
-      <span className="font-medium">{group.label || 'All'}</span>
+      <span className="font-medium">{group.label || translate("auto.components.github.project.ProjectGroupHeader.244c9e7d06", "All")}</span>
       <span className="rounded-full border border-border/50 bg-background px-1.5 text-[10px] text-muted-foreground">
         {group.rows.length}
       </span>

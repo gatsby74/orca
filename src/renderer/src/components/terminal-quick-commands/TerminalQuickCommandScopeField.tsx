@@ -84,7 +84,7 @@ export function TerminalQuickCommandScopeField({
           >
             {translate("auto.components.terminal.quick.commands.TerminalQuickCommandScopeField.3834d24243", "Project")}</ToggleGroupItem>
         </ToggleGroup>
-        {selectedScope.type === 'repo' && repos.length > 0 ? (
+        {selectedScope.type === "repo" && repos.length > 0 ? (
           <div className="space-y-1">
             <Select
               value={selectedRepoId}

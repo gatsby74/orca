@@ -275,12 +275,12 @@ export function BrowserUseSetup({
                       onClick={() => void handleEnableCli()}
                     >
                       {cliBusy
-                        ? 'Registering...'
+                        ? translate("auto.components.settings.BrowserUsePane.8b3054dac7", "Registering...")
                         : cliEnabled
-                          ? 'Enabled'
+                          ? translate("auto.components.settings.BrowserUsePane.0289434ed6", "Enabled")
                           : cliPathNeedsAttention
-                            ? 'Fix PATH'
-                            : 'Enable'}
+                            ? translate("auto.components.settings.BrowserUsePane.ad8cb0ee22", "Fix PATH")
+                            : translate("auto.components.settings.BrowserUsePane.de9b2f32f3", "Enable")}
                     </Button>
                   </span>
                 </TooltipTrigger>
@@ -377,7 +377,7 @@ export function BrowserUseSetup({
                   ) : (
                     <Import className="size-3.5" />
                   )}
-                  {cookiesImported ? 'Re-import' : 'Import'}
+                  {cookiesImported ? translate("auto.components.settings.BrowserUsePane.0462565413", "Re-import") : translate("auto.components.settings.BrowserUsePane.2ccfc9cff8", "Import")}
                 </Button>
               </DropdownMenuTrigger>
               <DropdownMenuContent align="end">

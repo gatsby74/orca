@@ -154,11 +154,11 @@ export function StatsPane(): React.JSX.Element {
             active panel mounted avoids hidden tab-content layout/focus churn that produced a visible
             vertical jitter below the usage card when switching disabled providers. */}
         <div>
-          {activeUsageTab === 'overview' ? (
+          {activeUsageTab === "overview" ? (
             <UsageOverviewPane />
-          ) : activeUsageTab === 'claude' ? (
+          ) : activeUsageTab === "claude" ? (
             <ClaudeUsagePane />
-          ) : activeUsageTab === 'codex' ? (
+          ) : activeUsageTab === "codex" ? (
             <CodexUsagePane />
           ) : (
             <OpenCodeUsagePane />

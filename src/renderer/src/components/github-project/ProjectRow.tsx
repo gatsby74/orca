@@ -127,7 +127,7 @@ export default function ProjectRow({
             <TooltipContent>{translate("auto.components.github.project.ProjectRow.e12be8b4d4", "Open in GitHub")}</TooltipContent>
           </Tooltip>
         ) : null}
-        {!disabled && row.itemType !== 'DRAFT_ISSUE' && row.content.number != null ? (
+        {!disabled && row.itemType !== "DRAFT_ISSUE" && row.content.number != null ? (
           <Tooltip>
             <TooltipTrigger asChild>
               <button

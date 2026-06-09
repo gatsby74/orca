@@ -2430,7 +2430,7 @@ function RemoteBrowserPagePane({
                 <Globe className="size-5 text-muted-foreground" />
               )}
               <div className="text-sm font-medium text-foreground">
-                {busy ? 'Opening remote browser' : 'Remote browser'}
+                {busy ? translate("auto.components.browser.pane.BrowserPane.b313a7275b", "Opening remote browser") : translate("auto.components.browser.pane.BrowserPane.572046436a", "Remote browser")}
               </div>
               <div className="text-xs leading-5 text-muted-foreground">
                 {translate("auto.components.browser.pane.BrowserPane.bbe8f15e83", "This pane is rendered from the active runtime server.")}</div>
@@ -4521,7 +4521,7 @@ function BrowserPagePane({
             </span>
           </TooltipTrigger>
           <TooltipContent side="bottom" sideOffset={4}>
-            {`Grab page element (${grabElementShortcut})`}
+            {translate("auto.components.browser.pane.BrowserPane.acbe79fd01", "Grab page element ({{value0}})", { value0: grabElementShortcut })}
           </TooltipContent>
         </Tooltip>
 
@@ -4599,12 +4599,12 @@ function BrowserPagePane({
           <div className="min-w-0 flex-1">
             <div className="truncate font-medium text-foreground">{downloadState.filename}</div>
             <div className="truncate text-muted-foreground">
-              {downloadState.status === 'requested'
-                ? `Download from ${downloadState.origin}`
-                : `Downloading from ${downloadState.origin}${downloadProgressLabel ? ` • ${downloadProgressLabel}` : ''}`}
+              {downloadState.status === "requested"
+                ? translate("auto.components.browser.pane.BrowserPane.31375046b7", "Download from {{value0}}", { value0: downloadState.origin })
+                : translate("auto.components.browser.pane.BrowserPane.4300f38145", "Downloading from {{value0}}{{value1}}", { value0: downloadState.origin, value1: downloadProgressLabel ? ` • ${downloadProgressLabel}` : '' })}
             </div>
           </div>
-          {downloadState.status === 'requested' ? (
+          {downloadState.status === "requested" ? (
             <>
               <Button
                 size="sm"
@@ -4631,7 +4631,7 @@ function BrowserPagePane({
             </>
           ) : (
             <span className="shrink-0 text-muted-foreground">
-              {downloadProgressLabel ?? 'Downloading'}
+              {downloadProgressLabel ?? translate("auto.components.browser.pane.BrowserPane.759f32af29", "Downloading")}
             </span>
           )}
         </div>
@@ -4664,18 +4664,18 @@ function BrowserPagePane({
           />
           <span className="min-w-0 flex-1 truncate">
             {grab.state === 'error'
-              ? `Grab failed: ${grab.error ?? 'Unknown error'}`
-              : grabIntent === 'annotate'
+              ? translate("auto.components.browser.pane.BrowserPane.4328a0a062", "Grab failed: {{value0}}", { value0: grab.error ?? 'Unknown error' })
+              : grabIntent === "annotate"
                 ? pendingAnnotationPayload
-                  ? 'Add feedback for the selected element.'
+                  ? translate("auto.components.browser.pane.BrowserPane.b733a91bd9", "Add feedback for the selected element.")
                   : browserAnnotations.length > 0
-                    ? `${browserAnnotations.length} annotation${browserAnnotations.length === 1 ? '' : 's'} ready. Select another element or copy all feedback.`
-                    : 'Click an element to add feedback for the agent.'
-                : grab.state === 'confirming'
-                  ? 'Copied — press S to screenshot, or select another element'
-                  : 'Click or hover an element, then press C to copy or S to screenshot.'}
+                    ? translate("auto.components.browser.pane.BrowserPane.a3508d7e6e", "{{value0}} annotation{{value1}} ready. Select another element or copy all feedback.", { value0: browserAnnotations.length, value1: browserAnnotations.length === 1 ? '' : 's' })
+                    : translate("auto.components.browser.pane.BrowserPane.777b5bc4ec", "Click an element to add feedback for the agent.")
+                : grab.state === "confirming"
+                  ? translate("auto.components.browser.pane.BrowserPane.e852e20cea", "Copied — press S to screenshot, or select another element")
+                  : translate("auto.components.browser.pane.BrowserPane.168350ae6a", "Click or hover an element, then press C to copy or S to screenshot.")}
           </span>
-          {grabIntent === 'annotate' && browserAnnotations.length > 0 ? (
+          {grabIntent === "annotate" && browserAnnotations.length > 0 ? (
             <>
               <DropdownMenu
                 modal={false}
@@ -4720,7 +4720,7 @@ function BrowserPagePane({
                 ) : (
                   <Copy className="size-3" />
                 )}
-                {browserAnnotationsCopied ? 'Copied' : 'Copy All'}
+                {browserAnnotationsCopied ? translate("auto.components.browser.pane.BrowserPane.6f4ab3592b", "Copied") : translate("auto.components.browser.pane.BrowserPane.499b31b84e", "Copy All")}
               </Button>
               <Tooltip>
                 <TooltipTrigger asChild>
@@ -4778,7 +4778,7 @@ function BrowserPagePane({
                 <Globe className="size-5 text-muted-foreground" />
               </div>
               <h2 className="text-base font-semibold text-foreground/85">
-                {loadErrorMeta.host ? `Can't reach ${loadErrorMeta.host}` : "Can't load this page"}
+                {loadErrorMeta.host ? translate("auto.components.browser.pane.BrowserPane.db325a7eeb", "Can't reach {{value0}}", { value0: loadErrorMeta.host }) : translate("auto.components.browser.pane.BrowserPane.b2856516e2", "Can't load this page")}
               </h2>
               <p className="mt-2 text-sm text-muted-foreground">
                 {formatLoadFailureDescription(browserTab.loadError, loadErrorMeta)}
@@ -4925,7 +4925,7 @@ function BrowserPagePane({
                 ) : (
                   <Copy className="size-3" />
                 )}
-                {browserAnnotationsCopied ? 'Copied' : 'Copy'}
+                {browserAnnotationsCopied ? translate("auto.components.browser.pane.BrowserPane.6f4ab3592b", "Copied") : translate("auto.components.browser.pane.BrowserPane.d51ef37351", "Copy")}
               </Button>
               <Tooltip>
                 <TooltipTrigger asChild>
@@ -5070,7 +5070,7 @@ function BrowserPagePane({
                 grabToast.type === 'success' ? 'bg-white text-gray-900' : 'bg-white text-red-600'
               }`}
             >
-              {grabToast.type === 'success' ? (
+              {grabToast.type === "success" ? (
                 <CircleCheck className="size-4 fill-blue-600 text-white" />
               ) : (
                 <OctagonX className="size-4 text-red-500" />

@@ -76,8 +76,8 @@ export function RuntimeAccessGrantList({
                   <div className="text-muted-foreground text-xs">
                     {translate("auto.components.settings.RuntimeAccessGrantList.87b16cd11d", "Created")}{formatAccessTimestamp(grant.createdAt)} ·{' '}
                     {grant.lastSeenAt
-                      ? `Last used ${formatAccessTimestamp(grant.lastSeenAt)}`
-                      : 'Not used yet'}
+                      ? translate("auto.components.settings.RuntimeAccessGrantList.b18d1764ef", "Last used {{value0}}", { value0: formatAccessTimestamp(grant.lastSeenAt) })
+                      : translate("auto.components.settings.RuntimeAccessGrantList.df142657a5", "Not used yet")}
                   </div>
                 </div>
                 <Tooltip>

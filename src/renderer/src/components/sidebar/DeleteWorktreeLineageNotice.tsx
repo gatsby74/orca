@@ -26,8 +26,8 @@ export function DeleteWorktreeLineageNotice({
           <div className="font-medium text-foreground">{translate("auto.components.sidebar.DeleteWorktreeLineageNotice.a940f3c96e", "Child workspaces will be deleted")}</div>
           <div className="mt-1 text-muted-foreground">
             {childWorkspaceCount === 1
-              ? 'Deleting this workspace also deletes 1 child workspace.'
-              : `Deleting this workspace also deletes ${childWorkspaceCount} child workspaces.`}
+              ? translate("auto.components.sidebar.DeleteWorktreeLineageNotice.66798cc6a2", "Deleting this workspace also deletes 1 child workspace.")
+              : translate("auto.components.sidebar.DeleteWorktreeLineageNotice.29b98bf9cd", "Deleting this workspace also deletes {{value0}} child workspaces.", { value0: childWorkspaceCount })}
           </div>
           {/* Why: long nowrap paths can otherwise give this grid child an
              intrinsic width wider than the modal. */}

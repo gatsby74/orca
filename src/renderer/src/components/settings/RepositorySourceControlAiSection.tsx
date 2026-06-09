@@ -303,7 +303,7 @@ export function RepositorySourceControlAiSection({
         </div>
         <div className="flex shrink-0 flex-wrap items-center justify-end gap-2">
           <span className="text-[11px] text-muted-foreground">
-            {isDirty ? 'Unsaved changes' : 'Saved'}
+            {isDirty ? translate("auto.components.settings.RepositorySourceControlAiSection.e57dde9d93", "Unsaved changes") : translate("auto.components.settings.RepositorySourceControlAiSection.ccb07dd027", "Saved")}
           </span>
           {isDirty ? (
             <Button
@@ -322,7 +322,7 @@ export function RepositorySourceControlAiSection({
             onClick={() => void saveDraft()}
             disabled={!isDirty || isSaving}
           >
-            {isSaving ? 'Saving...' : 'Save'}
+            {isSaving ? translate("auto.components.settings.RepositorySourceControlAiSection.57e6e9d4b1", "Saving...") : translate("auto.components.settings.RepositorySourceControlAiSection.152268c295", "Save")}
           </Button>
         </div>
       </div>

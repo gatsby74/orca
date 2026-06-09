@@ -66,8 +66,8 @@ function CompactCardContent({
   return (
     <div className="flex items-center gap-3 p-3">
       <div className="shrink-0 text-muted-foreground">
-        {icon === 'spinner' && <Loader2 className="size-4 animate-spin" />}
-        {icon === 'check' && <Check className="size-4" />}
+        {icon === "spinner" && <Loader2 className="size-4 animate-spin" />}
+        {icon === "check" && <Check className="size-4" />}
         {icon === 'error' && <AlertCircle className="size-4" />}
       </div>
       <div className="flex-1 min-w-0">
@@ -87,7 +87,7 @@ function CompactCardContent({
           size="icon"
           className="size-7 shrink-0"
           onClick={onClose}
-          aria-label="Dismiss"
+          aria-label={translate("auto.components.UpdateCard.a726967bd3", "Dismiss")}
         >
           <X className="size-3.5" />
         </Button>
@@ -615,7 +615,7 @@ export function UpdateCard() {
               size="icon"
               className="size-7 shrink-0"
               onClick={markReassuranceSeen}
-              aria-label="Dismiss tip"
+              aria-label={translate("auto.components.UpdateCard.7274ef6e59", "Dismiss tip")}
             >
               <X className="size-3.5" />
             </Button>
@@ -670,7 +670,7 @@ function RichCardContent({
   return (
     <div className="flex flex-col gap-3 p-4">
       <div className="flex items-start justify-between gap-2">
-        <h3 className="text-sm font-semibold">{translate("auto.components.UpdateCard.f58b5c57a6", "New:")}{release.title}</h3>
+        <h3 className="text-sm font-semibold">{translate("auto.components.UpdateCard.f58b5c57a6", "New:")} {release.title}</h3>
         <Button
           variant="ghost"
           size="icon"
@@ -844,7 +844,7 @@ function DownloadingContent({
       )}
 
       <p className="text-sm text-muted-foreground">
-        {release ? release.description : `Orca v${version} is downloading.`}
+        {release ? release.description : translate("auto.components.UpdateCard.93794ea932", "Orca v{{value0}} is downloading.", { value0: version })}
       </p>
 
       <button
@@ -855,12 +855,12 @@ function DownloadingContent({
           )
         }
       >
-        {release ? 'Read the full release notes' : 'Release notes'}
+        {release ? translate("auto.components.UpdateCard.aad383aecc", "Read the full release notes") : translate("auto.components.UpdateCard.44324ef542", "Release notes")}
       </button>
 
       <div className="flex flex-col gap-2 mt-1">
         <Progress value={percent} className="h-1.5" />
-        <p className="text-xs text-muted-foreground">{translate("auto.components.UpdateCard.6e45bfa2e0", "Downloading...")}{percent}%</p>
+        <p className="text-xs text-muted-foreground">{translate("auto.components.UpdateCard.6e45bfa2e0", "Downloading...")} {percent}%</p>
       </div>
     </div>
   )

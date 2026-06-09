@@ -262,8 +262,8 @@ export function RuntimeEnvironmentsPane({
           <Label id="runtime-active-server-label">{translate("auto.components.settings.RuntimeEnvironmentsPane.64b6bea541", "Active Server")}</Label>
           <p className="text-xs text-muted-foreground">
             {allowLocalRuntime
-              ? "Local keeps today's desktop behavior. Saved servers route supported client calls through the remote runtime."
-              : 'Saved servers route this browser through a paired Orca runtime.'}
+              ? translate("auto.components.settings.RuntimeEnvironmentsPane.f75ce1c7a5", "Local keeps today's desktop behavior. Saved servers route supported client calls through the remote runtime.")
+              : translate("auto.components.settings.RuntimeEnvironmentsPane.8cf8790697", "Saved servers route this browser through a paired Orca runtime.")}
           </p>
         </div>
         <div className="flex flex-wrap items-center gap-2">
@@ -397,7 +397,7 @@ export function RuntimeEnvironmentsPane({
                   <div className="min-w-0">
                     <div className="truncate text-sm font-medium">{environment.name}</div>
                     <div className="truncate font-mono text-xs text-muted-foreground">
-                      {environment.endpoints[0]?.endpoint ?? 'No endpoint'}
+                      {environment.endpoints[0]?.endpoint ?? translate("auto.components.settings.RuntimeEnvironmentsPane.6ef71985da", "No endpoint")}
                     </div>
                   </div>
                   <Button
@@ -436,7 +436,7 @@ export function RuntimeEnvironmentsPane({
               onClick={() => setShareServerFormOpen((open) => !open)}
             >
               <Share2 />
-              {shareServerFormOpen ? 'Hide Form' : 'New Link'}
+              {shareServerFormOpen ? translate("auto.components.settings.RuntimeEnvironmentsPane.54dee18f5c", "Hide Form") : translate("auto.components.settings.RuntimeEnvironmentsPane.3595fd1948", "New Link")}
             </Button>
           </div>
           <div className="border-t border-border/40 px-3 py-3">
@@ -518,16 +518,16 @@ export function RuntimeEnvironmentsPane({
             <DialogDescription>
               {removingActiveServer
                 ? allowLocalRuntime
-                  ? 'Removing the active server first switches Orca back to Local desktop and closes remote terminals and browser tabs for that server.'
-                  : 'Removing the active server disconnects this browser and closes remote terminals and browser tabs for that server.'
-                : 'This removes the saved server from Orca. It does not change the active server.'}
+                  ? translate("auto.components.settings.RuntimeEnvironmentsPane.9f7665a01b", "Removing the active server first switches Orca back to Local desktop and closes remote terminals and browser tabs for that server.")
+                  : translate("auto.components.settings.RuntimeEnvironmentsPane.b2fda48c39", "Removing the active server disconnects this browser and closes remote terminals and browser tabs for that server.")
+                : translate("auto.components.settings.RuntimeEnvironmentsPane.ed3e3f069d", "This removes the saved server from Orca. It does not change the active server.")}
             </DialogDescription>
           </DialogHeader>
           {pendingRemove ? (
             <div className="rounded-md border border-border/70 bg-muted/35 px-3 py-2 text-xs">
               <div className="truncate font-medium">{pendingRemove.name}</div>
               <div className="mt-0.5 truncate font-mono text-muted-foreground">
-                {pendingRemove.endpoints[0]?.endpoint ?? 'No endpoint'}
+                {pendingRemove.endpoints[0]?.endpoint ?? translate("auto.components.settings.RuntimeEnvironmentsPane.6ef71985da", "No endpoint")}
               </div>
             </div>
           ) : null}

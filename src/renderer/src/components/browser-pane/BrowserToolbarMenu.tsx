@@ -392,7 +392,7 @@ export function BrowserToolbarMenu({
                 size="sm"
                 disabled={!newProfileName.trim() || isCreatingProfile}
               >
-                {isCreatingProfile ? 'Creating…' : 'Create'}
+                {isCreatingProfile ? translate("auto.components.browser.pane.BrowserToolbarMenu.bf648471c5", "Creating…") : translate("auto.components.browser.pane.BrowserToolbarMenu.569bce8eb1", "Create")}
               </Button>
             </DialogFooter>
           </form>

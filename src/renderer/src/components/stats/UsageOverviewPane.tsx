@@ -110,7 +110,7 @@ export function UsageOverviewPane(): React.JSX.Element {
             <h3 className="text-sm font-semibold text-foreground">{translate("auto.components.stats.UsageOverviewPane.c760c481c5", "Usage Overview")}</h3>
             <p className="mt-1 text-xs text-muted-foreground">
               {formatUpdatedAt(overview.lastUpdatedAt)}
-              {overview.hasPartialCost ? ' - some model prices are unavailable' : ''}
+              {overview.hasPartialCost ? translate("auto.components.stats.UsageOverviewPane.55c910f4f1", "- some model prices are unavailable") : ''}
             </p>
           </div>
           <Tooltip>

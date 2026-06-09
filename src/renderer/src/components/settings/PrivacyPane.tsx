@@ -130,7 +130,7 @@ export function PrivacyPane({ settings }: PrivacyPaneProps): React.JSX.Element {
 function BlockedHelper({ blocked, id }: { blocked: BlockedReason; id: string }): React.JSX.Element {
   return (
     <div id={id} className="pb-2 text-xs text-muted-foreground">
-      {blocked.reason === 'ci' ? (
+      {blocked.reason === "ci" ? (
         <p>{translate("auto.components.settings.PrivacyPane.e3970bbbf5", "Telemetry is disabled because a CI environment variable is set. Unset it and restart.")}</p>
       ) : (
         <p>

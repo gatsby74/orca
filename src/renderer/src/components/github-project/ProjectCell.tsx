@@ -203,7 +203,7 @@ function TitleCell({
   // already read as issues), so it's omitted.
   const content = (
     <div className="flex min-w-0 items-center gap-2">
-      {row.itemType === 'PULL_REQUEST' ? (
+      {row.itemType === "PULL_REQUEST" ? (
         <GitPullRequest className="size-3.5 shrink-0 text-muted-foreground" />
       ) : null}
       {row.content.number != null ? (
@@ -441,7 +441,7 @@ function SingleSelectCell({
           aria-label={field.name}
           className="flex h-full w-full cursor-pointer items-center px-1 text-left"
         >
-          {label ?? <EmptyCellPrompt label="Select" />}
+          {label ?? <EmptyCellPrompt label={translate("auto.components.github.project.ProjectCell.e369bf4fec", "Select")} />}
         </button>
       </PopoverTrigger>
       <PopoverContent className="w-56 p-1">
@@ -509,7 +509,7 @@ function IterationCell({
           aria-label={field.name}
           className="flex h-full w-full cursor-pointer items-center px-1 text-left"
         >
-          {label ?? <EmptyCellPrompt label="Select" />}
+          {label ?? <EmptyCellPrompt label={translate("auto.components.github.project.ProjectCell.e369bf4fec", "Select")} />}
         </button>
       </PopoverTrigger>
       <PopoverContent className="w-64 p-1">
@@ -781,7 +781,7 @@ function AssigneesCell({
             'flex h-full w-full flex-wrap items-center gap-1 cursor-pointer px-1 text-xs text-muted-foreground hover:text-foreground'
           )}
         >
-          {labelContent ?? <EmptyCellPrompt label="Assign" />}
+          {labelContent ?? <EmptyCellPrompt label={translate("auto.components.github.project.ProjectCell.36341ffc66", "Assign")} />}
         </button>
       </PopoverTrigger>
       <PopoverContent className="w-64 p-1">
@@ -855,7 +855,7 @@ function LabelsCell({
           aria-label={translate("auto.components.github.project.ProjectCell.8ae56a88a6", "Labels")}
           className={cn('flex h-full w-full flex-wrap items-center gap-1 cursor-pointer px-1')}
         >
-          {labelContent ?? <EmptyCellPrompt label="Add label" />}
+          {labelContent ?? <EmptyCellPrompt label={translate("auto.components.github.project.ProjectCell.2e26a06c70", "Add label")} />}
         </button>
       </PopoverTrigger>
       <PopoverContent className="w-64 p-1">

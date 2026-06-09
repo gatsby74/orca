@@ -275,7 +275,7 @@ export default function RepoCombobox({
                 className="h-9 w-full justify-start rounded-none px-3 text-xs font-normal"
               >
                 <FolderPlus className="size-3.5 text-muted-foreground" />
-                <span>{isAdding ? 'Adding project…' : 'Add project'}</span>
+                <span>{isAdding ? translate("auto.components.repo.RepoCombobox.116812151a", "Adding project…") : translate("auto.components.repo.RepoCombobox.b3e15f4525", "Add project")}</span>
               </Button>
             </div>
           </Command>

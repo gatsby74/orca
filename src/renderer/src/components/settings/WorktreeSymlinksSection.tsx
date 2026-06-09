@@ -189,7 +189,7 @@ export function WorktreeSymlinksSection({
               <div className="flex flex-wrap items-center gap-x-2 gap-y-1">
                 <h4 className="text-sm font-medium">{translate("auto.components.settings.WorktreeSymlinksSection.b814c618e2", "Linked paths")}</h4>
                 <span className="text-[11px] text-muted-foreground">
-                  {paths.length === 1 ? '1 path' : `${paths.length} paths`}
+                  {paths.length === 1 ? translate("auto.components.settings.WorktreeSymlinksSection.9ea912d811", "1 path") : translate("auto.components.settings.WorktreeSymlinksSection.d72ba8dc68", "{{value0}} paths", { value0: paths.length })}
                 </span>
               </div>
               <div className="flex flex-wrap gap-1.5">

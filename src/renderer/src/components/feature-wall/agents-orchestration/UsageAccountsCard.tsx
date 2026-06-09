@@ -71,7 +71,7 @@ function ProviderRow(props: {
               ) : (
                 <Plus className="size-3.5" />
               )}
-              {isAdding ? 'Signing in' : 'Sign in'}
+              {isAdding ? translate("auto.components.feature.wall.agents.orchestration.UsageAccountsCard.945865332e", "Signing in") : translate("auto.components.feature.wall.agents.orchestration.UsageAccountsCard.29d0653961", "Sign in")}
             </Button>
           )}
         </div>

@@ -100,7 +100,7 @@ export function ComputerUseAnimatedVisual(props: {
                     : 'border-border bg-muted/40 text-muted-foreground'
                 )}
               >
-                {verified ? 'Approved' : 'Pending'}
+                {verified ? translate("auto.components.feature.wall.ComputerUseAnimatedVisual.c11dda000b", "Approved") : translate("auto.components.feature.wall.ComputerUseAnimatedVisual.bdd5312213", "Pending")}
               </span>
             </div>
           </div>
@@ -131,7 +131,7 @@ export function ComputerUseAnimatedVisual(props: {
                     phase === 'click' ? 'scale-[0.97]' : null
                   )}
                 >
-                  {clicked ? 'Done' : 'Approve'}
+                  {clicked ? translate("auto.components.feature.wall.ComputerUseAnimatedVisual.3cc2df3671", "Done") : translate("auto.components.feature.wall.ComputerUseAnimatedVisual.9634d870d1", "Approve")}
                 </div>
               </div>
             </div>

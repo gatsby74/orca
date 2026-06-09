@@ -199,6 +199,40 @@ function ancestorJsxAttributeName(node) {
   return undefined
 }
 
+function isRenderedJsxExpression(node) {
+  let current = node.parent
+  while (current) {
+    if (ts.isJsxExpression(current)) {
+      return (
+        ts.isJsxElement(current.parent) ||
+        ts.isJsxFragment(current.parent) ||
+        ts.isJsxSelfClosingElement(current.parent)
+      )
+    }
+    if (
+      ts.isConditionalExpression(current) ||
+      ts.isParenthesizedExpression(current) ||
+      ts.isTemplateExpression(current) ||
+      ts.isNoSubstitutionTemplateLiteral(current)
+    ) {
+      if (ts.isConditionalExpression(current) && current.condition === node) {
+        return false
+      }
+      current = current.parent
+      continue
+    }
+    if (ts.isBinaryExpression(current)) {
+      if (current.operatorToken.kind !== ts.SyntaxKind.PlusToken) {
+        return false
+      }
+      current = current.parent
+      continue
+    }
+    return false
+  }
+  return false
+}
+
 function nearestObjectPropertyName(node) {
   let current = node.parent
   while (current) {
@@ -272,22 +306,32 @@ function isUserVisibleCallArgument(node) {
 }
 
 function classifyStringNode(node) {
-  if (findAncestor(node, ts.isBinaryExpression)) {
-    return undefined
-  }
-
   if (hasAncestorObjectPropertyName(node, new Set(['className', 'classNames']))) {
     return undefined
   }
 
+  if (
+    findAncestor(
+      node,
+      (ancestor) =>
+        ts.isBinaryExpression(ancestor) && ancestor.operatorToken.kind !== ts.SyntaxKind.PlusToken
+    )
+  ) {
+    return undefined
+  }
+
   const jsxAttributeName = isJsxAttributeValue(node)
-  if (jsxAttributeName && USER_VISIBLE_JSX_ATTRIBUTES.has(jsxAttributeName)) {
-    return `jsx-attribute:${jsxAttributeName}`
+  if (jsxAttributeName) {
+    return USER_VISIBLE_JSX_ATTRIBUTES.has(jsxAttributeName)
+      ? `jsx-attribute:${jsxAttributeName}`
+      : undefined
   }
 
   const ancestorAttributeName = ancestorJsxAttributeName(node)
-  if (ancestorAttributeName && USER_VISIBLE_JSX_ATTRIBUTES.has(ancestorAttributeName)) {
-    return `jsx-attribute:${ancestorAttributeName}`
+  if (ancestorAttributeName) {
+    return USER_VISIBLE_JSX_ATTRIBUTES.has(ancestorAttributeName)
+      ? `jsx-attribute:${ancestorAttributeName}`
+      : undefined
   }
 
   if (ts.isJsxText(node)) {
@@ -295,10 +339,8 @@ function classifyStringNode(node) {
   }
 
   const objectPropertyName = nearestObjectPropertyName(node)
-  if (objectPropertyName) {
-    return USER_VISIBLE_OBJECT_KEYS.has(objectPropertyName)
-      ? `object-property:${objectPropertyName}`
-      : undefined
+  if (objectPropertyName && !USER_VISIBLE_OBJECT_KEYS.has(objectPropertyName)) {
+    return undefined
   }
 
   const ancestorObjectPropertyName = nearestAncestorObjectPropertyName(node)
@@ -306,8 +348,16 @@ function classifyStringNode(node) {
     return undefined
   }
 
+  if (isRenderedJsxExpression(node)) {
+    return 'jsx-expression'
+  }
+
   if (isUserVisibleCallArgument(node)) {
     return 'user-visible-call'
+  }
+
+  if (objectPropertyName) {
+    return `object-property:${objectPropertyName}`
   }
 
   return undefined

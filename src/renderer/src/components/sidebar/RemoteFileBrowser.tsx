@@ -689,9 +689,7 @@ export function RemoteFileBrowser({
             // Directory has contents; filter hides them all. Distinguishing
             // filter emptiness from directory emptiness keeps copy accurate.
             <div className="flex items-center justify-center h-full">
-              <p className="text-xs text-muted-foreground">{`No matches for '${
-                isPreviewActive ? preview!.filter : filter
-              }'`}</p>
+              <p className="text-xs text-muted-foreground">{translate("auto.components.sidebar.RemoteFileBrowser.00c4235c10", "No matches for '{{value0}}'", { value0: isPreviewActive ? preview!.filter : filter })}</p>
             </div>
           ) : (
             displayEntries.map((entry) => {
@@ -732,7 +730,7 @@ export function RemoteFileBrowser({
         className="block text-[10px] text-muted-foreground truncate w-full"
         title={fileHint ? undefined : resolvedPath}
       >
-        {fileHint ? FILE_HINT_TEXT : `Opens as a remote project · ${resolvedPath}`}
+        {fileHint ? FILE_HINT_TEXT : translate("auto.components.sidebar.RemoteFileBrowser.971d85cc84", "Opens as a remote project · {{value0}}", { value0: resolvedPath })}
       </p>
       <div className="flex items-center justify-end gap-2">
         <Button variant="outline" size="sm" className="h-7 text-xs" onClick={onCancel}>

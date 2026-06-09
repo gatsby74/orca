@@ -203,9 +203,9 @@ export function CommitMessageAiPane({
     config.enabled &&
     (customCommandInUse ||
       matchesSettingsSearch(searchQuery, {
-        title: 'Custom command',
-        description: 'Command line Orca runs when a text recipe uses Custom command.',
-        keywords: ['custom', 'command', 'cli', 'binary', 'prompt', 'placeholder']
+        title: translate("auto.components.settings.CommitMessageAiPane.47e45cbd5a", "Custom command"),
+        description: translate("auto.components.settings.CommitMessageAiPane.1ef29f8c29", "Command line Orca runs when a text recipe uses Custom command."),
+        keywords: [translate("auto.components.settings.CommitMessageAiPane.25350d670f", "custom"), translate("auto.components.settings.CommitMessageAiPane.54038660e0", "command"), translate("auto.components.settings.CommitMessageAiPane.407d28bde6", "cli"), translate("auto.components.settings.CommitMessageAiPane.1df7d71313", "binary"), translate("auto.components.settings.CommitMessageAiPane.a69e1fe91a", "prompt"), translate("auto.components.settings.CommitMessageAiPane.fc1a525fa5", "placeholder")]
       }))
   ) {
     sections.push(
@@ -219,7 +219,7 @@ export function CommitMessageAiPane({
         <div className="space-y-0.5">
           <Label htmlFor="source-control-ai-custom-command">{translate("auto.components.settings.CommitMessageAiPane.47e45cbd5a", "Custom command")}</Label>
           <p className="text-xs text-muted-foreground">
-            {translate("auto.components.settings.CommitMessageAiPane.4f722a5f53", "Used by commit-message, pull-request, and branch-name recipes that select Custom command. Use")}<code className="font-mono">{'{prompt}'}</code> {translate("auto.components.settings.CommitMessageAiPane.3f1b26cc91", "to pass the command input as an argument; otherwise Orca pipes it on stdin.")}</p>
+            {translate("auto.components.settings.CommitMessageAiPane.4f722a5f53", "Used by commit-message, pull-request, and branch-name recipes that select Custom command. Use")}<code className="font-mono">{translate("auto.components.settings.CommitMessageAiPane.b8b6fd55b4", "{prompt}")}</code> {translate("auto.components.settings.CommitMessageAiPane.3f1b26cc91", "to pass the command input as an argument; otherwise Orca pipes it on stdin.")}</p>
         </div>
         <Input
           id="source-control-ai-custom-command"
@@ -238,17 +238,17 @@ export function CommitMessageAiPane({
   if (
     config.enabled &&
     matchesSettingsSearch(searchQuery, {
-      title: 'Hosted-review creation defaults',
-      description: 'Defaults used when the hosted-review composer opens.',
+      title: translate("auto.components.settings.CommitMessageAiPane.2dafc7646e", "Hosted-review creation defaults"),
+      description: translate("auto.components.settings.CommitMessageAiPane.e9d46a544d", "Defaults used when the hosted-review composer opens."),
       keywords: [
-        'hosted review',
-        'pull request',
-        'merge request',
-        'pr',
-        'draft',
-        'template',
-        'generate',
-        'open'
+        translate("auto.components.settings.CommitMessageAiPane.19e10a12bb", "hosted review"),
+        translate("auto.components.settings.CommitMessageAiPane.b388463881", "pull request"),
+        translate("auto.components.settings.CommitMessageAiPane.fdee745b87", "merge request"),
+        translate("auto.components.settings.CommitMessageAiPane.02bab6542c", "pr"),
+        translate("auto.components.settings.CommitMessageAiPane.ebed4d2a29", "draft"),
+        translate("auto.components.settings.CommitMessageAiPane.6c84ba6de3", "template"),
+        translate("auto.components.settings.CommitMessageAiPane.34d0348e34", "generate"),
+        translate("auto.components.settings.CommitMessageAiPane.2c5436c018", "open")
       ]
     })
   ) {

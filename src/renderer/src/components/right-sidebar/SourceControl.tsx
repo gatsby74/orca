@@ -3299,7 +3299,7 @@ function SourceControlInner(): React.JSX.Element {
           item.id
         )
         if (result.summary.status !== 'ready') {
-          toast.error(result.summary.errorMessage ?? 'Failed to load commit diff')
+          toast.error(result.summary.errorMessage ?? translate("auto.components.right.sidebar.SourceControl.8a5ba6a988", "Failed to load commit diff"))
           return
         }
         openCommitAllDiffs(
@@ -3714,7 +3714,7 @@ function SourceControlInner(): React.JSX.Element {
               )}
               onClick={() => setScope(value)}
             >
-              {value === 'all' ? 'All' : 'Uncommitted'}
+              {value === "all" ? translate("auto.components.right.sidebar.SourceControl.77afaa8152", "All") : translate("auto.components.right.sidebar.SourceControl.0fad573938", "Uncommitted")}
             </button>
           ))}
           {hostedReview && (
@@ -3734,7 +3734,7 @@ function SourceControlInner(): React.JSX.Element {
           </div>
         )}
 
-        {scope === 'all' && shouldShowCompareSummary(branchSummary) && (
+        {scope === "all" && shouldShowCompareSummary(branchSummary) && (
           <div className="border-b border-border px-3 py-2">
             <CompareSummary
               summary={branchSummary}
@@ -3760,7 +3760,7 @@ function SourceControlInner(): React.JSX.Element {
                 className="flex min-w-0 flex-1 items-center gap-1.5 text-left text-xs text-muted-foreground hover:text-foreground transition-colors"
                 onClick={() => setDiffCommentsExpanded((prev) => !prev)}
                 aria-expanded={diffCommentsExpanded}
-                title={diffCommentsExpanded ? 'Collapse notes' : 'Expand notes'}
+                title={diffCommentsExpanded ? translate("auto.components.right.sidebar.SourceControl.d13edef890", "Collapse notes") : translate("auto.components.right.sidebar.SourceControl.72f2bea3f4", "Expand notes")}
               >
                 <ChevronDown
                   className={cn(
@@ -3791,7 +3791,7 @@ function SourceControlInner(): React.JSX.Element {
                           type="button"
                           className="inline-flex size-6 items-center justify-center rounded text-muted-foreground transition-colors hover:bg-accent hover:text-foreground"
                           onClick={() => void handleCopyDiffComments()}
-                          aria-label="Copy all notes to clipboard"
+                          aria-label={translate("auto.components.right.sidebar.SourceControl.3baf6c77b4", "Copy all notes to clipboard")}
                         >
                           {diffCommentsCopied ? (
                             <Check className="size-3.5" />
@@ -3813,7 +3813,7 @@ function SourceControlInner(): React.JSX.Element {
                           <button
                             type="button"
                             className="inline-flex size-6 items-center justify-center rounded text-muted-foreground transition-colors hover:bg-accent hover:text-foreground"
-                            aria-label="More note actions"
+                            aria-label={translate("auto.components.right.sidebar.SourceControl.2fe2a67580", "More note actions")}
                           >
                             <MoreHorizontal className="size-3.5" />
                           </button>
@@ -3915,7 +3915,7 @@ function SourceControlInner(): React.JSX.Element {
               but there are no unresolved conflicts (e.g. between rebase steps, or
               after resolving all conflicts before running --continue). The
               ConflictSummaryCard handles the "has conflicts" case above. */}
-          {unresolvedConflictReviewEntries.length === 0 && conflictOperation !== 'unknown' && (
+          {unresolvedConflictReviewEntries.length === 0 && conflictOperation !== "unknown" && (
             <div className="px-3 pb-2">
               <OperationBanner
                 conflictOperation={conflictOperation}
@@ -3925,14 +3925,14 @@ function SourceControlInner(): React.JSX.Element {
             </div>
           )}
 
-          {scope === 'all' && showGenericEmptyState && !normalizedFilter ? (
+          {scope === "all" && showGenericEmptyState && !normalizedFilter ? (
             <EmptyState
               heading="No changes on this branch"
               supportingText={`This workspace is clean and this branch has no changes ahead of ${branchSummary.baseRef}`}
             />
           ) : null}
 
-          {scope === 'uncommitted' && !hasUncommittedEntries && !normalizedFilter && (
+          {scope === "uncommitted" && !hasUncommittedEntries && !normalizedFilter && (
             <EmptyState
               heading="No uncommitted changes"
               supportingText="All changes have been committed"
@@ -3941,7 +3941,7 @@ function SourceControlInner(): React.JSX.Element {
 
           {normalizedFilter &&
             !hasFilteredUncommittedEntries &&
-            (scope === 'uncommitted' || !hasFilteredBranchEntries) && (
+            (scope === "uncommitted" || !hasFilteredBranchEntries) && (
               <EmptyState
                 heading="No matching files"
                 supportingText={`No changed files match "${filterQuery}"`}
@@ -3958,7 +3958,7 @@ function SourceControlInner(): React.JSX.Element {
               clears. Active merge/rebase/cherry-pick operations are the
               exception: commits would be misleading before the user continues
               or aborts the operation. */}
-          {activeWorktree?.pushTarget && activeWorktree.pushTarget.remoteName !== 'origin' ? (
+          {activeWorktree?.pushTarget && activeWorktree.pushTarget.remoteName !== "origin" ? (
             <div
               className="flex items-center gap-1.5 px-1 text-[11px] text-muted-foreground"
               title={translate("auto.components.right.sidebar.SourceControl.c05fe04839", "Pushes to the fork at {{value0}} (not origin)", { value0: activeWorktree.pushTarget.remoteName })}
@@ -3971,7 +3971,7 @@ function SourceControlInner(): React.JSX.Element {
           ) : null}
 
           {shouldRenderCommitArea(scope, unresolvedConflicts.length, conflictOperation) &&
-            (primaryAction.kind === 'create_pr' ? (
+            (primaryAction.kind === "create_pr" ? (
               <PullRequestComposer
                 provider={hostedReviewCreateProvider}
                 branch={branchName}
@@ -4045,7 +4045,7 @@ function SourceControlInner(): React.JSX.Element {
               />
             ))}
 
-          {(scope === 'all' || scope === 'uncommitted') && hasFilteredUncommittedEntries && (
+          {(scope === "all" || scope === "uncommitted") && hasFilteredUncommittedEntries && (
             <>
               {SECTION_ORDER.map((area) => {
                 const items = filteredGrouped[area]
@@ -4104,7 +4104,7 @@ function SourceControlInner(): React.JSX.Element {
                                 // A generic "Discard all" label hides that severity —
                                 // label explicitly for the destructive variant.
                                 title={
-                                  area === 'untracked' ? 'Delete all untracked' : 'Discard all'
+                                  area === "untracked" ? translate("auto.components.right.sidebar.SourceControl.2f609a2e7c", "Delete all untracked") : translate("auto.components.right.sidebar.SourceControl.ce41708855", "Discard all")
                                 }
                                 onClick={(event) => {
                                   event.stopPropagation()
@@ -4116,7 +4116,7 @@ function SourceControlInner(): React.JSX.Element {
                             {canStageAll && (
                               <ActionButton
                                 icon={Plus}
-                                title="Stage all"
+                                title={translate("auto.components.right.sidebar.SourceControl.24d2598eff", "Stage all")}
                                 onClick={(event) => {
                                   event.stopPropagation()
                                   if (area === 'unstaged' || area === 'untracked') {
@@ -4129,7 +4129,7 @@ function SourceControlInner(): React.JSX.Element {
                             {canUnstageAll && (
                               <ActionButton
                                 icon={Minus}
-                                title="Unstage all"
+                                title={translate("auto.components.right.sidebar.SourceControl.9339382454", "Unstage all")}
                                 onClick={(event) => {
                                   event.stopPropagation()
                                   void handleUnstageAll()
@@ -4171,7 +4171,7 @@ function SourceControlInner(): React.JSX.Element {
                       }
                     />
                     {!isCollapsed &&
-                      (sourceControlViewMode === 'tree'
+                      (sourceControlViewMode === "tree"
                         ? visibleTreeRowsByArea[area].map((node) => {
                             if (node.type === 'directory') {
                               return (
@@ -4243,10 +4243,10 @@ function SourceControlInner(): React.JSX.Element {
             </>
           )}
 
-          {scope === 'all' &&
+          {scope === "all" &&
           branchSummary &&
-          branchSummary.status !== 'ready' &&
-          branchSummary.status !== 'loading' ? (
+          branchSummary.status !== "ready" &&
+          branchSummary.status !== "loading" ? (
             <CompareUnavailable
               summary={branchSummary}
               onChangeBaseRef={() => setBaseRefDialogOpen(true)}
@@ -4254,10 +4254,10 @@ function SourceControlInner(): React.JSX.Element {
             />
           ) : null}
 
-          {scope === 'all' && branchSummary?.status === 'ready' && hasFilteredBranchEntries && (
+          {scope === "all" && branchSummary?.status === "ready" && hasFilteredBranchEntries && (
             <div>
               <SectionHeader
-                label="Committed on Branch"
+                label={translate("auto.components.right.sidebar.SourceControl.d7ae61269b", "Committed on Branch")}
                 count={filteredBranchEntries.length}
                 isCollapsed={collapsedSections.has('branch')}
                 onToggle={() => toggleSection('branch')}
@@ -4278,7 +4278,7 @@ function SourceControlInner(): React.JSX.Element {
                 }
               />
               {!collapsedSections.has('branch') &&
-                (sourceControlViewMode === 'tree'
+                (sourceControlViewMode === "tree"
                   ? visibleBranchTreeRows.map((node) => {
                       if (node.type === 'directory') {
                         return (
@@ -4590,7 +4590,7 @@ function PullRequestComposer({
                 disabled={generateDisabled}
                 onClick={() => onGenerate()}
                 className="inline-flex h-6 shrink-0 items-center gap-1 rounded-md border border-border bg-background px-2 text-[11px] font-medium text-foreground transition-colors hover:bg-accent disabled:cursor-not-allowed disabled:opacity-40 disabled:hover:bg-background"
-                title={generateDisabledReason ?? `Generate ${copy.reviewLabel} details with AI`}
+                title={generateDisabledReason ?? translate("auto.components.right.sidebar.SourceControl.02d8c04339", "Generate {{value0}} details with AI", { value0: copy.reviewLabel })}
                 aria-label={translate("auto.components.right.sidebar.SourceControl.02d8c04339", "Generate {{value0}} details with AI", { value0: copy.reviewLabel })}
               >
                 <Sparkles className="size-3" />
@@ -4611,9 +4611,9 @@ function PullRequestComposer({
               'truncate font-mono',
               baseSameAsBranch ? 'text-destructive' : 'text-foreground'
             )}
-            title={normalizedBase || 'base'}
+            title={normalizedBase || translate("auto.components.right.sidebar.SourceControl.7a09d7f9d2", "base")}
           >
-            {normalizedBase || 'base'}
+            {normalizedBase || translate("auto.components.right.sidebar.SourceControl.7a09d7f9d2", "base")}
           </span>
         </div>
 
@@ -4734,10 +4734,10 @@ function PullRequestComposer({
               <ReviewIcon className="size-3.5" />
             )}
             {isCreating
-              ? 'Creating...'
+              ? translate("auto.components.right.sidebar.SourceControl.26511c22b4", "Creating...")
               : draft
-                ? `Create draft ${copy.shortLabel}`
-                : `Create ${copy.shortLabel}`}
+                ? translate("auto.components.right.sidebar.SourceControl.aaf1451654", "Create draft {{value0}}", { value0: copy.shortLabel })
+                : translate("auto.components.right.sidebar.SourceControl.5acbcedc1a", "Create {{value0}}", { value0: copy.shortLabel })}
           </Button>
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
@@ -5183,8 +5183,8 @@ export function CommitArea({
                   <button
                     type="button"
                     onClick={() => onCancelGenerate()}
-                    title="Stop generating"
-                    aria-label="Stop generating commit message"
+                    title={translate("auto.components.right.sidebar.SourceControl.527e130b6f", "Stop generating")}
+                    aria-label={translate("auto.components.right.sidebar.SourceControl.ddc1fbd690", "Stop generating commit message")}
                     className="group absolute right-1.5 top-1.5 inline-flex size-5 items-center justify-center rounded text-muted-foreground transition-colors hover:bg-destructive/10 hover:text-destructive focus-visible:bg-destructive/10 focus-visible:text-destructive focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-destructive/40"
                   >
                     <RefreshCw className="size-3.5 animate-spin group-hover:hidden group-focus-visible:hidden" />
@@ -5199,8 +5199,8 @@ export function CommitArea({
                 type="button"
                 disabled={isGenerateDisabled}
                 onClick={() => onGenerate()}
-                title={generateDisabledReason ?? 'Generate commit message with AI'}
-                aria-label="Generate commit message with AI"
+                title={generateDisabledReason ?? translate("auto.components.right.sidebar.SourceControl.461575b9bc", "Generate commit message with AI")}
+                aria-label={translate("auto.components.right.sidebar.SourceControl.461575b9bc", "Generate commit message with AI")}
                 className="absolute right-1.5 top-1.5 inline-flex size-5 items-center justify-center rounded text-muted-foreground transition-colors hover:bg-muted/60 hover:text-foreground focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring disabled:cursor-not-allowed disabled:opacity-40 disabled:hover:bg-transparent disabled:hover:text-muted-foreground"
               >
                 <Sparkles className="size-3.5" />
@@ -5347,7 +5347,7 @@ export function CommitArea({
             </div>
             <div className="ml-[1.375rem] flex min-w-0 items-center gap-1.5">
               <CommitFailureFixSplitButton
-                label="AI Fix"
+                label={translate("auto.components.right.sidebar.SourceControl.60bd988f0b", "AI Fix")}
                 worktreeId={worktreeId}
                 groupId={groupId}
                 connectionId={connectionId}
@@ -5398,7 +5398,7 @@ export function CommitArea({
             </pre>
             <DialogFooter>
               <CommitFailureFixSplitButton
-                label="Fix with AI"
+                label={translate("auto.components.right.sidebar.SourceControl.834cb3f23d", "Fix with AI")}
                 worktreeId={worktreeId}
                 groupId={groupId}
                 connectionId={connectionId}
@@ -5483,7 +5483,7 @@ export function CompareSummary({
     return (
       <div className="flex min-w-0 items-center gap-2 text-xs text-muted-foreground">
         <span className="min-w-0 flex-1 truncate">
-          {summary.errorMessage ?? 'Branch compare unavailable'}
+          {summary.errorMessage ?? translate("auto.components.right.sidebar.SourceControl.715d229c86", "Branch compare unavailable")}
         </span>
         <div className="flex shrink-0 items-center gap-2">
           <CompareSummaryToolbarButton
@@ -5576,10 +5576,10 @@ function CompareUnavailable({
   return (
     <div className="m-3 rounded-md border border-border/60 bg-muted/20 px-3 py-3 text-xs">
       <div className="font-medium text-foreground">
-        {summary.status === 'error' ? 'Branch compare failed' : 'Branch compare unavailable'}
+        {summary.status === 'error' ? translate("auto.components.right.sidebar.SourceControl.97d8b03cdf", "Branch compare failed") : translate("auto.components.right.sidebar.SourceControl.715d229c86", "Branch compare unavailable")}
       </div>
       <div className="mt-1 text-muted-foreground">
-        {summary.errorMessage ?? 'Unable to load branch compare.'}
+        {summary.errorMessage ?? translate("auto.components.right.sidebar.SourceControl.b6922abb13", "Unable to load branch compare.")}
       </div>
       <div className="mt-3 flex items-center gap-2">
         {changeBaseRefAllowed && (
@@ -5746,7 +5746,7 @@ function DiffCommentsInlineList({
                     {getDiffCommentLineLabel(c, true)}
                   </span>
                   <span className="shrink-0 rounded bg-muted/70 px-1 py-0.5 text-[10px] leading-none text-muted-foreground">
-                    {getDiffCommentSource(c) === 'markdown' ? 'MD' : 'Diff'}
+                    {getDiffCommentSource(c) === "markdown" ? translate("auto.components.right.sidebar.SourceControl.94c42b252e", "MD") : translate("auto.components.right.sidebar.SourceControl.c56ba7fa06", "Diff")}
                   </span>
                   {c.sentAt ? (
                     <span className="shrink-0 rounded bg-muted/70 px-1 py-0.5 text-[10px] leading-none text-muted-foreground">
@@ -5825,7 +5825,7 @@ export function ConflictSummaryCard({
           <div
             className="text-xs font-medium text-foreground"
             aria-live="polite"
-          >{`${operationLabel}: ${unresolvedCount} unresolved`}</div>
+          >{translate("auto.components.right.sidebar.SourceControl.d7a5942e41", "{{value0}}: {{value1}} unresolved", { value0: operationLabel, value1: unresolvedCount })}</div>
           <div className="mt-1 text-[11px] text-muted-foreground">
             {translate("auto.components.right.sidebar.SourceControl.3eeccbb221", "Resolved files move back to normal changes after they leave the live conflict state.")}</div>
         </div>
@@ -5854,7 +5854,7 @@ export function ConflictSummaryCard({
         >
           <GitMerge className="size-3.5" />
           {translate("auto.components.right.sidebar.SourceControl.27a50fe970", "Review conflicts")}</Button>
-        {(conflictOperation === 'merge' || conflictOperation === 'rebase') && onAbortOperation ? (
+        {(conflictOperation === "merge" || conflictOperation === "rebase") && onAbortOperation ? (
           <Button
             type="button"
             variant={conflictAbortButtonVariant(conflictOperation)}
@@ -5864,7 +5864,7 @@ export function ConflictSummaryCard({
             onClick={() => onAbortOperation(conflictOperation)}
           >
             {isAbortingOperation ? <RefreshCw className="size-3.5 animate-spin" /> : null}
-            {conflictOperation === 'rebase' ? 'Abort rebase' : 'Abort merge'}
+            {conflictOperation === "rebase" ? translate("auto.components.right.sidebar.SourceControl.425f138269", "Abort rebase") : translate("auto.components.right.sidebar.SourceControl.540ca8f78c", "Abort merge")}
           </Button>
         ) : null}
       </div>
@@ -5903,7 +5903,7 @@ export function OperationBanner({
         <Icon className="size-4 shrink-0 text-amber-600 dark:text-amber-400" />
         <span className="text-xs font-medium text-foreground">{label}</span>
       </div>
-      {(conflictOperation === 'merge' || conflictOperation === 'rebase') && onAbortOperation ? (
+      {(conflictOperation === "merge" || conflictOperation === "rebase") && onAbortOperation ? (
         <Button
           type="button"
           variant={conflictAbortButtonVariant(conflictOperation)}
@@ -5913,7 +5913,7 @@ export function OperationBanner({
           onClick={() => onAbortOperation(conflictOperation)}
         >
           {isAbortingOperation ? <RefreshCw className="size-3.5 animate-spin" /> : null}
-          {conflictOperation === 'rebase' ? 'Abort rebase' : 'Abort merge'}
+          {conflictOperation === "rebase" ? translate("auto.components.right.sidebar.SourceControl.425f138269", "Abort rebase") : translate("auto.components.right.sidebar.SourceControl.540ca8f78c", "Abort merge")}
         </Button>
       ) : null}
     </div>
@@ -5978,7 +5978,7 @@ function SourceControlTreeDirectoryRow({
           {canDiscard && (
             <ActionButton
               icon={node.area === 'untracked' ? Trash : Undo2}
-              title={node.area === 'untracked' ? 'Delete untracked in folder' : 'Discard folder'}
+              title={node.area === "untracked" ? translate("auto.components.right.sidebar.SourceControl.9b367363b6", "Delete untracked in folder") : translate("auto.components.right.sidebar.SourceControl.6d7f2a47e5", "Discard folder")}
               onClick={(event) => {
                 event.stopPropagation()
                 onRequestDiscardPaths(node.area, actionPaths.discardPaths)
@@ -5989,7 +5989,7 @@ function SourceControlTreeDirectoryRow({
           {canStage && (
             <ActionButton
               icon={Plus}
-              title="Stage folder"
+              title={translate("auto.components.right.sidebar.SourceControl.bfe9011a0e", "Stage folder")}
               onClick={(event) => {
                 event.stopPropagation()
                 void onStagePaths(actionPaths.stagePaths)
@@ -6000,7 +6000,7 @@ function SourceControlTreeDirectoryRow({
           {canUnstage && (
             <ActionButton
               icon={Minus}
-              title="Unstage folder"
+              title={translate("auto.components.right.sidebar.SourceControl.ab31221779", "Unstage folder")}
               onClick={(event) => {
                 event.stopPropagation()
                 void onUnstagePaths(actionPaths.unstagePaths)
@@ -6195,7 +6195,7 @@ const UncommittedEntryRow = React.memo(function UncommittedEntryRow({
           // attached, without opening the Notes tab.
           <span
             className="flex shrink-0 items-center gap-0.5 text-[10px] text-muted-foreground"
-            title={`${commentCount} note${commentCount === 1 ? '' : 's'}`}
+            title={translate("auto.components.right.sidebar.SourceControl.657e0c90ad", "{{value0}} note{{value1}}", { value0: commentCount, value1: commentCount === 1 ? '' : 's' })}
           >
             <MessageSquare className="size-3" />
             <span className="tabular-nums">{commentCount}</span>
@@ -6219,11 +6219,11 @@ const UncommittedEntryRow = React.memo(function UncommittedEntryRow({
             <ActionButton
               icon={entry.area === 'untracked' ? Trash : Undo2}
               title={
-                entry.area === 'untracked'
-                  ? 'Delete untracked file'
-                  : entry.status === 'deleted'
-                    ? 'Restore file'
-                    : 'Discard changes'
+                entry.area === "untracked"
+                  ? translate("auto.components.right.sidebar.SourceControl.11463f7a98", "Delete untracked file")
+                  : entry.status === "deleted"
+                    ? translate("auto.components.right.sidebar.SourceControl.989f3d5e34", "Restore file")
+                    : translate("auto.components.right.sidebar.SourceControl.d54dd48b0b", "Discard changes")
               }
               onClick={(event) => {
                 event.stopPropagation()
@@ -6234,7 +6234,7 @@ const UncommittedEntryRow = React.memo(function UncommittedEntryRow({
           {canStage && (
             <ActionButton
               icon={Plus}
-              title="Stage"
+              title={translate("auto.components.right.sidebar.SourceControl.8cde1a2fb0", "Stage")}
               onClick={(event) => {
                 event.stopPropagation()
                 void onStage(entry.path)
@@ -6244,7 +6244,7 @@ const UncommittedEntryRow = React.memo(function UncommittedEntryRow({
           {canUnstage && (
             <ActionButton
               icon={Minus}
-              title="Unstage"
+              title={translate("auto.components.right.sidebar.SourceControl.df5040e3c3", "Unstage")}
               onClick={(event) => {
                 event.stopPropagation()
                 void onUnstage(entry.path)
@@ -6345,7 +6345,7 @@ function BranchEntryRow({
         {commentCount > 0 && (
           <span
             className="flex shrink-0 items-center gap-0.5 text-[10px] text-muted-foreground"
-            title={`${commentCount} note${commentCount === 1 ? '' : 's'}`}
+            title={translate("auto.components.right.sidebar.SourceControl.657e0c90ad", "{{value0}} note{{value1}}", { value0: commentCount, value1: commentCount === 1 ? '' : 's' })}
           >
             <MessageSquare className="size-3" />
             <span className="tabular-nums">{commentCount}</span>

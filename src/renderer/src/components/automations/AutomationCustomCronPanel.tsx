@@ -88,7 +88,7 @@ export function AutomationCustomCronPanel({
               : 'border-border/70 bg-muted/30 text-muted-foreground'
           )}
         >
-          {customScheduleStatus.kind === 'invalid' ? (
+          {customScheduleStatus.kind === "invalid" ? (
             <CircleAlert className="size-3.5 shrink-0" />
           ) : (
             <CheckCircle2 className="size-3.5 shrink-0" />

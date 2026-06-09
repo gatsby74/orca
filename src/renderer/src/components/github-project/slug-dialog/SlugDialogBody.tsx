@@ -165,7 +165,7 @@ export function SlugDialogBody({
                   setEditingTitle(true)
                 }}
               >
-                {title || 'Untitled'}
+                {title || translate("auto.components.github.project.slug.dialog.SlugDialogBody.7c302f8174", "Untitled")}
               </button>
             )}
           </div>

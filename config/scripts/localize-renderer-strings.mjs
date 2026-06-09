@@ -41,18 +41,36 @@ function translateCall(key, value, options) {
   return `translate(${JSON.stringify(key)}, ${JSON.stringify(value)})`
 }
 
-function replacementForCandidate(candidate, key, sourceText, translation) {
+function isInsideJsxExpression(node) {
+  let current = node.parent
+  while (current) {
+    if (ts.isJsxExpression(current)) {
+      return true
+    }
+    current = current.parent
+  }
+  return false
+}
+
+function editForCandidate(candidate, key, translation, sourceFile) {
   const call = translateCall(key, translation.fallback, translation.options)
+  const node = findNodeByRange(sourceFile, candidate.start, candidate.end)
   if (candidate.kind === 'jsx-text') {
-    return `{${call}}`
+    return { start: candidate.start, end: candidate.end, text: `{${call}}` }
+  }
+  if (candidate.kind === 'jsx-expression') {
+    return { start: candidate.start, end: candidate.end, text: call }
   }
   if (candidate.kind.startsWith('jsx-attribute:')) {
-    if (sourceText[candidate.start - 1] === '{') {
-      return call
+    if (node?.parent && ts.isJsxAttribute(node.parent) && node.parent.initializer === node) {
+      return { start: node.getStart(sourceFile), end: node.getEnd(), text: `{${call}}` }
     }
-    return `{${call}}`
+    if (node && isInsideJsxExpression(node)) {
+      return { start: candidate.start, end: candidate.end, text: call }
+    }
+    return { start: candidate.start, end: candidate.end, text: `{${call}}` }
   }
-  return call
+  return { start: candidate.start, end: candidate.end, text: call }
 }
 
 function sourceKindForPath(filePath) {
@@ -153,12 +171,8 @@ function applyReplacements(filePath, sourceText, candidates, catalog) {
   for (const { candidate, translation } of replacements) {
     const key = keyForCandidate(candidate)
     setCatalogValue(catalog, key, translation.fallback)
-    nextSource = `${nextSource.slice(0, candidate.start)}${replacementForCandidate(
-      candidate,
-      key,
-      sourceText,
-      translation
-    )}${nextSource.slice(candidate.end)}`
+    const edit = editForCandidate(candidate, key, translation, sourceFile)
+    nextSource = `${nextSource.slice(0, edit.start)}${edit.text}${nextSource.slice(edit.end)}`
   }
 
   return replacements.length > 0 ? addTranslateImport(nextSource) : nextSource

@@ -68,7 +68,7 @@ export async function ensureWslCliAvailableForAgentSkillTerminal(): Promise<CliI
     const status = await window.api.cli.getWslInstallStatus()
     if (!status.supported) {
       toast.warning(translate("auto.components.settings.CliSkillRuntimeSetup.775a4cfbb8", "WSL shell command registration is unavailable"), {
-        description: status.detail ?? 'Register the WSL shell command before skill setup.'
+        description: status.detail ?? translate("auto.components.settings.CliSkillRuntimeSetup.fc0fcf72fd", "Register the WSL shell command before skill setup.")
       })
       return status
     }
@@ -77,7 +77,7 @@ export async function ensureWslCliAvailableForAgentSkillTerminal(): Promise<CliI
       const next = await window.api.cli.installWsl()
       if (!isOrcaCliAvailableOnPath(next)) {
         toast.warning(translate("auto.components.settings.CliSkillRuntimeSetup.3728a94fb6", "WSL shell command needs attention"), {
-          description: next.detail ?? 'Register the WSL shell command before skill setup.'
+          description: next.detail ?? translate("auto.components.settings.CliSkillRuntimeSetup.fc0fcf72fd", "Register the WSL shell command before skill setup.")
         })
       }
       return next
@@ -115,9 +115,9 @@ export function CliSkillRuntimeControl({
       <div className="min-w-0 flex-1 space-y-0.5">
         <Label>{translate("auto.components.settings.CliSkillRuntimeSetup.a58ba464ad", "Skill location")}</Label>
         <p className="text-xs text-muted-foreground">
-          {runtime.runtime === 'wsl' && !wslAvailable && !wslCapabilitiesLoading
-            ? 'WSL is not available on this machine.'
-            : 'Choose where Orca checks and installs global agent skills.'}
+          {runtime.runtime === "wsl" && !wslAvailable && !wslCapabilitiesLoading
+            ? translate("auto.components.settings.CliSkillRuntimeSetup.f00d6aa9b5", "WSL is not available on this machine.")
+            : translate("auto.components.settings.CliSkillRuntimeSetup.0c9f3cf9da", "Choose where Orca checks and installs global agent skills.")}
         </p>
       </div>
       <div className="w-44 shrink-0">

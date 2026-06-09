@@ -44,11 +44,11 @@ export function GitHubRow(props: { compact?: boolean } = {}): React.JSX.Element 
           <div className="min-w-0 flex-1">
             <div className="flex flex-wrap items-center gap-2">
               <h3 className="text-[15px] font-semibold leading-tight text-foreground">{translate("auto.components.onboarding.IntegrationsStep.217beb0658", "GitHub")}</h3>
-              {state === 'connected' ? (
+              {state === "connected" ? (
                 <IntegrationStatusPill tone="connected">{translate("auto.components.onboarding.IntegrationsStep.c91a5782f1", "Connected")}</IntegrationStatusPill>
-              ) : state === 'not-installed' ? (
+              ) : state === "not-installed" ? (
                 <IntegrationStatusPill tone="attention">{translate("auto.components.onboarding.IntegrationsStep.5c115cb713", "CLI not installed")}</IntegrationStatusPill>
-              ) : state === 'not-authenticated' ? (
+              ) : state === "not-authenticated" ? (
                 <IntegrationStatusPill tone="attention">{translate("auto.components.onboarding.IntegrationsStep.8405043962", "Sign in needed")}</IntegrationStatusPill>
               ) : (
                 <IntegrationStatusPill tone="neutral">{translate("auto.components.onboarding.IntegrationsStep.c1547656f0", "Checking…")}</IntegrationStatusPill>
@@ -59,7 +59,7 @@ export function GitHubRow(props: { compact?: boolean } = {}): React.JSX.Element 
           </div>
         </div>
         <div className={cn('flex items-center gap-2', compact ? 'flex-wrap' : 'shrink-0')}>
-          {state === 'not-installed' ? (
+          {state === "not-installed" ? (
             <Button
               variant="outline"
               size="sm"
@@ -68,7 +68,7 @@ export function GitHubRow(props: { compact?: boolean } = {}): React.JSX.Element 
               <ExternalLink className="size-3.5" />
               {translate("auto.components.onboarding.IntegrationsStep.bd5d976fb2", "Install gh")}</Button>
           ) : null}
-          {state === 'not-authenticated' ? (
+          {state === "not-authenticated" ? (
             <Button
               variant="outline"
               size="sm"
@@ -76,10 +76,10 @@ export function GitHubRow(props: { compact?: boolean } = {}): React.JSX.Element 
               onClick={() => setGithubTerminalOpen(true)}
             >
               <Terminal className="size-3.5" />
-              {githubTerminalOpen ? 'Signing in' : 'Sign in'}
+              {githubTerminalOpen ? translate("auto.components.onboarding.IntegrationsStep.0b4a7d23ab", "Signing in") : translate("auto.components.onboarding.IntegrationsStep.d6e5dba05a", "Sign in")}
             </Button>
           ) : null}
-          {state !== 'connected' ? (
+          {state !== "connected" ? (
             <Button
               variant="ghost"
               size="sm"
@@ -89,7 +89,7 @@ export function GitHubRow(props: { compact?: boolean } = {}): React.JSX.Element 
           ) : null}
         </div>
       </div>
-      {state === 'not-authenticated' && githubTerminalOpen ? (
+      {state === "not-authenticated" && githubTerminalOpen ? (
         <div className={cn(compact ? 'px-4 pb-4' : 'px-5 pb-5')}>
           <OnboardingInlineCommandTerminal
             command="gh auth login"
@@ -129,8 +129,8 @@ export function LinearRow(props: { compact?: boolean } = {}): React.JSX.Element 
               </div>
               <p className="mt-1 text-[13px] leading-relaxed text-muted-foreground">
                 {linearStatus.connected
-                  ? `${workspaceCount} workspace${workspaceCount === 1 ? '' : 's'} linked. Add another workspace or replace a restricted key any time.`
-                  : 'Add Linear access with a Personal API key. Full-access keys can show every team the key owner can access.'}
+                  ? translate("auto.components.onboarding.IntegrationsStep.b08a6ac93c", "{{value0}} workspace{{value1}} linked. Add another workspace or replace a restricted key any time.", { value0: workspaceCount, value1: workspaceCount === 1 ? '' : 's' })
+                  : translate("auto.components.onboarding.IntegrationsStep.4983ae7433", "Add Linear access with a Personal API key. Full-access keys can show every team the key owner can access.")}
               </p>
             </div>
           </div>

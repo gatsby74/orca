@@ -63,7 +63,7 @@ export default function WorktreeCreationPanel({
           <div className="flex flex-wrap items-center gap-x-3 gap-y-1 text-xs">
             <span className="font-medium text-destructive">{translate("auto.components.worktree.creation.WorktreeCreationPanel.ed2a664f8b", "Couldn’t create worktree")}</span>
             <span className="text-muted-foreground">
-              {entry.error ?? 'Something went wrong while creating the worktree.'}
+              {entry.error ?? translate("auto.components.worktree.creation.WorktreeCreationPanel.767951265d", "Something went wrong while creating the worktree.")}
             </span>
             <button
               type="button"

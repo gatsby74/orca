@@ -119,7 +119,7 @@ export function ProjectGroupNameDialog({
               className="text-xs"
               disabled={!trimmedName || submitting}
             >
-              {submitting ? 'Saving...' : confirmLabel}
+              {submitting ? translate("auto.components.sidebar.ProjectGroupNameDialog.4a64e78822", "Saving...") : confirmLabel}
             </Button>
           </DialogFooter>
         </form>

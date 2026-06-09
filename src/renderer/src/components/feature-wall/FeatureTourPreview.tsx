@@ -188,9 +188,9 @@ function OrchestrationFrame(): JSX.Element {
             </div>
             <div className="mt-2 flex items-center gap-1.5 pl-3.5">
               <WorkingSpinner size="xs" />
-              {agent === 'claude' ? (
+              {agent === "claude" ? (
                 <ClaudeIcon size={12} />
-              ) : agent === 'codex' ? (
+              ) : agent === "codex" ? (
                 <CodexInlineIcon />
               ) : (
                 <OpenCodeGoIcon size={12} />

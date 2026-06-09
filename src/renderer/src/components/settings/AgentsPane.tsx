@@ -256,11 +256,11 @@ function AgentRow({
                 variant={isDefault ? 'secondary' : 'ghost'}
                 size="xs"
                 onClick={onSetDefault}
-                title={isDefault ? 'Default agent' : 'Set as default'}
+                title={isDefault ? translate("auto.components.settings.AgentsPane.d7625cf8b2", "Default agent") : translate("auto.components.settings.AgentsPane.5f986a9b92", "Set as default")}
                 className="h-7 w-full justify-center gap-1 text-xs"
               >
                 {isDefault && <Check className="size-3" />}
-                {isDefault ? 'Default' : 'Set default'}
+                {isDefault ? translate("auto.components.settings.AgentsPane.24e032fa34", "Default") : translate("auto.components.settings.AgentsPane.959b67385b", "Set default")}
               </Button>
             )}
           </div>
@@ -272,7 +272,7 @@ function AgentRow({
                 variant="ghost"
                 size="icon-sm"
                 onClick={() => setCmdOpen((prev) => !prev)}
-                title="Customize command"
+                title={translate("auto.components.settings.AgentsPane.db9e9e5887", "Customize command")}
                 aria-expanded={cmdOpen}
                 className={cn(
                   'size-7 text-muted-foreground hover:text-foreground',
@@ -301,7 +301,7 @@ function AgentRow({
                 variant="ghost"
                 size="icon-sm"
                 onClick={() => setCmdOpen((prev) => !prev)}
-                aria-label={cmdOpen ? 'Collapse command override' : 'Expand command override'}
+                aria-label={cmdOpen ? translate("auto.components.settings.AgentsPane.cea7d97be1", "Collapse command override") : translate("auto.components.settings.AgentsPane.dc4a2ffdc0", "Expand command override")}
                 className="size-7 text-muted-foreground hover:text-foreground"
               >
                 <ChevronDown
@@ -493,11 +493,11 @@ export function AgentsPane({
                 size="xs"
                 onClick={handleRefresh}
                 disabled={isRefreshing}
-                title="Re-read your shell PATH and re-detect installed agents"
+                title={translate("auto.components.settings.AgentsPane.13647f9f80", "Re-read your shell PATH and re-detect installed agents")}
                 className="h-7 gap-1.5 text-xs text-muted-foreground hover:text-foreground"
               >
                 <RefreshCw className={cn('size-3', isRefreshing && 'animate-spin')} />
-                {isRefreshing ? 'Refreshing…' : 'Refresh'}
+                {isRefreshing ? translate("auto.components.settings.AgentsPane.c9b33eb5c0", "Refreshing…") : translate("auto.components.settings.AgentsPane.0d9e293a02", "Refresh")}
               </Button>
             }
           />

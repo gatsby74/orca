@@ -220,8 +220,8 @@ export default function ImportedWorktreesVisibilityLine({
                       className="h-6 justify-start px-0 text-[11px] font-normal text-muted-foreground hover:text-worktree-sidebar-accent-foreground"
                     >
                       {expandedGroupPathKeys.has(normalizeRuntimePathForComparison(group.path))
-                        ? 'Show fewer'
-                        : `Show ${group.worktrees.length - PREVIEW_LIMIT} more`}
+                        ? translate("auto.components.sidebar.ImportedWorktreesVisibilityLine.294de4aeb2", "Show fewer")
+                        : translate("auto.components.sidebar.ImportedWorktreesVisibilityLine.5a9688802a", "Show {{value0}} more", { value0: group.worktrees.length - PREVIEW_LIMIT })}
                     </Button>
                   </li>
                 ) : null}

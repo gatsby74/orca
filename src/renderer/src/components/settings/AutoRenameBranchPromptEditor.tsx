@@ -66,7 +66,7 @@ export function AutoRenameBranchPromptEditor({
         className="w-full resize-y rounded-md border border-border bg-background px-2 py-1.5 text-xs text-foreground outline-none placeholder:text-muted-foreground/70 focus-visible:ring-1 focus-visible:ring-ring"
       />
       <div className="flex items-center justify-between gap-3">
-        <p className="text-[11px] text-muted-foreground">{dirty ? 'Unsaved changes' : 'Saved'}</p>
+        <p className="text-[11px] text-muted-foreground">{dirty ? translate("auto.components.settings.AutoRenameBranchPromptEditor.0691753cf2", "Unsaved changes") : translate("auto.components.settings.AutoRenameBranchPromptEditor.af0831a590", "Saved")}</p>
         <div className="flex items-center gap-2">
           {dirty ? (
             <Button type="button" variant="ghost" size="xs" onClick={onDiscard} disabled={saving}>
@@ -79,7 +79,7 @@ export function AutoRenameBranchPromptEditor({
             onClick={() => void onSave()}
             disabled={!dirty || saving}
           >
-            {saving ? 'Saving...' : 'Save'}
+            {saving ? translate("auto.components.settings.AutoRenameBranchPromptEditor.54ac229ad4", "Saving...") : translate("auto.components.settings.AutoRenameBranchPromptEditor.5968112152", "Save")}
           </Button>
         </div>
       </div>

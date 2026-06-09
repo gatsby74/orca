@@ -168,7 +168,7 @@ export function LinearApiKeyDialog({
             <p>
               {translate("auto.components.linear.api.key.dialog.af52a6227f", "Create a Personal API key from Account > Security & Access.")}{' '}
               {!workspace
-                ? 'Use Linear to choose the intended workspace before creating the key.'
+                ? translate("auto.components.linear.api.key.dialog.c9889a09f8", "Use Linear to choose the intended workspace before creating the key.")
                 : null}
             </p>
             <p>
@@ -209,7 +209,7 @@ export function LinearApiKeyDialog({
             onClick={() => void handleConnect()}
             disabled={!apiKeyDraft.trim() || connectState === 'connecting'}
           >
-            {connectState === 'connecting' ? (
+            {connectState === "connecting" ? (
               <>
                 <LoaderCircle className="size-4 animate-spin" />
                 {translate("auto.components.linear.api.key.dialog.834a52c084", "Verifying...")}</>

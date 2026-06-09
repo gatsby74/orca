@@ -290,7 +290,7 @@ function GhosttyDiscoveryRow({
         <div className="text-[12px] text-foreground">
           <span className="font-medium">{translate("auto.components.onboarding.ThemeStep.7ee9234e54", "Ghostty config detected.")}</span>{' '}
           <span className="text-muted-foreground">
-            {translate("auto.components.onboarding.ThemeStep.248c812283", "Import")}{fields.length > 0 ? fields.map((f) => f.toLowerCase()).join(', ') : 'settings'}?
+            {translate("auto.components.onboarding.ThemeStep.248c812283", "Import")}{fields.length > 0 ? fields.map((f) => f.toLowerCase()).join(', ') : translate("auto.components.onboarding.ThemeStep.906c4373fe", "settings")}?
           </span>
         </div>
         {preview.configPath && (
@@ -307,7 +307,7 @@ function GhosttyDiscoveryRow({
         disabled={importing || disabled}
         onClick={() => onImport(preview)}
       >
-        {importing ? 'Importing…' : 'Import'}
+        {importing ? translate("auto.components.onboarding.ThemeStep.ad19e5c916", "Importing…") : translate("auto.components.onboarding.ThemeStep.248c812283", "Import")}
       </button>
     </div>
   )

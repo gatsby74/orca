@@ -198,7 +198,7 @@ export function SparsePresetSettingsSection({
         <div className="mb-3 flex items-center justify-between gap-3">
           <div className="space-y-0.5">
             <h5 className="text-sm font-semibold">
-              {draft.mode === 'new' ? 'New Preset' : 'Edit Preset'}
+              {draft.mode === "new" ? translate("auto.components.settings.SparsePresetSettingsSection.d7565029a9", "New Preset") : translate("auto.components.settings.SparsePresetSettingsSection.623b4cf910", "Edit Preset")}
             </h5>
             <p className="text-xs text-muted-foreground">
               {translate("auto.components.settings.SparsePresetSettingsSection.694cc55ecb", "Saved directories are used when creating sparse worktrees for this repository.")}</p>
@@ -247,8 +247,8 @@ export function SparsePresetSettingsSection({
             ) : (
               <p className="text-xs text-muted-foreground">
                 {parsedDirectories?.directories.length === 1
-                  ? '1 directory will be saved.'
-                  : `${parsedDirectories?.directories.length ?? 0} directories will be saved.`}{' '}
+                  ? translate("auto.components.settings.SparsePresetSettingsSection.b532b9c17d", "1 directory will be saved.")
+                  : translate("auto.components.settings.SparsePresetSettingsSection.3dfa765ca7", "{{value0}} directories will be saved.", { value0: parsedDirectories?.directories.length ?? 0 })}{' '}
                 {translate("auto.components.settings.SparsePresetSettingsSection.c240a16f25", "Use repo-relative paths like packages/web or apps/api.")}</p>
             )}
           </div>
@@ -312,7 +312,7 @@ export function SparsePresetSettingsSection({
 
       {presets === undefined ? (
         <div className="rounded-xl border border-dashed border-border/60 bg-background/60 px-4 py-6 text-sm text-muted-foreground">
-          {loadError ? 'Sparse presets could not be loaded.' : 'Loading sparse presets...'}
+          {loadError ? translate("auto.components.settings.SparsePresetSettingsSection.92c08ccae3", "Sparse presets could not be loaded.") : translate("auto.components.settings.SparsePresetSettingsSection.8deb7024ab", "Loading sparse presets...")}
         </div>
       ) : sortedPresets.length === 0 && !draft ? (
         <div className="rounded-xl border border-dashed border-border/60 bg-background/60 px-4 py-6 text-sm text-muted-foreground">
@@ -339,11 +339,11 @@ export function SparsePresetSettingsSection({
                       <h4 className="min-w-0 truncate text-sm font-medium">{preset.name}</h4>
                       <span className="text-[11px] text-muted-foreground">
                         {preset.directories.length === 1
-                          ? '1 directory'
-                          : `${preset.directories.length} directories`}
+                          ? translate("auto.components.settings.SparsePresetSettingsSection.9d3c087fc0", "1 directory")
+                          : translate("auto.components.settings.SparsePresetSettingsSection.d7b3f0bdc3", "{{value0}} directories", { value0: preset.directories.length })}
                       </span>
                       <span className="text-[11px] text-muted-foreground">
-                        {updatedLabel ? `Updated ${updatedLabel}` : 'Updated date unknown'}
+                        {updatedLabel ? translate("auto.components.settings.SparsePresetSettingsSection.568d7e1e49", "Updated {{value0}}", { value0: updatedLabel }) : translate("auto.components.settings.SparsePresetSettingsSection.ba9ad2d4cd", "Updated date unknown")}
                       </span>
                     </div>
                     <SparsePresetDirectoryPreview directories={preset.directories} />
@@ -378,10 +378,10 @@ export function SparsePresetSettingsSection({
                         <Trash2 className="size-3.5" />
                       )}
                       {isDeleting
-                        ? 'Deleting'
+                        ? translate("auto.components.settings.SparsePresetSettingsSection.a7bcf206b1", "Deleting")
                         : confirmingDeleteId === preset.id
-                          ? 'Confirm'
-                          : 'Delete'}
+                          ? translate("auto.components.settings.SparsePresetSettingsSection.755c6a1a0d", "Confirm")
+                          : translate("auto.components.settings.SparsePresetSettingsSection.6fa754d20f", "Delete")}
                     </Button>
                   </div>
                 </div>

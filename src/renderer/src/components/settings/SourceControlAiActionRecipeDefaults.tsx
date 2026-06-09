@@ -250,21 +250,21 @@ export function SourceControlAiActionRecipeDefaults({
   if (
     !config.enabled ||
     !matchesSettingsSearch(searchQuery, {
-      title: 'Action recipes',
+      title: translate("auto.components.settings.SourceControlAiActionRecipeDefaults.a79c567194", "Action recipes"),
       description:
-        'Agent, CLI arguments, and command template used by each Source Control AI button.',
+        translate("auto.components.settings.SourceControlAiActionRecipeDefaults.cf01d41bce", "Agent, CLI arguments, and command template used by each Source Control AI button."),
       keywords: [
-        'agent',
-        'arguments',
-        'args',
-        'cli',
-        'command',
-        'model',
-        'template',
-        'fix',
-        'checks',
-        'commit',
-        'pull request'
+        translate("auto.components.settings.SourceControlAiActionRecipeDefaults.926d58e87f", "agent"),
+        translate("auto.components.settings.SourceControlAiActionRecipeDefaults.db9bd75d10", "arguments"),
+        translate("auto.components.settings.SourceControlAiActionRecipeDefaults.2576299196", "args"),
+        translate("auto.components.settings.SourceControlAiActionRecipeDefaults.673369fe0c", "cli"),
+        translate("auto.components.settings.SourceControlAiActionRecipeDefaults.d74fdc776c", "command"),
+        translate("auto.components.settings.SourceControlAiActionRecipeDefaults.eb7e8f3b39", "model"),
+        translate("auto.components.settings.SourceControlAiActionRecipeDefaults.2037c78a6f", "template"),
+        translate("auto.components.settings.SourceControlAiActionRecipeDefaults.cb67b938c5", "fix"),
+        translate("auto.components.settings.SourceControlAiActionRecipeDefaults.06a9dab64d", "checks"),
+        translate("auto.components.settings.SourceControlAiActionRecipeDefaults.e5b24893ba", "commit"),
+        translate("auto.components.settings.SourceControlAiActionRecipeDefaults.7ab1437a12", "pull request")
       ]
     })
   ) {
@@ -380,7 +380,7 @@ export function SourceControlAiActionRecipeDefaults({
               </div>
               <div className="flex items-center justify-between gap-3">
                 <p className="text-[11px] text-muted-foreground">
-                  {templateDirty ? 'Unsaved changes' : 'Saved'}
+                  {templateDirty ? translate("auto.components.settings.SourceControlAiActionRecipeDefaults.817128d94e", "Unsaved changes") : translate("auto.components.settings.SourceControlAiActionRecipeDefaults.9d3cc627f8", "Saved")}
                 </p>
                 <div className="flex items-center gap-2">
                   {templateDirty ? (
@@ -400,7 +400,7 @@ export function SourceControlAiActionRecipeDefaults({
                     onClick={() => void saveActionTemplateDraft(actionId)}
                     disabled={!templateDirty || isSavingTemplate}
                   >
-                    {isSavingTemplate ? 'Saving...' : 'Save'}
+                    {isSavingTemplate ? translate("auto.components.settings.SourceControlAiActionRecipeDefaults.4f549a5fa8", "Saving...") : translate("auto.components.settings.SourceControlAiActionRecipeDefaults.d18d665e12", "Save")}
                   </Button>
                 </div>
               </div>

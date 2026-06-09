@@ -31,7 +31,7 @@ export function NestedRepoScanLimitNotice({ scan }: { scan: NestedRepoScanResult
       onFocusCapture={() => setDetailsOpen(true)}
       onBlurCapture={() => setDetailsOpen(false)}
     >
-      <span>{scan.stopped ? 'Scan stopped early.' : 'Showing partial scan results.'}</span>
+      <span>{scan.stopped ? translate("auto.components.repo.NestedRepoScanLimitNotice.03e9beab7b", "Scan stopped early.") : translate("auto.components.repo.NestedRepoScanLimitNotice.574eb5408b", "Showing partial scan results.")}</span>
       <Popover open={detailsOpen} onOpenChange={setDetailsOpen}>
         <PopoverTrigger asChild>
           <button

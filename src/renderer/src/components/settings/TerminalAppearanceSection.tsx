@@ -170,9 +170,9 @@ export function TerminalAppearanceSection({
               <SettingsRow
                 label={translate("auto.components.settings.TerminalAppearanceSection.be8da35e7f", "Font Ligatures")}
                 description={
-                  settings.terminalLigatures === 'on'
+                  settings.terminalLigatures === "on"
                     ? translate("auto.components.settings.TerminalAppearanceSection.7234abcd08", "Always on. Fonts without ligatures simply render as-is.")
-                    : settings.terminalLigatures === 'off'
+                    : settings.terminalLigatures === "off"
                       ? translate("auto.components.settings.TerminalAppearanceSection.04569feb07", "Always off, even for fonts that ship them.")
                       : fontFamilyHasKnownLigatures(settings.terminalFontFamily)
                         ? translate("auto.components.settings.TerminalAppearanceSection.400e950ca5", "Auto - enabled for \"{{value0}}\".", { value0: settings.terminalFontFamily })
@@ -199,8 +199,8 @@ export function TerminalAppearanceSection({
                   settings.terminalLigatures,
                   settings.terminalFontFamily
                 )
-                  ? 'enabled'
-                  : 'disabled'}
+                  ? translate("auto.components.settings.TerminalAppearanceSection.4e7d41a9f0", "enabled")
+                  : translate("auto.components.settings.TerminalAppearanceSection.4415beb958", "disabled")}
                 .
               </p>
             </SearchableSetting>

@@ -122,8 +122,8 @@ export function DiffSectionBody({
               <div className="text-sm font-medium text-foreground">{translate("auto.components.editor.DiffSectionBody.35d6afb5be", "Binary file changed")}</div>
               <div className="text-xs text-muted-foreground">
                 {isBranchMode
-                  ? 'Text diff is unavailable for this file in branch compare.'
-                  : 'Text diff is unavailable for this file.'}
+                  ? translate("auto.components.editor.DiffSectionBody.7ce8436458", "Text diff is unavailable for this file in branch compare.")
+                  : translate("auto.components.editor.DiffSectionBody.72f71f52eb", "Text diff is unavailable for this file.")}
               </div>
             </div>
           </div>

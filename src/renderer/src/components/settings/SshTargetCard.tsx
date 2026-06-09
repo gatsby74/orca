@@ -247,7 +247,7 @@ export function SshTargetCard({
       </div>
 
       <div className="flex shrink-0 items-center gap-1">
-        {status === 'connected' ? (
+        {status === "connected" ? (
           <>
             {renderSecondaryIconActions(true)}
             <Button
@@ -290,7 +290,7 @@ export function SshTargetCard({
               className="gap-1.5"
               disabled={hasActionInFlight}
             >
-              {actionInFlight === 'connect' ? (
+              {actionInFlight === "connect" ? (
                 <Loader2 className="size-3 animate-spin" />
               ) : (
                 <Server className="size-3" />

@@ -1416,7 +1416,7 @@ export function FloatingTerminalPanel({
           ) : null}
         </div>
       </div>
-      {showOrchestrationSetup && activeTabType === 'terminal' ? (
+      {showOrchestrationSetup && activeTabType === "terminal" ? (
         <div
           className="absolute right-4 bottom-4 z-10 w-[280px] rounded-md border border-border/60 bg-card/95 p-3 text-card-foreground shadow-xs"
           data-floating-terminal-no-drag
@@ -1473,8 +1473,8 @@ export function FloatingTerminalPanel({
             <DialogTitle className="text-sm">{translate("auto.components.floating.terminal.FloatingTerminalPanel.690b6fb98a", "Unsaved Changes")}</DialogTitle>
             <DialogDescription className="text-xs">
               {saveDialogFile
-                ? `"${saveDialogFile.relativePath.split('/').pop()}" has unsaved changes. Do you want to save before closing?`
-                : 'This file has unsaved changes.'}
+                ? translate("auto.components.floating.terminal.FloatingTerminalPanel.5ddc688c52", "\"{{value0}}\" has unsaved changes. Do you want to save before closing?", { value0: saveDialogFile.relativePath.split('/').pop() })
+                : translate("auto.components.floating.terminal.FloatingTerminalPanel.b085fb58b5", "This file has unsaved changes.")}
             </DialogDescription>
           </DialogHeader>
           <DialogFooter className="gap-2">

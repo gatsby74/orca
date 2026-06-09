@@ -332,8 +332,8 @@ export function LinearScopeSelector({
             ) : (
               <div className="px-3 py-5 text-xs leading-relaxed text-muted-foreground">
                 {query.trim()
-                  ? 'No fetched teams match your search.'
-                  : 'No teams were fetched. Access can depend on key scope, private-team membership, archived teams, permissions, or a fetch failure.'}
+                  ? translate("auto.components.linear.scope.selector.405b33c378", "No fetched teams match your search.")
+                  : translate("auto.components.linear.scope.selector.b3488fad3c", "No teams were fetched. Access can depend on key scope, private-team membership, archived teams, permissions, or a fetch failure.")}
               </div>
             )}
           </CommandList>

@@ -1778,8 +1778,8 @@ export default function ActivityPrototypePage(): React.JSX.Element {
                     <div className="flex min-h-0 flex-1 flex-col items-center justify-center gap-2 p-4 text-sm text-muted-foreground">
                       <TerminalSquare className="size-7" />
                       {storeData.worktreeMap.has(selectedThread.worktree.id)
-                        ? 'Agent terminal closed. Open a new terminal in this workspace to continue.'
-                        : 'Standalone terminal unavailable in Activity.'}
+                        ? translate("auto.components.activity.ActivityPrototypePage.afdc2139a8", "Agent terminal closed. Open a new terminal in this workspace to continue.")
+                        : translate("auto.components.activity.ActivityPrototypePage.22b22034bc", "Standalone terminal unavailable in Activity.")}
                     </div>
                   )
                 }

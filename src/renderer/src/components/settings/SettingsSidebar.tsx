@@ -280,7 +280,7 @@ export function SettingsSidebar({
               </div>
             ) : (
               <p className="px-3 text-xs text-muted-foreground">
-                {hasRepos ? 'No matching project settings.' : 'No projects added yet.'}
+                {hasRepos ? translate("auto.components.settings.SettingsSidebar.3e483e256b", "No matching project settings.") : translate("auto.components.settings.SettingsSidebar.df38d612b7", "No projects added yet.")}
               </p>
             )}
           </div>

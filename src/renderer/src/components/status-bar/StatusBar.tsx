@@ -511,8 +511,8 @@ function CodexRestartStatusPrompt(): React.JSX.Element | null {
           bulk restart action operates per PTY-backed pane restart. Show
           both counts so split panes do not make the number look wrong. */}
           {staleCodexStatus.staleSessionCount === 1
-            ? '1 Codex session is still on the old account'
-            : `${staleCodexStatus.staleSessionCount} Codex sessions are still on the old account.`}
+            ? translate("auto.components.status.bar.StatusBar.605901a495", "1 Codex session is still on the old account")
+            : translate("auto.components.status.bar.StatusBar.1446d0d8a0", "{{value0}} Codex sessions are still on the old account.", { value0: staleCodexStatus.staleSessionCount })}
           {staleCodexStatus.staleWorktreeCount > 1 ? (
             <span className="mt-0.5 block">
               {translate("auto.components.status.bar.StatusBar.59c6e7b4e0", "Visible sessions restart now. Others restart when their worktree becomes active.")}</span>
@@ -524,8 +524,8 @@ function CodexRestartStatusPrompt(): React.JSX.Element | null {
           className="mt-2 inline-flex w-full items-center justify-center rounded-md border border-border/70 px-2.5 py-1.5 text-xs font-medium text-foreground transition-colors hover:bg-accent/60"
         >
           {staleCodexStatus.staleSessionCount === 1
-            ? 'Restart Session'
-            : `Restart ${staleCodexStatus.staleSessionCount} Sessions`}
+            ? translate("auto.components.status.bar.StatusBar.6cd6650b4c", "Restart Session")
+            : translate("auto.components.status.bar.StatusBar.cd9d7b40ff", "Restart {{value0}} Sessions", { value0: staleCodexStatus.staleSessionCount })}
         </button>
       </div>
     </>
@@ -749,7 +749,7 @@ function ClaudeSwitcherMenu({
         }}
       >
         <span className="max-w-[180px] truncate text-[12px] text-foreground">
-          {activeTarget?.label ?? 'System default'}
+          {activeTarget?.label ?? translate("auto.components.status.bar.StatusBar.c676918adc", "System default")}
         </span>
         {accountsExpanded ? (
           <ChevronDown className="ml-auto size-3.5 text-muted-foreground/85" />
@@ -1281,7 +1281,7 @@ function CodexSwitcherMenu({
         <div className="flex min-w-0 flex-1 flex-col gap-0.5 py-0.5 text-[12px]">
           <div className="flex min-w-0 items-center gap-1.5">
             <span className="min-w-0 flex-1 truncate text-foreground">
-              {activeTarget?.label ?? 'System default'}
+              {activeTarget?.label ?? translate("auto.components.status.bar.StatusBar.c676918adc", "System default")}
             </span>
           </div>
         </div>
@@ -1425,13 +1425,13 @@ export function ProviderDetailsMenu({
                 className={`inline-block h-2 w-2 rounded-full ${provider.session || provider.weekly ? 'bg-muted-foreground/60' : 'bg-muted-foreground/30'}`}
               />
               <span className="text-muted-foreground">
-                {provider.provider === 'claude'
+                {provider.provider === "claude"
                   ? 'C'
-                  : provider.provider === 'gemini'
+                  : provider.provider === "gemini"
                     ? 'G'
-                    : provider.provider === 'opencode-go'
+                    : provider.provider === "opencode-go"
                       ? 'O'
-                      : provider.provider === 'kimi'
+                      : provider.provider === "kimi"
                         ? 'K'
                         : 'X'}
               </span>
@@ -1672,7 +1672,7 @@ function StatusBarInner({ floatingTerminalOpen }: StatusBarProps): React.JSX.Ele
                 provider={gemini}
                 compact={compact}
                 iconOnly={iconOnly}
-                ariaLabel="Open Gemini usage details"
+                ariaLabel={translate("auto.components.status.bar.StatusBar.d2375976eb", "Open Gemini usage details")}
               />
             )}
             {showOpencodeGo && (
@@ -1680,7 +1680,7 @@ function StatusBarInner({ floatingTerminalOpen }: StatusBarProps): React.JSX.Ele
                 provider={opencodeGo}
                 compact={compact}
                 iconOnly={iconOnly}
-                ariaLabel="Open OpenCode Go usage details"
+                ariaLabel={translate("auto.components.status.bar.StatusBar.629251f4b6", "Open OpenCode Go usage details")}
               />
             )}
             {showKimi && (
@@ -1688,7 +1688,7 @@ function StatusBarInner({ floatingTerminalOpen }: StatusBarProps): React.JSX.Ele
                 provider={kimi}
                 compact={compact}
                 iconOnly={iconOnly}
-                ariaLabel="Open Kimi usage details"
+                ariaLabel={translate("auto.components.status.bar.StatusBar.fda8146810", "Open Kimi usage details")}
               />
             )}
           </>
@@ -1700,7 +1700,7 @@ function StatusBarInner({ floatingTerminalOpen }: StatusBarProps): React.JSX.Ele
                 onClick={handleRefresh}
                 disabled={isRefreshing}
                 className="p-0.5 rounded hover:bg-accent text-muted-foreground hover:text-foreground transition-colors disabled:opacity-40"
-                aria-label="Refresh rate limits"
+                aria-label={translate("auto.components.status.bar.StatusBar.3325d996cb", "Refresh rate limits")}
               >
                 <RefreshCw
                   size={11}

@@ -60,7 +60,7 @@ export function RepositorySourceControlAiCustomCommand({
           const nextValue = event.target.value
           onChange(nextValue === '' ? undefined : nextValue)
         }}
-        placeholder={source.customAgentCommand || 'e.g. ollama run llama3.1 {prompt}'}
+        placeholder={source.customAgentCommand || translate("auto.components.settings.RepositorySourceControlAiCustomCommand.f9941f0caf", "e.g. ollama run llama3.1 {prompt}")}
         spellCheck={false}
         className="h-8 font-mono text-xs"
       />

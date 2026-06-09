@@ -145,10 +145,10 @@ function showLocalBaseRefUpdateSuggestionToast(
               throw new Error('settings_not_persisted')
             }
             toast.dismiss(toastId)
-            toast.success(`Keeping local ${suggestion.localBranch} up to date`)
+            toast.success(translate("auto.store.slices.worktrees.670864ab52", "Keeping local {{value0}} up to date", { value0: suggestion.localBranch }))
           })
           .catch(() => {
-            toast.error(`Could not keep local ${suggestion.localBranch} up to date`, {
+            toast.error(translate("auto.store.slices.worktrees.2b0afc7f14", "Could not keep local {{value0}} up to date", { value0: suggestion.localBranch }), {
               description: translate("auto.store.slices.worktrees.f4503ca505", "Open Settings > Git and try again.")
             })
           })
@@ -1612,13 +1612,13 @@ export const createWorktreeSlice: StateCreator<AppState, [], [], WorktreeSlice> 
             { worktree: toRuntimeWorktreeSelector(worktreeId), branchName, expectedHead },
             { timeoutMs: 15_000 }
           ))
-      toast.success('Local branch deleted', {
+      toast.success(translate("auto.store.slices.worktrees.19db0085fb", "Local branch deleted"), {
         description: translate("auto.store.slices.worktrees.5a58e03a26", "Deleted \"{{value0}}\".", { value0: branchName })
       })
       return { ok: true as const, ...result }
     } catch (err) {
       const error = err instanceof Error ? err.message : String(err)
-      toast.error('Failed to delete branch', {
+      toast.error(translate("auto.store.slices.worktrees.0216895fb5", "Failed to delete branch"), {
         description: error
       })
       return { ok: false as const, error }

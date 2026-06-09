@@ -185,7 +185,7 @@ function NotebookCellHeader({
         <option value="markdown">{translate("auto.components.editor.IpynbViewer.1833dbbc43", "Markdown")}</option>
         <option value="raw">{translate("auto.components.editor.IpynbViewer.3e4cbf15ea", "Raw")}</option>
       </select>
-      {cell.kind === 'code' ? (
+      {cell.kind === "code" ? (
         <NotebookHeaderButton label={translate("auto.components.editor.IpynbViewer.859bf9fc21", "Run cell")} disabled={running} onClick={onRun}>
           {running ? <Loader2 className="size-3.5 animate-spin" /> : <Play className="size-3.5" />}
         </NotebookHeaderButton>
@@ -883,7 +883,7 @@ export default function IpynbViewer({
                   onMoveDown={() => moveCell(index, 1)}
                   onDelete={() => deleteCell(index)}
                 />
-                {cell.kind === 'markdown' ? (
+                {cell.kind === "markdown" ? (
                   <div className="grid gap-0 lg:grid-cols-2">
                     <EditableTextCell
                       source={source}
@@ -893,7 +893,7 @@ export default function IpynbViewer({
                       <MarkdownCell source={source} />
                     </div>
                   </div>
-                ) : cell.kind === 'code' ? (
+                ) : cell.kind === "code" ? (
                   <MemoizedCodeCell
                     cell={cell}
                     source={source}

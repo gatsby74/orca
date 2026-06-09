@@ -215,7 +215,7 @@ export function classifyTabEntryQuery(
   return (
     getTabEntryOptions(query, fileList, 1)[0]?.classification ?? {
       kind: 'empty',
-      message: 'Enter a URL or file path.'
+      message: translate("auto.components.tab.bar.tab.create.entry.classifier.5553b283ce", "Enter a URL or file path.")
     }
   )
 }

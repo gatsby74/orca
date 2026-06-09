@@ -135,7 +135,7 @@ export function RemoteStep({
           disabled={!selectedTargetId || !remotePath.trim() || isAddingRemote}
           className="w-full"
         >
-          {isAddingRemote ? 'Adding...' : 'Add remote project'}
+          {isAddingRemote ? translate("auto.components.sidebar.AddRepoRemoteStep.35831a7312", "Adding...") : translate("auto.components.sidebar.AddRepoRemoteStep.36d427bb66", "Add remote project")}
         </Button>
         {isScanningNested ? (
           <Button variant="outline" className="w-full" onClick={onStopNestedScan}>

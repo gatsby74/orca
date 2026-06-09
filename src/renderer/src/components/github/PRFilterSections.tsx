@@ -78,7 +78,7 @@ function StatusSection({
           </button>
         )
       })}
-      {kind !== 'prs' ? null : <DraftToggle parsed={parsed} onSelect={onSelect} />}
+      {kind !== "prs" ? null : <DraftToggle parsed={parsed} onSelect={onSelect} />}
     </div>
   )
 }
@@ -238,10 +238,10 @@ export function SectionDetail({
       >
         <ChevronRight className="size-3 rotate-180" />
         {translate("auto.components.github.PRFilterSections.b69fa4fa20", "Back")}</button>
-      {section === 'status' ? (
+      {section === "status" ? (
         <StatusSection parsed={parsed} kind={kind} onSelect={onSelect} />
       ) : null}
-      {section === 'author' ? (
+      {section === "author" ? (
         <SingleSelectList
           options={authorOpts}
           activeValue={parsed.author}
@@ -254,7 +254,7 @@ export function SectionDetail({
           onSelect={(value) => onSelect({ author: value })}
         />
       ) : null}
-      {section === 'assignee' ? (
+      {section === "assignee" ? (
         <SingleSelectList
           options={userOpts}
           activeValue={parsed.assignee}
@@ -267,7 +267,7 @@ export function SectionDetail({
           onSelect={(value) => onSelect({ assignee: value })}
         />
       ) : null}
-      {section === 'label' ? (
+      {section === "label" ? (
         <MultiSelectList
           options={labelOpts}
           selected={parsed.labels}
@@ -278,7 +278,7 @@ export function SectionDetail({
           onChange={(next) => onSelect({ labels: next })}
         />
       ) : null}
-      {section === 'reviewer' ? (
+      {section === "reviewer" ? (
         <>
           <div className="flex gap-1 border-b border-border p-1.5 text-[11px]">
             <button

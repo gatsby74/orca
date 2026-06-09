@@ -482,7 +482,7 @@ export function LinearIssueEditSection({
                     <UserRound className={propertyIconClass} />
                   )}
                   <span className="min-w-0 flex-1 truncate">
-                    {localAssignee ? localAssignee.displayName : 'Unassigned'}
+                    {localAssignee ? localAssignee.displayName : translate("auto.components.LinearItemDrawer.866316f22c", "Unassigned")}
                   </span>
                   <LinearEditChipAdornment loading={members.loading} pending={assigneePending} />
                 </button>
@@ -612,7 +612,7 @@ export function LinearIssueEditSection({
                 >
                   <Tag className={propertyIconClass} />
                   <span className="min-w-0 flex-1 truncate">
-                    {localLabels.length ? labelSummary : 'Add label'}
+                    {localLabels.length ? labelSummary : translate("auto.components.LinearItemDrawer.23886c7eec", "Add label")}
                   </span>
                   <LinearEditChipAdornment loading={labels.loading} pending={labelsPending} />
                 </button>
@@ -830,7 +830,7 @@ export function LinearIssueEditSection({
             aria-busy={assigneePending || members.loading}
           >
             <span className="truncate">
-              {localAssignee ? localAssignee.displayName : '+ Assignee'}
+              {localAssignee ? localAssignee.displayName : translate("auto.components.LinearItemDrawer.d71cd3003e", "+ Assignee")}
             </span>
             <LinearEditChipAdornment loading={members.loading} pending={assigneePending} />
           </button>
@@ -983,7 +983,7 @@ export function LinearIssueCommentFooter({
           createdAt: new Date().toISOString()
         })
       } else {
-        toast.error(typed.error ?? 'Failed to add comment')
+        toast.error(typed.error ?? translate("auto.components.LinearItemDrawer.6ab35eafd5", "Failed to add comment"))
       }
     } catch (err) {
       if (mountedRef.current) {
@@ -1026,7 +1026,7 @@ export function LinearIssueCommentFooter({
         />
         <div className="flex items-center justify-between px-4 pb-3">
           <span className="text-[11px] text-muted-foreground">
-            {submitShortcutLabel !== 'Unassigned' ? `${submitShortcutLabel} to comment` : ''}
+            {submitShortcutLabel !== "Unassigned" ? translate("auto.components.LinearItemDrawer.fda549766e", "{{value0}} to comment", { value0: submitShortcutLabel }) : ''}
           </span>
           <Button
             size="icon-sm"
@@ -1238,7 +1238,7 @@ export default function LinearItemDrawer({
         }}
       >
         <VisuallyHidden.Root asChild>
-          <SheetTitle>{displayed?.title ?? 'Linear issue'}</SheetTitle>
+          <SheetTitle>{displayed?.title ?? translate("auto.components.LinearItemDrawer.39883467f4", "Linear issue")}</SheetTitle>
         </VisuallyHidden.Root>
         <VisuallyHidden.Root asChild>
           <SheetDescription>{translate("auto.components.LinearItemDrawer.04a442f796", "Preview and edit the selected Linear issue.")}</SheetDescription>
@@ -1276,7 +1276,7 @@ export default function LinearItemDrawer({
                         size="icon"
                         className="size-7"
                         onClick={() => window.api.shell.openUrl(displayed.url)}
-                        aria-label="Open on Linear"
+                        aria-label={translate("auto.components.LinearItemDrawer.0190b760c1", "Open on Linear")}
                       >
                         <ExternalLink className="size-4" />
                       </Button>
@@ -1291,7 +1291,7 @@ export default function LinearItemDrawer({
                         size="icon"
                         className="size-7"
                         onClick={onClose}
-                        aria-label="Close preview"
+                        aria-label={translate("auto.components.LinearItemDrawer.858d0630da", "Close preview")}
                       >
                         <X className="size-4" />
                       </Button>
@@ -1352,7 +1352,7 @@ export default function LinearItemDrawer({
                             />
                           )}
                           <span className="text-[13px] font-semibold text-foreground">
-                            {comment.user?.displayName ?? 'Unknown'}
+                            {comment.user?.displayName ?? translate("auto.components.LinearItemDrawer.48e17e8cbd", "Unknown")}
                           </span>
                           <span className="text-[12px] text-muted-foreground">
                             · {formatRelativeTime(comment.createdAt)}
@@ -1381,7 +1381,7 @@ export default function LinearItemDrawer({
               <Button
                 onClick={() => onUse(displayed)}
                 className="w-full justify-center gap-2"
-                aria-label="Start workspace from issue"
+                aria-label={translate("auto.components.LinearItemDrawer.04008e6c46", "Start workspace from issue")}
               >
                 {translate("auto.components.LinearItemDrawer.04008e6c46", "Start workspace from issue")}<ArrowRight className="size-4" />
               </Button>

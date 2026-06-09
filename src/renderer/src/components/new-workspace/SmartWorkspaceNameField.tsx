@@ -1110,7 +1110,7 @@ export default function SmartWorkspaceNameField({
               }
             }}
           >
-            {mode === 'gitlab' ? (
+            {mode === "gitlab" ? (
               // Why: GitLab MR-state filter — Open / Merged / Closed / All —
               // mirrors the gitlab.com merge-requests page tab strip so users
               // arriving from the web UI find a familiar control.
@@ -1141,8 +1141,8 @@ export default function SmartWorkspaceNameField({
                 </div>
               ) : rows.length === 0 ? (
                 <div className="px-3 py-6 text-center text-xs text-muted-foreground">
-                  {mode === 'linear' && linearStatusChecked && !linearStatus.connected
-                    ? 'Connect Linear in Settings to search issues.'
+                  {mode === "linear" && linearStatusChecked && !linearStatus.connected
+                    ? translate("auto.components.new.workspace.SmartWorkspaceNameField.3e8bb1176a", "Connect Linear in Settings to search issues.")
                     : getSmartWorkspaceEmptyHint(mode)}
                 </div>
               ) : (
@@ -1179,7 +1179,7 @@ export default function SmartWorkspaceNameField({
             <Button variant="outline" onClick={dismissCrossRepoPrompt}>
               {translate("auto.components.new.workspace.SmartWorkspaceNameField.6859e2896c", "Cancel")}</Button>
             <Button variant="outline" onClick={() => void handleUseCurrentRepo()}>
-              {translate("auto.components.new.workspace.SmartWorkspaceNameField.eadf877af5", "Keep")}{selectedRepo?.displayName ?? 'current project'}
+              {translate("auto.components.new.workspace.SmartWorkspaceNameField.eadf877af5", "Keep")}{selectedRepo?.displayName ?? translate("auto.components.new.workspace.SmartWorkspaceNameField.fda67f0b61", "current project")}
             </Button>
             {crossRepoPrompt?.matchingRepo ? (
               <Button onClick={() => void acceptGitHubLink(crossRepoPrompt.matchingRepo!)}>

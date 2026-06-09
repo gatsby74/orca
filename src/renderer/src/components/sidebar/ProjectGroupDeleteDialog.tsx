@@ -98,7 +98,7 @@ export function ProjectGroupDeleteDialog({
             disabled={deleting}
             onClick={handleConfirm}
           >
-            {deleting ? 'Deleting...' : 'Delete'}
+            {deleting ? translate("auto.components.sidebar.ProjectGroupDeleteDialog.2c14ce677a", "Deleting...") : translate("auto.components.sidebar.ProjectGroupDeleteDialog.69f5cb97d0", "Delete")}
           </Button>
         </DialogFooter>
       </DialogContent>

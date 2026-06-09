@@ -40,6 +40,7 @@ import { toRuntimeWorktreeSelector } from '../runtime/runtime-worktree-selector'
 import { normalizeDisabledTuiAgents } from '../../../shared/tui-agent-selection'
 import { normalizeAutoRenameBranchFromWorkDefaultOn } from '../../../shared/auto-rename-branch-from-work-settings'
 import { normalizeTerminalCursorStyleDefault } from '../../../shared/terminal-cursor-style-settings'
+import { normalizeUiLanguage } from '../../../shared/ui-language'
 import type { RateLimitState } from '../../../shared/rate-limit-types'
 import type { RuntimeStatus, RuntimeSyncWindowGraph } from '../../../shared/runtime-types'
 import {
@@ -2419,7 +2420,8 @@ function getStoredSettings(): GlobalSettings {
   const migratedStored = {
     ...stored,
     ...normalizeAutoRenameBranchFromWorkDefaultOn(stored),
-    ...normalizeTerminalCursorStyleDefault(stored)
+    ...normalizeTerminalCursorStyleDefault(stored),
+    uiLanguage: normalizeUiLanguage(stored.uiLanguage)
   }
   if (
     rawStoredSettings &&
@@ -2428,7 +2430,8 @@ function getStoredSettings(): GlobalSettings {
         migratedStored.autoRenameBranchFromWorkDefaultedOn ||
       stored.terminalCursorStyle !== migratedStored.terminalCursorStyle ||
       stored.terminalCursorStyleDefaultedToBlock !==
-        migratedStored.terminalCursorStyleDefaultedToBlock)
+        migratedStored.terminalCursorStyleDefaultedToBlock ||
+      stored.uiLanguage !== migratedStored.uiLanguage)
   ) {
     try {
       const parsed = JSON.parse(rawStoredSettings) as unknown
@@ -2588,7 +2591,8 @@ function mergeSettings(
       ...(base.voice ?? defaults.voice),
       ...updates.voice
     } as NonNullable<GlobalSettings['voice']>,
-    activeRuntimeEnvironmentId: activeEnvironment?.id ?? updates.activeRuntimeEnvironmentId ?? null
+    activeRuntimeEnvironmentId: activeEnvironment?.id ?? updates.activeRuntimeEnvironmentId ?? null,
+    uiLanguage: normalizeUiLanguage(updates.uiLanguage ?? base.uiLanguage)
   }
   return {
     ...merged,

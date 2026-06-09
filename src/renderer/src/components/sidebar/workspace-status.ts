@@ -174,7 +174,7 @@ export const WORKSPACE_STATUS_ICON_OPTIONS: WorkspaceStatusIconOption[] = [
 
 const FALLBACK_COLOR_OPTION: WorkspaceStatusColorOption = WORKSPACE_STATUS_COLOR_OPTIONS[0] ?? {
   id: DEFAULT_WORKSPACE_STATUS_COLOR_ID,
-  label: 'Neutral',
+  label: translate("auto.components.sidebar.workspace.status.52e3c6e2a4", "Neutral"),
   tone: 'text-muted-foreground',
   swatch: 'bg-muted-foreground',
   border: 'border-t-muted-foreground/45',
@@ -183,7 +183,7 @@ const FALLBACK_COLOR_OPTION: WorkspaceStatusColorOption = WORKSPACE_STATUS_COLOR
 
 const FALLBACK_ICON_OPTION: WorkspaceStatusIconOption = WORKSPACE_STATUS_ICON_OPTIONS[1] ?? {
   id: DEFAULT_WORKSPACE_STATUS_ICON_ID,
-  label: 'Dot',
+  label: translate("auto.components.sidebar.workspace.status.a702bc08d4", "Dot"),
   icon: CircleDot
 }
 

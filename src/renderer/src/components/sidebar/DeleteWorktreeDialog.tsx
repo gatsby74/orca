@@ -365,7 +365,7 @@ const DeleteWorktreeDialog = React.memo(function DeleteWorktreeDialog() {
       >
         <DialogHeader>
           <DialogTitle className="text-sm">
-            {isBatchDelete ? 'Delete Workspaces' : 'Delete Workspace'}
+            {isBatchDelete ? translate("auto.components.sidebar.DeleteWorktreeDialog.86f0ae1257", "Delete Workspaces") : translate("auto.components.sidebar.DeleteWorktreeDialog.fc23c4cbdf", "Delete Workspace")}
           </DialogTitle>
           <DialogDescription className="text-xs">
             {translate("auto.components.sidebar.DeleteWorktreeDialog.91492c9ad6", "Remove")}<span className={deleteCopy.targetClassName}>{deleteCopy.targetLabel}</span>

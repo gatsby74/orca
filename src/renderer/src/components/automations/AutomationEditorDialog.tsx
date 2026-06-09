@@ -261,7 +261,7 @@ export function AutomationEditorDialog({
                     <ToggleGroupItem value="new_per_run" className={MODE_TOGGLE_ITEM_CLASS}>
                       {translate("auto.components.automations.AutomationEditorDialog.6ff66f9012", "New run")}</ToggleGroupItem>
                   </ToggleGroup>
-                  {draft.workspaceMode === 'existing' ? (
+                  {draft.workspaceMode === "existing" ? (
                     <WorkspaceCombobox
                       worktrees={worktrees}
                       value={draft.workspaceId}
@@ -351,10 +351,10 @@ export function AutomationEditorDialog({
                 <Plus className="size-4" />
               )}
               {isEditing || isEditingExternal
-                ? 'Save Changes'
+                ? translate("auto.components.automations.AutomationEditorDialog.777548c2d6", "Save Changes")
                 : isSaving || isHermesCreate
-                  ? 'Save'
-                  : 'Create'}
+                  ? translate("auto.components.automations.AutomationEditorDialog.a9d9dccf77", "Save")
+                  : translate("auto.components.automations.AutomationEditorDialog.e46c1aa9ad", "Create")}
             </Button>
           </div>
         </div>

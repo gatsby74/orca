@@ -161,8 +161,8 @@ export function MergeConflictNotice({
         {translate("auto.components.right.sidebar.checks.panel.content.87cd07c69a", "This branch has conflicts that must be resolved")}</div>
       <div className="mt-1 text-[11px] text-muted-foreground">
         {isRefreshingConflictDetails
-          ? 'Refreshing conflict details…'
-          : 'Conflict file details are unavailable'}
+          ? translate("auto.components.right.sidebar.checks.panel.content.73d0675356", "Refreshing conflict details…")
+          : translate("auto.components.right.sidebar.checks.panel.content.ae8a04ef17", "Conflict file details are unavailable")}
       </div>
     </div>
   )
@@ -493,7 +493,7 @@ function CheckRunDetails({
                   <div key={`${annotation.path ?? 'annotation'}-${index}`} className="min-w-0">
                     <div className="flex min-w-0 items-center gap-2">
                       <span className="min-w-0 truncate font-mono text-[11px] text-muted-foreground">
-                        {annotation.path ?? 'Annotation'}
+                        {annotation.path ?? translate("auto.components.right.sidebar.checks.panel.content.cdbfda4dec", "Annotation")}
                         {annotation.startLine ? `:${annotation.startLine}` : ''}
                       </span>
                       {annotation.annotationLevel && (
@@ -528,7 +528,7 @@ function CheckRunDetails({
           {hasJobs && (
             <div className="min-w-0 border-t border-border/60 pt-2">
               <div className="mb-1.5 text-[10px] font-semibold uppercase tracking-wide text-muted-foreground">
-                {failedJobs.length > 0 ? 'Failed jobs' : 'Jobs'}
+                {failedJobs.length > 0 ? translate("auto.components.right.sidebar.checks.panel.content.066fedd446", "Failed jobs") : translate("auto.components.right.sidebar.checks.panel.content.49731703ea", "Jobs")}
               </div>
               <div className="flex flex-col gap-2">
                 {jobs.map((job, index) => (
@@ -538,7 +538,7 @@ function CheckRunDetails({
                         {job.name}
                       </span>
                       <span className="shrink-0 text-[11px] text-muted-foreground">
-                        {job.conclusion ?? job.status ?? 'unknown'}
+                        {job.conclusion ?? job.status ?? translate("auto.components.right.sidebar.checks.panel.content.ee07b33924", "unknown")}
                       </span>
                     </div>
                     {job.steps.length > 0 && (
@@ -685,7 +685,7 @@ export function CheckRunDetailsDialog({
                   <div key={`${annotation.path ?? 'annotation'}-${index}`} className="px-3 py-3">
                     <div className="flex min-w-0 flex-wrap items-center gap-2">
                       <span className="min-w-0 break-all font-mono text-xs text-muted-foreground">
-                        {annotation.path ?? 'Annotation'}
+                        {annotation.path ?? translate("auto.components.right.sidebar.checks.panel.content.cdbfda4dec", "Annotation")}
                         {annotation.startLine ? `:${annotation.startLine}` : ''}
                       </span>
                       {annotation.annotationLevel && (
@@ -724,7 +724,7 @@ export function CheckRunDetailsDialog({
                         {job.name}
                       </span>
                       <span className="shrink-0 text-xs text-muted-foreground">
-                        {job.conclusion ?? job.status ?? 'unknown'}
+                        {job.conclusion ?? job.status ?? translate("auto.components.right.sidebar.checks.panel.content.ee07b33924", "unknown")}
                       </span>
                     </div>
                     {job.steps.length > 0 && (
@@ -1047,7 +1047,7 @@ export function ChecksList({
                               variant="ghost"
                               size="icon-xs"
                               className="size-6 text-muted-foreground hover:text-foreground focus-visible:text-foreground"
-                              aria-label="Open check details"
+                              aria-label={translate("auto.components.right.sidebar.checks.panel.content.0dca6bfab5", "Open check details")}
                               onClick={(event) => {
                                 event.stopPropagation()
                                 window.api.shell.openUrl(openUrl)
@@ -1071,7 +1071,7 @@ export function ChecksList({
             <div
               role="separator"
               aria-orientation="horizontal"
-              title="Drag to resize checks"
+              title={translate("auto.components.right.sidebar.checks.panel.content.7f793b571d", "Drag to resize checks")}
               className="group flex h-2 cursor-row-resize items-center border-b border-border"
               onMouseDown={handleResizeStart}
             >
@@ -1195,7 +1195,7 @@ function ResolveButton({
           className="text-[10px] px-1.5 py-0.5 rounded transition-colors shrink-0 text-muted-foreground hover:text-foreground hover:bg-accent"
           onClick={handleClick}
         >
-          {isResolved ? 'Unresolve' : 'Resolve'}
+          {isResolved ? translate("auto.components.right.sidebar.checks.panel.content.365254cc1b", "Unresolve") : translate("auto.components.right.sidebar.checks.panel.content.0c96cd25e5", "Resolve")}
         </button>
       )}
     </span>
@@ -1421,7 +1421,7 @@ function CommentRow({
               {showReply && onReply && (
                 <button
                   className="shrink-0 rounded px-1.5 py-0.5 text-[10px] text-muted-foreground transition-colors hover:bg-accent hover:text-foreground disabled:cursor-not-allowed disabled:opacity-50"
-                  title={replyDisabled ? replyDisabledReason : 'Reply'}
+                  title={replyDisabled ? replyDisabledReason : translate("auto.components.right.sidebar.checks.panel.content.c1f6fc006a", "Reply")}
                   disabled={replyDisabled}
                   onClick={(event) => {
                     event.stopPropagation()
@@ -1606,7 +1606,9 @@ function ResolvedCommentGroupAccordion({
       <AccordionItem value={getPRCommentGroupId(group)} className="border-b-0">
         <AccordionTrigger className="px-3 py-1.5 text-[11px] text-muted-foreground hover:bg-accent/35">
           <span className="min-w-0 truncate">
-            {translate("auto.components.right.sidebar.checks.panel.content.8987d5a3dd", "Resolved")}{group.kind === 'thread' ? 'thread' : 'comment'} {translate("auto.components.right.sidebar.checks.panel.content.0fc6f743b3", "by")}{root.author}
+            {translate("auto.components.right.sidebar.checks.panel.content.8987d5a3dd", "Resolved")}{' '}
+            {group.kind === 'thread' ? translate("auto.components.right.sidebar.checks.panel.content.95ad090b01", "thread") : translate("auto.components.right.sidebar.checks.panel.content.90206b6353", "comment")}{' '}
+            {translate("auto.components.right.sidebar.checks.panel.content.0fc6f743b3", "by")} {root.author}
             {count > 1 ? ` (${count})` : ''}
           </span>
         </AccordionTrigger>
@@ -1752,7 +1754,7 @@ export function PRCommentsList({
         disabled={commentsDisabled}
         disabledReason={commentsDisabledReason}
         onCancel={cancelAddComment}
-        onSubmit={onAddComment ?? (async () => ({ ok: false, error: 'Commenting unavailable.' }))}
+        onSubmit={onAddComment ?? (async () => ({ ok: false, error: translate("auto.components.right.sidebar.checks.panel.content.b37ebdc51c", "Commenting unavailable.") }))}
       />
     </div>
   )
@@ -1774,7 +1776,7 @@ export function PRCommentsList({
                   type="button"
                   variant="ghost"
                   size="icon-xs"
-                  aria-label={comments.length === 0 ? 'Start conversation' : 'Add comment'}
+                  aria-label={comments.length === 0 ? translate("auto.components.right.sidebar.checks.panel.content.7440d09d2c", "Start conversation") : translate("auto.components.right.sidebar.checks.panel.content.2b2be92919", "Add comment")}
                   disabled={commentsDisabled}
                   title={commentsDisabled ? commentsDisabledReason : undefined}
                   className="-mr-1 ml-auto text-muted-foreground hover:text-foreground"
@@ -1787,8 +1789,8 @@ export function PRCommentsList({
                 {commentsDisabled && commentsDisabledReason
                   ? commentsDisabledReason
                   : comments.length === 0
-                    ? 'Start conversation'
-                    : 'Add comment'}
+                    ? translate("auto.components.right.sidebar.checks.panel.content.7440d09d2c", "Start conversation")
+                    : translate("auto.components.right.sidebar.checks.panel.content.2b2be92919", "Add comment")}
               </TooltipContent>
             </Tooltip>
           )}

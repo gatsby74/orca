@@ -665,11 +665,11 @@ function ViewPickStep({
               >
                 <span className="text-sm">{v.name}</span>
                 <span className="text-[10px] text-muted-foreground">
-                  {v.layout === 'TABLE_LAYOUT'
-                    ? 'Table'
-                    : v.layout === 'BOARD_LAYOUT'
-                      ? 'Board (unsupported)'
-                      : 'Roadmap (unsupported)'}
+                  {v.layout === "TABLE_LAYOUT"
+                    ? translate("auto.components.github.project.ProjectPicker.1a2b8e512e", "Table")
+                    : v.layout === "BOARD_LAYOUT"
+                      ? translate("auto.components.github.project.ProjectPicker.d34ef9b554", "Board (unsupported)")
+                      : translate("auto.components.github.project.ProjectPicker.ab1a2c357d", "Roadmap (unsupported)")}
                 </span>
               </button>
             )

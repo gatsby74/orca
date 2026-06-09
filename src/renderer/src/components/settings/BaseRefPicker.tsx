@@ -116,14 +116,14 @@ export function BaseRefPicker({
       <div className="flex flex-wrap items-center justify-between gap-2">
         <div>
           <div className="text-sm font-medium text-foreground">
-            {effectiveBaseRef ?? 'No default base ref'}
+            {effectiveBaseRef ?? translate("auto.components.settings.BaseRefPicker.ee110e1830", "No default base ref")}
           </div>
           <p className="text-xs text-muted-foreground">
             {currentBaseRef
-              ? 'Pinned for this repo'
+              ? translate("auto.components.settings.BaseRefPicker.2f3cda96f5", "Pinned for this repo")
               : defaultBaseRef
-                ? `Following primary branch (${defaultBaseRef})`
-                : 'Pick a base branch below'}
+                ? translate("auto.components.settings.BaseRefPicker.086ce7f369", "Following primary branch ({{value0}})", { value0: defaultBaseRef })
+                : translate("auto.components.settings.BaseRefPicker.9a14ec7400", "Pick a base branch below")}
           </p>
           {/* Why: passive hint that fork workflows have other remotes worth
               searching (e.g. `upstream`). Host-agnostic and remote-name-agnostic

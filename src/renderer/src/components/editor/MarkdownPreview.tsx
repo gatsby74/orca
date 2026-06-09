@@ -1264,7 +1264,7 @@ export default function MarkdownPreview({
                 void window.api.shell.pathExists(classified.absolutePath).then((exists) => {
                   if (!exists) {
                     toast.error(
-                      `File not found: ${classified.relativePath ?? classified.absolutePath}`
+                      translate("auto.components.editor.MarkdownPreview.6c043947ae", "File not found: {{value0}}", { value0: classified.relativePath ?? classified.absolutePath })
                     )
                     return
                   }
@@ -1356,11 +1356,11 @@ export default function MarkdownPreview({
               absolutePath
             )
             if (stats.isDirectory) {
-              toast.error(`Cannot open directory: ${relativePath}`)
+              toast.error(translate("auto.components.editor.MarkdownPreview.759463a221", "Cannot open directory: {{value0}}", { value0: relativePath }))
               return
             }
           } catch {
-            toast.error(`File not found: ${relativePath}`)
+            toast.error(translate("auto.components.editor.MarkdownPreview.6c043947ae", "File not found: {{value0}}", { value0: relativePath }))
             return
           }
 
@@ -1670,7 +1670,7 @@ export default function MarkdownPreview({
             </div>
             <div className="markdown-preview-search-status">
               {query && matchCount === 0
-                ? 'No results'
+                ? translate("auto.components.editor.MarkdownPreview.c5dc92cfe3", "No results")
                 : `${matchCount === 0 ? 0 : activeMatchIndex + 1}/${matchCount}`}
             </div>
             <Button
@@ -1905,7 +1905,7 @@ function MarkdownAnnotationComposer({
         <Button variant="ghost" size="sm" onClick={onCancel} disabled={submitting}>
           {translate("auto.components.editor.MarkdownPreview.e4683f70c4", "Cancel")}</Button>
         <Button size="sm" onClick={() => void submit()} disabled={submitting || !trimmed}>
-          {submitting ? 'Saving…' : 'Add note'}
+          {submitting ? translate("auto.components.editor.MarkdownPreview.d652c87c91", "Saving…") : translate("auto.components.editor.MarkdownPreview.13f94d760c", "Add note")}
           {!submitting && <CornerDownLeft className="ml-1 size-3 opacity-70" />}
         </Button>
       </div>

@@ -375,7 +375,7 @@ export function AccountsPane({
         label={translate("auto.components.settings.AccountsPane.46cf7e7495", "Account location")}
         alignTop
         description={
-          accountRuntime.runtime === 'wsl' && !wslAvailable && !wslCapabilitiesLoading
+          accountRuntime.runtime === "wsl" && !wslAvailable && !wslCapabilitiesLoading
             ? translate("auto.components.settings.AccountsPane.0c67a2a1aa", "WSL is not available on this machine.")
             : translate("auto.components.settings.AccountsPane.0b4591ff93", "Choose which local environment to inspect and where new managed Claude and Codex accounts are added.")
         }
@@ -399,7 +399,7 @@ export function AccountsPane({
                   : [])
               ]}
             />
-            {wslSupportedPlatform && accountRuntime.runtime === 'wsl' ? (
+            {wslSupportedPlatform && accountRuntime.runtime === "wsl" ? (
               <Select
                 value={accountRuntime.wslDistro ?? '__default__'}
                 onValueChange={(value) =>
@@ -542,7 +542,7 @@ export function AccountsPane({
               }
               className="gap-1.5"
             >
-              {claudeAction === 'adding' ? (
+              {claudeAction === "adding" ? (
                 <Loader2 className="size-3 animate-spin" />
               ) : (
                 <Plus className="size-3" />
@@ -716,8 +716,8 @@ export function AccountsPane({
               <AlertTriangle className="mt-0.5 size-3.5 shrink-0" />
               <span>
                 {activeCodexAccountId
-                  ? 'Codex reported that the active account needs a fresh sign-in. Re-authenticate it before starting new Codex sessions.'
-                  : `Codex reported that the ${accountRuntime.label} login needs a fresh sign-in. Sign in again before starting new Codex sessions.`}
+                  ? translate("auto.components.settings.AccountsPane.75ca9b718e", "Codex reported that the active account needs a fresh sign-in. Re-authenticate it before starting new Codex sessions.")
+                  : translate("auto.components.settings.AccountsPane.e4a28e8894", "Codex reported that the {{value0}} login needs a fresh sign-in. Sign in again before starting new Codex sessions.", { value0: accountRuntime.label })}
               </span>
             </div>
           ) : null}
@@ -743,7 +743,7 @@ export function AccountsPane({
               }
               className="gap-1.5"
             >
-              {codexAction === 'adding' ? (
+              {codexAction === "adding" ? (
                 <Loader2 className="size-3 animate-spin" />
               ) : (
                 <Plus className="size-3" />
@@ -796,8 +796,8 @@ export function AccountsPane({
                   }`}
                 >
                   {systemCodexNeedsReauthentication
-                    ? `Codex reported this ${accountRuntime.label} login is out of date.`
-                    : `Use your current ${accountRuntime.label} Codex login.`}
+                    ? translate("auto.components.settings.AccountsPane.fd62f37c24", "Codex reported this {{value0}} login is out of date.", { value0: accountRuntime.label })
+                    : translate("auto.components.settings.AccountsPane.fcc4093fc1", "Use your current {{value0}} Codex login.", { value0: accountRuntime.label })}
                 </span>
               </div>
             </button>

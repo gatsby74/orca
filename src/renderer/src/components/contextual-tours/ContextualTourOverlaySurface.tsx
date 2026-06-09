@@ -176,7 +176,7 @@ export function ContextualTourOverlaySurface({
                 }
               >
                 {primaryAction.label}
-                {primaryAction.kind === 'next' && !renderState.isLastStep ? <ArrowRight /> : null}
+                {primaryAction.kind === "next" && !renderState.isLastStep ? <ArrowRight /> : null}
               </Button>
             ) : null}
           </div>

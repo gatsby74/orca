@@ -185,7 +185,7 @@ function LocalWorkspacePortsPanel({ isVisible }: { isVisible: boolean }): React.
       .catch((error) => {
         const message = error instanceof Error ? error.message : String(error)
         toast.error(translate("auto.components.right.sidebar.PortsPanel.a00f3a2840", "Failed to refresh ports"), {
-          description: message || 'Workspace port scan failed.'
+          description: message || translate("auto.components.right.sidebar.PortsPanel.740aca88ab", "Workspace port scan failed.")
         })
       })
       .finally(() => {
@@ -296,9 +296,9 @@ function LocalWorkspacePortsPanel({ isVisible }: { isVisible: boolean }): React.
         <>
           <LocalPortSection
             id="active"
-            title="Active Workspace"
+            title={translate("auto.components.right.sidebar.PortsPanel.935dda7718", "Active Workspace")}
             ports={activePorts}
-            emptyText={refreshing && !displayScan ? 'Scanning...' : 'No ports detected'}
+            emptyText={refreshing && !displayScan ? translate("auto.components.right.sidebar.PortsPanel.0d63d94db3", "Scanning...") : translate("auto.components.right.sidebar.PortsPanel.38b16cfbef", "No ports detected")}
             collapsed={collapsedSections.active ?? false}
             onToggle={() => toggleSection('active')}
             onStopPort={(port) => void handleStopPort(port)}
@@ -307,7 +307,7 @@ function LocalWorkspacePortsPanel({ isVisible }: { isVisible: boolean }): React.
           />
           <LocalPortSection
             id="other"
-            title="Other Workspaces"
+            title={translate("auto.components.right.sidebar.PortsPanel.4db4b5e435", "Other Workspaces")}
             ports={otherWorkspacePorts}
             collapsed={collapsedSections.other ?? false}
             onToggle={() => toggleSection('other')}
@@ -317,7 +317,7 @@ function LocalWorkspacePortsPanel({ isVisible }: { isVisible: boolean }): React.
           />
           <LocalPortSection
             id="external"
-            title="External"
+            title={translate("auto.components.right.sidebar.PortsPanel.d32820d3e2", "External")}
             ports={externalPorts}
             collapsed={collapsedSections.external ?? false}
             onToggle={() => toggleSection('external')}
@@ -543,7 +543,7 @@ function LocalPortRow({
                     size="icon-xs"
                     className="text-muted-foreground hover:text-destructive"
                     onClick={handleStopButtonClick}
-                    aria-label="Stop Process"
+                    aria-label={translate("auto.components.right.sidebar.PortsPanel.f9528da632", "Stop Process")}
                   >
                     <Trash2 size={13} />
                   </Button>
@@ -604,7 +604,7 @@ function LocalPortDetailsDialog({
     <Dialog open={Boolean(port)} onOpenChange={(open) => !open && onClose()}>
       <DialogContent>
         <DialogHeader>
-          <DialogTitle>{port ? `Port :${port.port}` : 'Port'}</DialogTitle>
+          <DialogTitle>{port ? translate("auto.components.right.sidebar.PortsPanel.472054d94c", "Port :{{value0}}", { value0: port.port }) : translate("auto.components.right.sidebar.PortsPanel.d41a8241ec", "Port")}</DialogTitle>
           <DialogDescription>
             {port ? `${port.processName ?? 'Unknown process'} · ${addressForPort(port)}` : ''}
           </DialogDescription>
@@ -620,9 +620,9 @@ function LocalPortDetailsDialog({
             <dt className="text-muted-foreground">{translate("auto.components.right.sidebar.PortsPanel.b1ff94fa27", "Protocol")}</dt>
             <dd className="text-foreground">{port.protocol}</dd>
             <dt className="text-muted-foreground">{translate("auto.components.right.sidebar.PortsPanel.5dd86dcf2f", "Process")}</dt>
-            <dd className="min-w-0 break-all text-foreground">{port.processName ?? 'Unknown'}</dd>
+            <dd className="min-w-0 break-all text-foreground">{port.processName ?? translate("auto.components.right.sidebar.PortsPanel.3e13cb63ee", "Unknown")}</dd>
             <dt className="text-muted-foreground">{translate("auto.components.right.sidebar.PortsPanel.57d930fa45", "PID")}</dt>
-            <dd className="text-foreground">{port.pid ?? 'Unknown'}</dd>
+            <dd className="text-foreground">{port.pid ?? translate("auto.components.right.sidebar.PortsPanel.3e13cb63ee", "Unknown")}</dd>
             {port.kind === 'workspace' && (
               <>
                 <dt className="text-muted-foreground">{translate("auto.components.right.sidebar.PortsPanel.c7b4702b7b", "Workspace")}</dt>
@@ -1083,12 +1083,12 @@ function PortForwardDialog({
       <DialogContent showCloseButton={false} className="max-w-[340px]">
         <DialogHeader>
           <DialogTitle className="text-sm">
-            {isEdit ? 'Edit Port Forward' : 'Forward a Port'}
+            {isEdit ? translate("auto.components.right.sidebar.PortsPanel.80206251c8", "Edit Port Forward") : translate("auto.components.right.sidebar.PortsPanel.907eb53ed2", "Forward a Port")}
           </DialogTitle>
           <DialogDescription className="text-xs">
             {isEdit
-              ? 'Update the port forwarding configuration.'
-              : 'Forward a remote port to your local machine.'}
+              ? translate("auto.components.right.sidebar.PortsPanel.10360598a4", "Update the port forwarding configuration.")
+              : translate("auto.components.right.sidebar.PortsPanel.31e80cff2d", "Forward a remote port to your local machine.")}
           </DialogDescription>
         </DialogHeader>
         {isOpen && (
@@ -1258,12 +1258,12 @@ function PortForwardForm({
           {translate("auto.components.right.sidebar.PortsPanel.3ea4a02a8f", "Cancel")}</Button>
         <Button type="submit" size="sm" disabled={submitting || !remotePort}>
           {submitting
-            ? mode === 'edit'
-              ? 'Saving...'
-              : 'Forwarding...'
-            : mode === 'edit'
-              ? 'Save'
-              : 'Forward'}
+            ? mode === "edit"
+              ? translate("auto.components.right.sidebar.PortsPanel.d7c83cfd24", "Saving...")
+              : translate("auto.components.right.sidebar.PortsPanel.9f475dc994", "Forwarding...")
+            : mode === "edit"
+              ? translate("auto.components.right.sidebar.PortsPanel.9079776663", "Save")
+              : translate("auto.components.right.sidebar.PortsPanel.c9d106547a", "Forward")}
         </Button>
       </div>
     </form>

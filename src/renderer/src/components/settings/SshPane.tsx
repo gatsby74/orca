@@ -227,7 +227,7 @@ export function SshPane(_props: SshPaneProps): React.JSX.Element {
         if (result.success) {
           toast.success(translate("auto.components.settings.SshPane.81d08bcddf", "Connection successful"))
         } else {
-          toast.error(result.error ?? 'Connection test failed')
+          toast.error(result.error ?? translate("auto.components.settings.SshPane.0cda732f43", "Connection test failed"))
         }
       }
     } catch (err) {

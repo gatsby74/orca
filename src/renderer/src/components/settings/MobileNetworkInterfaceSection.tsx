@@ -88,7 +88,7 @@ export function MobileNetworkInterfaceSection({
           ) : (
             <QrCode className="size-3.5" />
           )}
-          {hasQrCode ? 'Regenerate' : 'Generate QR Code'}
+          {hasQrCode ? translate("auto.components.settings.MobileNetworkInterfaceSection.1e64659126", "Regenerate") : translate("auto.components.settings.MobileNetworkInterfaceSection.c541f67790", "Generate QR Code")}
         </Button>
       </div>
       <Accordion type="single" collapsible className="mt-4 border-t border-border/60 pt-2">

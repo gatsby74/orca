@@ -230,7 +230,7 @@ export function NotificationStep({
                 <SelectSeparator />
                 <SelectItem value={CHOOSE_CUSTOM_SOUND_VALUE}>
                   <Upload className="size-4" />
-                  <span>{customPath ? 'Change Custom File' : 'Choose Custom File'}</span>
+                  <span>{customPath ? translate("auto.components.onboarding.NotificationStep.ac80d97e02", "Change Custom File") : translate("auto.components.onboarding.NotificationStep.c0692baa52", "Choose Custom File")}</span>
                 </SelectItem>
               </SelectContent>
             </Select>

@@ -1346,7 +1346,7 @@ export default function WorktreeJumpPalette(): React.JSX.Element | null {
                     </div>
                     <div className="min-w-0 flex-1">
                       <div className="text-[14px] font-semibold tracking-[-0.01em] text-foreground">
-                        {`Create worktree "${createWorktreeName}"`}
+                        {translate("auto.components.WorktreeJumpPalette.95be6587d3", "Create worktree \"{{value0}}\"", { value0: createWorktreeName })}
                       </div>
                     </div>
                   </CommandItem>
@@ -1393,7 +1393,7 @@ export default function WorktreeJumpPalette(): React.JSX.Element | null {
                           <div className="flex min-w-0 items-center gap-2">
                             {sshConnectionId && (
                               <span
-                                aria-label={isSshDisconnected ? 'SSH disconnected' : 'SSH remote'}
+                                aria-label={isSshDisconnected ? translate("auto.components.WorktreeJumpPalette.63c2be1914", "SSH disconnected") : translate("auto.components.WorktreeJumpPalette.34c8fbb46e", "SSH remote")}
                                 className="shrink-0 inline-flex items-center"
                               >
                                 {isSshDisconnected ? (
@@ -1660,8 +1660,8 @@ export default function WorktreeJumpPalette(): React.JSX.Element | null {
       </div>
       <div aria-live="polite" className="sr-only">
         {deferredQuery.trim()
-          ? `${resultCount} results found${showCreateAction ? ', create worktree action available' : ''}`
-          : `${resultCount} items available${showCreateAction ? ', create worktree action available' : ''}`}
+          ? translate("auto.components.WorktreeJumpPalette.bb72c08e63", "{{value0}} results found{{value1}}", { value0: resultCount, value1: showCreateAction ? ', create worktree action available' : '' })
+          : translate("auto.components.WorktreeJumpPalette.20af998bff", "{{value0}} items available{{value1}}", { value0: resultCount, value1: showCreateAction ? ', create worktree action available' : '' })}
       </div>
     </CommandDialog>
   )

@@ -333,7 +333,7 @@ export function McpConfigSection({ repo }: McpConfigSectionProps): React.JSX.Ele
               onClick={() => void handleCreateStarter()}
             >
               <Plus className="size-3.5" />
-              {createConfirm ? 'Create empty config' : 'Add MCP config'}
+              {createConfirm ? translate("auto.components.settings.McpConfigSection.0a5c1ead54", "Create empty config") : translate("auto.components.settings.McpConfigSection.82436439eb", "Add MCP config")}
             </Button>
           ) : null}
         </div>

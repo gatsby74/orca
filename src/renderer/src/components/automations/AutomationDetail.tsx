@@ -119,7 +119,7 @@ export function AutomationDetail({
           <div className="flex items-center gap-2">
             <h2 className="truncate text-lg font-semibold">{automation.name}</h2>
             <Badge variant={automation.enabled ? 'secondary' : 'outline'}>
-              {automation.enabled ? 'Enabled' : 'Paused'}
+              {automation.enabled ? translate("auto.components.automations.AutomationDetail.eaa02014f8", "Enabled") : translate("auto.components.automations.AutomationDetail.b09b2384fd", "Paused")}
             </Badge>
           </div>
           <p className="mt-1 truncate text-sm text-muted-foreground">
@@ -149,7 +149,7 @@ export function AutomationDetail({
         </div>
       </div>
 
-      {automation.executionTargetType === 'ssh' ? (
+      {automation.executionTargetType === "ssh" ? (
         <div className="rounded-md border border-border/50 bg-muted/50 p-3 text-sm text-muted-foreground shadow-sm">
           {translate("auto.components.automations.AutomationDetail.dbef8dc110", "This SSH automation runs only while Orca can reach the SSH host. If reconnect needs interactive credentials or the host is unavailable, the run is recorded as skipped.")}</div>
       ) : null}
@@ -165,7 +165,7 @@ export function AutomationDetail({
           }
         />
         <DetailMetric
-          label={automation.workspaceMode === 'new_per_run' ? translate("auto.components.automations.AutomationDetail.2f8baf5360", "Create from") : translate("auto.components.automations.AutomationDetail.5405a09b1f", "Run location")}
+          label={automation.workspaceMode === "new_per_run" ? translate("auto.components.automations.AutomationDetail.2f8baf5360", "Create from") : translate("auto.components.automations.AutomationDetail.5405a09b1f", "Run location")}
           value={runLocationLabel}
         />
         <DetailMetric

@@ -159,7 +159,7 @@ const SidebarRepositoryFilterSection = React.memo(function SidebarRepositoryFilt
         />
         <CommandList className="max-h-40 py-1">
           <CommandEmpty className="py-4 text-[11px]">
-            {hasRepoFilter ? 'No unselected projects match' : 'No projects match'}
+            {hasRepoFilter ? translate("auto.components.sidebar.SidebarRepositoryFilterSection.bbbc6e8e3b", "No unselected projects match") : translate("auto.components.sidebar.SidebarRepositoryFilterSection.4815c70605", "No projects match")}
           </CommandEmpty>
           {availableRepos.map((repo) => (
             <CommandItem

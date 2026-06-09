@@ -812,7 +812,7 @@ export default function ProjectViewWrapper(_props: Props = {} as Props): React.J
             <DialogTitle>{translate("auto.components.github.project.ProjectViewWrapper.7037c8f5f1", "Repository not in Orca")}</DialogTitle>
             <DialogDescription>
               {resolvedMissingRepoDialogs.repoNotInOrca
-                ? `${resolvedMissingRepoDialogs.repoNotInOrca.owner}/${resolvedMissingRepoDialogs.repoNotInOrca.repo} isn't added to Orca. Add it to start work, or open in GitHub.`
+                ? translate("auto.components.github.project.ProjectViewWrapper.1850fceac8", "{{value0}}/{{value1}} isn't added to Orca. Add it to start work, or open in GitHub.", { value0: resolvedMissingRepoDialogs.repoNotInOrca.owner, value1: resolvedMissingRepoDialogs.repoNotInOrca.repo })
                 : null}
             </DialogDescription>
           </DialogHeader>
@@ -937,7 +937,7 @@ function ProjectSearchInput({
             apply(value)
           }
         }}
-        placeholder={viewFilter || 'GitHub search, e.g. assignee:@me is:open'}
+        placeholder={viewFilter || translate("auto.components.github.project.ProjectViewWrapper.067119985c", "GitHub search, e.g. assignee:@me is:open")}
         title={viewFilter ? translate("auto.components.github.project.ProjectViewWrapper.c5bc7ec007", "View filter: {{value0}}", { value0: viewFilter }) : undefined}
         className={cn(
           'h-7 rounded-md border-border/50 bg-background pl-8 pr-7 text-[11px]',

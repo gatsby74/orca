@@ -65,14 +65,14 @@ function delay(ms: number): Promise<void> {
 function showCliPrerequisiteWarning(status: CliInstallStatus): void {
   if (!status.supported) {
     toast.warning(translate("auto.lib.agent.skill.cli.prerequisite.2db0bd7515", "Orca CLI registration is unavailable"), {
-      description: status.detail ?? 'Install the Orca CLI before running agent skill setup.'
+      description: status.detail ?? translate("auto.lib.agent.skill.cli.prerequisite.15cbedc3e3", "Install the Orca CLI before running agent skill setup.")
     })
     return
   }
 
   if (status.state !== 'installed') {
     toast.warning(translate("auto.lib.agent.skill.cli.prerequisite.e99d7dc36f", "Orca CLI registration needs attention"), {
-      description: status.detail ?? 'Install the Orca CLI before running agent skill setup.'
+      description: status.detail ?? translate("auto.lib.agent.skill.cli.prerequisite.15cbedc3e3", "Install the Orca CLI before running agent skill setup.")
     })
     return
   }
@@ -82,7 +82,7 @@ function showCliPrerequisiteWarning(status: CliInstallStatus): void {
     // Orca affordances when that shell can resolve the Orca CLI command.
     toast.warning(translate("auto.lib.agent.skill.cli.prerequisite.79371593b0", "Orca CLI is not visible on PATH yet"), {
       description:
-        status.detail ?? 'Restart your shell or add the Orca CLI directory to PATH before setup.'
+        status.detail ?? translate("auto.lib.agent.skill.cli.prerequisite.0f116999f1", "Restart your shell or add the Orca CLI directory to PATH before setup.")
     })
   }
 }

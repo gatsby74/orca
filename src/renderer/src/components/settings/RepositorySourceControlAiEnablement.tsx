@@ -30,7 +30,7 @@ export function RepositorySourceControlAiEnablement({
       <div className="min-w-0 space-y-0.5">
         <Label className="text-xs font-medium">{translate("auto.components.settings.RepositorySourceControlAiEnablement.cf5959c834", "Source Control AI enabled")}</Label>
         <p className="text-[11px] text-muted-foreground">
-          {translate("auto.components.settings.RepositorySourceControlAiEnablement.30ae6dcce8", "Global default is")}{source.enabled ? 'On' : 'Off'}.
+          {translate("auto.components.settings.RepositorySourceControlAiEnablement.30ae6dcce8", "Global default is")}{source.enabled ? translate("auto.components.settings.RepositorySourceControlAiEnablement.bea897eec2", "On") : translate("auto.components.settings.RepositorySourceControlAiEnablement.84233d1bb3", "Off")}.
         </p>
       </div>
       <Select

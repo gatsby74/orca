@@ -330,7 +330,7 @@ export function FeatureWallSetupChecklist(
                     : 'border-border bg-muted/30 text-muted-foreground'
                 )}
               >
-                {activeDone ? 'Done' : 'Not done yet'}
+                {activeDone ? translate("auto.components.feature.wall.FeatureWallSetupChecklist.13294d3405", "Done") : translate("auto.components.feature.wall.FeatureWallSetupChecklist.0235b268b2", "Not done yet")}
               </span>
             </div>
             <div
@@ -349,7 +349,7 @@ export function FeatureWallSetupChecklist(
                 >
                   {activeStep.description}
                 </p>
-                {activeStep.id === 'split-terminal' ? (
+                {activeStep.id === "split-terminal" ? (
                   <div className="mt-3">
                     <SplitTerminalShortcutHint />
                   </div>

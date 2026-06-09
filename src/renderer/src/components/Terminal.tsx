@@ -1806,7 +1806,7 @@ function Terminal(): React.JSX.Element | null {
             })}
           </div>
 
-          {renderedActiveWorktreeId && activeTabType === 'editor' && worktreeFiles.length > 0 && (
+          {renderedActiveWorktreeId && activeTabType === "editor" && worktreeFiles.length > 0 && (
             <Suspense
               fallback={
                 <div className="flex-1 flex items-center justify-center text-muted-foreground text-sm">
@@ -1833,8 +1833,8 @@ function Terminal(): React.JSX.Element | null {
             <DialogTitle className="text-sm">{translate("auto.components.Terminal.21295c6b8c", "Unsaved Changes")}</DialogTitle>
             <DialogDescription className="text-xs">
               {saveDialogFile
-                ? `"${basename(saveDialogFile.relativePath)}" has unsaved changes. Do you want to save before closing?`
-                : 'This file has unsaved changes.'}
+                ? translate("auto.components.Terminal.61ed600d29", "\"{{value0}}\" has unsaved changes. Do you want to save before closing?", { value0: basename(saveDialogFile.relativePath) })
+                : translate("auto.components.Terminal.46e08bc5c8", "This file has unsaved changes.")}
             </DialogDescription>
           </DialogHeader>
           <DialogFooter className="gap-2">

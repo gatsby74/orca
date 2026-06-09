@@ -1352,7 +1352,7 @@ export default function CombinedDiffViewer({
                     type="button"
                     variant="ghost"
                     size="icon-xs"
-                    aria-label="Show file tree"
+                    aria-label={translate("auto.components.editor.CombinedDiffViewer.b6c3b84476", "Show file tree")}
                     onClick={() => setFileTreeCollapsed(false)}
                   >
                     <PanelLeftOpen className="size-3.5" />
@@ -1363,8 +1363,8 @@ export default function CombinedDiffViewer({
               </Tooltip>
             )}
             <span className="truncate text-xs text-muted-foreground">
-              {sections.length} {translate("auto.components.editor.CombinedDiffViewer.7e7ca60816", "changed files")}{isBranchMode && branchCompare ? ` vs ${branchCompare.baseRef}` : ''}
-              {isCommitMode && commitCompare ? ` in ${commitCompare.compareRef}` : ''}
+              {sections.length} {translate("auto.components.editor.CombinedDiffViewer.7e7ca60816", "changed files")}{isBranchMode && branchCompare ? translate("auto.components.editor.CombinedDiffViewer.6094135eec", " vs {{value0}}", { value0: branchCompare.baseRef }) : ''}
+              {isCommitMode && commitCompare ? translate("auto.components.editor.CombinedDiffViewer.724a13568d", " in {{value0}}", { value0: commitCompare.compareRef }) : ''}
             </span>
             {diffCommentCount > 0 && (
               <div className="ml-1 flex shrink-0 items-center overflow-hidden rounded-full border border-border/70 bg-muted/40">
@@ -1373,7 +1373,7 @@ export default function CombinedDiffViewer({
                     <button
                       type="button"
                       className="inline-flex h-6 items-center gap-1 pl-2 pr-1.5 text-[11px] font-medium leading-none text-foreground/80 transition-colors hover:bg-accent hover:text-foreground"
-                      aria-label={`Show ${diffCommentCount} AI ${diffCommentCount === 1 ? 'note' : 'notes'}`}
+                      aria-label={translate("auto.components.editor.CombinedDiffViewer.8f68ad9ca9", "Show {{value0}} AI {{value1}}", { value0: diffCommentCount, value1: diffCommentCount === 1 ? 'note' : 'notes' })}
                     >
                       <Sparkles className="size-3 text-violet-500 dark:text-violet-400" />
                       <span>{translate("auto.components.editor.CombinedDiffViewer.bb84b4c374", "AI notes")}</span>
@@ -1409,22 +1409,22 @@ export default function CombinedDiffViewer({
                 className="text-xs text-muted-foreground hover:text-foreground transition-colors"
                 onClick={openAlternateDiff}
               >
-                {file.combinedAlternate.source === 'combined-branch'
-                  ? 'Open Branch Diff'
-                  : 'Open Uncommitted Diff'}
+                {file.combinedAlternate.source === "combined-branch"
+                  ? translate("auto.components.editor.CombinedDiffViewer.3d909843bb", "Open Branch Diff")
+                  : translate("auto.components.editor.CombinedDiffViewer.982d14bfa5", "Open Uncommitted Diff")}
               </button>
             )}
             <button
               className="w-20 text-left text-xs text-muted-foreground hover:text-foreground transition-colors"
               onClick={() => setAllSectionsCollapsed(!allSectionsCollapsed)}
             >
-              {allSectionsCollapsed ? 'Expand All' : 'Collapse All'}
+              {allSectionsCollapsed ? translate("auto.components.editor.CombinedDiffViewer.19c45cfdc0", "Expand All") : translate("auto.components.editor.CombinedDiffViewer.ea08dae15b", "Collapse All")}
             </button>
             <button
               className="w-24 px-2 py-0.5 text-center text-xs rounded border border-border text-muted-foreground hover:text-foreground transition-colors"
               onClick={toggleSideBySide}
             >
-              {sideBySide ? 'Inline' : 'Side by Side'}
+              {sideBySide ? translate("auto.components.editor.CombinedDiffViewer.f786fd54e1", "Inline") : translate("auto.components.editor.CombinedDiffViewer.ec5053c7f5", "Side by Side")}
             </button>
           </div>
         </div>
@@ -1540,7 +1540,7 @@ export default function CombinedDiffViewer({
           <DialogHeader>
             <DialogTitle className="text-sm">{translate("auto.components.editor.CombinedDiffViewer.948a5fd6c8", "Clear Notes")}</DialogTitle>
             <DialogDescription className="text-xs">
-              {translate("auto.components.editor.CombinedDiffViewer.84898c548d", "Clear")}{diffCommentCount} {diffCommentCount === 1 ? 'note' : 'notes'} {translate("auto.components.editor.CombinedDiffViewer.80a286d8f5", "from this worktree?")}</DialogDescription>
+              {translate("auto.components.editor.CombinedDiffViewer.84898c548d", "Clear")}{diffCommentCount} {diffCommentCount === 1 ? translate("auto.components.editor.CombinedDiffViewer.8ab3248fd8", "note") : translate("auto.components.editor.CombinedDiffViewer.0fb870a0fe", "notes")} {translate("auto.components.editor.CombinedDiffViewer.80a286d8f5", "from this worktree?")}</DialogDescription>
           </DialogHeader>
           <DialogFooter>
             <Button
@@ -1633,7 +1633,7 @@ function DiffNotesPreviewPopover({
         ))}
         {remainingCount > 0 && (
           <div className="px-2 py-1 text-[11px] text-muted-foreground">
-            {remainingCount} {translate("auto.components.editor.CombinedDiffViewer.e3b9a6ce02", "more")}{remainingCount === 1 ? 'note' : 'notes'} {translate("auto.components.editor.CombinedDiffViewer.35cc27aeb2", "in Source Control")}</div>
+            {remainingCount} {translate("auto.components.editor.CombinedDiffViewer.e3b9a6ce02", "more")}{remainingCount === 1 ? translate("auto.components.editor.CombinedDiffViewer.8ab3248fd8", "note") : translate("auto.components.editor.CombinedDiffViewer.0fb870a0fe", "notes")} {translate("auto.components.editor.CombinedDiffViewer.35cc27aeb2", "in Source Control")}</div>
         )}
       </div>
     </div>

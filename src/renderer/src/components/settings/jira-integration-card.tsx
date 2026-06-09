@@ -135,8 +135,8 @@ export function JiraIntegrationCard(): React.JSX.Element {
           <p className="text-sm font-medium">{translate("auto.components.settings.jira.integration.card.09742875cd", "Jira")}</p>
           <p className="text-xs text-muted-foreground">
             {jiraStatus.connected
-              ? `${jiraSites.length} site${jiraSites.length === 1 ? '' : 's'} connected`
-              : 'Connect Jira Cloud to browse, create, and link issues.'}
+              ? translate("auto.components.settings.jira.integration.card.74f3063026", "{{value0}} site{{value1}} connected", { value0: jiraSites.length, value1: jiraSites.length === 1 ? '' : 's' })
+              : translate("auto.components.settings.jira.integration.card.9a9f8d4910", "Connect Jira Cloud to browse, create, and link issues.")}
           </p>
         </div>
         {jiraStatus.connected ? (
@@ -225,14 +225,14 @@ export function JiraIntegrationCard(): React.JSX.Element {
                   connectState === 'connecting'
                 }
               >
-                {connectState === 'connecting' ? (
+                {connectState === "connecting" ? (
                   <>
                     <LoaderCircle className="size-3.5 mr-1.5 animate-spin" />
                     {translate("auto.components.settings.jira.integration.card.d914d7ab70", "Verifying…")}</>
-                ) : formMode.kind === 'update' ? (
-                  'Update credentials'
+                ) : formMode.kind === "update" ? (
+                  translate("auto.components.settings.jira.integration.card.33a8b261ee", "Update credentials")
                 ) : (
-                  'Connect'
+                  translate("auto.components.settings.jira.integration.card.2e8bb790fd", "Connect")
                 )}
               </Button>
             </div>
@@ -256,7 +256,7 @@ export function JiraIntegrationCard(): React.JSX.Element {
                   </p>
                   <p className="truncate text-xs text-muted-foreground">{site.siteUrl}</p>
                 </div>
-                {testResult?.state === 'ok' ? (
+                {testResult?.state === "ok" ? (
                   <span className="flex shrink-0 items-center gap-1 text-xs text-emerald-600 dark:text-emerald-400">
                     <CheckCircle2 className="size-3.5" />
                     {translate("auto.components.settings.jira.integration.card.ab350991b8", "Verified")}</span>
@@ -278,7 +278,7 @@ export function JiraIntegrationCard(): React.JSX.Element {
                       <LoaderCircle className="size-3.5 mr-1.5 animate-spin" />
                       {translate("auto.components.settings.jira.integration.card.cec06a0f79", "Testing…")}</>
                   ) : (
-                    'Test'
+                    translate("auto.components.settings.jira.integration.card.255bfe98ec", "Test")
                   )}
                 </Button>
                 <Button variant="outline" size="sm" onClick={() => openUpdateForm(site)}>

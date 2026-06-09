@@ -172,7 +172,7 @@ function WorktreeRow({
   return (
     <div className={cn('mp-wl-row', tapping && 'is-tapping')}>
       <div className="mp-wl-indicator">
-        {indicator === 'spinner' ? (
+        {indicator === "spinner" ? (
           <div className="mp-wl-spinner" />
         ) : (
           <div className={cn('mp-wl-dot', `is-${indicator}`)} />

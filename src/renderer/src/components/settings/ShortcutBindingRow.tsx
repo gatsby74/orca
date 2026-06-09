@@ -234,7 +234,7 @@ export function ShortcutBindingRow({
             </button>
           </TooltipTrigger>
           <TooltipContent side="top" sideOffset={4}>
-            {recording ? 'Listening for shortcut' : hasBinding ? 'Change shortcut' : 'Add shortcut'}
+            {recording ? translate("auto.components.settings.ShortcutBindingRow.6a7848fdac", "Listening for shortcut") : hasBinding ? translate("auto.components.settings.ShortcutBindingRow.f6579be67b", "Change shortcut") : translate("auto.components.settings.ShortcutBindingRow.4a4c2c9d32", "Add shortcut")}
           </TooltipContent>
         </Tooltip>
       </div>

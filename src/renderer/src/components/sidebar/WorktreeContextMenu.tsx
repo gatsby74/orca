@@ -516,7 +516,7 @@ const WorktreeContextMenu = React.memo(function WorktreeContextMenu({
               <DropdownMenuSeparator />
               <DropdownMenuItem onSelect={handleTogglePin} disabled={isDeleting}>
                 {worktree.isPinned ? <PinOff className="size-3.5" /> : <Pin className="size-3.5" />}
-                {worktree.isPinned ? 'Unpin' : 'Pin'}
+                {worktree.isPinned ? translate("auto.components.sidebar.WorktreeContextMenu.697d0f6e1b", "Unpin") : translate("auto.components.sidebar.WorktreeContextMenu.3baa7d6507", "Pin")}
               </DropdownMenuItem>
               <DropdownMenuItem onSelect={handleToggleRead} disabled={isDeleting}>
                 {worktree.isUnread ? (
@@ -524,7 +524,7 @@ const WorktreeContextMenu = React.memo(function WorktreeContextMenu({
                 ) : (
                   <Bell className="size-3.5" />
                 )}
-                {worktree.isUnread ? 'Mark Read' : 'Mark Unread'}
+                {worktree.isUnread ? translate("auto.components.sidebar.WorktreeContextMenu.8dacff1fe0", "Mark Read") : translate("auto.components.sidebar.WorktreeContextMenu.f50603c6b2", "Mark Unread")}
               </DropdownMenuItem>
               {repo ? (
                 <>
@@ -588,7 +588,7 @@ const WorktreeContextMenu = React.memo(function WorktreeContextMenu({
           <DropdownMenuSub>
             <DropdownMenuSubTrigger disabled={deletingContext}>
               <Kanban className="size-3.5" />
-              {isMultiContext ? 'Move Statuses To' : 'Move to Status'}
+              {isMultiContext ? translate("auto.components.sidebar.WorktreeContextMenu.56cde9e8e6", "Move Statuses To") : translate("auto.components.sidebar.WorktreeContextMenu.84cdbb7e30", "Move to Status")}
             </DropdownMenuSubTrigger>
             <DropdownMenuSubContent className="w-44">
               <DropdownMenuRadioGroup value={contextWorkspaceStatus}>
@@ -626,8 +626,8 @@ const WorktreeContextMenu = React.memo(function WorktreeContextMenu({
             </TooltipTrigger>
             <TooltipContent side="right" sideOffset={8} className="max-w-[200px] text-pretty">
               {isMultiContext
-                ? 'Close all active panels in the selected workspaces to free up memory and CPU.'
-                : 'Close all active panels in this workspace to free up memory and CPU.'}
+                ? translate("auto.components.sidebar.WorktreeContextMenu.7d190f7d2b", "Close all active panels in the selected workspaces to free up memory and CPU.")
+                : translate("auto.components.sidebar.WorktreeContextMenu.0918b35e4f", "Close all active panels in this workspace to free up memory and CPU.")}
             </TooltipContent>
           </Tooltip>
           {/* Why: primary checkout rows remove the project from Orca instead of
@@ -650,12 +650,12 @@ const WorktreeContextMenu = React.memo(function WorktreeContextMenu({
           >
             <Trash2 className="size-3.5" />
             {deletingContext
-              ? 'Deleting…'
+              ? translate("auto.components.sidebar.WorktreeContextMenu.b42391d8bf", "Deleting…")
               : isMultiContext
                 ? deleteLabel
                 : removesProject
-                  ? 'Remove Project from Orca'
-                  : 'Delete'}
+                  ? translate("auto.components.sidebar.WorktreeContextMenu.f5ac91531d", "Remove Project from Orca")
+                  : translate("auto.components.sidebar.WorktreeContextMenu.f4475537d8", "Delete")}
           </DropdownMenuItem>
         </DropdownMenuContent>
       </DropdownMenu>

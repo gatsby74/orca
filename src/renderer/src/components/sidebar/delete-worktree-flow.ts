@@ -137,7 +137,7 @@ export function runWorktreeDeleteWithToast(
                   .removeWorktree(worktreeId, true)
                   .then((forceResult) => {
                     if (!forceResult.ok) {
-                      toast.error('Force delete failed', {
+                      toast.error(translate("auto.components.sidebar.delete.worktree.flow.4f3876c0f5", "Force delete failed"), {
                         description: forceResult.error,
                         action: {
                           label: translate("auto.components.sidebar.delete.worktree.flow.7488ed8711", "View"),
@@ -149,7 +149,7 @@ export function runWorktreeDeleteWithToast(
                     options.onForceDeleted?.(worktreeId)
                   })
                   .catch((err: unknown) => {
-                    toast.error('Failed to delete workspace', {
+                    toast.error(translate("auto.components.sidebar.delete.worktree.flow.ae57cbf6e4", "Failed to delete workspace"), {
                       description: err instanceof Error ? err.message : String(err),
                       action: {
                         label: translate("auto.components.sidebar.delete.worktree.flow.7488ed8711", "View"),

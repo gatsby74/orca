@@ -254,7 +254,7 @@ export function EditorPanelHeader({
                 type="button"
                 className="p-1 rounded hover:bg-accent text-muted-foreground hover:text-foreground transition-colors flex-shrink-0 disabled:opacity-50 disabled:hover:bg-transparent disabled:hover:text-muted-foreground"
                 onClick={() => onOpenDiffTargetFile(isMarkdown ? 'rich' : undefined)}
-                aria-label="Open file"
+                aria-label={translate("auto.components.editor.EditorPanelHeader.a10d9b8337", "Open file")}
                 disabled={!openFileState.canOpen}
               >
                 <FileText size={14} />
@@ -263,9 +263,9 @@ export function EditorPanelHeader({
             <TooltipContent side="bottom" sideOffset={4}>
               {openFileState.canOpen
                 ? isMarkdown
-                  ? 'Open file tab to use rich markdown editing'
-                  : 'Open file tab'
-                : 'This diff has no modified-side file to open'}
+                  ? translate("auto.components.editor.EditorPanelHeader.f0fd4174b5", "Open file tab to use rich markdown editing")
+                  : translate("auto.components.editor.EditorPanelHeader.9b80bbe1de", "Open file tab")
+                : translate("auto.components.editor.EditorPanelHeader.c98ce191da", "This diff has no modified-side file to open")}
             </TooltipContent>
           </Tooltip>
         </TooltipProvider>
@@ -291,7 +291,7 @@ export function EditorPanelHeader({
                 type="button"
                 className="p-1 rounded hover:bg-accent text-muted-foreground hover:text-foreground transition-colors flex-shrink-0"
                 onClick={onOpenPreviewToSide}
-                aria-label="Open Preview to the Side"
+                aria-label={translate("auto.components.editor.EditorPanelHeader.fb8331694e", "Open Preview to the Side")}
               >
                 <Eye size={14} />
               </button>
@@ -314,7 +314,7 @@ export function EditorPanelHeader({
               </button>
             </TooltipTrigger>
             <TooltipContent side="bottom" sideOffset={4}>
-              {sideBySide ? 'Switch to inline diff' : 'Switch to side-by-side diff'}
+              {sideBySide ? translate("auto.components.editor.EditorPanelHeader.94756f08ba", "Switch to inline diff") : translate("auto.components.editor.EditorPanelHeader.e836faacfa", "Switch to side-by-side diff")}
             </TooltipContent>
           </Tooltip>
         </TooltipProvider>
@@ -342,7 +342,7 @@ export function EditorPanelHeader({
                 }`}
                 onClick={onToggleMarkdownTableOfContents}
                 disabled={isMarkdownTableOfContentsDisabled}
-                aria-label="Table of Contents"
+                aria-label={translate("auto.components.editor.EditorPanelHeader.5447c4f68f", "Table of Contents")}
                 aria-pressed={showMarkdownTableOfContents}
               >
                 <ListTree size={14} />
@@ -350,8 +350,8 @@ export function EditorPanelHeader({
             </TooltipTrigger>
             <TooltipContent side="bottom" sideOffset={4}>
               {isMarkdownTableOfContentsDisabled
-                ? 'Table of Contents is available in rich or preview mode'
-                : 'Table of Contents'}
+                ? translate("auto.components.editor.EditorPanelHeader.146cb5473c", "Table of Contents is available in rich or preview mode")
+                : translate("auto.components.editor.EditorPanelHeader.5447c4f68f", "Table of Contents")}
             </TooltipContent>
           </Tooltip>
         </TooltipProvider>

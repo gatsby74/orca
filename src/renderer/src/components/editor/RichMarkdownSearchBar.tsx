@@ -66,7 +66,7 @@ export function RichMarkdownSearchBar({
       </div>
       <div className="rich-markdown-search-status">
         {query && matchCount === 0
-          ? 'No results'
+          ? translate("auto.components.editor.RichMarkdownSearchBar.a86958d508", "No results")
           : `${matchCount === 0 ? 0 : activeMatchIndex + 1}/${matchCount}`}
       </div>
       <Button

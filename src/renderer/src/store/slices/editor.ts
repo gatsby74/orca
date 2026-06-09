@@ -3679,11 +3679,11 @@ export const createEditorSlice: StateCreator<AppState, [], [], EditorSlice> = (s
         try {
           stats = await statRuntimePath(fileContext, target.absolutePath)
         } catch {
-          toast.error(`File not found: ${target.relativePath}`)
+          toast.error(translate("auto.store.slices.editor.f2e00db373", "File not found: {{value0}}", { value0: target.relativePath }))
           return
         }
         if (stats.isDirectory) {
-          toast.error(`Cannot open directory: ${target.relativePath}`)
+          toast.error(translate("auto.store.slices.editor.51f15c37d3", "Cannot open directory: {{value0}}", { value0: target.relativePath }))
           return
         }
       }
@@ -3716,11 +3716,11 @@ export const createEditorSlice: StateCreator<AppState, [], [], EditorSlice> = (s
     try {
       stats = await statRuntimePath(fileContext, absolutePath)
     } catch {
-      toast.error(`File not found: ${relativePath}`)
+      toast.error(translate("auto.store.slices.editor.f2e00db373", "File not found: {{value0}}", { value0: relativePath }))
       return
     }
     if (stats.isDirectory) {
-      toast.error(`Cannot open directory: ${relativePath}`)
+      toast.error(translate("auto.store.slices.editor.51f15c37d3", "Cannot open directory: {{value0}}", { value0: relativePath }))
       return
     }
 

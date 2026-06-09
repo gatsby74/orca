@@ -159,8 +159,8 @@ export function DiffCommentCard({
                   <button
                     type="button"
                     className="orca-diff-comment-pill-btn"
-                    title="Open in browser"
-                    aria-label="Open in browser"
+                    title={translate("auto.components.diff.comments.DiffCommentCard.508ee678a5", "Open in browser")}
+                    aria-label={translate("auto.components.diff.comments.DiffCommentCard.508ee678a5", "Open in browser")}
                     onClick={(ev) => {
                       ev.preventDefault()
                       ev.stopPropagation()
@@ -178,8 +178,8 @@ export function DiffCommentCard({
                   <button
                     type="button"
                     className="orca-diff-comment-pill-btn"
-                    title="Edit note"
-                    aria-label="Edit note"
+                    title={translate("auto.components.diff.comments.DiffCommentCard.cad3384faa", "Edit note")}
+                    aria-label={translate("auto.components.diff.comments.DiffCommentCard.cad3384faa", "Edit note")}
                     onClick={(ev) => {
                       ev.preventDefault()
                       ev.stopPropagation()
@@ -195,8 +195,8 @@ export function DiffCommentCard({
                 <button
                   type="button"
                   className="orca-diff-comment-pill-btn orca-diff-comment-pill-btn-danger"
-                  title="Delete note"
-                  aria-label="Delete note"
+                  title={translate("auto.components.diff.comments.DiffCommentCard.cce596969e", "Delete note")}
+                  aria-label={translate("auto.components.diff.comments.DiffCommentCard.cce596969e", "Delete note")}
                   onClick={(ev) => {
                     ev.preventDefault()
                     ev.stopPropagation()

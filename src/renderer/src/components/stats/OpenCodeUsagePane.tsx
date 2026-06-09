@@ -147,7 +147,7 @@ export function OpenCodeUsagePane(): React.JSX.Element {
           <h3 className="text-sm font-semibold text-foreground">{translate("auto.components.stats.OpenCodeUsagePane.bea80ceae0", "OpenCode Usage Tracking")}</h3>
           <p className="mt-1 text-xs text-muted-foreground">
             {formatUpdatedAt(scanState.lastScanCompletedAt)}
-            {scanState.lastScanError ? ` • Last scan error: ${scanState.lastScanError}` : ''}
+            {scanState.lastScanError ? translate("auto.components.stats.OpenCodeUsagePane.6cc7782458", " • Last scan error: {{value0}}", { value0: scanState.lastScanError }) : ''}
           </p>
         </div>
         <div className="flex shrink-0 items-center gap-2 self-start">
@@ -274,7 +274,7 @@ export function OpenCodeUsagePane(): React.JSX.Element {
               <div className="mb-3">
                 <h4 className="text-sm font-semibold text-foreground">{translate("auto.components.stats.OpenCodeUsagePane.040c044d39", "By model")}</h4>
                 <p className="text-xs text-muted-foreground">
-                  {translate("auto.components.stats.OpenCodeUsagePane.a15206a63a", "Top model:")}{summary?.topModel ?? 'n/a'}
+                  {translate("auto.components.stats.OpenCodeUsagePane.a15206a63a", "Top model:")}{summary?.topModel ?? translate("auto.components.stats.OpenCodeUsagePane.8095a63426", "n/a")}
                 </p>
               </div>
               <div className="space-y-3">
@@ -300,7 +300,7 @@ export function OpenCodeUsagePane(): React.JSX.Element {
               <div className="mb-3">
                 <h4 className="text-sm font-semibold text-foreground">{translate("auto.components.stats.OpenCodeUsagePane.0f0a1684bb", "By project")}</h4>
                 <p className="text-xs text-muted-foreground">
-                  {translate("auto.components.stats.OpenCodeUsagePane.048ffe4d65", "Top project:")}{summary?.topProject ?? 'n/a'}
+                  {translate("auto.components.stats.OpenCodeUsagePane.048ffe4d65", "Top project:")}{summary?.topProject ?? translate("auto.components.stats.OpenCodeUsagePane.8095a63426", "n/a")}
                 </p>
               </div>
               <div className="space-y-3">
@@ -346,7 +346,7 @@ export function OpenCodeUsagePane(): React.JSX.Element {
                         {formatSessionTime(row.lastActiveAt)}
                       </td>
                       <td className="px-2 py-2 text-foreground">{row.projectLabel}</td>
-                      <td className="px-2 py-2 text-muted-foreground">{row.model ?? 'Unknown'}</td>
+                      <td className="px-2 py-2 text-muted-foreground">{row.model ?? translate("auto.components.stats.OpenCodeUsagePane.362231082f", "Unknown")}</td>
                       <td className="px-2 py-2 text-muted-foreground">{row.events}</td>
                       <td className="px-2 py-2 text-muted-foreground">
                         {formatTokens(row.inputTokens)}

@@ -891,7 +891,7 @@ const WorktreeCard = React.memo(function WorktreeCard({
                   </span>
                 </TooltipTrigger>
                 <TooltipContent side="right" sideOffset={8}>
-                  {isSshDisconnected ? 'SSH disconnected' : 'Remote project via SSH'}
+                  {isSshDisconnected ? translate("auto.components.sidebar.WorktreeCard.021538e1d1", "SSH disconnected") : translate("auto.components.sidebar.WorktreeCard.ca74db7550", "Remote project via SSH")}
                 </TooltipContent>
               </Tooltip>
             )}
@@ -1018,7 +1018,7 @@ const WorktreeCard = React.memo(function WorktreeCard({
                   <TooltipTrigger asChild>
                     <span
                       className="shrink-0 inline-flex items-center"
-                      aria-label="Primary worktree"
+                      aria-label={translate("auto.components.sidebar.WorktreeCard.0d224eff10", "Primary worktree")}
                     >
                       <Star className="size-3 fill-amber-400 text-amber-400" />
                     </span>
@@ -1041,7 +1041,7 @@ const WorktreeCard = React.memo(function WorktreeCard({
                         'group-hover:opacity-100 group-focus-within:opacity-100 focus-visible:opacity-100',
                         'text-muted-foreground hover:bg-destructive/10 hover:text-destructive focus-visible:bg-destructive/10 focus-visible:text-destructive'
                       )}
-                      aria-label="Delete workspace"
+                      aria-label={translate("auto.components.sidebar.WorktreeCard.6f09f58541", "Delete workspace")}
                     >
                       <Trash2 className="size-3.5" />
                     </button>
@@ -1071,7 +1071,7 @@ const WorktreeCard = React.memo(function WorktreeCard({
                   variant="secondary"
                   className="h-[16px] px-1.5 text-[10px] font-medium rounded shrink-0 text-muted-foreground bg-accent border border-border dark:bg-accent/80 dark:border-border/50 leading-none"
                 >
-                  {repo ? getRepoKindLabel(repo) : 'Folder'}
+                  {repo ? getRepoKindLabel(repo) : translate("auto.components.sidebar.WorktreeCard.93aebe4529", "Folder")}
                 </Badge>
               ) : showBranch ? (
                 <span className="min-w-0 text-[11px] text-muted-foreground truncate leading-none">
@@ -1160,7 +1160,7 @@ const WorktreeCard = React.memo(function WorktreeCard({
                 </Button>
               </TooltipTrigger>
               <TooltipContent side="right" sideOffset={8}>
-                {lineageCollapsed ? 'Show child workspaces' : 'Hide child workspaces'}
+                {lineageCollapsed ? translate("auto.components.sidebar.WorktreeCard.8cb634cda6", "Show child workspaces") : translate("auto.components.sidebar.WorktreeCard.57eaa61b55", "Hide child workspaces")}
               </TooltipContent>
             </Tooltip>
           </div>

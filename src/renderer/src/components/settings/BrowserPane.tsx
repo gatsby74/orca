@@ -208,7 +208,7 @@ export function BrowserPane({
                 ))}
               </SelectContent>
             </Select>
-            {selectedSearchEngine === 'kagi' ? <KagiSessionLinkForm /> : null}
+            {selectedSearchEngine === "kagi" ? <KagiSessionLinkForm /> : null}
           </div>
         </SearchableSetting>
       ) : null}
@@ -299,7 +299,7 @@ export function BrowserPane({
                   id: 'default',
                   scope: 'default',
                   partition: '',
-                  label: 'Default',
+                  label: translate("auto.components.settings.BrowserPane.4399c77caa", "Default"),
                   source: null
                 }
               }
@@ -389,7 +389,7 @@ export function BrowserPane({
                 size="sm"
                 disabled={!newProfileName.trim() || isCreatingProfile}
               >
-                {isCreatingProfile ? 'Creating…' : 'Create'}
+                {isCreatingProfile ? translate("auto.components.settings.BrowserPane.7b649a578a", "Creating…") : translate("auto.components.settings.BrowserPane.64898ecdab", "Create")}
               </Button>
             </DialogFooter>
           </form>

@@ -208,7 +208,7 @@ export default function FeatureTipsModal(): JSX.Element | null {
             return
           }
           toast.warning(translate("auto.components.feature.tips.FeatureTipsModal.1da82af45b", "Orca CLI needs attention"), {
-            description: result.status.detail ?? 'Open Settings to finish CLI setup.'
+            description: result.status.detail ?? translate("auto.components.feature.tips.FeatureTipsModal.d1a86c7eb5", "Open Settings to finish CLI setup.")
           })
           closeModal()
           openCliSettings()

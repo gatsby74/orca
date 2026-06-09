@@ -38,7 +38,7 @@ export function MobilePageToolbar({
         onClick={onToggleMobileSidebarButton}
       >
         {showMobileButton ? <EyeOff className="size-3.5" /> : <Eye className="size-3.5" />}
-        {showMobileButton ? 'Hide from sidebar' : 'Show in sidebar'}
+        {showMobileButton ? translate("auto.components.mobile.MobilePageToolbar.c669abcf8f", "Hide from sidebar") : translate("auto.components.mobile.MobilePageToolbar.fb5f28330e", "Show in sidebar")}
       </Button>
     </div>
   )

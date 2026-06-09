@@ -722,50 +722,7 @@ export function EditorAnimatedVisual(props: { reducedMotion: boolean }): JSX.Ele
           [data-cursor-ripple] state via [data-clicking]. We pin those
           presentation rules here instead of TS so the React tree stays
           declarative. */}
-      <style>{`
-        [data-slash-menu] [data-slash-row].slash-active {
-          background: rgba(24,24,27,0.07);
-          box-shadow: inset 0 0 0 1px rgba(24,24,27,0.06);
-        }
-        [data-md-active-line][data-role="active"] {
-          color: rgb(113 113 122);
-          font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
-          font-size: 12.5px;
-        }
-        [data-md-active-line][data-role="h1"] {
-          color: inherit;
-          font-family: inherit;
-          font-size: 18px;
-          font-weight: 700;
-          letter-spacing: -0.01em;
-          line-height: 1.2;
-          margin-top: 6px;
-        }
-        [data-md-caret] {
-          display: inline-block;
-          width: 1.5px;
-          height: 1em;
-          background: currentColor;
-          vertical-align: -2px;
-          margin-left: 1px;
-          animation: md-caret-blink 1.05s steps(1) infinite;
-        }
-        @keyframes md-caret-blink {
-          0%, 50% { opacity: 1 }
-          51%, 100% { opacity: 0 }
-        }
-        @keyframes md-block-in {
-          from { opacity: 0; transform: translateY(-2px); }
-          to   { opacity: 1; transform: none; }
-        }
-        @keyframes md-cursor-ripple {
-          0%   { transform: scale(0.4); opacity: 0.9; }
-          100% { transform: scale(1.4); opacity: 0; }
-        }
-        [data-clicking="1"] [data-cursor-ripple] {
-          animation: md-cursor-ripple 460ms ease-out forwards;
-        }
-      `}</style>
+      <style>{translate("auto.components.feature.wall.EditorAnimatedVisual.e16479c1c5", "[data-slash-menu] [data-slash-row].slash-active { background: rgba(24,24,27,0.07); box-shadow: inset 0 0 0 1px rgba(24,24,27,0.06); } [data-md-active-line][data-role=\"active\"] { color: rgb(113 113 122); font-family: ui-monospace, SFMono-Regular, Menlo, monospace; font-size: 12.5px; } [data-md-active-line][data-role=\"h1\"] { color: inherit; font-family: inherit; font-size: 18px; font-weight: 700; letter-spacing: -0.01em; line-height: 1.2; margin-top: 6px; } [data-md-caret] { display: inline-block; width: 1.5px; height: 1em; background: currentColor; vertical-align: -2px; margin-left: 1px; animation: md-caret-blink 1.05s steps(1) infinite; } @keyframes md-caret-blink { 0%, 50% { opacity: 1 } 51%, 100% { opacity: 0 } } @keyframes md-block-in { from { opacity: 0; transform: translateY(-2px); } to { opacity: 1; transform: none; } } @keyframes md-cursor-ripple { 0% { transform: scale(0.4); opacity: 0.9; } 100% { transform: scale(1.4); opacity: 0; } } [data-clicking=\"1\"] [data-cursor-ripple] { animation: md-cursor-ripple 460ms ease-out forwards; }")}</style>
     </div>
   )
 }

@@ -120,7 +120,7 @@ const SidebarHeader = React.memo(function SidebarHeader() {
               </Button>
             </TooltipTrigger>
             <TooltipContent side="bottom" sideOffset={6}>
-              {workspaceBoardOpen ? 'Close workspace board' : 'Workspace board'}
+              {workspaceBoardOpen ? translate("auto.components.sidebar.SidebarHeader.a30e34eb5c", "Close workspace board") : translate("auto.components.sidebar.SidebarHeader.49f62c5665", "Workspace board")}
             </TooltipContent>
           </Tooltip>
 
@@ -146,8 +146,8 @@ const SidebarHeader = React.memo(function SidebarHeader() {
             </TooltipTrigger>
             <TooltipContent side="right" sideOffset={6}>
               {canCreateWorkspace
-                ? `New workspace (${newWorktreeShortcutLabel})`
-                : 'Add a project to create workspaces'}
+                ? translate("auto.components.sidebar.SidebarHeader.ca6f729da2", "New workspace ({{value0}})", { value0: newWorktreeShortcutLabel })
+                : translate("auto.components.sidebar.SidebarHeader.5c9c7c16aa", "Add a project to create workspaces")}
             </TooltipContent>
           </Tooltip>
         </div>

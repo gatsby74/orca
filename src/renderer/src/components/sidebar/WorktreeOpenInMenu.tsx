@@ -138,7 +138,7 @@ export function WorktreeOpenInMenuItems({
           }}
           disabled={disabled}
         >
-          {entry.target === 'file-manager' ? (
+          {entry.target === "file-manager" ? (
             <FolderOpen className="size-3.5" />
           ) : entry.command ? (
             <OpenInApplicationIcon application={{ command: entry.command }} size={14} />

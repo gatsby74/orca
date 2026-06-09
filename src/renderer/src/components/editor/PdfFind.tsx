@@ -130,7 +130,7 @@ export default function PdfFind({
       />
       {query ? (
         <span className="shrink-0 text-xs text-zinc-400">
-          {totalMatches > 0 ? `${activeMatch} of ${totalMatches}` : 'No matches'}
+          {totalMatches > 0 ? translate("auto.components.editor.PdfFind.db56fcd6d2", "{{value0}} of {{value1}}", { value0: activeMatch, value1: totalMatches }) : translate("auto.components.editor.PdfFind.d080ab37d6", "No matches")}
         </span>
       ) : null}
       <div className="mx-0.5 h-4 w-px bg-zinc-700" />

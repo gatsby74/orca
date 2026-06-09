@@ -188,7 +188,7 @@ export default function GrabConfirmationSheet({
               {translate("auto.components.browser.pane.GrabConfirmationSheet.9098b118ab", "Page")}</h3>
             <div className="rounded-lg border border-border/60 bg-muted/20 p-3 text-sm">
               <div className="font-medium text-foreground">
-                <EscapedText text={page.title || 'Untitled'} />
+                <EscapedText text={page.title || translate("auto.components.browser.pane.GrabConfirmationSheet.405bb315da", "Untitled")} />
               </div>
               <div className="mt-0.5 text-xs text-muted-foreground/70">
                 <EscapedText text={page.sanitizedUrl} />

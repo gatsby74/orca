@@ -401,7 +401,7 @@ export function CreatePullRequestDialog({
             {translate("auto.components.right.sidebar.CreatePullRequestDialog.2bc1b4345e", "Cancel")}</Button>
           <Button onClick={() => void handleSubmit()} disabled={submitDisabled}>
             {submitting ? <Loader2 className="size-4 animate-spin" /> : null}
-            {pushBeforeCreate ? `Push & Create ${copy.shortLabel}` : `Create ${copy.shortLabel}`}
+            {pushBeforeCreate ? translate("auto.components.right.sidebar.CreatePullRequestDialog.a154fe55e6", "Push & Create {{value0}}", { value0: copy.shortLabel }) : translate("auto.components.right.sidebar.CreatePullRequestDialog.b7f43474d7", "Create {{value0}}", { value0: copy.shortLabel })}
           </Button>
         </DialogFooter>
       </DialogContent>

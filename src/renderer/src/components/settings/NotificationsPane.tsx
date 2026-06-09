@@ -155,7 +155,7 @@ export async function sendNotificationSettingsTestNotification(
   }
 
   toast.error(
-    result.reason === 'disabled'
+    result.reason === "disabled"
       ? translate("auto.components.settings.NotificationsPane.6fc3781729", "Notifications are disabled")
       : translate("auto.components.settings.NotificationsPane.406feb0aa6", "Test notification was not delivered")
   )
@@ -339,7 +339,7 @@ export function NotificationsPane({
             <SelectItem value={CHOOSE_CUSTOM_SOUND_VALUE}>
               <Upload className="size-4" />
               <span>
-                {notificationSettings.customSoundPath ? 'Change Custom File' : 'Choose Custom File'}
+                {notificationSettings.customSoundPath ? translate("auto.components.settings.NotificationsPane.76e02467b8", "Change Custom File") : translate("auto.components.settings.NotificationsPane.6e6df3a09a", "Choose Custom File")}
               </span>
             </SelectItem>
           </SelectContent>
@@ -352,7 +352,7 @@ export function NotificationsPane({
             {translate("auto.components.settings.NotificationsPane.4aa5085cd7", "Custom:")}{notificationSettings.customSoundPath}
           </p>
         ) : null}
-        {selectedSoundId !== 'system' ? (
+        {selectedSoundId !== "system" ? (
           <div className="flex items-center gap-3 pt-1">
             <Volume2 className="size-4 text-muted-foreground" />
             <Slider

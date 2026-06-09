@@ -356,7 +356,7 @@ export default function JiraIssueWorkspace({
         onOpenAutoFocus={(event) => event.preventDefault()}
       >
         <VisuallyHidden.Root asChild>
-          <SheetTitle>{displayed?.title ?? 'Jira issue'}</SheetTitle>
+          <SheetTitle>{displayed?.title ?? translate("auto.components.JiraIssueWorkspace.ef21405c6d", "Jira issue")}</SheetTitle>
         </VisuallyHidden.Root>
         <VisuallyHidden.Root asChild>
           <SheetDescription>
@@ -416,7 +416,7 @@ export default function JiraIssueWorkspace({
                     )}
                   >
                     {displayed.status.name}
-                    {pendingField === 'transition' ? (
+                    {pendingField === "transition" ? (
                       <LoaderCircle className="size-3 animate-spin" />
                     ) : null}
                   </button>
@@ -451,8 +451,8 @@ export default function JiraIssueWorkspace({
                     disabled={pendingField === 'priority'}
                     className="rounded-md px-1.5 py-0.5 text-[11px] text-muted-foreground transition hover:bg-muted/40 disabled:opacity-50"
                   >
-                    {displayed.priority?.name ?? 'No priority'}
-                    {pendingField === 'priority' ? (
+                    {displayed.priority?.name ?? translate("auto.components.JiraIssueWorkspace.51bed73f88", "No priority")}
+                    {pendingField === "priority" ? (
                       <LoaderCircle className="ml-1 inline size-3 animate-spin" />
                     ) : null}
                   </button>
@@ -491,8 +491,8 @@ export default function JiraIssueWorkspace({
                     disabled={pendingField === 'assignee'}
                     className="flex items-center gap-1 rounded-md px-1.5 py-0.5 text-[11px] text-muted-foreground transition hover:bg-muted/40 disabled:opacity-50"
                   >
-                    {displayed.assignee?.displayName ?? '+ Assignee'}
-                    {pendingField === 'assignee' ? (
+                    {displayed.assignee?.displayName ?? translate("auto.components.JiraIssueWorkspace.54649eaeab", "+ Assignee")}
+                    {pendingField === "assignee" ? (
                       <LoaderCircle className="size-3 animate-spin" />
                     ) : null}
                   </button>
@@ -559,7 +559,7 @@ export default function JiraIssueWorkspace({
                         onClick={handleSaveTitle}
                         disabled={pendingField === 'title'}
                       >
-                        {pendingField === 'title' ? (
+                        {pendingField === "title" ? (
                           <LoaderCircle className="size-4 animate-spin" />
                         ) : (
                           <Save className="size-4" />
@@ -581,7 +581,7 @@ export default function JiraIssueWorkspace({
                         onClick={handleSaveLabels}
                         disabled={pendingField === 'labels'}
                       >
-                        {pendingField === 'labels' ? (
+                        {pendingField === "labels" ? (
                           <LoaderCircle className="size-4 animate-spin" />
                         ) : (
                           <Save className="size-4" />
@@ -598,7 +598,7 @@ export default function JiraIssueWorkspace({
                       {displayed.issueType.name}
                     </span>
                     <span className="text-xs text-muted-foreground">
-                      {displayed.project.key} · {displayed.assignee?.displayName ?? 'Unassigned'}
+                      {displayed.project.key} · {displayed.assignee?.displayName ?? translate("auto.components.JiraIssueWorkspace.0b6b5646ed", "Unassigned")}
                     </span>
                   </div>
                   {displayed.description?.trim() ? (
@@ -661,7 +661,7 @@ export default function JiraIssueWorkspace({
                               />
                             ) : null}
                             <span className="truncate text-[13px] font-semibold text-foreground">
-                              {comment.user?.displayName ?? 'Unknown'}
+                              {comment.user?.displayName ?? translate("auto.components.JiraIssueWorkspace.666cfdd835", "Unknown")}
                             </span>
                             <span className="shrink-0 text-[12px] text-muted-foreground">
                               {formatRelativeTime(comment.createdAt)}

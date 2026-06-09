@@ -197,7 +197,7 @@ export function ExternalAutomationRunTable({
           ) : null}
         </div>
         <div className="text-xs text-muted-foreground">
-          {totalCount} {totalCount === 1 ? 'run' : 'runs'}
+          {totalCount} {totalCount === 1 ? translate("auto.components.automations.ExternalAutomationRunTable.872d032d05", "run") : translate("auto.components.automations.ExternalAutomationRunTable.d5527d8fe7", "runs")}
         </div>
       </div>
 
@@ -248,7 +248,7 @@ export function ExternalAutomationRunTable({
         </div>
       ) : (
         <div className="px-3 py-4 text-sm text-muted-foreground">
-          {isLoading ? 'Loading runs...' : 'No Hermes runs found yet.'}
+          {isLoading ? translate("auto.components.automations.ExternalAutomationRunTable.8ea934cacf", "Loading runs...") : translate("auto.components.automations.ExternalAutomationRunTable.9c080765ff", "No Hermes runs found yet.")}
         </div>
       )}
 

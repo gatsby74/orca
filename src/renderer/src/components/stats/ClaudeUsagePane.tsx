@@ -140,7 +140,7 @@ export function ClaudeUsagePane(): React.JSX.Element {
           <h3 className="text-sm font-semibold text-foreground">{translate("auto.components.stats.ClaudeUsagePane.6afacbee37", "Claude Usage Tracking")}</h3>
           <p className="mt-1 text-xs text-muted-foreground">
             {formatUpdatedAt(scanState.lastScanCompletedAt)}
-            {scanState.lastScanError ? ` • Last scan error: ${scanState.lastScanError}` : ''}
+            {scanState.lastScanError ? translate("auto.components.stats.ClaudeUsagePane.2d41fd45c6", " • Last scan error: {{value0}}", { value0: scanState.lastScanError }) : ''}
           </p>
         </div>
         <div className="flex shrink-0 items-center gap-2 self-start">
@@ -288,7 +288,7 @@ export function ClaudeUsagePane(): React.JSX.Element {
               <div className="mb-3">
                 <h4 className="text-sm font-semibold text-foreground">{translate("auto.components.stats.ClaudeUsagePane.0f394c24e3", "By model")}</h4>
                 <p className="text-xs text-muted-foreground">
-                  {translate("auto.components.stats.ClaudeUsagePane.c3fdbc5474", "Top model:")}{summary?.topModel ?? 'n/a'}
+                  {translate("auto.components.stats.ClaudeUsagePane.c3fdbc5474", "Top model:")}{summary?.topModel ?? translate("auto.components.stats.ClaudeUsagePane.7765a4c3e1", "n/a")}
                 </p>
               </div>
               <div className="space-y-3">
@@ -311,7 +311,7 @@ export function ClaudeUsagePane(): React.JSX.Element {
               <div className="mb-3">
                 <h4 className="text-sm font-semibold text-foreground">{translate("auto.components.stats.ClaudeUsagePane.7dc9e5613b", "By project")}</h4>
                 <p className="text-xs text-muted-foreground">
-                  {translate("auto.components.stats.ClaudeUsagePane.f97435845c", "Top project:")}{summary?.topProject ?? 'n/a'}
+                  {translate("auto.components.stats.ClaudeUsagePane.f97435845c", "Top project:")}{summary?.topProject ?? translate("auto.components.stats.ClaudeUsagePane.7765a4c3e1", "n/a")}
                 </p>
               </div>
               <div className="space-y-3">
@@ -338,7 +338,7 @@ export function ClaudeUsagePane(): React.JSX.Element {
                 {translate("auto.components.stats.ClaudeUsagePane.abfc4a4943", "Cache reuse rate:")}{' '}
                 {summary?.cacheReuseRate !== null && summary?.cacheReuseRate !== undefined
                   ? `${Math.round(summary.cacheReuseRate * 100)}%`
-                  : 'n/a'}
+                  : translate("auto.components.stats.ClaudeUsagePane.7765a4c3e1", "n/a")}
               </p>
             </div>
             <div className="overflow-x-auto">
@@ -361,7 +361,7 @@ export function ClaudeUsagePane(): React.JSX.Element {
                         {formatSessionTime(row.lastActiveAt)}
                       </td>
                       <td className="px-2 py-2 text-foreground">{row.projectLabel}</td>
-                      <td className="px-2 py-2 text-muted-foreground">{row.model ?? 'Unknown'}</td>
+                      <td className="px-2 py-2 text-muted-foreground">{row.model ?? translate("auto.components.stats.ClaudeUsagePane.cfe2282ffa", "Unknown")}</td>
                       <td className="px-2 py-2 text-muted-foreground">{row.turns}</td>
                       <td className="px-2 py-2 text-muted-foreground">
                         {formatTokens(row.inputTokens)}

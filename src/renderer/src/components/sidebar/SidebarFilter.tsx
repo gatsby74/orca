@@ -140,7 +140,7 @@ const SidebarFilter = React.memo(function SidebarFilter({
           </DropdownMenuTrigger>
         </TooltipTrigger>
         <TooltipContent side={tooltipSide} sideOffset={6}>
-          {hasAnyFilter ? 'Edit filters' : 'Filter workspaces'}
+          {hasAnyFilter ? translate("auto.components.sidebar.SidebarFilter.ee240a39eb", "Edit filters") : translate("auto.components.sidebar.SidebarFilter.f506a1262a", "Filter workspaces")}
         </TooltipContent>
       </Tooltip>
       <DropdownMenuContent
@@ -200,7 +200,7 @@ const SidebarFilter = React.memo(function SidebarFilter({
             >
               <CommandInput
                 autoFocus
-                placeholder="Search projects..."
+                placeholder={translate("auto.components.sidebar.SidebarFilter.489d1c8c9f", "Search projects...")}
                 value={query}
                 onValueChange={(nextQuery) => {
                   // Why: typing creates a new filtered list, so keyboard

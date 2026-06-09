@@ -49,7 +49,7 @@ export function AddRepoNestedImportStep({
         <div className="flex min-w-0 items-center gap-1.5">
           {scanInProgress ? <AddRepoNestedImportStopButton onStopScan={onStopScan} /> : null}
           <DialogDescription className="min-w-0 truncate">
-            {scanInProgress ? 'Scanning... ' : null}
+            {scanInProgress ? translate("auto.components.sidebar.AddRepoNestedImportStep.220dd32d83", "Scanning...") : null}
             {translate("auto.components.sidebar.AddRepoNestedImportStep.4df0d08cc5", "Found")}{repoCountLabel} {translate("auto.components.sidebar.AddRepoNestedImportStep.5f857ba8e6", "in")}{' '}
             <span className="font-mono text-[11px] text-foreground" title={scan.selectedPath}>
               {scan.selectedPath}
@@ -109,7 +109,7 @@ export function AddRepoNestedImportStep({
             disabled={isAdding || scanInProgress || selectedPaths.size === 0}
             variant={isFirstRepoImport ? 'default' : 'outline'}
           >
-            {isFirstRepoImport ? 'Import' : 'Import separately'}
+            {isFirstRepoImport ? translate("auto.components.sidebar.AddRepoNestedImportStep.cf9d382ca1", "Import") : translate("auto.components.sidebar.AddRepoNestedImportStep.5b2e6fe3c8", "Import separately")}
           </Button>
           {!isFirstRepoImport ? (
             <Button

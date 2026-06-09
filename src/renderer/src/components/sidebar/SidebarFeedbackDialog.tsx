@@ -225,7 +225,7 @@ export function SidebarFeedbackDialog({
           <Button variant="outline" onClick={() => onOpenChange(false)} disabled={isSubmitting}>
             {translate("auto.components.sidebar.SidebarFeedbackDialog.8bf619e4cf", "Cancel")}</Button>
           <Button onClick={() => void handleSubmit()} disabled={isSubmitting || !feedback.trim()}>
-            {isSubmitting ? 'Sending…' : 'Send'}
+            {isSubmitting ? translate("auto.components.sidebar.SidebarFeedbackDialog.69969ba364", "Sending…") : translate("auto.components.sidebar.SidebarFeedbackDialog.f2e42e1307", "Send")}
           </Button>
         </DialogFooter>
       </DialogContent>

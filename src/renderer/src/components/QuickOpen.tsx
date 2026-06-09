@@ -138,7 +138,7 @@ function InstallRgGuidance({
             aria-label={translate("auto.components.QuickOpen.73b44e7bde", "Copy install command")}
           >
             {copied ? <Check size={12} /> : <Copy size={12} />}
-            {copied ? 'Copied' : 'Copy'}
+            {copied ? translate("auto.components.QuickOpen.cf144856dc", "Copied") : translate("auto.components.QuickOpen.995be8ea22", "Copy")}
           </button>
         </div>
       ) : guidance ? (
@@ -276,7 +276,7 @@ export default function QuickOpen(): React.JSX.Element | null {
       </div>
       {/* Accessibility: announce result count changes */}
       <div aria-live="polite" className="sr-only">
-        {deferredQuery.trim() ? `${filtered.length} files found` : ''}
+        {deferredQuery.trim() ? translate("auto.components.QuickOpen.b227d88520", "{{value0}} files found", { value0: filtered.length }) : ''}
       </div>
     </CommandDialog>
   )

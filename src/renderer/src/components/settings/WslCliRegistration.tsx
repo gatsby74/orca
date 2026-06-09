@@ -118,8 +118,8 @@ export function WslCliRegistration({
             <Label>{translate("auto.components.settings.WslCliRegistration.d9c6880dbd", "WSL shell command")}</Label>
             <p className="text-xs text-muted-foreground">
               {loading
-                ? 'Checking WSL CLI registration...'
-                : (status?.detail ?? 'Register `orca-ide` in ~/.local/bin inside WSL.')}
+                ? translate("auto.components.settings.WslCliRegistration.0307677bb9", "Checking WSL CLI registration...")
+                : (status?.detail ?? translate("auto.components.settings.WslCliRegistration.7aa456a460", "Register `orca-ide` in ~/.local/bin inside WSL."))}
             </p>
           </div>
           <div className="flex items-center gap-2">
@@ -165,7 +165,7 @@ export function WslCliRegistration({
           </p>
         ) : null}
 
-        {status?.state === 'stale' && status.currentTarget ? (
+        {status?.state === "stale" && status.currentTarget ? (
           <p className="text-xs text-amber-600 dark:text-amber-400">
             {translate("auto.components.settings.WslCliRegistration.1dbb0377d9", "Existing launcher target:")}<code>{status.currentTarget}</code>
           </p>
@@ -177,13 +177,13 @@ export function WslCliRegistration({
           <DialogHeader>
             <DialogTitle>
               {isEnabled
-                ? `Remove \`${commandName}\` from WSL?`
-                : `Register \`${commandName}\` in WSL?`}
+                ? translate("auto.components.settings.WslCliRegistration.61ac55278e", "Remove `{{value0}}` from WSL?", { value0: commandName })
+                : translate("auto.components.settings.WslCliRegistration.e49688f67f", "Register `{{value0}}` in WSL?", { value0: commandName })}
             </DialogTitle>
             <DialogDescription>
               {isEnabled
-                ? 'This removes the WSL shell command. Orca itself remains installed on Windows.'
-                : `Orca will register ${status?.commandPath ?? commandName} so the command works from WSL terminals.`}
+                ? translate("auto.components.settings.WslCliRegistration.d8216eb22e", "This removes the WSL shell command. Orca itself remains installed on Windows.")
+                : translate("auto.components.settings.WslCliRegistration.7ee4e52b99", "Orca will register {{value0}} so the command works from WSL terminals.", { value0: status?.commandPath ?? commandName })}
             </DialogDescription>
           </DialogHeader>
           {status?.commandPath ? (
@@ -203,13 +203,13 @@ export function WslCliRegistration({
               onClick={() => void (isEnabled ? handleRemove() : handleInstall())}
               disabled={busyAction !== null || !isSupported}
             >
-              {busyAction === 'remove'
-                ? 'Removing...'
-                : busyAction === 'install'
-                  ? 'Registering...'
+              {busyAction === "remove"
+                ? translate("auto.components.settings.WslCliRegistration.4598b18464", "Removing...")
+                : busyAction === "install"
+                  ? translate("auto.components.settings.WslCliRegistration.4c4a9178a3", "Registering...")
                   : isEnabled
-                    ? 'Remove'
-                    : 'Register'}
+                    ? translate("auto.components.settings.WslCliRegistration.f951f85196", "Remove")
+                    : translate("auto.components.settings.WslCliRegistration.290bfff3ab", "Register")}
             </Button>
           </DialogFooter>
         </DialogContent>

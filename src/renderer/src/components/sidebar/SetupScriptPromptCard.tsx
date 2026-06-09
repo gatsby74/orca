@@ -426,7 +426,7 @@ function SetupScriptPromptCard(): React.JSX.Element | null {
           />
         ) : candidate ? (
           <SaveLocalSetupAction isSaving={isImporting} onSave={() => void handleImport()} />
-        ) : promptState.status === 'ok' ? (
+        ) : promptState.status === "ok" ? (
           <ConfigureOnlyAction onConfigure={handleConfigure} />
         ) : null}
       </div>

@@ -81,7 +81,7 @@ export function SortableTabContextMenu({
         <DropdownMenuSeparator />
         <DropdownMenuItem onSelect={onTogglePin}>
           {isPinned ? <PinOff className="mr-1.5 size-3.5" /> : <Pin className="mr-1.5 size-3.5" />}
-          {isPinned ? 'Unpin Tab' : 'Pin Tab'}
+          {isPinned ? translate("auto.components.tab.bar.SortableTabContextMenu.417722e9c2", "Unpin Tab") : translate("auto.components.tab.bar.SortableTabContextMenu.60f958ec75", "Pin Tab")}
         </DropdownMenuItem>
         <DropdownMenuSeparator />
         <DropdownMenuItem onSelect={() => !isPinned && onClose(tab.id)} disabled={isPinned}>

@@ -762,7 +762,7 @@ function PRReviewersPanel({
         return
       }
       if (!result.ok) {
-        toast.error(result.error ?? 'Failed to request reviewer')
+        toast.error(result.error ?? translate("auto.components.PullRequestPage.2560588245", "Failed to request reviewer"))
         return
       }
       const nextReviewRequests = buildRequestedReviewUsers(
@@ -822,7 +822,7 @@ function PRReviewersPanel({
         return
       }
       if (!result.ok) {
-        toast.error(result.error ?? 'Failed to remove reviewer')
+        toast.error(result.error ?? translate("auto.components.PullRequestPage.c798fa0ec7", "Failed to remove reviewer"))
         return
       }
       const removed = new Set(logins.map((login) => login.toLowerCase()))
@@ -1090,8 +1090,8 @@ function PRReviewersPanel({
                 <div className="px-3 py-2 text-[13px] text-muted-foreground">
                   {reviewerMetadata.error ??
                     (hasReviewerMetadata
-                      ? 'No matching reviewers.'
-                      : 'Open the PR details to view current reviewers.')}
+                      ? translate("auto.components.PullRequestPage.5ad00c7a0e", "No matching reviewers.")
+                      : translate("auto.components.PullRequestPage.56ec6eafb7", "Open the PR details to view current reviewers."))}
                 </div>
               )}
             </div>
@@ -1563,7 +1563,7 @@ function PRViewedCheckbox({
         </button>
       </TooltipTrigger>
       <TooltipContent side="bottom" sideOffset={4}>
-        {checked ? 'Unmark viewed' : 'Mark viewed'}
+        {checked ? translate("auto.components.PullRequestPage.2b4fdb880c", "Unmark viewed") : translate("auto.components.PullRequestPage.50b8fb290f", "Mark viewed")}
       </TooltipContent>
     </Tooltip>
   )
@@ -2125,7 +2125,7 @@ function PRFilesCombinedDiffViewer({
         body
       })
       if (!result.ok) {
-        toast.error(result.error || 'Failed to add review comment.')
+        toast.error(result.error || translate("auto.components.PullRequestPage.19628e058d", "Failed to add review comment."))
         return false
       }
       onCommentAdded(result.comment)
@@ -2170,7 +2170,7 @@ function PRFilesCombinedDiffViewer({
                   type="button"
                   variant="ghost"
                   size="icon-xs"
-                  aria-label="Show file tree"
+                  aria-label={translate("auto.components.PullRequestPage.319cf2d54b", "Show file tree")}
                   onClick={() => setFileTreeCollapsed(false)}
                 >
                   <PanelLeftOpen className="size-3.5" />
@@ -2189,14 +2189,14 @@ function PRFilesCombinedDiffViewer({
             className="w-20 text-left text-xs text-muted-foreground transition-colors hover:text-foreground"
             onClick={() => setAllSectionsCollapsed(!allSectionsCollapsed)}
           >
-            {allSectionsCollapsed ? 'Expand All' : 'Collapse All'}
+            {allSectionsCollapsed ? translate("auto.components.PullRequestPage.eb722a5a8c", "Expand All") : translate("auto.components.PullRequestPage.dd94111c18", "Collapse All")}
           </button>
           <button
             type="button"
             className="w-24 rounded border border-border px-2 py-0.5 text-center text-xs text-muted-foreground transition-colors hover:text-foreground"
             onClick={() => setSideBySide((prev) => !prev)}
           >
-            {sideBySide ? 'Inline' : 'Side by Side'}
+            {sideBySide ? translate("auto.components.PullRequestPage.e5f4a24f78", "Inline") : translate("auto.components.PullRequestPage.1378d79e83", "Side by Side")}
           </button>
         </div>
       </div>
@@ -2404,12 +2404,12 @@ function CommentCodeContext({
           <span className="truncate font-mono">{comment.path}</span>
           <span className="shrink-0 font-mono">
             L{from}
-            {to !== from ? `-L${to}` : ''}
+            {to !== from ? translate("auto.components.PullRequestPage.84fc40769a", "-L{{value0}}", { value0: to }) : ''}
           </span>
           {(from !== commentFrom || to !== commentTo) && (
             <span className="shrink-0 font-mono text-muted-foreground/70">
               {translate("auto.components.PullRequestPage.791ddede19", "comment L")}{commentFrom}
-              {commentTo !== commentFrom ? `-L${commentTo}` : ''}
+              {commentTo !== commentFrom ? translate("auto.components.PullRequestPage.84fc40769a", "-L{{value0}}", { value0: commentTo }) : ''}
             </span>
           )}
         </div>
@@ -2426,7 +2426,7 @@ function CommentCodeContext({
                     setContextBefore(0)
                     setContextAfter(0)
                   }}
-                  aria-label="Reset code context"
+                  aria-label={translate("auto.components.PullRequestPage.5f3e293517", "Reset code context")}
                 >
                   <UndoDot className="size-3.5" />
                 </Button>
@@ -2703,7 +2703,7 @@ function ConversationTab({
             })
 
       if (!result.ok) {
-        toast.error(result.error || 'Failed to post reply.')
+        toast.error(result.error || translate("auto.components.PullRequestPage.5821aab360", "Failed to post reply."))
         return false
       }
       onCommentAdded(result.comment)
@@ -2779,7 +2779,7 @@ function ConversationTab({
         {comment.path && (
           <span className="min-w-0 truncate font-mono text-[11px] text-muted-foreground/70">
             {comment.path.split('/').pop()}
-            {comment.line ? `:L${comment.line}` : ''}
+            {comment.line ? translate("auto.components.PullRequestPage.34b9f7c264", ":L{{value0}}", { value0: comment.line }) : ''}
           </span>
         )}
         {comment.isResolved && (
@@ -2812,7 +2812,7 @@ function ConversationTab({
                   size="icon-xs"
                   className="size-7"
                   onClick={() => window.api.shell.openUrl(comment.url)}
-                  aria-label="Open comment on GitHub"
+                  aria-label={translate("auto.components.PullRequestPage.0ac19bb52e", "Open comment on GitHub")}
                 >
                   <ExternalLink className="size-3.5" />
                 </Button>
@@ -2843,7 +2843,7 @@ function ConversationTab({
           <CommentReplyForm
             className="mt-3"
             placeholder={
-              comment.path ? 'Reply in this review thread' : `Reply to @${comment.author}`
+              comment.path ? translate("auto.components.PullRequestPage.408e634fbb", "Reply in this review thread") : translate("auto.components.PullRequestPage.31a7b202f2", "Reply to @{{value0}}", { value0: comment.author })
             }
             mentionOptions={mentionOptions}
             onCancel={() => setReplyingTo(null)}
@@ -2881,7 +2881,9 @@ function ConversationTab({
         >
           <AccordionTrigger className="px-3 py-2 text-[13px] text-muted-foreground hover:bg-accent/30">
             <span className="min-w-0 truncate">
-              {translate("auto.components.PullRequestPage.f4fe47c2bb", "Resolved")}{group.kind === 'thread' ? 'thread' : 'comment'} {translate("auto.components.PullRequestPage.3c891789f6", "by")}{root.author}
+              {translate("auto.components.PullRequestPage.f4fe47c2bb", "Resolved")}{' '}
+              {group.kind === 'thread' ? translate("auto.components.PullRequestPage.345b68254c", "thread") : translate("auto.components.PullRequestPage.e01e34f5fa", "comment")}{' '}
+              {translate("auto.components.PullRequestPage.3c891789f6", "by")} {root.author}
               {count > 1 ? ` (${count})` : ''}
             </span>
           </AccordionTrigger>
@@ -2907,7 +2909,7 @@ function ConversationTab({
         <div className="rounded-lg border border-border/50 bg-card shadow-xs">
           <div className="flex items-center gap-2 border-b border-border/50 px-3 py-2 text-[12px] text-muted-foreground">
             <span className="font-medium text-foreground">{authorLabel}</span>
-            <span>{translate("auto.components.PullRequestPage.169a93b29a", "updated")}{formatRelativeTime(item.updatedAt)}</span>
+            <span>{translate("auto.components.PullRequestPage.169a93b29a", "updated")} {formatRelativeTime(item.updatedAt)}</span>
             {canEditBody && !loading && detailsLoaded ? (
               bodyEditing ? (
                 <div className="ml-auto flex items-center gap-1">
@@ -3255,7 +3257,7 @@ function PRActionsPanel({
               </DropdownMenuTrigger>
             </TooltipTrigger>
             <TooltipContent side="bottom" sideOffset={6}>
-              {!repoPath ? 'Merge requires a registered local repo' : mergePresentation.tooltip}
+              {!repoPath ? translate("auto.components.PullRequestPage.eca289e593", "Merge requires a registered local repo") : mergePresentation.tooltip}
             </TooltipContent>
           </Tooltip>
           <DropdownMenuContent align="start" className="w-52">
@@ -3304,7 +3306,7 @@ function PRActionsPanel({
           ) : (
             <CircleDot className="size-3.5" />
           )}
-          {nextState === 'closed' ? 'Close pull request' : 'Reopen PR'}
+          {nextState === 'closed' ? translate("auto.components.PullRequestPage.96d013ed28", "Close pull request") : translate("auto.components.PullRequestPage.9d5425918e", "Reopen PR")}
         </Button>
       </div>
     </aside>
@@ -3406,7 +3408,7 @@ function CommentReplyForm({
         <Button variant="ghost" size="sm" onClick={onCancel}>
           {translate("auto.components.PullRequestPage.6591b1fa82", "Cancel")}</Button>
         <Button size="sm" disabled={!body.trim() || submitting} onClick={() => void submit()}>
-          {submitting ? 'Posting…' : 'Reply'}
+          {submitting ? translate("auto.components.PullRequestPage.894cfd884b", "Posting…") : translate("auto.components.PullRequestPage.f119e5f5ef", "Reply")}
         </Button>
       </div>
     </div>
@@ -3629,7 +3631,7 @@ function ChecksTab({
         agentOverride: agent,
         agentArgs,
         openModalFallback: () => {
-          toast.error('Unable to create a fix workspace automatically.')
+          toast.error(translate("auto.components.PullRequestPage.c4c02ea23e", "Unable to create a fix workspace automatically."))
         }
       })
     },
@@ -3844,7 +3846,7 @@ function ChecksTab({
             ) : (
               <Wrench className="size-3" />
             )}
-            {variant === 'compact' ? 'Fix checks' : 'Fix broken checks'}
+            {variant === "compact" ? translate("auto.components.PullRequestPage.c808db1dd1", "Fix checks") : translate("auto.components.PullRequestPage.a4541fd3db", "Fix broken checks")}
           </Button>
         </TooltipTrigger>
         <TooltipContent side="bottom" sideOffset={6}>
@@ -3888,7 +3890,7 @@ function ChecksTab({
       rerunAction ? (
       <div className="flex min-w-0 flex-wrap items-center justify-end gap-1.5">
         {fixBrokenChecksAction}
-        {variant === 'page' ? rerunAction : null}
+        {variant === "page" ? rerunAction : null}
       </div>
     ) : null
   const actions = (
@@ -4046,7 +4048,7 @@ function ChecksTab({
                     >
                       <div className="flex min-w-0 items-center gap-2">
                         <span className="min-w-0 truncate font-mono text-[11px] text-muted-foreground">
-                          {annotation.path ?? 'Annotation'}
+                          {annotation.path ?? translate("auto.components.PullRequestPage.35a0573f41", "Annotation")}
                           {annotation.startLine ? `:${annotation.startLine}` : ''}
                         </span>
                         {annotation.annotationLevel && (
@@ -4092,7 +4094,7 @@ function ChecksTab({
                           {job.name}
                         </span>
                         <span className="shrink-0 text-[11px] text-muted-foreground">
-                          {job.conclusion ?? job.status ?? 'unknown'}
+                          {job.conclusion ?? job.status ?? translate("auto.components.PullRequestPage.77d9388fb0", "unknown")}
                         </span>
                       </div>
                       {job.steps.length > 0 && (
@@ -4169,7 +4171,7 @@ function ChecksTab({
   if (loading && list.length === 0) {
     return (
       <>
-        {variant === 'compact' ? compactHeader : null}
+        {variant === "compact" ? compactHeader : null}
         <div className="flex items-center justify-center py-10">
           <LoaderCircle className="size-5 animate-spin text-muted-foreground" />
         </div>
@@ -5068,7 +5070,7 @@ function GHCommentComposer({
         // the real login/avatar immediately instead of waiting for a reopen.
         onCommentAdded(result.comment)
       } else {
-        toast.error(result.error ?? 'Failed to add comment')
+        toast.error(result.error ?? translate("auto.components.PullRequestPage.1208347ac0", "Failed to add comment"))
       }
     } catch (err) {
       if (mountedRef.current) {
@@ -5649,7 +5651,7 @@ export default function PullRequestPage({
                 </Button>
               </TooltipTrigger>
               <TooltipContent side="bottom" sideOffset={6}>
-                {linkCopied ? 'Copied' : 'Copy GitHub link'}
+                {linkCopied ? translate("auto.components.PullRequestPage.3b6886b2ee", "Copied") : translate("auto.components.PullRequestPage.347034903a", "Copy GitHub link")}
               </TooltipContent>
             </Tooltip>
             <Tooltip>
@@ -5693,7 +5695,7 @@ export default function PullRequestPage({
                       : translate("auto.components.PullRequestPage.25690a3855", "Start workspace from PR")
                   }
                 >
-                  {attachedWorkspace ? 'Resume workspace' : 'Start workspace from PR'}
+                  {attachedWorkspace ? translate("auto.components.PullRequestPage.c9e7094a7b", "Resume workspace") : translate("auto.components.PullRequestPage.25690a3855", "Start workspace from PR")}
                   <ArrowRight className="size-3.5" />
                 </Button>
                 <DropdownMenuTrigger asChild>
@@ -5726,7 +5728,7 @@ export default function PullRequestPage({
             {stateBadgeLabel}
           </span>
           <span className="flex flex-wrap items-center gap-1.5">
-            <span className="font-semibold text-foreground">{workItem.author ?? 'unknown'}</span>
+            <span className="font-semibold text-foreground">{workItem.author ?? translate("auto.components.PullRequestPage.77d9388fb0", "unknown")}</span>
             <span>{translate("auto.components.PullRequestPage.b0e80f083d", "wants to merge into")}</span>
             {baseBranch ? (
               <span className="rounded-md bg-accent/40 px-1.5 py-0.5 font-mono text-[12px] text-accent-foreground">

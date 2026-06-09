@@ -3003,7 +3003,7 @@ export const createGitHubSlice: StateCreator<AppState, [], [], GitHubSlice> = (s
       // pill visually reverts (optimistic patch above → resync via
       // fetchRepos below). Without this toast, the UI silently snaps back
       // and the user has no clue the write failed.
-      toast.error('Failed to save issue-source preference', {
+      toast.error(translate("auto.store.slices.github.d49ef4b944", "Failed to save issue-source preference"), {
         duration: ERROR_TOAST_DURATION
       })
       // Why: the optimistic patch above may now disagree with disk. Resync

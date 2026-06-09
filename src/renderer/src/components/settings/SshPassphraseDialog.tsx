@@ -99,7 +99,7 @@ export function SshPassphraseDialog(): React.JSX.Element | null {
       <DialogContent showCloseButton={false} className="max-w-[360px]">
         <DialogHeader>
           <DialogTitle className="text-sm">
-            {isPassword ? 'SSH Password' : 'SSH Key Passphrase'}
+            {isPassword ? translate("auto.components.settings.SshPassphraseDialog.106bd57f4a", "SSH Password") : translate("auto.components.settings.SshPassphraseDialog.1f3dde805d", "SSH Key Passphrase")}
           </DialogTitle>
           <DialogDescription className="text-xs">
             {isPassword ? (
@@ -118,7 +118,7 @@ export function SshPassphraseDialog(): React.JSX.Element | null {
             htmlFor="ssh-credential-input"
             className="text-[11px] font-medium text-muted-foreground mb-1 block"
           >
-            {isPassword ? `Password for ${request.detail}` : `Passphrase for ${request.detail}`}
+            {isPassword ? translate("auto.components.settings.SshPassphraseDialog.cab3d5f5a5", "Password for {{value0}}", { value0: request.detail }) : translate("auto.components.settings.SshPassphraseDialog.8a349e3fac", "Passphrase for {{value0}}", { value0: request.detail })}
           </label>
           <Input
             id="ssh-credential-input"
@@ -146,7 +146,7 @@ export function SshPassphraseDialog(): React.JSX.Element | null {
           >
             {translate("auto.components.settings.SshPassphraseDialog.d5a234456f", "Cancel")}</Button>
           <Button size="sm" onClick={() => void handleSubmit()} disabled={!value || submitting}>
-            {isPassword ? 'Connect' : 'Unlock'}
+            {isPassword ? translate("auto.components.settings.SshPassphraseDialog.bec2c1318f", "Connect") : translate("auto.components.settings.SshPassphraseDialog.405066423c", "Unlock")}
           </Button>
         </DialogFooter>
       </DialogContent>

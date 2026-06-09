@@ -190,7 +190,7 @@ export function LinearIssueTextEditor({
       : 'text-[15px] font-semibold leading-tight'
   return (
     <div className="min-w-0">
-      {fields !== 'description' ? (
+      {fields !== "description" ? (
         <div className="relative">
           <textarea
             ref={titleRef}
@@ -212,13 +212,13 @@ export function LinearIssueTextEditor({
             </kbd>
             <span>{translate("auto.components.LinearIssueTextEditor.947ba2d6f4", "to save")}</span>
           </div>
-          {savingField === 'title' ? (
+          {savingField === "title" ? (
             <LoaderCircle className="absolute right-2 top-2 size-4 animate-spin text-muted-foreground" />
           ) : null}
         </div>
       ) : null}
 
-      {fields !== 'title' ? (
+      {fields !== "title" ? (
         <div className="relative">
           <LinearIssueMarkdownDescriptionEditor
             value={descriptionDraft}

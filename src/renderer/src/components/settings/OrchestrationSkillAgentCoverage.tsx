@@ -52,7 +52,7 @@ function AgentCoverageChip({
           status.installed ? 'text-status-success' : 'text-muted-foreground'
         )}
       >
-        {status.installed ? 'Ready' : 'Missing'}
+        {status.installed ? translate("auto.components.settings.OrchestrationSkillAgentCoverage.1e8f8d8fae", "Ready") : translate("auto.components.settings.OrchestrationSkillAgentCoverage.ffe13e36fb", "Missing")}
       </span>
     </span>
   )

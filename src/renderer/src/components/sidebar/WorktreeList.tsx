@@ -3037,7 +3037,7 @@ const VirtualizedWorktreeViewport = React.memo(function VirtualizedWorktreeViewp
                       </DropdownMenu>
                     ) : null}
 
-                    {row.repo && groupBy === 'repo' ? (
+                    {row.repo && groupBy === "repo" ? (
                       <DropdownMenu modal={false}>
                         <Tooltip>
                           <TooltipTrigger asChild>
@@ -3156,7 +3156,7 @@ const VirtualizedWorktreeViewport = React.memo(function VirtualizedWorktreeViewp
                       </DropdownMenu>
                     ) : null}
 
-                    {row.repo && groupBy === 'repo' ? (
+                    {row.repo && groupBy === "repo" ? (
                       <Tooltip>
                         <TooltipTrigger asChild>
                           {createState?.disabled ? (
@@ -3188,7 +3188,7 @@ const VirtualizedWorktreeViewport = React.memo(function VirtualizedWorktreeViewp
                               data-repo-header-action=""
                               className="size-5 shrink-0 rounded-md text-muted-foreground opacity-0 transition-opacity hover:bg-accent/70 hover:text-foreground focus:opacity-100 group-hover:opacity-100"
                               aria-label={
-                                createState?.ariaLabel ?? `Create workspace for ${row.label}`
+                                createState?.ariaLabel ?? translate("auto.components.sidebar.WorktreeList.bb85cd86ba", "Create workspace for {{value0}}", { value0: row.label })
                               }
                               onKeyDown={stopRepoHeaderKeyboardToggle}
                               onClick={(event) => {
@@ -3204,7 +3204,7 @@ const VirtualizedWorktreeViewport = React.memo(function VirtualizedWorktreeViewp
                           )}
                         </TooltipTrigger>
                         <TooltipContent side="bottom" sideOffset={6}>
-                          {createState?.tooltip ?? `Create workspace for ${row.label}`}
+                          {createState?.tooltip ?? translate("auto.components.sidebar.WorktreeList.bb85cd86ba", "Create workspace for {{value0}}", { value0: row.label })}
                         </TooltipContent>
                       </Tooltip>
                     ) : null}
@@ -3427,7 +3427,7 @@ const VirtualizedWorktreeViewport = React.memo(function VirtualizedWorktreeViewp
                             onBeginEditingConsumed={() => setRenamingWorktreeId(null)}
                           />
                           <div className="mt-1 flex min-w-0 items-center gap-1.5">
-                            {child.repo && groupBy !== 'repo' ? (
+                            {child.repo && groupBy !== "repo" ? (
                               <span className="flex h-[16px] shrink-0 items-center gap-1.5 rounded-[4px] border border-border bg-accent px-1.5 text-[10px] font-semibold leading-none text-foreground dark:bg-accent/50 dark:border-border/60">
                                 <RepoBadgeMark color={child.repo.badgeColor} />
                                 <span className="max-w-[6rem] truncate lowercase">
@@ -3479,7 +3479,7 @@ const VirtualizedWorktreeViewport = React.memo(function VirtualizedWorktreeViewp
                                     <Workflow className="size-2.5" />
                                     <span className="truncate">
                                       {child.lineageChildCount}{' '}
-                                      {child.lineageChildCount === 1 ? 'child' : 'children'}
+                                      {child.lineageChildCount === 1 ? translate("auto.components.sidebar.WorktreeList.0c6ee14f23", "child") : translate("auto.components.sidebar.WorktreeList.045a8aed48", "children")}
                                     </span>
                                     <ChevronDown
                                       className={cn(
@@ -3491,8 +3491,8 @@ const VirtualizedWorktreeViewport = React.memo(function VirtualizedWorktreeViewp
                                 </TooltipTrigger>
                                 <TooltipContent side="right" sideOffset={8}>
                                   {child.lineageCollapsed
-                                    ? 'Show child workspaces'
-                                    : 'Hide child workspaces'}
+                                    ? translate("auto.components.sidebar.WorktreeList.84a2238242", "Show child workspaces")
+                                    : translate("auto.components.sidebar.WorktreeList.ebc5c7dcef", "Hide child workspaces")}
                                 </TooltipContent>
                               </Tooltip>
                             </div>

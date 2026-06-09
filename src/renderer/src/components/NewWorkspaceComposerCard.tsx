@@ -128,7 +128,7 @@ function SetupCommandPreview({
     <div className="rounded-2xl border border-border/60 bg-muted/35 px-4 py-3 shadow-inner">
       <div className="mb-2 flex items-center justify-between gap-3">
         <div className="text-[11px] uppercase tracking-[0.18em] text-muted-foreground">
-          {setupConfig.source === 'both' ? 'Combined setup command' : 'Local setup command'}
+          {setupConfig.source === "both" ? translate("auto.components.NewWorkspaceComposerCard.e5db1b0419", "Combined setup command") : translate("auto.components.NewWorkspaceComposerCard.7711ad5122", "Local setup command")}
         </div>
         {headerAction}
       </div>
@@ -429,7 +429,7 @@ export default function NewWorkspaceComposerCard({
             >
               <div className="min-w-0">
                 <div className="truncate text-xs font-medium text-foreground">
-                  {translate("auto.components.NewWorkspaceComposerCard.b5a0796911", "Connect")}{selectedRepoName}
+                  {translate("auto.components.NewWorkspaceComposerCard.b5a0796911", "Connect")} {selectedRepoName}
                 </div>
                 <div className="mt-0.5 text-[11px] text-muted-foreground">{sshStatusLabel}</div>
               </div>
@@ -446,7 +446,7 @@ export default function NewWorkspaceComposerCard({
                 ) : (
                   <PlugZap className="size-3.5" />
                 )}
-                {selectedRepoConnectInProgress ? 'Connecting' : connectButtonLabel}
+                {selectedRepoConnectInProgress ? translate("auto.components.NewWorkspaceComposerCard.f660aa1454", "Connecting") : connectButtonLabel}
               </Button>
             </div>
           ) : null}
@@ -454,7 +454,7 @@ export default function NewWorkspaceComposerCard({
 
         <div className="min-w-0 space-y-1" data-contextual-tour-target="workspace-creation-name">
           <label className="block min-w-0 truncate text-xs font-medium text-muted-foreground">
-            {selectedRepoIsGit ? "Name or 'Create From'" : 'Workspace name'}{' '}
+            {selectedRepoIsGit ? translate("auto.components.NewWorkspaceComposerCard.ac3748dcda", "Name or 'Create From'") : translate("auto.components.NewWorkspaceComposerCard.0ee17638fe", "Workspace name")}{' '}
             <span className="text-muted-foreground/70">{translate("auto.components.NewWorkspaceComposerCard.0c5d6a479c", "[Optional]")}</span>
           </label>
           <SmartWorkspaceNameField
@@ -607,11 +607,11 @@ export default function NewWorkspaceComposerCard({
                       {setupConfigLabel}
                     </label>
                     <span className="rounded-full border border-border/70 bg-muted/45 px-2 py-0.5 text-[10px] font-medium uppercase tracking-[0.14em] text-foreground/70">
-                      {setupConfig.source === 'yaml'
-                        ? 'orca.yaml'
-                        : setupConfig.source === 'both'
-                          ? 'orca.yaml + local'
-                          : 'local settings'}
+                      {setupConfig.source === "yaml"
+                        ? translate("auto.components.NewWorkspaceComposerCard.23bb365554", "orca.yaml")
+                        : setupConfig.source === "both"
+                          ? translate("auto.components.NewWorkspaceComposerCard.326a578923", "orca.yaml + local")
+                          : translate("auto.components.NewWorkspaceComposerCard.92e34f0311", "local settings")}
                     </span>
                   </div>
 
@@ -678,8 +678,8 @@ export default function NewWorkspaceComposerCard({
                       {!setupDecision ? (
                         <div className="text-xs text-muted-foreground">
                           {shouldWaitForSetupCheck
-                            ? 'Checking setup configuration...'
-                            : 'Choose whether to run setup before creating this workspace.'}
+                            ? translate("auto.components.NewWorkspaceComposerCard.803b7fe72f", "Checking setup configuration...")
+                            : translate("auto.components.NewWorkspaceComposerCard.9a70e4859e", "Choose whether to run setup before creating this workspace.")}
                         </div>
                       ) : null}
                     </div>

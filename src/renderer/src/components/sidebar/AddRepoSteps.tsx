@@ -369,7 +369,7 @@ export function CloneStep({
           disabled={!cloneUrl.trim() || !cloneDestination.trim() || isCloning}
           className="w-full"
         >
-          {isCloning ? 'Cloning...' : 'Clone'}
+          {isCloning ? translate("auto.components.sidebar.AddRepoSteps.69f5b5380d", "Cloning...") : translate("auto.components.sidebar.AddRepoSteps.32a7256d85", "Clone")}
         </Button>
 
         {/* Why: progress bar lives below the button so it doesn't push the

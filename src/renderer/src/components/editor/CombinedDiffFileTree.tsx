@@ -253,7 +253,7 @@ export function CombinedDiffFileTree({
         {filteredEntries.length === 0 ? (
           <div className="px-3 py-6 text-center text-xs text-muted-foreground">
             {translate("auto.components.editor.CombinedDiffFileTree.f984289373", "No files match the current filters.")}</div>
-        ) : mode === 'uncommitted' ? (
+        ) : mode === "uncommitted" ? (
           uncommittedGroups.map((group) => (
             <div key={group.area} className="py-1">
               <div className="px-3 pb-1 text-[11px] font-semibold uppercase tracking-[0.05em] text-muted-foreground">

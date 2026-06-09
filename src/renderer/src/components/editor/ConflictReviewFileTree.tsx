@@ -182,7 +182,7 @@ function ConflictReviewFileTreeRow({
             : 'bg-muted text-muted-foreground'
         )}
       >
-        {isStillUnresolved ? 'Unresolved' : liveEntry ? 'Resolved' : 'Gone'}
+        {isStillUnresolved ? translate("auto.components.editor.ConflictReviewFileTree.69d4e210bb", "Unresolved") : liveEntry ? translate("auto.components.editor.ConflictReviewFileTree.8528a5eaf5", "Resolved") : translate("auto.components.editor.ConflictReviewFileTree.496e28a932", "Gone")}
       </span>
     </button>
   )

@@ -127,7 +127,7 @@ export function TabBarQuickCommandsButton({
     const confirmed = await confirm({
       title: translate("auto.components.tab.bar.TabBarQuickCommandsButton.e8e1a52edb", "Delete \"{{value0}}\"?", { value0: command.label }),
       description: translate("auto.components.tab.bar.TabBarQuickCommandsButton.3220e2da27", "This quick command will be removed from your saved list."),
-      confirmLabel: 'Delete',
+      confirmLabel: translate("auto.components.tab.bar.TabBarQuickCommandsButton.be8f0ff166", "Delete"),
       confirmVariant: 'destructive'
     })
     if (!confirmed) {
@@ -256,16 +256,16 @@ export function TabBarQuickCommandsButton({
             >
               <Play className="size-3 shrink-0" fill="currentColor" strokeWidth={0} />
               <span className="max-w-[160px] truncate text-[12px] font-medium">
-                {mostRecent?.label ?? 'Run'}
+                {mostRecent?.label ?? translate("auto.components.tab.bar.TabBarQuickCommandsButton.7b1c9d6ae1", "Run")}
               </span>
             </button>
           </TooltipTrigger>
           <TooltipContent side="bottom" sideOffset={6}>
             {mostRecent
               ? isTerminalAgentQuickCommand(mostRecent)
-                ? `Start ${getAgentLabel(mostRecent.agent)}: ${getTerminalQuickCommandBody(mostRecent)}`
-                : `Run: ${getTerminalQuickCommandBody(mostRecent)}`
-              : 'Run quick command'}
+                ? translate("auto.components.tab.bar.TabBarQuickCommandsButton.77ac113df0", "Start {{value0}}: {{value1}}", { value0: getAgentLabel(mostRecent.agent), value1: getTerminalQuickCommandBody(mostRecent) })
+                : translate("auto.components.tab.bar.TabBarQuickCommandsButton.37e1bb90ce", "Run: {{value0}}", { value0: getTerminalQuickCommandBody(mostRecent) })
+              : translate("auto.components.tab.bar.TabBarQuickCommandsButton.85482c57bc", "Run quick command")}
           </TooltipContent>
         </Tooltip>
         <DropdownMenu modal={false} open={menuOpen} onOpenChange={handleOpenChange}>

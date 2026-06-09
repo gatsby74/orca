@@ -311,7 +311,7 @@ function Settings(): React.JSX.Element {
     const shouldDiscard = await confirm({
       title: translate("auto.components.settings.Settings.17bdee4ff1", "Discard unsaved Git AI Author changes?"),
       description: translate("auto.components.settings.Settings.43b68e10f0", "You have unsaved Git AI Author changes. Leaving will discard them."),
-      confirmLabel: 'Discard',
+      confirmLabel: translate("auto.components.settings.Settings.65358016ea", "Discard"),
       confirmVariant: 'destructive'
     })
     if (shouldDiscard) {

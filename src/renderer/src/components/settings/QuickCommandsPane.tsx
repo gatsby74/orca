@@ -176,7 +176,7 @@ export function QuickCommandsPane({
       const [first, ...rest] = selectedRepos
       parts.push(rest.length > 0 ? `${first.displayName} +${rest.length}` : first.displayName)
     }
-    return <span className="truncate">{parts.join(', ') || 'None'}</span>
+    return <span className="truncate">{parts.join(', ') || translate("auto.components.settings.QuickCommandsPane.d1d0976320", "None")}</span>
   }
 
   const saveCommand = (next: TerminalQuickCommand): void => {
@@ -195,7 +195,7 @@ export function QuickCommandsPane({
     const confirmed = await confirm({
       title: translate("auto.components.settings.QuickCommandsPane.3edf3deaf8", "Delete \"{{value0}}\"?", { value0: command.label || 'Untitled' }),
       description: translate("auto.components.settings.QuickCommandsPane.3d9dc558e8", "This quick command will be removed from your saved list."),
-      confirmLabel: 'Delete',
+      confirmLabel: translate("auto.components.settings.QuickCommandsPane.ec1ed99e70", "Delete"),
       confirmVariant: 'destructive'
     })
     if (!confirmed) {
@@ -313,8 +313,8 @@ export function QuickCommandsPane({
         {visibleCommands.length === 0 ? (
           <div className="px-3 py-6 text-sm text-muted-foreground">
             {commands.length === 0
-              ? 'No quick commands saved.'
-              : 'No commands in the selected scopes.'}
+              ? translate("auto.components.settings.QuickCommandsPane.38d61927e6", "No quick commands saved.")
+              : translate("auto.components.settings.QuickCommandsPane.3eb9897ab0", "No commands in the selected scopes.")}
           </div>
         ) : (
           <div className="max-h-[60vh] space-y-2 overflow-y-auto p-2 scrollbar-sleek">
@@ -328,7 +328,7 @@ export function QuickCommandsPane({
                   <div className="min-w-0 flex-1">
                     <div className="flex min-w-0 items-center gap-2">
                       <div className="truncate text-sm font-medium">
-                        {command.label || 'Untitled'}
+                        {command.label || translate("auto.components.settings.QuickCommandsPane.2bb9e38e93", "Untitled")}
                       </div>
                       <Badge variant="outline" className="max-w-44 gap-1.5">
                         {scope.type === 'repo' ? (
@@ -355,16 +355,16 @@ export function QuickCommandsPane({
                       >
                         {isTerminalAgentQuickCommand(command)
                           ? `${getAgentLabel(command.agent)}: ${getTerminalQuickCommandBody(command)}`
-                          : getTerminalQuickCommandBody(command) || 'No command text'}
+                          : getTerminalQuickCommandBody(command) || translate("auto.components.settings.QuickCommandsPane.0252ddd578", "No command text")}
                       </span>
                     </div>
                   </div>
                   <div className="shrink-0 text-[11px] font-medium text-foreground/75">
                     {isTerminalAgentQuickCommand(command)
-                      ? 'Agent'
+                      ? translate("auto.components.settings.QuickCommandsPane.4ccc63da87", "Agent")
                       : command.appendEnter
-                        ? 'Enter'
-                        : 'Insert'}
+                        ? translate("auto.components.settings.QuickCommandsPane.9b3e338d62", "Enter")
+                        : translate("auto.components.settings.QuickCommandsPane.9fcfc29519", "Insert")}
                   </div>
                   <Button
                     type="button"

@@ -111,15 +111,15 @@ export function VoicePane({ settings, updateSettings }: VoicePaneProps): React.J
         window.api.developerPermissions.request({ id: 'microphone' }),
       setPermissionPending,
       isMounted: () => mountedRef.current,
-      notifyPermissionGranted: () => toast.success('Microphone permission granted'),
+      notifyPermissionGranted: () => toast.success(translate("auto.components.settings.VoicePane.cd9fe37556", "Microphone permission granted")),
       notifyPermissionOpenedSystemSettings: () =>
         toast.message(
-          'Opened macOS Privacy & Security. Enable dictation again after granting access.'
+          translate("auto.components.settings.VoicePane.1eac933202", "Opened macOS Privacy & Security. Enable dictation again after granting access.")
         ),
       notifyPermissionRequired: () =>
-        toast.message('Microphone permission is required before enabling voice dictation.'),
+        toast.message(translate("auto.components.settings.VoicePane.f9a9cf6928", "Microphone permission is required before enabling voice dictation.")),
       notifyPermissionRequestFailed: () =>
-        toast.error('Could not request microphone permission. Voice dictation was not enabled.')
+        toast.error(translate("auto.components.settings.VoicePane.ad5d036ecc", "Could not request microphone permission. Voice dictation was not enabled."))
     })
   }
 
@@ -193,7 +193,8 @@ export function VoicePane({ settings, updateSettings }: VoicePaneProps): React.J
         <div className="space-y-0.5">
           <Label>{translate("auto.components.settings.VoicePane.0121960365", "Enable Voice Dictation")}</Label>
           <p className="text-xs text-muted-foreground">
-            {translate("auto.components.settings.VoicePane.4465596675", "Press")}{shortcutLabel} {translate("auto.components.settings.VoicePane.366e1b4f36", "to dictate text into any focused pane.")}</p>
+            {translate("auto.components.settings.VoicePane.4465596675", "Press")} {shortcutLabel}{' '}
+            {translate("auto.components.settings.VoicePane.366e1b4f36", "to dictate text into any focused pane.")}</p>
         </div>
         <button
           role="switch"
@@ -220,7 +221,8 @@ export function VoicePane({ settings, updateSettings }: VoicePaneProps): React.J
         <div className="space-y-0.5">
           <Label>{translate("auto.components.settings.VoicePane.ba4a900d1d", "Dictation Mode")}</Label>
           <p className="text-xs text-muted-foreground">
-            {translate("auto.components.settings.VoicePane.ff9a680010", "Toggle: press")}{shortcutLabel} {translate("auto.components.settings.VoicePane.295d84b849", "once to start, again to stop. Hold: dictate while")}{' '}
+            {translate("auto.components.settings.VoicePane.ff9a680010", "Toggle: press")} {shortcutLabel}{' '}
+            {translate("auto.components.settings.VoicePane.295d84b849", "once to start, again to stop. Hold: dictate while")}{' '}
             {shortcutLabel} {translate("auto.components.settings.VoicePane.7cf715f891", "is held.")}</p>
         </div>
         <div className="flex shrink-0 items-center rounded-md border border-border/60 bg-background/50 p-0.5">
@@ -235,7 +237,7 @@ export function VoicePane({ settings, updateSettings }: VoicePaneProps): React.J
                   : 'text-muted-foreground hover:text-foreground'
               } ${!voiceSettings.enabled ? 'opacity-50 cursor-not-allowed' : ''}`}
             >
-              {mode === 'toggle' ? 'Toggle' : 'Hold'}
+              {mode === "toggle" ? translate("auto.components.settings.VoicePane.118b3c2dee", "Toggle") : translate("auto.components.settings.VoicePane.174da92062", "Hold")}
             </button>
           ))}
         </div>
@@ -249,7 +251,7 @@ export function VoicePane({ settings, updateSettings }: VoicePaneProps): React.J
           <p className="text-xs text-muted-foreground">
             {selectedModel && selectedIsReady
               ? `${selectedModel.label} — ${selectedModel.description}`
-              : 'Select a speech model. Local models run offline; cloud models require an API key.'}
+              : translate("auto.components.settings.VoicePane.e24f7d43d2", "Select a speech model. Local models run offline; cloud models require an API key.")}
           </p>
         </div>
         <DropdownMenu>
@@ -260,7 +262,7 @@ export function VoicePane({ settings, updateSettings }: VoicePaneProps): React.J
               disabled={!voiceSettings.enabled}
               className="shrink-0 gap-1.5"
             >
-              {selectedModel && selectedIsReady ? selectedModel.label : 'Select Model'}
+              {selectedModel && selectedIsReady ? selectedModel.label : translate("auto.components.settings.VoicePane.fbe5990716", "Select Model")}
               <ChevronDown className="size-3 opacity-50" />
             </Button>
           </DropdownMenuTrigger>
@@ -307,7 +309,7 @@ export function VoicePane({ settings, updateSettings }: VoicePaneProps): React.J
                       <span className="text-sm font-medium">{manifest.label}</span>
                       {!isCloud && (
                         <span className="text-[10px] px-1 py-px rounded-full leading-none bg-muted text-muted-foreground">
-                          {manifest.streaming ? 'streaming' : 'offline'}
+                          {manifest.streaming ? translate("auto.components.settings.VoicePane.d504ab05f0", "streaming") : translate("auto.components.settings.VoicePane.8f4d2a51d7", "offline")}
                         </span>
                       )}
                       {manifest.recommended && (
@@ -316,12 +318,12 @@ export function VoicePane({ settings, updateSettings }: VoicePaneProps): React.J
                       )}
                       <span className="text-[10px] text-muted-foreground/60">
                         {isDownloading && mState?.progress !== undefined
-                          ? mState.status === 'extracting'
-                            ? 'Extracting...'
+                          ? mState.status === "extracting"
+                            ? translate("auto.components.settings.VoicePane.61a16c8141", "Extracting...")
                             : `${Math.round(mState.progress * 100)}%`
                           : isCloud
                             ? null
-                            : `${sizeMb} MB`}
+                            : translate("auto.components.settings.VoicePane.91980ce124", "{{value0}} MB", { value0: sizeMb })}
                       </span>
                     </div>
                     <p className="text-[11px] text-muted-foreground mt-0.5 leading-snug">

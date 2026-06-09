@@ -145,7 +145,7 @@ export function CodexUsagePane(): React.JSX.Element {
           <h3 className="text-sm font-semibold text-foreground">{translate("auto.components.stats.CodexUsagePane.408210470c", "Codex Usage Tracking")}</h3>
           <p className="mt-1 text-xs text-muted-foreground">
             {formatUpdatedAt(scanState.lastScanCompletedAt)}
-            {scanState.lastScanError ? ` • Last scan error: ${scanState.lastScanError}` : ''}
+            {scanState.lastScanError ? translate("auto.components.stats.CodexUsagePane.8a6655f7a2", " • Last scan error: {{value0}}", { value0: scanState.lastScanError }) : ''}
           </p>
         </div>
         <div className="flex shrink-0 items-center gap-2 self-start">
@@ -275,7 +275,7 @@ export function CodexUsagePane(): React.JSX.Element {
               <div className="mb-3">
                 <h4 className="text-sm font-semibold text-foreground">{translate("auto.components.stats.CodexUsagePane.5a0d1d69cd", "By model")}</h4>
                 <p className="text-xs text-muted-foreground">
-                  {translate("auto.components.stats.CodexUsagePane.95d2d89285", "Top model:")}{summary?.topModel ?? 'n/a'}
+                  {translate("auto.components.stats.CodexUsagePane.95d2d89285", "Top model:")}{summary?.topModel ?? translate("auto.components.stats.CodexUsagePane.ae255c3dba", "n/a")}
                 </p>
               </div>
               <div className="space-y-3">
@@ -288,7 +288,7 @@ export function CodexUsagePane(): React.JSX.Element {
                       </span>
                     </div>
                     <div className="text-xs text-muted-foreground">
-                      {row.sessions} {translate("auto.components.stats.CodexUsagePane.bf1bf2f674", "sessions •")}{row.events} {translate("auto.components.stats.CodexUsagePane.79a69522a5", "events")}{row.hasInferredPricing ? ' • inferred pricing' : ''}
+                      {row.sessions} {translate("auto.components.stats.CodexUsagePane.bf1bf2f674", "sessions •")}{row.events} {translate("auto.components.stats.CodexUsagePane.79a69522a5", "events")}{row.hasInferredPricing ? translate("auto.components.stats.CodexUsagePane.247c93ca92", "• inferred pricing") : ''}
                     </div>
                   </div>
                 ))}
@@ -299,7 +299,7 @@ export function CodexUsagePane(): React.JSX.Element {
               <div className="mb-3">
                 <h4 className="text-sm font-semibold text-foreground">{translate("auto.components.stats.CodexUsagePane.b98718aaab", "By project")}</h4>
                 <p className="text-xs text-muted-foreground">
-                  {translate("auto.components.stats.CodexUsagePane.829ee743f2", "Top project:")}{summary?.topProject ?? 'n/a'}
+                  {translate("auto.components.stats.CodexUsagePane.829ee743f2", "Top project:")}{summary?.topProject ?? translate("auto.components.stats.CodexUsagePane.ae255c3dba", "n/a")}
                 </p>
               </div>
               <div className="space-y-3">
@@ -346,7 +346,7 @@ export function CodexUsagePane(): React.JSX.Element {
                       </td>
                       <td className="px-2 py-2 text-foreground">{row.projectLabel}</td>
                       <td className="px-2 py-2 text-muted-foreground">
-                        {row.model ?? 'Unknown'}
+                        {row.model ?? translate("auto.components.stats.CodexUsagePane.bf6cf2d4dd", "Unknown")}
                         {row.hasInferredPricing ? ' *' : ''}
                       </td>
                       <td className="px-2 py-2 text-muted-foreground">{row.events}</td>

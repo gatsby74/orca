@@ -387,7 +387,7 @@ export default function Search(): React.JSX.Element {
         <div className="px-2 py-1 text-[10px] text-muted-foreground border-b border-border">
           {deferredSearchResults.totalMatches} {translate("auto.components.right.sidebar.Search.6aeda362ed", "result")}{deferredSearchResults.totalMatches !== 1 ? 's' : ''} {translate("auto.components.right.sidebar.Search.4107975b3a", "in")}{' '}
           {deferredSearchResults.files.length} {translate("auto.components.right.sidebar.Search.0b8104eaf2", "file")}{deferredSearchResults.files.length !== 1 ? 's' : ''}
-          {deferredSearchResults.truncated && ' (results truncated)'}
+          {deferredSearchResults.truncated && translate("auto.components.right.sidebar.Search.dcc294f28d", "(results truncated)")}
         </div>
       )}
 

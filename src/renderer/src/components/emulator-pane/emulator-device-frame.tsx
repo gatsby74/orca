@@ -351,7 +351,7 @@ export function EmulatorDeviceFrame({
           height: frameLayout ? `${frameLayout.height}px` : undefined
         }}
       >
-        {frameLayout?.kind === 'phone' ? <PhoneHardwareButtons layout={frameLayout} /> : null}
+        {frameLayout?.kind === "phone" ? <PhoneHardwareButtons layout={frameLayout} /> : null}
         <div
           data-orca-emulator-frame="true"
           className="relative overflow-hidden bg-black shadow-lg ring-1 ring-black/25"

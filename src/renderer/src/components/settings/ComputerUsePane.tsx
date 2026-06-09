@@ -188,7 +188,7 @@ export function ComputerUsePane(): React.JSX.Element {
         toast.message(translate("auto.components.settings.ComputerUsePane.697005758f", "Opened macOS Privacy & Security"))
       } else {
         toast.message(
-          result.platform === 'darwin'
+          result.platform === "darwin"
             ? translate("auto.components.settings.ComputerUsePane.740766c291", "Computer Use setup is already complete")
             : translate("auto.components.settings.ComputerUsePane.7801ac08ec", "Computer Use permissions are only required on macOS")
         )
@@ -327,7 +327,7 @@ export function ComputerUsePane(): React.JSX.Element {
               onClick={() => void resetAccess()}
               className="ml-auto mr-4 block w-28 text-right text-xs text-muted-foreground underline underline-offset-2 hover:text-foreground disabled:pointer-events-none disabled:opacity-50"
             >
-              {resetting ? 'Resetting access...' : 'Reset access'}
+              {resetting ? translate("auto.components.settings.ComputerUsePane.506f2acf7a", "Resetting access...") : translate("auto.components.settings.ComputerUsePane.6b17602073", "Reset access")}
             </button>
           </div>
         </>

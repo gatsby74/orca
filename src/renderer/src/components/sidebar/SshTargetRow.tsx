@@ -98,7 +98,7 @@ export function SshTargetRow({
               <Loader2 className="size-3 animate-spin" />
               {translate("auto.components.sidebar.SshTargetRow.4677394048", "Connecting…")}</>
           ) : (
-            'Connect'
+            translate("auto.components.sidebar.SshTargetRow.75ad429b5d", "Connect")
           )}
         </button>
       )}

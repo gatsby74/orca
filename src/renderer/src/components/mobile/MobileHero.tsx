@@ -76,7 +76,7 @@ export function HeroPaired({
         <span className="mp-eyebrow">{translate("auto.components.mobile.MobileHero.5410d55d79", "Orca Mobile")}</span>
       </div>
       <h1 className="mp-h1">
-        {devices.length === 1 ? 'Your phone is paired.' : 'Your phones are paired.'}
+        {devices.length === 1 ? translate("auto.components.mobile.MobileHero.051978a785", "Your phone is paired.") : translate("auto.components.mobile.MobileHero.d0b52871ce", "Your phones are paired.")}
       </h1>
       <p className="mp-lead-sm">
         {translate("auto.components.mobile.MobileHero.266c18c105", "Open Orca Mobile to pick up where you left off, or pair another device.")}</p>
@@ -286,7 +286,7 @@ export function HeroFlow({
                 onClick={onRegeneratePairing}
                 disabled={pairLoading}
               >
-                {pairLoading ? 'Generating…' : pairQrDataUrl ? 'Regenerate code' : 'Generate code'}
+                {pairLoading ? translate("auto.components.mobile.MobileHero.65b3f2e8bc", "Generating…") : pairQrDataUrl ? translate("auto.components.mobile.MobileHero.e59a252eca", "Regenerate code") : translate("auto.components.mobile.MobileHero.a6cffbbb0b", "Generate code")}
               </button>
             </div>
           </div>

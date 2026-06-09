@@ -124,7 +124,7 @@ export function ActivityBarButton({
         >
           <Icon size={isTop ? 16 : 18} />
 
-          {statusIndicator && statusIndicator !== 'neutral' && (
+          {statusIndicator && statusIndicator !== "neutral" && (
             <div
               className={cn(
                 'absolute rounded-full size-[7px] ring-1 ring-sidebar',

@@ -106,11 +106,11 @@ function OpenInMenuRow({
         <div className="min-w-0 flex-1 sm:min-w-[12rem]">
           <div className="flex items-center gap-2">
             <span className="text-sm font-medium leading-none">
-              {application.label.trim() || 'New app'}
+              {application.label.trim() || translate("auto.components.settings.OpenInMenuSetting.f79084947b", "New app")}
             </span>
           </div>
           <div className="mt-1 truncate font-mono text-[11px] text-muted-foreground">
-            {application.command.trim() || 'Set command'}
+            {application.command.trim() || translate("auto.components.settings.OpenInMenuSetting.3743ed080c", "Set command")}
           </div>
         </div>
 
@@ -156,7 +156,7 @@ function OpenInMenuRow({
               <Label className="text-[11px] text-muted-foreground">{translate("auto.components.settings.OpenInMenuSetting.e1fc0085c6", "Menu label")}</Label>
               <Input
                 value={application.label}
-                placeholder="App name"
+                placeholder={translate("auto.components.settings.OpenInMenuSetting.3ebe650f74", "App name")}
                 onChange={(event) =>
                   onChange({ label: event.target.value, command: application.command })
                 }
@@ -174,7 +174,7 @@ function OpenInMenuRow({
             <Label className="text-[11px] text-muted-foreground">{translate("auto.components.settings.OpenInMenuSetting.ba1422ee07", "Terminal command")}</Label>
             <Input
               value={application.command}
-              placeholder="cursor"
+              placeholder={translate("auto.components.settings.OpenInMenuSetting.810ef39b56", "cursor")}
               spellCheck={false}
               className="font-mono text-xs"
               onChange={(event) =>

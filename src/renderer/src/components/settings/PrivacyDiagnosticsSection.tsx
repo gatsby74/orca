@@ -287,7 +287,7 @@ export function PrivacyDiagnosticsSection(): React.JSX.Element {
         title={translate("auto.components.settings.PrivacyDiagnosticsSection.acc7c66e6e", "OTLP export")}
         description={
           status?.otlpStatus ??
-          'Set ORCA_OTLP_TRACES_URL to point Orca at your own OpenTelemetry collector.'
+          translate("auto.components.settings.PrivacyDiagnosticsSection.7c9d9820b6", "Set ORCA_OTLP_TRACES_URL to point Orca at your own OpenTelemetry collector.")
         }
       >
         <span
@@ -297,7 +297,7 @@ export function PrivacyDiagnosticsSection(): React.JSX.Element {
               : 'text-xs text-muted-foreground'
           }
         >
-          {status?.otlpEnabled ? 'Enabled' : 'Disabled'}
+          {status?.otlpEnabled ? translate("auto.components.settings.PrivacyDiagnosticsSection.46ea3fb2d0", "Enabled") : translate("auto.components.settings.PrivacyDiagnosticsSection.1fb00a8995", "Disabled")}
         </span>
       </Section>
     </>

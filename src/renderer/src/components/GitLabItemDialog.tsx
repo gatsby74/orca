@@ -188,7 +188,7 @@ function CommentCard({
               className="h-6"
             >
               {resolving ? <LoaderCircle className="size-3 animate-spin" /> : null}
-              {comment.isResolved ? 'Reopen' : 'Resolve'}
+              {comment.isResolved ? translate("auto.components.GitLabItemDialog.65e784c1f1", "Reopen") : translate("auto.components.GitLabItemDialog.4168eb2c51", "Resolve")}
             </Button>
           ) : null}
           <span>{comment.createdAt ? new Date(comment.createdAt).toLocaleDateString() : ''}</span>
@@ -290,7 +290,7 @@ function PipelineJobRow({
             <div className="px-2.5 py-3 text-xs text-destructive">{traceState.error}</div>
           ) : (
             <pre className="max-h-64 overflow-auto whitespace-pre-wrap break-words px-2.5 py-2 font-mono text-[11px] leading-4 text-foreground scrollbar-sleek">
-              {traceState?.trace?.trim() ? traceState.trace : 'No log output.'}
+              {traceState?.trace?.trim() ? traceState.trace : translate("auto.components.GitLabItemDialog.32f8bef818", "No log output.")}
             </pre>
           )}
         </div>
@@ -907,7 +907,7 @@ export default function GitLabItemDialog({
     <Sheet open={item !== null} onOpenChange={(open) => !open && onClose()}>
       <SheetContent side="right" className="flex w-full flex-col gap-0 p-0 sm:max-w-2xl">
         <VisuallyHidden.Root>
-          <SheetTitle>{item ? visibleTitle : 'Work item'}</SheetTitle>
+          <SheetTitle>{item ? visibleTitle : translate("auto.components.GitLabItemDialog.3a051b8ade", "Work item")}</SheetTitle>
           <SheetDescription>{translate("auto.components.GitLabItemDialog.30c97083c2", "GitLab work item detail")}</SheetDescription>
         </VisuallyHidden.Root>
 
@@ -1004,12 +1004,10 @@ export default function GitLabItemDialog({
                           {approvalState ? (
                             <div className="mt-0.5 text-[11px] text-muted-foreground">
                               {approvalState.approvalsLeft === 0
-                                ? 'Approved'
-                                : `${approvalState.approvalsLeft ?? 0} approval${
-                                    approvalState.approvalsLeft === 1 ? '' : 's'
-                                  } remaining`}
-                              {typeof approvalState.approvalsRequired === 'number'
-                                ? ` of ${approvalState.approvalsRequired} required`
+                                ? translate("auto.components.GitLabItemDialog.22511537d2", "Approved")
+                                : translate("auto.components.GitLabItemDialog.40c56b95e2", "{{value0}} approval{{value1}} remaining", { value0: approvalState.approvalsLeft ?? 0, value1: approvalState.approvalsLeft === 1 ? '' : 's' })}
+                              {typeof approvalState.approvalsRequired === "number"
+                                ? translate("auto.components.GitLabItemDialog.00f3bab87b", " of {{value0}} required", { value0: approvalState.approvalsRequired })
                                 : ''}
                             </div>
                           ) : null}
@@ -1098,7 +1096,7 @@ export default function GitLabItemDialog({
                             >
                               <span className="min-w-0 truncate">{rule.name}</span>
                               <span>
-                                {rule.approved ? 'Approved' : `${rule.approvalsRequired} required`}
+                                {rule.approved ? translate("auto.components.GitLabItemDialog.22511537d2", "Approved") : translate("auto.components.GitLabItemDialog.6de8ce0cc6", "{{value0}} required", { value0: rule.approvalsRequired })}
                               </span>
                             </div>
                           ))}
@@ -1439,7 +1437,7 @@ export default function GitLabItemDialog({
                       disabled={actionInFlight !== null}
                       onClick={() => void handleMerge()}
                     >
-                      {actionInFlight === 'merge' ? (
+                      {actionInFlight === "merge" ? (
                         <LoaderCircle className="size-3.5 animate-spin" />
                       ) : null}
                       {translate("auto.components.GitLabItemDialog.16b3412570", "Merge")}</Button>
@@ -1451,7 +1449,7 @@ export default function GitLabItemDialog({
                       disabled={actionInFlight !== null}
                       onClick={() => void handleClose()}
                     >
-                      {actionInFlight === 'close' ? (
+                      {actionInFlight === "close" ? (
                         <LoaderCircle className="size-3.5 animate-spin" />
                       ) : null}
                       {translate("auto.components.GitLabItemDialog.a199eb364b", "Close")}</Button>
@@ -1463,7 +1461,7 @@ export default function GitLabItemDialog({
                       disabled={actionInFlight !== null}
                       onClick={() => void handleReopen()}
                     >
-                      {actionInFlight === 'reopen' ? (
+                      {actionInFlight === "reopen" ? (
                         <LoaderCircle className="size-3.5 animate-spin" />
                       ) : null}
                       {translate("auto.components.GitLabItemDialog.65e784c1f1", "Reopen")}</Button>

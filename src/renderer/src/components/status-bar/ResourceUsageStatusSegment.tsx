@@ -267,10 +267,10 @@ function AppSection({
       </div>
       {!isCollapsed && (
         <div className="border-t border-border/30">
-          <AppSubRow label="Main" values={app.main} />
-          <AppSubRow label="Renderer" values={app.renderer} />
+          <AppSubRow label={translate("auto.components.status.bar.ResourceUsageStatusSegment.81cd37af99", "Main")} values={app.main} />
+          <AppSubRow label={translate("auto.components.status.bar.ResourceUsageStatusSegment.d406915b78", "Renderer")} values={app.renderer} />
           {(app.other.cpu > 0 || app.other.memory > 0) && (
-            <AppSubRow label="Other" values={app.other} />
+            <AppSubRow label={translate("auto.components.status.bar.ResourceUsageStatusSegment.0f9e50eb07", "Other")} values={app.other} />
           )}
         </div>
       )}
@@ -495,7 +495,7 @@ function WorktreeRow({
                       type="button"
                       onClick={onDelete}
                       disabled={isMainWorktree}
-                      aria-label={`Delete workspace ${rowLabel}`}
+                      aria-label={translate("auto.components.status.bar.ResourceUsageStatusSegment.16bc3c998a", "Delete workspace {{value0}}", { value0: rowLabel })}
                       className={cn(
                         'p-0.5 rounded text-muted-foreground transition-colors',
                         isMainWorktree
@@ -511,7 +511,7 @@ function WorktreeRow({
                     sideOffset={4}
                     className="z-[70] max-w-[200px] text-pretty"
                   >
-                    {isMainWorktree ? 'The main workspace cannot be deleted.' : 'Delete workspace.'}
+                    {isMainWorktree ? translate("auto.components.status.bar.ResourceUsageStatusSegment.946724a70a", "The main workspace cannot be deleted.") : translate("auto.components.status.bar.ResourceUsageStatusSegment.a82253b458", "Delete workspace.")}
                   </TooltipContent>
                 </Tooltip>
               </div>
@@ -1154,7 +1154,7 @@ export function ResourceUsageStatusSegment({
                 </span>
               )}
               {daemonUnreachable && (
-                <AlertTriangle className="size-3 text-yellow-500" aria-label="Daemon unreachable" />
+                <AlertTriangle className="size-3 text-yellow-500" aria-label={translate("auto.components.status.bar.ResourceUsageStatusSegment.ca95d077db", "Daemon unreachable")} />
               )}
             </button>
           </PopoverTrigger>
@@ -1191,7 +1191,7 @@ export function ResourceUsageStatusSegment({
           <div className="flex min-w-0 items-center gap-1.5 text-[11px] font-medium text-foreground">
             <MemoryStick className="size-3 shrink-0 text-muted-foreground" />
             <span className="truncate">
-              {runtimeEnvironmentActive ? 'Resource Manager' : 'Resource Manager - Terminals'}
+              {runtimeEnvironmentActive ? translate("auto.components.status.bar.ResourceUsageStatusSegment.6a822b06a7", "Resource Manager") : translate("auto.components.status.bar.ResourceUsageStatusSegment.6d9793d4bc", "Resource Manager - Terminals")}
             </span>
           </div>
 
@@ -1209,7 +1209,7 @@ export function ResourceUsageStatusSegment({
                 </button>
               </TooltipTrigger>
               <TooltipContent side="top" sideOffset={6}>
-                {runtimeEnvironmentActive ? 'Unavailable for runtime servers' : 'Restart daemon'}
+                {runtimeEnvironmentActive ? translate("auto.components.status.bar.ResourceUsageStatusSegment.14ff448686", "Unavailable for runtime servers") : translate("auto.components.status.bar.ResourceUsageStatusSegment.c9382662bb", "Restart daemon")}
               </TooltipContent>
             </Tooltip>
             <Tooltip delayDuration={200}>
@@ -1225,7 +1225,7 @@ export function ResourceUsageStatusSegment({
                 </button>
               </TooltipTrigger>
               <TooltipContent side="top" sideOffset={6}>
-                {runtimeEnvironmentActive ? 'Unavailable for runtime servers' : 'Kill all sessions'}
+                {runtimeEnvironmentActive ? translate("auto.components.status.bar.ResourceUsageStatusSegment.14ff448686", "Unavailable for runtime servers") : translate("auto.components.status.bar.ResourceUsageStatusSegment.bd19fd7a59", "Kill all sessions")}
               </TooltipContent>
             </Tooltip>
           </div>
@@ -1403,8 +1403,8 @@ export function ResourceUsageStatusSegment({
             {!resourceSnapshot && !daemonUnreachable && (
               <div className="px-3 py-4 text-center text-xs text-muted-foreground">
                 {runtimeEnvironmentActive
-                  ? 'Local resource usage hidden for runtime servers.'
-                  : 'Loading…'}
+                  ? translate("auto.components.status.bar.ResourceUsageStatusSegment.56b6888304", "Local resource usage hidden for runtime servers.")
+                  : translate("auto.components.status.bar.ResourceUsageStatusSegment.888dad8c55", "Loading…")}
               </div>
             )}
           </div>
@@ -1478,7 +1478,7 @@ export function ResourceUsageStatusSegment({
             <DialogTitle className="text-sm">
               {translate("auto.components.status.bar.ResourceUsageStatusSegment.4bb076fa89", "Kill")}{' '}
               <span className="font-medium text-foreground">
-                {killConfirm?.label ?? 'this session'}
+                {killConfirm?.label ?? translate("auto.components.status.bar.ResourceUsageStatusSegment.138b99bd80", "this session")}
               </span>
               ?
             </DialogTitle>
@@ -1494,7 +1494,7 @@ export function ResourceUsageStatusSegment({
               disabled={killing}
             >
               {killing ? <LoaderCircle className="size-4 animate-spin" /> : null}
-              {killing ? 'Killing…' : 'Kill session'}
+              {killing ? translate("auto.components.status.bar.ResourceUsageStatusSegment.41ae4fa725", "Killing…") : translate("auto.components.status.bar.ResourceUsageStatusSegment.b10695d6ce", "Kill session")}
             </Button>
           </DialogFooter>
         </DialogContent>

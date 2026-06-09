@@ -86,7 +86,7 @@ export function useFileDeletion({
         const confirmed = await confirm({
           title: translate("auto.components.right.sidebar.useFileDeletion.d979a4fbb5", "Permanently delete '{{value0}}'?", { value0: node.name }),
           description: message,
-          confirmLabel: 'Delete',
+          confirmLabel: translate("auto.components.right.sidebar.useFileDeletion.92276aceb7", "Delete"),
           confirmVariant: 'destructive'
         })
         if (!confirmed) {

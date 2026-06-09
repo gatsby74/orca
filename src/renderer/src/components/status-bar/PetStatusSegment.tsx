@@ -110,7 +110,7 @@ function PetStatusSegmentInner(): React.JSX.Element {
             setPetVisible(!petVisible)
           }}
         >
-          {petVisible ? 'Hide pet' : 'Show pet'}
+          {petVisible ? translate("auto.components.status.bar.PetStatusSegment.1fbc51cc77", "Hide pet") : translate("auto.components.status.bar.PetStatusSegment.6d0a8cd179", "Show pet")}
         </DropdownMenuItem>
         {/* Why: in-menu range so users can resize the overlay without leaving
             the dropdown — pet sprites can import larger than the default 180px

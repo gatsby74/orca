@@ -253,7 +253,7 @@ export default function SparseCheckoutPresetSelect({
             }}
           >
             <div className="border-b border-border px-3 py-2 text-xs font-medium text-foreground">
-              {draft.mode === 'new' ? 'New preset' : 'Edit preset'}
+              {draft.mode === "new" ? translate("auto.components.sparse.SparseCheckoutPresetSelect.c4ac80151d", "New preset") : translate("auto.components.sparse.SparseCheckoutPresetSelect.69c020eddc", "Edit preset")}
             </div>
             <div className="space-y-3 px-3 py-3">
               <div className="space-y-1">
@@ -304,9 +304,9 @@ export default function SparseCheckoutPresetSelect({
                 ) : parsedDirectories?.error ? (
                   <span className="text-destructive">{parsedDirectories.error}</span>
                 ) : parsedDirectories?.directories.length === 1 ? (
-                  '1 directory'
+                  translate("auto.components.sparse.SparseCheckoutPresetSelect.e9283eb171", "1 directory")
                 ) : (
-                  `${parsedDirectories?.directories.length ?? 0} directories`
+                  translate("auto.components.sparse.SparseCheckoutPresetSelect.14952d451e", "{{value0}} directories", { value0: parsedDirectories?.directories.length ?? 0 })
                 )}
               </div>
               <div className="flex shrink-0 justify-end gap-1">
@@ -339,7 +339,7 @@ export default function SparseCheckoutPresetSelect({
             >
               <RefreshCcw className="size-3.5 text-muted-foreground" />
               <span className="truncate">
-                {hasPresetLoadError ? 'Retry loading presets' : 'Load presets'}
+                {hasPresetLoadError ? translate("auto.components.sparse.SparseCheckoutPresetSelect.a683a4bc8e", "Retry loading presets") : translate("auto.components.sparse.SparseCheckoutPresetSelect.16223dde6a", "Load presets")}
               </span>
             </button>
           </div>

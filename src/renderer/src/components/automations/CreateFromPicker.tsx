@@ -199,7 +199,7 @@ export function CreateFromPicker({
             />
             <CommandList className="max-h-72">
               <CommandEmpty>
-                {isSearching ? 'Searching branches...' : 'No branches found.'}
+                {isSearching ? translate("auto.components.automations.CreateFromPicker.9ce96621f4", "Searching branches...") : translate("auto.components.automations.CreateFromPicker.79512f22a7", "No branches found.")}
               </CommandEmpty>
               <CommandItem
                 value={effectiveDefault ? `${effectiveDefault} default` : 'project default'}
@@ -215,7 +215,7 @@ export function CreateFromPicker({
                   )}
                 />
                 <span className="truncate">
-                  {effectiveDefault ? `${effectiveDefault} (default)` : 'Project default'}
+                  {effectiveDefault ? translate("auto.components.automations.CreateFromPicker.e53d306056", "{{value0}} (default)", { value0: effectiveDefault }) : translate("auto.components.automations.CreateFromPicker.ef6d762538", "Project default")}
                 </span>
               </CommandItem>
               {branchOptions

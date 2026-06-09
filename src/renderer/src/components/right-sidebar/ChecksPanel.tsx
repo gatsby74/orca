@@ -194,8 +194,8 @@ export function ChecksPanelReviewHeader({
               type="button"
               variant="ghost"
               size="icon-xs"
-              aria-label="More PR actions"
-              title="More PR actions"
+              aria-label={translate("auto.components.right.sidebar.ChecksPanel.653c105ecc", "More PR actions")}
+              title={translate("auto.components.right.sidebar.ChecksPanel.653c105ecc", "More PR actions")}
               className="text-muted-foreground hover:text-foreground"
             >
               <Ellipsis className="size-3.5" />
@@ -1828,7 +1828,7 @@ export default function ChecksPanel(): React.JSX.Element {
       const confirmed = await confirm({
         title: translate("auto.components.right.sidebar.ChecksPanel.ea9b649ce3", "Delete comment?"),
         description: translate("auto.components.right.sidebar.ChecksPanel.3b203c62f8", "This will permanently remove the comment from the PR."),
-        confirmLabel: 'Delete',
+        confirmLabel: translate("auto.components.right.sidebar.ChecksPanel.786e3c143f", "Delete"),
         confirmVariant: 'destructive'
       })
       if (!confirmed) {
@@ -2468,7 +2468,7 @@ export default function ChecksPanel(): React.JSX.Element {
                   disabled={isPublishingBranch || isRemoteOperationActive}
                   onClick={handlePublishBranch}
                 >
-                  {isPublishingBranch ? 'Publishing…' : 'Publish Branch'}
+                  {isPublishingBranch ? translate("auto.components.right.sidebar.ChecksPanel.fdb27637f2", "Publishing…") : translate("auto.components.right.sidebar.ChecksPanel.6633c7a1fb", "Publish Branch")}
                 </Button>
               )}
               {(canCreate || canPushCreate) && (
@@ -2480,8 +2480,8 @@ export default function ChecksPanel(): React.JSX.Element {
                   }}
                 >
                   {canPushCreate
-                    ? `Push & Create ${emptyReviewShortLabel}`
-                    : `Create ${emptyReviewShortLabel}`}
+                    ? translate("auto.components.right.sidebar.ChecksPanel.98f4c37b33", "Push & Create {{value0}}", { value0: emptyReviewShortLabel })
+                    : translate("auto.components.right.sidebar.ChecksPanel.889cdfba04", "Create {{value0}}", { value0: emptyReviewShortLabel })}
                 </Button>
               )}
               <Button
@@ -2498,7 +2498,7 @@ export default function ChecksPanel(): React.JSX.Element {
                   })
                 }}
               >
-                {emptyRefreshing ? 'Refreshing…' : 'Refresh'}
+                {emptyRefreshing ? translate("auto.components.right.sidebar.ChecksPanel.71026ca2cb", "Refreshing…") : translate("auto.components.right.sidebar.ChecksPanel.7f4489f370", "Refresh")}
               </Button>
             </div>
           )}
@@ -2658,7 +2658,7 @@ export default function ChecksPanel(): React.JSX.Element {
           }
         }}
         actionId={agentComposerState?.actionId ?? 'fixChecks'}
-        title={agentComposerState?.title ?? 'Fix With AI'}
+        title={agentComposerState?.title ?? translate("auto.components.right.sidebar.ChecksPanel.7fad8509fe", "Fix With AI")}
         description={agentComposerState?.description ?? ''}
         baseCommandInput={agentComposerState?.prompt ?? ''}
         worktreeId={activeWorktreeId}

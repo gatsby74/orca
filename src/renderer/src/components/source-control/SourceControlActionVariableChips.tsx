@@ -39,7 +39,7 @@ function SourceControlVariableTooltip({
     if (variable === 'basePrompt') {
       return (
         <pre className="scrollbar-sleek max-h-72 max-w-[min(32rem,calc(100vw-2rem))] overflow-auto whitespace-pre-wrap break-words font-mono text-[11px] leading-relaxed">
-          {preview || '(empty)'}
+          {preview || translate("auto.components.source.control.SourceControlActionVariableChips.4bf6d88039", "(empty)")}
         </pre>
       )
     }
@@ -48,7 +48,7 @@ function SourceControlVariableTooltip({
       <div className="space-y-1.5">
         <div className="font-mono text-[11px] text-background/70">{`{${variable}}`}</div>
         <pre className="scrollbar-sleek max-h-72 max-w-[min(32rem,calc(100vw-2rem))] overflow-auto rounded-sm bg-background/10 p-2 whitespace-pre-wrap break-words font-mono text-[11px] leading-relaxed">
-          {preview || '(empty)'}
+          {preview || translate("auto.components.source.control.SourceControlActionVariableChips.4bf6d88039", "(empty)")}
         </pre>
       </div>
     )

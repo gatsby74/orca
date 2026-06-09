@@ -99,9 +99,7 @@ export function RepoStep({
                   </Tooltip>
                 ) : null}
                 <span className="min-w-0 truncate">
-                  {`${nestedScanInProgress ? 'Scanning... ' : ''}Found ${nestedScan.repos.length} ${
-                    nestedScan.repos.length === 1 ? 'repository' : 'repositories'
-                  } in this folder.`}
+                  {translate("auto.components.onboarding.RepoStep.2e6438dd34", "{{value0}}Found {{value1}} {{value2}} in this folder.", { value0: nestedScanInProgress ? 'Scanning... ' : '', value1: nestedScan.repos.length, value2: nestedScan.repos.length === 1 ? 'repository' : 'repositories' })}
                 </span>
               </div>
               <div className="mt-0.5 truncate text-[11px] text-muted-foreground">
@@ -268,7 +266,7 @@ export function RepoStep({
               {translate("auto.components.onboarding.RepoStep.24c7c8696c", "Clone into server path")}</label>
             <input
               className="w-full rounded-lg border border-border bg-background px-4 py-3 font-mono text-sm text-foreground outline-none transition focus:border-foreground/50 focus:ring-2 focus:ring-foreground/15"
-              placeholder="/home/user"
+              placeholder={translate("auto.components.onboarding.RepoStep.7ec3f48820", "/home/user")}
               value={cloneDestination}
               disabled={disabled}
               spellCheck={false}
@@ -282,7 +280,7 @@ export function RepoStep({
         <div className="flex min-w-0 items-center gap-2">
           <span>{translate("auto.components.onboarding.RepoStep.7b679207e4", "Workspace")}</span>
           <span className="truncate font-mono text-foreground">
-            {runtimeActive ? 'Runtime server' : workspaceDir}
+            {runtimeActive ? translate("auto.components.onboarding.RepoStep.cf23006ba7", "Runtime server") : workspaceDir}
           </span>
         </div>
         {runtimeActive ? (
@@ -315,8 +313,8 @@ export function RepoStep({
                   variant="ghost"
                   size="icon-xs"
                   className="group text-muted-foreground hover:bg-destructive/10 hover:text-destructive focus-visible:bg-destructive/10 focus-visible:text-destructive focus-visible:ring-destructive/40"
-                  aria-label="Stop scan"
-                  title="Stop scanning"
+                  aria-label={translate("auto.components.onboarding.RepoStep.c3d9d44ca2", "Stop scan")}
+                  title={translate("auto.components.onboarding.RepoStep.c7af322fc3", "Stop scanning")}
                   onClick={onStopNestedScan}
                 >
                   <Loader2 className="size-3.5 animate-spin text-annotation-highlight group-hover:hidden group-focus-visible:hidden" />

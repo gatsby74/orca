@@ -613,7 +613,7 @@ function LinearStateCell({
           }
           if (result.ok === false) {
             patchLinearIssue(issue.id, { state: previousState })
-            toast.error(result.error ?? 'Failed to update Linear state')
+            toast.error(result.error ?? translate("auto.components.TaskPage.6775c05483", "Failed to update Linear state"))
           }
         })
         .catch(() => {
@@ -1012,7 +1012,7 @@ function GHStatusCell({
               { state: newState === 'closed' ? 'open' : 'closed' },
               item.repoId
             )
-            toast.error(typed.error ?? 'Failed to update state')
+            toast.error(typed.error ?? translate("auto.components.TaskPage.1c893195ac", "Failed to update state"))
           }
         })
         .catch(() => {
@@ -1047,7 +1047,7 @@ function GHStatusCell({
               : 'border-emerald-500/30 bg-emerald-500/10 text-emerald-600 dark:text-emerald-300'
           )}
         >
-          {localState === 'closed' ? 'Closed' : 'Open'}
+          {localState === 'closed' ? translate("auto.components.TaskPage.d09bf34db7", "Closed") : translate("auto.components.TaskPage.606a85c774", "Open")}
           <ChevronDown className="size-2.5 opacity-50" />
         </button>
       </PopoverTrigger>
@@ -2116,8 +2116,8 @@ function PRReviewCell({
             <div className="px-3 py-2 text-[13px] text-muted-foreground">
               {reviewerMetadata.error ??
                 (hasReviewerMetadata
-                  ? 'No matching reviewers.'
-                  : 'Open the PR details to view current reviewers.')}
+                  ? translate("auto.components.TaskPage.8a22eb3f7b", "No matching reviewers.")
+                  : translate("auto.components.TaskPage.9e03c17847", "Open the PR details to view current reviewers."))}
             </div>
           )}
         </div>
@@ -4180,7 +4180,7 @@ export default function TaskPage(): React.JSX.Element {
           patchLinearIssue(issue.id, { state: previousState })
           patchScopedLinearIssue(issue.id, { state: previousState })
           applyFallbackState(previousState)
-          toast.error(result.error ?? 'Failed to update Linear state')
+          toast.error(result.error ?? translate("auto.components.TaskPage.6775c05483", "Failed to update Linear state"))
         }
       } catch {
         patchLinearIssue(issue.id, { state: previousState })
@@ -5299,7 +5299,7 @@ export default function TaskPage(): React.JSX.Element {
             assignees: newIssueAssignees.map((assignee) => assignee.login)
           })
       if (!result.ok) {
-        toast.error(result.error || 'Failed to create issue.')
+        toast.error(result.error || translate("auto.components.TaskPage.7437e340b4", "Failed to create issue."))
         return
       }
       toast.success(translate("auto.components.TaskPage.3f9604efc7", "Opened issue #{{value0}}", { value0: result.number }), {
@@ -5400,7 +5400,7 @@ export default function TaskPage(): React.JSX.Element {
         targetDate: newLinearProjectTargetDate || undefined
       })
       if (!result.ok) {
-        toast.error(result.error || 'Failed to create project.')
+        toast.error(result.error || translate("auto.components.TaskPage.3ca9b424a3", "Failed to create project."))
         return
       }
       toast.success(translate("auto.components.TaskPage.cb98f0350c", "Created {{value0}}", { value0: result.project.name }), {
@@ -5481,7 +5481,7 @@ export default function TaskPage(): React.JSX.Element {
         labelIds: newLinearIssueLabelIds.length > 0 ? newLinearIssueLabelIds : undefined
       })
       if (!result.ok) {
-        toast.error(result.error || 'Failed to create issue.')
+        toast.error(result.error || translate("auto.components.TaskPage.7437e340b4", "Failed to create issue."))
         return
       }
       toast.success(translate("auto.components.TaskPage.cb98f0350c", "Created {{value0}}", { value0: result.identifier }), {
@@ -5552,7 +5552,7 @@ export default function TaskPage(): React.JSX.Element {
         customFields
       })
       if (!result.ok) {
-        toast.error(result.error || 'Failed to create Jira issue.')
+        toast.error(result.error || translate("auto.components.TaskPage.aec5feeb69", "Failed to create Jira issue."))
         return
       }
       toast.success(translate("auto.components.TaskPage.cb98f0350c", "Created {{value0}}", { value0: result.key }), {
@@ -6455,7 +6455,7 @@ export default function TaskPage(): React.JSX.Element {
                       )
                     })}
                   </div>
-                  {taskSource === 'linear' && linearStatus.connected ? (
+                  {taskSource === "linear" && linearStatus.connected ? (
                     <div className="flex items-center gap-2">
                       <LinearScopeSelector
                         workspaces={linearWorkspaces}
@@ -6493,13 +6493,13 @@ export default function TaskPage(): React.JSX.Element {
                         </TooltipTrigger>
                         <TooltipContent side="bottom" sideOffset={6}>
                           {selectedLinearTeamForExternalLink
-                            ? `Open ${selectedLinearTeamForExternalLink.name} in Linear`
-                            : 'Select one team to open in Linear'}
+                            ? translate("auto.components.TaskPage.606a85c774", "Open {{value0}} in Linear", { value0: selectedLinearTeamForExternalLink.name })
+                            : translate("auto.components.TaskPage.2af3ab5c58", "Select one team to open in Linear")}
                         </TooltipContent>
                       </Tooltip>
                     </div>
                   ) : null}
-                  {taskSource === 'jira' && jiraStatus.connected ? (
+                  {taskSource === "jira" && jiraStatus.connected ? (
                     <div className="flex items-center gap-2">
                       {jiraSites.length > 1 ? (
                         <Select
@@ -6532,7 +6532,7 @@ export default function TaskPage(): React.JSX.Element {
                   ) : null}
                 </div>
 
-                {taskSource === 'github' ? (
+                {taskSource === "github" ? (
                   <div className="flex min-w-0 flex-wrap items-center gap-2">
                     {projectModeVisible ? (
                       <div className="flex items-center gap-1 text-xs">
@@ -6573,7 +6573,7 @@ export default function TaskPage(): React.JSX.Element {
                         view filter (server-side), so this control would be
                         inert — hide it to avoid suggesting it does
                         something. */}
-                    {githubMode !== 'project' && (
+                    {githubMode !== "project" && (
                       <>
                         <div className="min-w-0 max-w-[220px] shrink-0">
                           <RepoMultiCombobox
@@ -6582,14 +6582,14 @@ export default function TaskPage(): React.JSX.Element {
                             onChange={(next) => {
                               setRepoSelection(next)
                               void updateSettings({ defaultRepoSelection: [...next] }).catch(() => {
-                                toast.error('Failed to save project selection.')
+                                toast.error(translate("auto.components.TaskPage.dfd72673e7", "Failed to save project selection."))
                               })
                             }}
                             onSelectAll={() => {
                               const allIds = new Set(eligibleRepos.map((r) => r.id))
                               setRepoSelection(allIds)
                               void updateSettings({ defaultRepoSelection: null }).catch(() => {
-                                toast.error('Failed to save project selection.')
+                                toast.error(translate("auto.components.TaskPage.dfd72673e7", "Failed to save project selection."))
                               })
                             }}
                             triggerClassName="h-8 w-auto max-w-[220px] rounded-md border border-border/50 bg-muted/50 px-2 text-xs font-medium shadow-sm transition hover:bg-muted/50 focus:ring-2 focus:ring-ring/20 focus:outline-none"
@@ -6609,8 +6609,8 @@ export default function TaskPage(): React.JSX.Element {
                               }}
                               aria-label={
                                 selectedGitHubRepoExternalLink
-                                  ? `Open ${selectedGitHubRepoExternalLink.label} in GitHub`
-                                  : 'Select one GitHub project to open in GitHub'
+                                  ? translate("auto.components.TaskPage.606a85c774", "Open {{value0}} in GitHub", { value0: selectedGitHubRepoExternalLink.label })
+                                  : translate("auto.components.TaskPage.d1132848f8", "Select one GitHub project to open in GitHub")
                               }
                               className="h-8 w-8 rounded-md border-border/50 bg-muted/50 text-foreground shadow-sm transition hover:bg-muted/50"
                             >
@@ -6619,8 +6619,8 @@ export default function TaskPage(): React.JSX.Element {
                           </TooltipTrigger>
                           <TooltipContent side="bottom" sideOffset={6}>
                             {selectedGitHubRepoExternalLink
-                              ? `Open ${selectedGitHubRepoExternalLink.label} in GitHub`
-                              : 'Select one project to open in GitHub'}
+                              ? translate("auto.components.TaskPage.606a85c774", "Open {{value0}} in GitHub", { value0: selectedGitHubRepoExternalLink.label })
+                              : translate("auto.components.TaskPage.bc46d8204e", "Select one project to open in GitHub")}
                           </TooltipContent>
                         </Tooltip>
                       </>
@@ -6628,7 +6628,7 @@ export default function TaskPage(): React.JSX.Element {
                   </div>
                 ) : null}
 
-                {taskSource === 'github' && githubMode === 'items' ? (
+                {taskSource === "github" && githubMode === "items" ? (
                   <div
                     className="min-w-0 rounded-md rounded-b-none border border-border/50 bg-muted/50 p-3 shadow-sm"
                     data-contextual-tour-target="tasks-search-presets"
@@ -6685,7 +6685,7 @@ export default function TaskPage(): React.JSX.Element {
                           onChange={handleTaskSearchChange}
                           onKeyDown={handleTaskSearchKeyDown}
                           placeholder={
-                            activeGithubTaskKind === 'prs'
+                            activeGithubTaskKind === "prs"
                               ? translate("auto.components.TaskPage.eee4df4c66", "Search GitHub PRs...")
                               : translate("auto.components.TaskPage.b15ceb409d", "Search GitHub issues...")
                           }
@@ -6750,7 +6750,7 @@ export default function TaskPage(): React.JSX.Element {
                             </Button>
                           </TooltipTrigger>
                           <TooltipContent side="bottom" sideOffset={6}>
-                            {githubTasksBusy ? 'Refreshing GitHub work…' : 'Refresh GitHub work'}
+                            {githubTasksBusy ? translate("auto.components.TaskPage.31f81cc334", "Refreshing GitHub work…") : translate("auto.components.TaskPage.ff53631e6f", "Refresh GitHub work")}
                           </TooltipContent>
                         </Tooltip>
                       </div>
@@ -6828,7 +6828,7 @@ export default function TaskPage(): React.JSX.Element {
                       )
                     })()}
                   </div>
-                ) : taskSource === 'linear' && linearStatus.connected ? (
+                ) : taskSource === "linear" && linearStatus.connected ? (
                   <div
                     className="min-w-0 rounded-md rounded-b-none border border-border/50 bg-muted/50 p-3 shadow-sm"
                     data-contextual-tour-target="tasks-search-presets"
@@ -6899,7 +6899,7 @@ export default function TaskPage(): React.JSX.Element {
                               }}
                               disabled={availableTeams.length === 0}
                               aria-label={
-                                linearMode === 'projects' && !selectedLinearProject
+                                linearMode === "projects" && !selectedLinearProject
                                   ? translate("auto.components.TaskPage.1361275ec3", "New Linear project")
                                   : translate("auto.components.TaskPage.3feb524d42", "New Linear issue")
                               }
@@ -6909,9 +6909,9 @@ export default function TaskPage(): React.JSX.Element {
                             </Button>
                           </TooltipTrigger>
                           <TooltipContent side="bottom" sideOffset={6}>
-                            {linearMode === 'projects' && !selectedLinearProject
-                              ? 'New Linear project'
-                              : 'New Linear issue'}
+                            {linearMode === "projects" && !selectedLinearProject
+                              ? translate("auto.components.TaskPage.1361275ec3", "New Linear project")
+                              : translate("auto.components.TaskPage.3feb524d42", "New Linear issue")}
                           </TooltipContent>
                         </Tooltip>
                         <Tooltip>
@@ -6930,12 +6930,12 @@ export default function TaskPage(): React.JSX.Element {
                               aria-label={translate("auto.components.TaskPage.8964184a8b", "Refresh Linear")}
                               className="size-8 border-border/50 bg-transparent hover:bg-muted/50 backdrop-blur-md supports-[backdrop-filter]:bg-transparent"
                             >
-                              {linearMode === 'issues' && linearLoading ? (
+                              {linearMode === "issues" && linearLoading ? (
                                 <LoaderCircle className="size-4 animate-spin" />
-                              ) : linearMode === 'projects' &&
+                              ) : linearMode === "projects" &&
                                 (linearProjectsLoading || linearProjectDetailLoading) ? (
                                 <LoaderCircle className="size-4 animate-spin" />
-                              ) : linearMode === 'views' &&
+                              ) : linearMode === "views" &&
                                 (linearCustomViewsLoading || linearCustomViewContentsLoading) ? (
                                 <LoaderCircle className="size-4 animate-spin" />
                               ) : (
@@ -6949,7 +6949,7 @@ export default function TaskPage(): React.JSX.Element {
                       </div>
                     </div>
 
-                    {linearMode === 'issues' ? (
+                    {linearMode === "issues" ? (
                       <div className="mt-3 flex min-w-0 items-center gap-3">
                         <div className="relative min-w-0 flex-1 basis-64">
                           <Search className="pointer-events-none absolute left-2.5 top-1/2 size-3.5 -translate-y-1/2 text-muted-foreground" />
@@ -6997,7 +6997,7 @@ export default function TaskPage(): React.JSX.Element {
                           ) : null}
                         </div>
                       </div>
-                    ) : linearMode === 'projects' && !selectedLinearProject ? (
+                    ) : linearMode === "projects" && !selectedLinearProject ? (
                       <div className="mt-3 flex min-w-0 items-center gap-3">
                         <div className="relative min-w-0 flex-1 basis-64">
                           <Search className="pointer-events-none absolute left-2.5 top-1/2 size-3.5 -translate-y-1/2 text-muted-foreground" />
@@ -7025,7 +7025,7 @@ export default function TaskPage(): React.JSX.Element {
                       </div>
                     ) : null}
                   </div>
-                ) : taskSource === 'jira' && jiraStatus.connected ? (
+                ) : taskSource === "jira" && jiraStatus.connected ? (
                   <div className="rounded-md rounded-b-none border border-border/50 bg-muted/50 p-3 shadow-sm">
                     <div className="flex flex-wrap items-center justify-between gap-3">
                       <div className="flex flex-wrap gap-2">
@@ -7156,7 +7156,7 @@ export default function TaskPage(): React.JSX.Element {
                       </div>
                     </div>
                   </div>
-                ) : taskSource === 'gitlab' ? (
+                ) : taskSource === "gitlab" ? (
                   <>
                     <div className="flex min-w-0 flex-wrap items-center gap-2">
                       <div className="flex items-center gap-1 text-xs">
@@ -7209,7 +7209,7 @@ export default function TaskPage(): React.JSX.Element {
                       <div className="flex min-w-0 flex-wrap items-center justify-between gap-3">
                         <div className="flex min-w-0 flex-wrap items-center gap-2">
                           <div className="flex flex-wrap gap-2">
-                            {gitlabView === 'issues' || gitlabView === 'mrs'
+                            {gitlabView === "issues" || gitlabView === "mrs"
                               ? (gitlabView === 'issues'
                                   ? GITLAB_ISSUE_FILTERS
                                   : GITLAB_MR_FILTERS
@@ -7249,7 +7249,7 @@ export default function TaskPage(): React.JSX.Element {
                                 onClick={() => setGitlabRefreshNonce((n) => n + 1)}
                                 disabled={gitlabLoading || gitlabTodosLoading}
                                 aria-label={
-                                  gitlabView === 'todos'
+                                  gitlabView === "todos"
                                     ? translate("auto.components.TaskPage.c679af7ad9", "Refresh My Todos")
                                     : translate("auto.components.TaskPage.d4c2830063", "Refresh GitLab work items")
                                 }
@@ -7263,9 +7263,9 @@ export default function TaskPage(): React.JSX.Element {
                               </Button>
                             </TooltipTrigger>
                             <TooltipContent side="bottom" sideOffset={6}>
-                              {gitlabView === 'todos'
-                                ? 'Refresh My Todos'
-                                : 'Refresh GitLab work items'}
+                              {gitlabView === "todos"
+                                ? translate("auto.components.TaskPage.c679af7ad9", "Refresh My Todos")
+                                : translate("auto.components.TaskPage.d4c2830063", "Refresh GitLab work items")}
                             </TooltipContent>
                           </Tooltip>
                         </div>
@@ -7277,7 +7277,7 @@ export default function TaskPage(): React.JSX.Element {
             </section>
           </div>
 
-          {taskSource === 'github' && dialogWorkItem ? (
+          {taskSource === "github" && dialogWorkItem ? (
             dialogWorkItem.type === 'pr' ? (
               <PullRequestPage
                 workItem={dialogWorkItem}
@@ -7308,11 +7308,11 @@ export default function TaskPage(): React.JSX.Element {
                 onClose={closeTaskDetailPage}
               />
             )
-          ) : taskSource === 'github' && githubMode === 'project' ? (
+          ) : taskSource === "github" && githubMode === "project" ? (
             <div className="mt-3 flex min-h-0 min-w-0 max-h-full flex-col overflow-hidden rounded-md border border-border/50 bg-muted/50 shadow-sm">
               <ProjectViewWrapper />
             </div>
-          ) : taskSource === 'github' ? (
+          ) : taskSource === "github" ? (
             <div className="flex min-h-0 min-w-0 max-h-full flex-col overflow-hidden rounded-md rounded-t-none border border-t-0 border-border/50 bg-muted/50 shadow-sm">
               <div
                 className="min-h-0 flex-initial overflow-auto scrollbar-sleek scrollbar-sleek-lg"
@@ -7326,7 +7326,7 @@ export default function TaskPage(): React.JSX.Element {
                 >
                   <span className={GITHUB_TASK_STICKY_ID_HEADER_CLASS}>{translate("auto.components.TaskPage.eb10c32872", "ID")}</span>
                   <span className={GITHUB_TASK_STICKY_TITLE_HEADER_CLASS}>{translate("auto.components.TaskPage.5eccb3c841", "Title / Context")}</span>
-                  {activeGithubTaskKind === 'issues' ? <span>{translate("auto.components.TaskPage.8aba10579d", "Assignees")}</span> : null}
+                  {activeGithubTaskKind === "issues" ? <span>{translate("auto.components.TaskPage.8aba10579d", "Assignees")}</span> : null}
                   {showPRManagementColumns ? (
                     <>
                       <span>{translate("auto.components.TaskPage.f6fa3c97d0", "Reviewers")}</span>
@@ -7392,7 +7392,7 @@ export default function TaskPage(): React.JSX.Element {
                               <LoaderCircle className="h-3 w-3 animate-spin" />
                               {translate("auto.components.TaskPage.5b6b2af943", "Retrying…")}</span>
                           ) : (
-                            'Retry'
+                            translate("auto.components.TaskPage.0bfbf62f75", "Retry")
                           )}
                         </Button>
                       </div>
@@ -7533,7 +7533,7 @@ export default function TaskPage(): React.JSX.Element {
                               <h3 className="truncate text-sm font-semibold text-foreground">
                                 {item.title}
                               </h3>
-                              {item.type === 'pr' && item.state === 'draft' ? (
+                              {item.type === 'pr' && item.state === "draft" ? (
                                 <span className="shrink-0 rounded-full border border-slate-500/30 bg-slate-500/10 px-1.5 py-0 text-[10px] font-medium text-slate-600 dark:text-slate-300">
                                   {translate("auto.components.TaskPage.054bf695cc", "Draft")}</span>
                               ) : null}
@@ -7549,7 +7549,7 @@ export default function TaskPage(): React.JSX.Element {
                               ) : null}
                             </div>
                             <div className="mt-1 flex flex-wrap items-center gap-x-3 gap-y-1 text-sm text-muted-foreground">
-                              <span>{item.author ?? 'unknown author'}</span>
+                              <span>{item.author ?? translate("auto.components.TaskPage.6430594b18", "unknown author")}</span>
                               {selectedRepos.length === 1 && itemRepo ? (
                                 <span>{itemRepo.displayName}</span>
                               ) : null}
@@ -7640,11 +7640,11 @@ export default function TaskPage(): React.JSX.Element {
                                     )}
                                     aria-label={
                                       attachedWorkspace
-                                        ? 'Resume workspace attached to PR'
-                                        : 'Start workspace from PR'
+                                        ? translate("auto.components.TaskPage.67d881244c", "Resume workspace attached to PR")
+                                        : translate("auto.components.TaskPage.e4b29c5bcf", "Start workspace from PR")
                                     }
                                   >
-                                    {attachedWorkspace ? 'Resume' : 'Start'}
+                                    {attachedWorkspace ? translate("auto.components.TaskPage.7753652524", "Resume") : translate("auto.components.TaskPage.7d08e8be0f", "Start")}
                                     <ArrowRight className="size-3" />
                                   </Button>
                                   <DropdownMenuTrigger asChild>
@@ -7656,7 +7656,7 @@ export default function TaskPage(): React.JSX.Element {
                                       className={cn(
                                         attachedWorkspace ? 'shadow-xs' : 'bg-background/80'
                                       )}
-                                      aria-label="More PR actions"
+                                      aria-label={translate("auto.components.TaskPage.7deb9e59a5", "More PR actions")}
                                     >
                                       <ChevronDown className="size-3" />
                                     </Button>
@@ -7688,12 +7688,12 @@ export default function TaskPage(): React.JSX.Element {
                                 }}
                                 aria-label={
                                   attachedWorkspace
-                                    ? 'Open workspace attached to issue'
-                                    : 'Start workspace from issue'
+                                    ? translate("auto.components.TaskPage.2193a99ec1", "Open workspace attached to issue")
+                                    : translate("auto.components.TaskPage.e104fa3d3d", "Start workspace from issue")
                                 }
                                 className="inline-flex items-center gap-1 rounded-md border border-border/50 bg-background/80 px-2 py-1 text-[11px] text-foreground transition hover:bg-muted/60"
                               >
-                                {attachedWorkspace ? 'Open' : 'Start'}
+                                {attachedWorkspace ? translate("auto.components.TaskPage.606a85c774", "Open") : translate("auto.components.TaskPage.7d08e8be0f", "Start")}
                                 <ArrowRight className="size-3" />
                               </button>
                             )}
@@ -7704,7 +7704,7 @@ export default function TaskPage(): React.JSX.Element {
                                     type="button"
                                     onClick={(e) => e.stopPropagation()}
                                     className="rounded-lg p-1.5 text-muted-foreground transition hover:bg-muted/60 hover:text-foreground"
-                                    aria-label="More actions"
+                                    aria-label={translate("auto.components.TaskPage.66ae7330f6", "More actions")}
                                   >
                                     <EllipsisVertical className="size-4" />
                                   </button>
@@ -7753,7 +7753,7 @@ export default function TaskPage(): React.JSX.Element {
                 </div>
               ) : null}
             </div>
-          ) : taskSource === 'gitlab' && gitlabView === 'todos' ? (
+          ) : taskSource === "gitlab" && gitlabView === "todos" ? (
             <div className="flex min-h-0 max-h-full flex-col rounded-md border border-t-0 border-border/50 bg-muted/50 overflow-hidden rounded-t-none shadow-sm">
               <div className="flex-none grid grid-cols-[110px_minmax(0,3fr)_minmax(120px,1.2fr)_110px_50px] gap-3 border-b border-border/50 px-3 py-2 text-[10px] font-medium uppercase tracking-[0.16em] text-muted-foreground">
                 <span>{translate("auto.components.TaskPage.8396825a14", "Action")}</span>
@@ -7787,8 +7787,8 @@ export default function TaskPage(): React.JSX.Element {
                 {!gitlabTodosLoading && gitlabTodos.length === 0 ? (
                   <div className="px-4 py-12 text-center text-sm text-muted-foreground">
                     {primaryRepo
-                      ? 'No pending todos. You’re all caught up!'
-                      : 'Select a project so we can authenticate to GitLab.'}
+                      ? translate("auto.components.TaskPage.d591aac6ae", "No pending todos. You’re all caught up!")
+                      : translate("auto.components.TaskPage.03da966159", "Select a project so we can authenticate to GitLab.")}
                   </div>
                 ) : null}
                 <div className="divide-y divide-border/50">
@@ -7806,9 +7806,9 @@ export default function TaskPage(): React.JSX.Element {
                       }}
                       className="grid w-full cursor-pointer gap-3 px-3 py-2 text-left grid-cols-[110px_minmax(0,3fr)_minmax(120px,1.2fr)_110px_50px] hover:bg-muted/50"
                       title={
-                        todo.targetType === 'MergeRequest'
+                        todo.targetType === "MergeRequest"
                           ? translate("auto.components.TaskPage.a0544fb653", "MR !{{value0}}", { value0: todo.targetIid ?? '' })
-                          : todo.targetType === 'Issue'
+                          : todo.targetType === "Issue"
                             ? translate("auto.components.TaskPage.e9b6955dcd", "Issue #{{value0}}", { value0: todo.targetIid ?? '' })
                             : todo.targetType
                       }
@@ -7834,7 +7834,7 @@ export default function TaskPage(): React.JSX.Element {
                 </div>
               </div>
             </div>
-          ) : taskSource === 'gitlab' ? (
+          ) : taskSource === "gitlab" ? (
             <div className="flex min-h-0 max-h-full flex-col rounded-md border border-t-0 border-border/50 bg-muted/50 overflow-hidden rounded-t-none shadow-sm">
               <div className="flex-none grid grid-cols-[80px_minmax(0,3fr)_120px_110px_50px] gap-3 border-b border-border/50 px-3 py-2 text-[10px] font-medium uppercase tracking-[0.16em] text-muted-foreground">
                 <span>{translate("auto.components.TaskPage.eb10c32872", "ID")}</span>
@@ -7877,12 +7877,12 @@ export default function TaskPage(): React.JSX.Element {
                 {!gitlabLoading && displayedGitLabItems.length === 0 && !gitlabError ? (
                   <div className="px-4 py-12 text-center text-sm text-muted-foreground">
                     {primaryRepo
-                      ? gitlabView === 'issues'
-                        ? 'No GitLab issues match this filter.'
-                        : gitlabView === 'mrs'
-                          ? 'No GitLab MRs match this filter.'
-                          : 'No GitLab work matches this filter.'
-                      : 'Select a project to see GitLab work items.'}
+                      ? gitlabView === "issues"
+                        ? translate("auto.components.TaskPage.a9f256ecea", "No GitLab issues match this filter.")
+                        : gitlabView === "mrs"
+                          ? translate("auto.components.TaskPage.cd7dc432a3", "No GitLab MRs match this filter.")
+                          : translate("auto.components.TaskPage.f294c500ef", "No GitLab work matches this filter.")
+                      : translate("auto.components.TaskPage.d6d08c1650", "Select a project to see GitLab work items.")}
                   </div>
                 ) : null}
                 <div className="divide-y divide-border/50">
@@ -7909,12 +7909,12 @@ export default function TaskPage(): React.JSX.Element {
                         {/* Why: GitLab's user-facing convention is `!N` for MRs
                             and `#N` for issues — matches gitlab.com's UI so users
                             scanning the list can map rows back to web links. */}
-                        {item.type === 'mr' ? '!' : '#'}
+                        {item.type === "mr" ? '!' : '#'}
                         {item.number}
                       </span>
                       <span className="min-w-0 truncate text-sm">{item.title}</span>
                       <span className="text-xs text-muted-foreground">
-                        {item.type === 'mr' ? 'MR' : 'Issue'} · {item.state}
+                        {item.type === "mr" ? translate("auto.components.TaskPage.e224d76876", "MR") : translate("auto.components.TaskPage.b1eaa18ace", "Issue")} · {item.state}
                       </span>
                       <span className="text-xs text-muted-foreground">
                         {item.updatedAt ? new Date(item.updatedAt).toLocaleDateString() : ''}
@@ -7955,7 +7955,7 @@ export default function TaskPage(): React.JSX.Element {
                 </div>
               </div>
             </div>
-          ) : taskSource === 'jira' ? (
+          ) : taskSource === "jira" ? (
             !jiraStatusChecked ? (
               <div className="mt-4 flex items-center justify-center py-14">
                 <LoaderCircle className="size-5 animate-spin text-muted-foreground" />
@@ -8027,8 +8027,8 @@ export default function TaskPage(): React.JSX.Element {
                       <p className="text-sm font-medium text-foreground">{translate("auto.components.TaskPage.eba87f2edb", "No Jira issues found")}</p>
                       <p className="mt-2 text-sm text-muted-foreground">
                         {jiraSearchInput
-                          ? 'Try a different JQL query.'
-                          : 'No issues match the selected preset.'}
+                          ? translate("auto.components.TaskPage.f51e254d35", "Try a different JQL query.")
+                          : translate("auto.components.TaskPage.94d900518d", "No issues match the selected preset.")}
                       </p>
                     </div>
                   ) : null}
@@ -8086,10 +8086,10 @@ export default function TaskPage(): React.JSX.Element {
                                 <span className="truncate">{issue.status.name}</span>
                               </span>
                               <span className="shrink-0 text-[11px] text-muted-foreground">
-                                {issue.priority?.name ?? 'No priority'}
+                                {issue.priority?.name ?? translate("auto.components.TaskPage.713179dfdc", "No priority")}
                               </span>
                               <span className="min-w-0 truncate text-[11px] text-muted-foreground">
-                                {issue.assignee?.displayName ?? 'Unassigned'}
+                                {issue.assignee?.displayName ?? translate("auto.components.TaskPage.42a9160321", "Unassigned")}
                               </span>
                             </div>
                             <div className="mt-1 flex min-w-0 items-center gap-1 max-lg:!hidden">
@@ -8124,7 +8124,7 @@ export default function TaskPage(): React.JSX.Element {
                           </div>
 
                           <span className="block truncate text-[12px] text-muted-foreground max-md:!hidden">
-                            {issue.priority?.name ?? 'No priority'}
+                            {issue.priority?.name ?? translate("auto.components.TaskPage.713179dfdc", "No priority")}
                           </span>
 
                           <div className="flex min-w-0 items-center gap-2 text-[12px] text-muted-foreground max-lg:!hidden">
@@ -8140,7 +8140,7 @@ export default function TaskPage(): React.JSX.Element {
                               </span>
                             )}
                             <span className="truncate">
-                              {issue.assignee?.displayName ?? 'Unassigned'}
+                              {issue.assignee?.displayName ?? translate("auto.components.TaskPage.42a9160321", "Unassigned")}
                             </span>
                           </div>
 
@@ -8203,7 +8203,7 @@ export default function TaskPage(): React.JSX.Element {
                 />
               </div>
             )
-          ) : taskSource === 'linear' && selectedLinearIssue ? (
+          ) : taskSource === "linear" && selectedLinearIssue ? (
             <LinearIssueWorkspace
               issue={selectedLinearIssue}
               variant="page"
@@ -8230,7 +8230,7 @@ export default function TaskPage(): React.JSX.Element {
               >
                 {translate("auto.components.TaskPage.851017590d", "Add Linear access")}</Button>
             </div>
-          ) : selectedLinearProject && linearProjectTab === 'overview' ? (
+          ) : selectedLinearProject && linearProjectTab === "overview" ? (
             <div className="flex min-h-0 max-h-full flex-col overflow-hidden rounded-md rounded-t-none border border-t-0 border-border/50 bg-background shadow-sm">
               <LinearProjectOverview
                 project={selectedLinearProjectDetail ?? selectedLinearProject}
@@ -8277,7 +8277,7 @@ export default function TaskPage(): React.JSX.Element {
                 onOpenIssues={() => setLinearProjectTab('issues')}
               />
             </div>
-          ) : linearMode === 'projects' && !selectedLinearProject ? (
+          ) : linearMode === "projects" && !selectedLinearProject ? (
             <div className="flex min-h-0 max-h-full flex-col overflow-hidden rounded-md rounded-t-none border border-t-0 border-border/50 bg-background shadow-sm">
               <div className="grid h-8 flex-none items-center gap-3 border-b border-border/50 bg-muted/25 px-3 text-[11px] font-medium uppercase tracking-[0.08em] text-muted-foreground grid-cols-[minmax(180px,1.5fr)_110px_100px_90px_120px_110px_80px_70px]">
                 <span>{translate("auto.components.TaskPage.00022ec0ba", "Project")}</span>
@@ -8319,7 +8319,7 @@ export default function TaskPage(): React.JSX.Element {
                 label={translate("auto.components.TaskPage.b39fe6511d", "projects")}
               />
             </div>
-          ) : linearMode === 'views' && !selectedLinearCustomView ? (
+          ) : linearMode === "views" && !selectedLinearCustomView ? (
             <div className="flex min-h-0 max-h-full flex-col overflow-hidden rounded-md rounded-t-none border border-t-0 border-border/50 bg-background shadow-sm">
               <div className="grid h-8 flex-none items-center gap-3 border-b border-border/50 bg-muted/25 px-3 text-[11px] font-medium uppercase tracking-[0.08em] text-muted-foreground grid-cols-[minmax(220px,1.5fr)_120px_120px_120px_130px_60px]">
                 <span>{translate("auto.components.TaskPage.9c57663908", "View")}</span>
@@ -8355,7 +8355,7 @@ export default function TaskPage(): React.JSX.Element {
                 label={translate("auto.components.TaskPage.3cb855080f", "views")}
               />
             </div>
-          ) : selectedLinearCustomView?.model === 'project' && !selectedLinearProject ? (
+          ) : selectedLinearCustomView?.model === "project" && !selectedLinearProject ? (
             <div className="flex min-h-0 max-h-full flex-col overflow-hidden rounded-md rounded-t-none border border-t-0 border-border/50 bg-background shadow-sm">
               <div className="flex h-10 flex-none items-center justify-between gap-3 border-b border-border/50 bg-muted/35 px-3">
                 <div className="flex min-w-0 items-center gap-2">
@@ -8444,7 +8444,7 @@ export default function TaskPage(): React.JSX.Element {
                     </Button>
                   ) : null}
                   <div className="min-w-0 text-[11px] font-medium uppercase tracking-[0.12em] text-muted-foreground">
-                    {activeLinearIssueContextLabel ?? 'Linear issues'}
+                    {activeLinearIssueContextLabel ?? translate("auto.components.TaskPage.60f68a2ef4", "Linear issues")}
                   </div>
                 </div>
                 <div className="flex shrink-0 items-center gap-2">
@@ -8550,7 +8550,7 @@ export default function TaskPage(): React.JSX.Element {
                 </div>
               </div>
 
-              {linearViewMode === 'list' && linearGroupBy === 'none' ? (
+              {linearViewMode === "list" && linearGroupBy === "none" ? (
                 <div
                   className="grid h-8 flex-none items-center gap-3 border-b border-border/50 bg-muted/25 px-3 text-[11px] font-medium uppercase tracking-[0.08em] text-muted-foreground max-lg:!hidden lg:grid-cols-[var(--linear-grid-template)] [&>span]:min-w-0 [&>span]:truncate"
                   style={linearIssueGridStyle}
@@ -8609,10 +8609,10 @@ export default function TaskPage(): React.JSX.Element {
                     <p className="text-sm font-medium text-foreground">{translate("auto.components.TaskPage.903c7af49f", "No Linear issues found")}</p>
                     <p className="mt-2 text-sm text-muted-foreground">
                       {activeLinearIssueContextLabel
-                        ? 'No issues match this Linear context.'
+                        ? translate("auto.components.TaskPage.25ff84769a", "No issues match this Linear context.")
                         : linearSearchInput
-                          ? 'Try a different search query.'
-                          : 'No assigned issues. Try searching for something.'}
+                          ? translate("auto.components.TaskPage.2bdefbcac3", "Try a different search query.")
+                          : translate("auto.components.TaskPage.d079be2dc8", "No assigned issues. Try searching for something.")}
                     </p>
                   </div>
                 ) : null}
@@ -8628,7 +8628,7 @@ export default function TaskPage(): React.JSX.Element {
                   </div>
                 ) : null}
 
-                {linearViewMode === 'board' ? (
+                {linearViewMode === "board" ? (
                   <div className="grid min-w-0 gap-3 p-3 md:grid-cols-2 xl:grid-cols-3">
                     {linearBoardSections.map((section) => (
                       <section
@@ -8741,7 +8741,7 @@ export default function TaskPage(): React.JSX.Element {
                                     <LinearStateCell issue={issue} className="px-1.5 py-0.5" />
                                   ) : null}
                                   {effectiveLinearDisplayProperties.has('assignee') ? (
-                                    <span>{issue.assignee?.displayName ?? 'Unassigned'}</span>
+                                    <span>{issue.assignee?.displayName ?? translate("auto.components.TaskPage.42a9160321", "Unassigned")}</span>
                                   ) : null}
                                   {effectiveLinearDisplayProperties.has('team') ? (
                                     <span className="truncate">{teamLabel}</span>
@@ -8851,7 +8851,7 @@ export default function TaskPage(): React.JSX.Element {
                               ) : null}
                               {effectiveLinearDisplayProperties.has('assignee') ? (
                                 <span className="min-w-0 truncate text-[11px] text-muted-foreground">
-                                  {issue.assignee?.displayName ?? 'Unassigned'}
+                                  {issue.assignee?.displayName ?? translate("auto.components.TaskPage.42a9160321", "Unassigned")}
                                 </span>
                               ) : null}
                               {effectiveLinearDisplayProperties.has('team') ? (
@@ -8898,7 +8898,7 @@ export default function TaskPage(): React.JSX.Element {
                                 <TooltipTrigger asChild>
                                   <div
                                     className="flex size-5 shrink-0 items-center justify-center rounded-full border border-border/50 bg-muted/40 text-[10px] text-muted-foreground"
-                                    aria-label={issue.assignee?.displayName ?? 'Unassigned'}
+                                    aria-label={issue.assignee?.displayName ?? translate("auto.components.TaskPage.42a9160321", "Unassigned")}
                                   >
                                     {issue.assignee?.avatarUrl ? (
                                       <img
@@ -8912,7 +8912,7 @@ export default function TaskPage(): React.JSX.Element {
                                   </div>
                                 </TooltipTrigger>
                                 <TooltipContent side="bottom" sideOffset={6}>
-                                  {issue.assignee?.displayName ?? 'Unassigned'}
+                                  {issue.assignee?.displayName ?? translate("auto.components.TaskPage.42a9160321", "Unassigned")}
                                 </TooltipContent>
                               </Tooltip>
                             </div>
@@ -8974,7 +8974,7 @@ export default function TaskPage(): React.JSX.Element {
                   </div>
                 )}
               </div>
-              {selectedLinearProject && linearProjectTab === 'issues' ? (
+              {selectedLinearProject && linearProjectTab === "issues" ? (
                 <>
                   <LinearCollectionNotice
                     errors={linearProjectIssuesResult.errors}
@@ -9221,7 +9221,7 @@ export default function TaskPage(): React.JSX.Element {
                   <LoaderCircle className="size-4 animate-spin" />
                   {translate("auto.components.TaskPage.8ff6fdc368", "Creating…")}</>
               ) : (
-                'Create issue'
+                translate("auto.components.TaskPage.e15ba2d2eb", "Create issue")
               )}
             </Button>
           </DialogFooter>
@@ -9265,7 +9265,7 @@ export default function TaskPage(): React.JSX.Element {
                       <span className="truncate">
                         {newLinearProjectTargetTeam
                           ? `${newLinearProjectTargetTeam.key} - ${newLinearProjectTargetTeam.name}`
-                          : 'Select team'}
+                          : translate("auto.components.TaskPage.5af6f0ae5b", "Select team")}
                       </span>
                       <ChevronDown className="size-3 flex-none text-muted-foreground" />
                     </Button>
@@ -9391,7 +9391,7 @@ export default function TaskPage(): React.JSX.Element {
                     <span className="max-w-[120px] truncate">
                       {newLinearProjectMembers.data.find(
                         (member) => member.id === newLinearProjectLeadId
-                      )?.displayName ?? 'Lead'}
+                      )?.displayName ?? translate("auto.components.TaskPage.34da8ac06c", "Lead")}
                     </span>
                     <ChevronDown className="size-3 text-muted-foreground/70" />
                   </button>
@@ -9464,8 +9464,8 @@ export default function TaskPage(): React.JSX.Element {
                     <Users className="size-3.5 text-muted-foreground/70" />
                     <span>
                       {newLinearProjectMemberIds.length === 0
-                        ? 'Members'
-                        : `${newLinearProjectMemberIds.length} member${newLinearProjectMemberIds.length > 1 ? 's' : ''}`}
+                        ? translate("auto.components.TaskPage.d6cda23ef1", "Members")
+                        : translate("auto.components.TaskPage.7719d8daa9", "{{value0}} member{{value1}}", { value0: newLinearProjectMemberIds.length, value1: newLinearProjectMemberIds.length > 1 ? 's' : '' })}
                     </span>
                     <ChevronDown className="size-3 text-muted-foreground/70" />
                   </button>
@@ -9530,8 +9530,8 @@ export default function TaskPage(): React.JSX.Element {
                     <Tag className="size-3.5 text-muted-foreground/70" />
                     <span>
                       {newLinearProjectLabelIds.length === 0
-                        ? 'Labels'
-                        : `${newLinearProjectLabelIds.length} label${newLinearProjectLabelIds.length > 1 ? 's' : ''}`}
+                        ? translate("auto.components.TaskPage.d0ca4aa1d0", "Labels")
+                        : translate("auto.components.TaskPage.eff9800d4b", "{{value0}} label{{value1}}", { value0: newLinearProjectLabelIds.length, value1: newLinearProjectLabelIds.length > 1 ? 's' : '' })}
                     </span>
                     <ChevronDown className="size-3 text-muted-foreground/70" />
                   </button>
@@ -9645,7 +9645,7 @@ export default function TaskPage(): React.JSX.Element {
                   <LoaderCircle className="size-4 animate-spin" />
                   {translate("auto.components.TaskPage.1b59a07674", "Creating...")}</>
               ) : (
-                'Create project'
+                translate("auto.components.TaskPage.5301ca0f20", "Create project")
               )}
             </Button>
           </DialogFooter>
@@ -9684,7 +9684,7 @@ export default function TaskPage(): React.JSX.Element {
                       size="xs"
                       className="h-7 gap-1 px-2 font-medium text-xs text-foreground hover:bg-muted"
                     >
-                      {newLinearIssueTargetTeam?.key ?? 'Select Team'}
+                      {newLinearIssueTargetTeam?.key ?? translate("auto.components.TaskPage.d7f16d0e32", "Select Team")}
                       <ChevronDown className="size-3 text-muted-foreground" />
                     </Button>
                   </PopoverTrigger>
@@ -9771,7 +9771,7 @@ export default function TaskPage(): React.JSX.Element {
                             className="size-2 rounded-full flex-shrink-0"
                             style={{ backgroundColor: selectedState?.color || '#a3a3a3' }}
                           />
-                          <span>{selectedState?.name || 'Status'}</span>
+                          <span>{selectedState?.name || translate("auto.components.TaskPage.154b0fa623", "Status")}</span>
                         </>
                       )
                     })()}
@@ -9925,14 +9925,14 @@ export default function TaskPage(): React.JSX.Element {
                     <LinearPriorityIcon priority={newLinearIssuePriority} className="size-3.5" />
                     <span>
                       {newLinearIssuePriority === 1
-                        ? 'Urgent'
+                        ? translate("auto.components.TaskPage.f373ab1a4f", "Urgent")
                         : newLinearIssuePriority === 2
-                          ? 'High'
+                          ? translate("auto.components.TaskPage.345b169f1f", "High")
                           : newLinearIssuePriority === 3
-                            ? 'Medium'
+                            ? translate("auto.components.TaskPage.7fd59c18d8", "Medium")
                             : newLinearIssuePriority === 4
-                              ? 'Low'
-                              : 'Priority'}
+                              ? translate("auto.components.TaskPage.69591944e7", "Low")
+                              : translate("auto.components.TaskPage.c8d5bec5f7", "Priority")}
                     </span>
                     <ChevronDown className="size-3 text-muted-foreground/70" />
                   </button>
@@ -10051,8 +10051,8 @@ export default function TaskPage(): React.JSX.Element {
                     <Tag className="size-3.5 text-muted-foreground/70" />
                     <span>
                       {newLinearIssueLabelIds.length === 0
-                        ? 'Labels'
-                        : `${newLinearIssueLabelIds.length} label${newLinearIssueLabelIds.length > 1 ? 's' : ''}`}
+                        ? translate("auto.components.TaskPage.d0ca4aa1d0", "Labels")
+                        : translate("auto.components.TaskPage.eff9800d4b", "{{value0}} label{{value1}}", { value0: newLinearIssueLabelIds.length, value1: newLinearIssueLabelIds.length > 1 ? 's' : '' })}
                     </span>
                     <ChevronDown className="size-3 text-muted-foreground/70" />
                   </button>
@@ -10133,7 +10133,7 @@ export default function TaskPage(): React.JSX.Element {
                     <LoaderCircle className="size-3.5 animate-spin mr-1" />
                     {translate("auto.components.TaskPage.8ff6fdc368", "Creating…")}</>
                 ) : (
-                  'Create issue'
+                  translate("auto.components.TaskPage.e15ba2d2eb", "Create issue")
                 )}
               </Button>
             </div>
@@ -10162,8 +10162,8 @@ export default function TaskPage(): React.JSX.Element {
             <DialogTitle>{translate("auto.components.TaskPage.0c11ca0b6d", "New Jira issue")}</DialogTitle>
             <DialogDescription>
               {newJiraIssueTargetProject
-                ? `Creates a new issue in ${newJiraIssueTargetProject.key}.`
-                : 'Choose a Jira project before creating the issue.'}
+                ? translate("auto.components.TaskPage.0f7b0d964a", "Creates a new issue in {{value0}}.", { value0: newJiraIssueTargetProject.key })
+                : translate("auto.components.TaskPage.e178c0a953", "Choose a Jira project before creating the issue.")}
             </DialogDescription>
           </DialogHeader>
           <div className="flex flex-col gap-3">
@@ -10318,7 +10318,7 @@ export default function TaskPage(): React.JSX.Element {
                       <label className="text-[11px] font-medium text-muted-foreground">
                         {field.name}
                       </label>
-                      {field.allowedValues?.length && field.schema?.type !== 'array' ? (
+                      {field.allowedValues?.length && field.schema?.type !== "array" ? (
                         <Select
                           value={fieldValue}
                           onValueChange={(value) =>
@@ -10354,7 +10354,7 @@ export default function TaskPage(): React.JSX.Element {
                           }
                           type={field.schema?.type === 'number' ? 'number' : 'text'}
                           placeholder={
-                            field.schema?.type === 'array'
+                            field.schema?.type === "array"
                               ? translate("auto.components.TaskPage.56cdb413a2", "Comma-separated values")
                               : translate("auto.components.TaskPage.919a20dd5b", "Enter {{value0}}", { value0: field.name })
                           }
@@ -10391,7 +10391,7 @@ export default function TaskPage(): React.JSX.Element {
                   <LoaderCircle className="size-4 animate-spin" />
                   {translate("auto.components.TaskPage.8ff6fdc368", "Creating…")}</>
               ) : (
-                'Create issue'
+                translate("auto.components.TaskPage.e15ba2d2eb", "Create issue")
               )}
             </Button>
           </DialogFooter>
@@ -10546,12 +10546,12 @@ export default function TaskPage(): React.JSX.Element {
                 jiraConnectState === 'connecting'
               }
             >
-              {jiraConnectState === 'connecting' ? (
+              {jiraConnectState === "connecting" ? (
                 <>
                   <LoaderCircle className="size-4 animate-spin" />
                   {translate("auto.components.TaskPage.513cddfa7a", "Verifying…")}</>
               ) : (
-                'Connect'
+                translate("auto.components.TaskPage.887efe9140", "Connect")
               )}
             </Button>
           </DialogFooter>

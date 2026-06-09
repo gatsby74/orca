@@ -115,9 +115,9 @@ export function AutomationRunHistory({
                   }
                   title={usageLabel}
                 >
-                  {run.usage?.status === 'known'
+                  {run.usage?.status === "known"
                     ? formatAutomationTokens(run.usage.totalTokens)
-                    : 'n/a'}
+                    : translate("auto.components.automations.AutomationRunHistory.a00e38d1a3", "n/a")}
                 </div>
                 <div className="flex justify-start">
                   <Badge variant={getAutomationRunStatusVariant(run.status)}>

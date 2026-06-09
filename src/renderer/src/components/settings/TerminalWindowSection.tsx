@@ -174,7 +174,7 @@ export function TerminalWindowSection({
               onClick={() => void handleRelaunch()}
             >
               <RotateCw className={`size-3 ${relaunchingBlur ? 'animate-spin' : ''}`} />
-              {relaunchingBlur ? 'Restarting…' : 'Restart now'}
+              {relaunchingBlur ? translate("auto.components.settings.TerminalWindowSection.907131d741", "Restarting…") : translate("auto.components.settings.TerminalWindowSection.8abdab9f7c", "Restart now")}
             </Button>
           </div>
         ) : null}

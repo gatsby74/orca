@@ -253,7 +253,7 @@ export function RuntimePairingUrlGenerator({
             setCopiedTarget((current) => (current === target ? null : current))
           }
         }, 1400)
-        toast.success(target === 'web' ? translate("auto.components.settings.RuntimePairingUrlGenerator.13704d635e", "Copied web client URL.") : translate("auto.components.settings.RuntimePairingUrlGenerator.df0aa45a86", "Copied pairing URL."))
+        toast.success(target === "web" ? translate("auto.components.settings.RuntimePairingUrlGenerator.13704d635e", "Copied web client URL.") : translate("auto.components.settings.RuntimePairingUrlGenerator.df0aa45a86", "Copied pairing URL."))
       }
     } catch (error) {
       if (mountedRef.current) {

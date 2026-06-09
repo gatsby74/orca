@@ -303,7 +303,7 @@ export function CrashReportDialog(): React.JSX.Element {
           </div>
         ) : (
           <div className="rounded-md border border-border/70 bg-muted/30 p-3 text-xs text-muted-foreground">
-            {loading ? 'Checking for crash reports...' : 'No crash report is available.'}
+            {loading ? translate("auto.components.crash.report.CrashReportDialog.765591798d", "Checking for crash reports...") : translate("auto.components.crash.report.CrashReportDialog.b175e90213", "No crash report is available.")}
           </div>
         )}
 

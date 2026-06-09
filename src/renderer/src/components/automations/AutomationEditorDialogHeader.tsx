@@ -69,12 +69,12 @@ export function AutomationEditorDialogHeader({
         <div className="min-w-0 flex-1 space-y-2">
           <DialogTitle className="text-sm font-medium">
             {isEditing
-              ? 'Edit automation'
+              ? translate("auto.components.automations.AutomationEditorDialogHeader.17086b48ee", "Edit automation")
               : isEditingExternal
-                ? 'Edit Hermes automation'
+                ? translate("auto.components.automations.AutomationEditorDialogHeader.03142e7721", "Edit Hermes automation")
                 : isHermesCreate
-                  ? 'Create Hermes automation'
-                  : 'Create automation'}
+                  ? translate("auto.components.automations.AutomationEditorDialogHeader.0a75e5e2fa", "Create Hermes automation")
+                  : translate("auto.components.automations.AutomationEditorDialogHeader.4133d33862", "Create automation")}
           </DialogTitle>
           <Input
             value={draftName}

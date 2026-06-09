@@ -155,14 +155,14 @@ function RightSidebarInner(): React.JSX.Element {
           competed with file Explorer/Search for vertical space. The right
           sidebar is back to tab-only content. */}
       <div className="flex min-h-0 flex-1 flex-col overflow-hidden">
-        {effectiveTab === 'explorer' && <FileExplorer />}
-        {effectiveTab === 'search' && <SearchPanel />}
+        {effectiveTab === "explorer" && <FileExplorer />}
+        {effectiveTab === "search" && <SearchPanel />}
         {effectiveTab === 'source-control' && <SourceControl />}
-        {effectiveTab === 'checks' && <ChecksPanel />}
+        {effectiveTab === "checks" && <ChecksPanel />}
         {/* Why: SSH port forwarding still depends on the raw ports.detect data,
             which the workspace-scoped status bar popover intentionally does not
             expose. Keep this panel reachable only for SSH worktrees. */}
-        {effectiveTab === 'ports' && (
+        {effectiveTab === "ports" && (
           <PortsPanel isVisible={rightSidebarOpen && effectiveTab === 'ports'} />
         )}
       </div>
@@ -198,7 +198,7 @@ function RightSidebarInner(): React.JSX.Element {
         </button>
       </TooltipTrigger>
       <TooltipContent side="bottom" sideOffset={6}>
-        {`Toggle right sidebar (${rightSidebarShortcut})`}
+        {translate("auto.components.right.sidebar.index.9fffaf17c1", "Toggle right sidebar ({{value0}})", { value0: rightSidebarShortcut })}
       </TooltipContent>
     </Tooltip>
   ) : null
@@ -223,7 +223,7 @@ function RightSidebarInner(): React.JSX.Element {
           borderLeft: rightSidebarOpen ? '1px solid var(--sidebar-border)' : 'none'
         }}
       >
-        {activityBarPosition === 'top' ? (
+        {activityBarPosition === "top" ? (
           /* ── Top activity bar: horizontal icon row ── */
           <ContextMenu>
             <div className="flex h-[36px] min-h-[36px] items-center border-b border-border right-sidebar-header-inset right-sidebar-header-drag overflow-hidden">
@@ -355,7 +355,7 @@ function RightSidebarInner(): React.JSX.Element {
       </div>
 
       {/* Side Activity Bar (icon strip on right edge) — only for 'side' position */}
-      {activityBarPosition === 'side' && (
+      {activityBarPosition === "side" && (
         <ContextMenu>
           <ContextMenuTrigger asChild>
             <div className="flex flex-col items-center w-10 min-w-[40px] bg-sidebar border-l border-border side-activity-bar-windows-inset">

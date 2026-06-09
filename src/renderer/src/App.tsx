@@ -1528,7 +1528,7 @@ function App(): React.JSX.Element {
             {settings?.showTitlebarAppName !== false && (
               <ContextMenu>
                 <ContextMenuTrigger asChild>
-                  <div className="titlebar-app-name" aria-label="Orca">
+                  <div className="titlebar-app-name" aria-label={translate("auto.App.5096cbbc86", "Orca")}>
                     <span className="titlebar-app-name-main">{translate("auto.App.5096cbbc86", "Orca")}</span>
                   </div>
                 </ContextMenuTrigger>
@@ -1550,13 +1550,13 @@ function App(): React.JSX.Element {
               <button
                 className="sidebar-toggle"
                 onClick={actions.toggleSidebar}
-                aria-label="Toggle sidebar"
+                aria-label={translate("auto.App.e4b9e7dff7", "Toggle sidebar")}
               >
                 <PanelLeft size={16} />
               </button>
             </TooltipTrigger>
             <TooltipContent side="bottom" sideOffset={6}>
-              {`Toggle sidebar (${leftSidebarShortcutLabel})`}
+              {translate("auto.App.ce37cf5279", "Toggle sidebar ({{value0}})", { value0: leftSidebarShortcutLabel })}
             </TooltipContent>
           </Tooltip>
         )}
@@ -1574,13 +1574,13 @@ function App(): React.JSX.Element {
                 className="sidebar-toggle sidebar-toggle-compact"
                 onClick={() => useAppStore.getState().goBackWorktree()}
                 disabled={!canGoBackWorktree}
-                aria-label="Go back"
+                aria-label={translate("auto.App.064bd07810", "Go back")}
               >
                 <ArrowLeft size={12} />
               </button>
             </TooltipTrigger>
             <TooltipContent side="bottom" sideOffset={6}>
-              {`Go back (${historyBackShortcutLabel})`}
+              {translate("auto.App.fe21e8f6f5", "Go back ({{value0}})", { value0: historyBackShortcutLabel })}
             </TooltipContent>
           </Tooltip>
           <Tooltip>
@@ -1589,13 +1589,13 @@ function App(): React.JSX.Element {
                 className="sidebar-toggle sidebar-toggle-compact"
                 onClick={() => useAppStore.getState().goForwardWorktree()}
                 disabled={!canGoForwardWorktree}
-                aria-label="Go forward"
+                aria-label={translate("auto.App.cf9099fe98", "Go forward")}
               >
                 <ArrowRight size={12} />
               </button>
             </TooltipTrigger>
             <TooltipContent side="bottom" sideOffset={6}>
-              {`Go forward (${historyForwardShortcutLabel})`}
+              {translate("auto.App.f7aa73e785", "Go forward ({{value0}})", { value0: historyForwardShortcutLabel })}
             </TooltipContent>
           </Tooltip>
         </div>
@@ -1615,7 +1615,7 @@ function App(): React.JSX.Element {
         </button>
       </TooltipTrigger>
       <TooltipContent side="bottom" sideOffset={6}>
-        {`Toggle right sidebar (${rightSidebarShortcutLabel})`}
+        {translate("auto.App.c184e056de", "Toggle right sidebar ({{value0}})", { value0: rightSidebarShortcutLabel })}
       </TooltipContent>
     </Tooltip>
   ) : null
@@ -1671,7 +1671,7 @@ function App(): React.JSX.Element {
                     >
                       {titlebarLeftControls}
                     </div>
-                    {activeView === 'activity' ? (
+                    {activeView === "activity" ? (
                       <ActivityTitlebarControls />
                     ) : (
                       <div
@@ -1685,7 +1685,7 @@ function App(): React.JSX.Element {
                           <button
                             className="titlebar-icon-button"
                             onClick={handleToggleExpand}
-                            aria-label="Collapse pane"
+                            aria-label={translate("auto.App.c1cf0b0e4a", "Collapse pane")}
                             disabled={!activeTabCanExpand}
                           >
                             <Minimize2 size={14} />
@@ -1833,19 +1833,19 @@ function App(): React.JSX.Element {
                           title={translate("auto.App.b7a714db1e", "This page hit an error.")}
                           description={translate("auto.App.03a14f6b5b", "Retry the page or navigate to another Orca surface.")}
                         >
-                          {activeView === 'settings' ? <Settings /> : null}
-                          {activeView === 'skills' ? <SkillsPage /> : null}
-                          {activeView === 'tasks' ? <TaskPage /> : null}
-                          {activeView === 'automations' ? <AutomationsPage /> : null}
-                          {activeView === 'activity' ? <ActivityPrototypePage /> : null}
-                          {activeView === 'space' ? <WorkspaceSpacePage /> : null}
-                          {activeView === 'mobile' ? <MobilePage /> : null}
-                          {activeView === 'terminal' &&
+                          {activeView === "settings" ? <Settings /> : null}
+                          {activeView === "skills" ? <SkillsPage /> : null}
+                          {activeView === "tasks" ? <TaskPage /> : null}
+                          {activeView === "automations" ? <AutomationsPage /> : null}
+                          {activeView === "activity" ? <ActivityPrototypePage /> : null}
+                          {activeView === "space" ? <WorkspaceSpacePage /> : null}
+                          {activeView === "mobile" ? <MobilePage /> : null}
+                          {activeView === "terminal" &&
                           activeCreationLoaderVisible &&
                           activePendingCreationId ? (
                             <WorktreeCreationPanel creationId={activePendingCreationId} />
                           ) : null}
-                          {activeView === 'terminal' &&
+                          {activeView === "terminal" &&
                           !activeWorktreeId &&
                           !activeCreationLoaderVisible ? (
                             <Landing />

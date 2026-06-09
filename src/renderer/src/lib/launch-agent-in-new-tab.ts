@@ -308,7 +308,7 @@ export function launchAgentInNewTab(args: LaunchAgentInNewTabArgs): LaunchAgentI
           return
         }
         const label = submitPastedPrompt ? 'prompt' : 'notes'
-        toast.message(`Your ${label} wasn't sent — paste it once the agent is ready.`)
+        toast.message(translate("auto.lib.launch.agent.in.new.tab.a5a1f7033f", "Your {{value0}} wasn't sent — paste it once the agent is ready.", { value0: label }))
         track('agent_error', {
           error_class: 'paste_readiness_timeout',
           agent_kind: tuiAgentToAgentKind(agent)

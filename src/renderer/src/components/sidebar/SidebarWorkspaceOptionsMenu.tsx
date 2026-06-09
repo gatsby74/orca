@@ -168,7 +168,7 @@ const SidebarWorkspaceOptionsMenu = React.memo(function SidebarWorkspaceOptionsM
           </DropdownMenuTrigger>
         </TooltipTrigger>
         <TooltipContent side="bottom" sideOffset={6}>
-          {hasAnyFilter ? `Workspace options (${activeFilterLabel})` : 'Workspace options'}
+          {hasAnyFilter ? translate("auto.components.sidebar.SidebarWorkspaceOptionsMenu.bc96dbd041", "Workspace options ({{value0}})", { value0: activeFilterLabel }) : translate("auto.components.sidebar.SidebarWorkspaceOptionsMenu.9919ae1082", "Workspace options")}
         </TooltipContent>
       </Tooltip>
       <DropdownMenuContent
@@ -250,7 +250,7 @@ const SidebarWorkspaceOptionsMenu = React.memo(function SidebarWorkspaceOptionsM
 
         {/* Why: project order only has a visible effect when grouping by
             project; hide it in none/status/PR modes to avoid a dead control. */}
-        {groupBy === 'repo' && (
+        {groupBy === "repo" && (
           <DropdownMenuSub>
             <DropdownMenuSubTrigger>
               <span className="flex flex-1 items-center justify-between">
@@ -327,7 +327,7 @@ const SidebarWorkspaceOptionsMenu = React.memo(function SidebarWorkspaceOptionsM
           <DropdownMenuSubTrigger>
             <span className="flex flex-1 items-center justify-between">
               <span>{translate("auto.components.sidebar.SidebarWorkspaceOptionsMenu.ba87080fb7", "Show properties")}</span>
-              {cardLayout === 'compact' ? (
+              {cardLayout === "compact" ? (
                 <span className="text-[11px] font-medium text-muted-foreground">{translate("auto.components.sidebar.SidebarWorkspaceOptionsMenu.3d4b9c4997", "Hover")}</span>
               ) : visiblePropertyCount > 0 ? (
                 <span className="text-[11px] font-medium text-muted-foreground">

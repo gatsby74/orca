@@ -52,7 +52,7 @@ export function CreatePullRequestGenerateButton({
         size="sm"
         disabled={generateDisabled}
         onClick={onGenerate}
-        title={generateDisabledReason ?? `Generate ${reviewLabel} details with AI`}
+        title={generateDisabledReason ?? translate("auto.components.right.sidebar.CreatePullRequestGenerateButton.a0501572c1", "Generate {{value0}} details with AI", { value0: reviewLabel })}
         aria-label={translate("auto.components.right.sidebar.CreatePullRequestGenerateButton.a0501572c1", "Generate {{value0}} details with AI", { value0: reviewLabel })}
       >
         <Sparkles className="size-4" />

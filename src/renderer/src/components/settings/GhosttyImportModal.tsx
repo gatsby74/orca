@@ -58,7 +58,7 @@ export function GhosttyImportModal({
           <div className="space-y-3">
             {configPaths.length > 0 && !applied && (
               <p className="text-xs text-muted-foreground break-all">
-                {configPaths.length === 1 ? 'Config' : 'Configs'}: {configPaths.join(', ')}
+                {configPaths.length === 1 ? translate("auto.components.settings.GhosttyImportModal.1f744a72f4", "Config") : translate("auto.components.settings.GhosttyImportModal.273e7e81fe", "Configs")}: {configPaths.join(', ')}
               </p>
             )}
             {applied ? (

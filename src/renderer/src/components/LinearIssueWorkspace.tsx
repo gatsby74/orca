@@ -361,7 +361,7 @@ function LinearIssueSidebarProjectCard({
           >
             <FolderKanban className="size-4 shrink-0" />
             <span className="min-w-0 flex-1 truncate">
-              {issue.project?.name ?? 'Add to project'}
+              {issue.project?.name ?? translate("auto.components.LinearIssueWorkspace.519c3587f3", "Add to project")}
             </span>
             <ChevronDown className="size-3.5 shrink-0" />
           </button>
@@ -402,7 +402,7 @@ function LinearIssueSidebarProjectCard({
                 ))
               ) : (
                 <div className="px-2 py-3 text-sm text-muted-foreground">
-                  {query.trim() ? 'No projects found.' : 'Search for a project to add.'}
+                  {query.trim() ? translate("auto.components.LinearIssueWorkspace.c11b4e3cc2", "No projects found.") : translate("auto.components.LinearIssueWorkspace.76ffd3c937", "Search for a project to add.")}
                 </div>
               )}
             </div>
@@ -621,7 +621,7 @@ export default function LinearIssueWorkspace({
     <div className="flex h-full min-h-0 flex-col overflow-hidden bg-background">
       <header className="flex h-[61px] flex-none items-center justify-between gap-4 border-b border-border/60 px-5">
         <div className="flex min-w-0 items-center gap-2 text-sm text-muted-foreground">
-          {variant === 'page' ? (
+          {variant === "page" ? (
             <Button
               type="button"
               variant="ghost"
@@ -636,7 +636,7 @@ export default function LinearIssueWorkspace({
           ) : null}
           <LinearIcon className="size-4 shrink-0 text-muted-foreground" />
           <span className="truncate font-medium text-foreground">
-            {displayed.workspaceName ?? 'Linear'}
+            {displayed.workspaceName ?? translate("auto.components.LinearIssueWorkspace.65239a714b", "Linear")}
           </span>
           <ChevronRight className="size-3.5 shrink-0" />
           <span className="shrink-0">{translate("auto.components.LinearIssueWorkspace.f63ef94ea8", "Issues")}</span>
@@ -689,7 +689,7 @@ export default function LinearIssueWorkspace({
             <TooltipContent side="bottom" sideOffset={6}>
               {translate("auto.components.LinearIssueWorkspace.e1e0a9bca9", "Start workspace")}</TooltipContent>
           </Tooltip>
-          {variant === 'sheet' ? (
+          {variant === "sheet" ? (
             <Tooltip>
               <TooltipTrigger asChild>
                 <Button
@@ -734,7 +734,7 @@ export default function LinearIssueWorkspace({
                   className="size-5"
                 />
                 <span>
-                  {displayed.assignee?.displayName ?? 'Someone'} {translate("auto.components.LinearIssueWorkspace.fabbd3f974", "updated the issue ·")}{' '}
+                  {displayed.assignee?.displayName ?? translate("auto.components.LinearIssueWorkspace.8a33c85e9c", "Someone")} {translate("auto.components.LinearIssueWorkspace.fabbd3f974", "updated the issue ·")}{' '}
                   {formatLinearIssueRelativeTime(displayed.updatedAt)}
                 </span>
               </div>
@@ -774,7 +774,7 @@ export default function LinearIssueWorkspace({
                       <div className="min-w-0 flex-1">
                         <div className="mb-1 flex min-w-0 items-center gap-2 text-sm">
                           <span className="truncate font-semibold text-foreground">
-                            {comment.user?.displayName ?? 'Unknown'}
+                            {comment.user?.displayName ?? translate("auto.components.LinearIssueWorkspace.ca8778c124", "Unknown")}
                           </span>
                           <span className="shrink-0 text-muted-foreground">
                             {formatLinearIssueRelativeTime(comment.createdAt)}
@@ -867,7 +867,7 @@ export default function LinearIssueWorkspace({
         }}
       >
         <VisuallyHidden.Root asChild>
-          <SheetTitle>{displayed?.title ?? 'Linear issue'}</SheetTitle>
+          <SheetTitle>{displayed?.title ?? translate("auto.components.LinearIssueWorkspace.61f424f8ca", "Linear issue")}</SheetTitle>
         </VisuallyHidden.Root>
         <VisuallyHidden.Root asChild>
           <SheetDescription>

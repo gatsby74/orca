@@ -174,7 +174,7 @@ export function ProviderUsageRow({
             <Badge variant={statusVariant}>{status}</Badge>
           </div>
           <p className="mt-1 truncate text-xs text-muted-foreground">
-            {provider.topModel ?? 'No model yet'}
+            {provider.topModel ?? translate("auto.components.stats.usage.overview.sections.3de9bf87fc", "No model yet")}
             {provider.topProject ? ` - ${provider.topProject}` : ''}
           </p>
         </div>

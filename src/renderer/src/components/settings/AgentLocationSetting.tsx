@@ -83,7 +83,7 @@ export function AgentLocationSetting({
         label={translate("auto.components.settings.AgentLocationSetting.9bccf48906", "Agent location")}
         alignTop
         description={
-          agentRuntime.runtime === 'wsl' && !wslAvailable && !wslCapabilitiesLoading
+          agentRuntime.runtime === "wsl" && !wslAvailable && !wslCapabilitiesLoading
             ? translate("auto.components.settings.AgentLocationSetting.c7c516946f", "WSL is not available on this machine.")
             : translate("auto.components.settings.AgentLocationSetting.d00949e59b", "Show installed agents from {{value0}}. Refresh re-checks PATH in that environment.", { value0: agentRuntime.label })
         }
@@ -107,7 +107,7 @@ export function AgentLocationSetting({
                   : [])
               ]}
             />
-            {wslSupportedPlatform && agentRuntime.runtime === 'wsl' ? (
+            {wslSupportedPlatform && agentRuntime.runtime === "wsl" ? (
               <Select
                 value={agentRuntime.wslDistro ?? '__default__'}
                 onValueChange={(value) =>

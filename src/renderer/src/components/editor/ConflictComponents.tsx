@@ -116,7 +116,7 @@ export function ConflictBanner({
                   type="button"
                   variant="ghost"
                   size="icon-xs"
-                  aria-label="Previous conflict"
+                  aria-label={translate("auto.components.editor.ConflictComponents.41d9af2e7a", "Previous conflict")}
                   onClick={() => conflictNavigation.onJump('previous')}
                 >
                   <ChevronUp className="size-3.5" />
@@ -131,7 +131,7 @@ export function ConflictBanner({
                   type="button"
                   variant="ghost"
                   size="icon-xs"
-                  aria-label="Next conflict"
+                  aria-label={translate("auto.components.editor.ConflictComponents.9c2901ef8a", "Next conflict")}
                   onClick={() => conflictNavigation.onJump('next')}
                 >
                   <ChevronDown className="size-3.5" />
@@ -172,7 +172,7 @@ export function ConflictPlaceholderView({ file }: { file: OpenFile }): React.JSX
           {CONFLICT_KIND_LABELS[conflict.conflictKind]}
         </div>
         <div className="text-xs text-muted-foreground">
-          {conflict.message ?? 'No working-tree file is available to edit for this conflict.'}
+          {conflict.message ?? translate("auto.components.editor.ConflictComponents.da539359b6", "No working-tree file is available to edit for this conflict.")}
         </div>
         <div className="text-xs text-muted-foreground">
           {conflict.guidance ?? CONFLICT_HINT_MAP[conflict.conflictKind]}
@@ -268,7 +268,7 @@ export function ConflictReviewPanel({
                     type="button"
                     variant="ghost"
                     size="icon-xs"
-                    aria-label="Show file tree"
+                    aria-label={translate("auto.components.editor.ConflictComponents.c8ca989aea", "Show file tree")}
                     onClick={() => setFileTreeCollapsed(false)}
                   >
                     <PanelLeftOpen className="size-3.5" />

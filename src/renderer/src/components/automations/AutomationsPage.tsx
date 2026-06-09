@@ -1178,11 +1178,11 @@ export default function AutomationsPage(): React.JSX.Element {
       }
       await refresh()
       toast.success(
-        action === 'delete'
+        action === "delete"
           ? translate("auto.components.automations.AutomationsPage.4c22bc9913", "External automation deleted.")
-          : action === 'run'
+          : action === "run"
             ? translate("auto.components.automations.AutomationsPage.4d7878402c", "External automation queued.")
-            : action === 'pause'
+            : action === "pause"
               ? translate("auto.components.automations.AutomationsPage.77c518a34b", "External automation paused.")
               : translate("auto.components.automations.AutomationsPage.37288942f0", "External automation resumed.")
       )
@@ -1273,7 +1273,7 @@ export default function AutomationsPage(): React.JSX.Element {
     try {
       const state = await window.api.ssh.connect({ targetId: manager.target.connectionId })
       if (!state || state.status !== 'connected') {
-        toast.error(state?.error ?? 'SSH connections are unavailable in this client.')
+        toast.error(state?.error ?? translate("auto.components.automations.AutomationsPage.7b2e285552", "SSH connections are unavailable in this client."))
         return
       }
       await refresh()
@@ -1461,9 +1461,9 @@ export default function AutomationsPage(): React.JSX.Element {
             <div className="rounded-md border border-border/70 bg-muted/35 px-3 py-2 text-xs">
               <div className="break-all font-medium text-foreground">{deleteTarget.name}</div>
               <div className="mt-1 text-muted-foreground">
-                {deleteTarget.workspaceMode === 'new_per_run'
-                  ? 'New workspace each run'
-                  : 'Selected workspace'}
+                {deleteTarget.workspaceMode === "new_per_run"
+                  ? translate("auto.components.automations.AutomationsPage.cd8397cc32", "New workspace each run")
+                  : translate("auto.components.automations.AutomationsPage.36f71740a7", "Selected workspace")}
               </div>
             </div>
           ) : null}
@@ -1529,7 +1529,7 @@ export default function AutomationsPage(): React.JSX.Element {
               {translate("auto.components.automations.AutomationsPage.02a33e3204", "from")}{' '}
               {externalDeleteTarget
                 ? getExternalProviderLabel(externalDeleteTarget.manager)
-                : 'external source'}{' '}
+                : translate("auto.components.automations.AutomationsPage.8500baacb4", "external source")}{' '}
               {translate("auto.components.automations.AutomationsPage.1b586f0e2b", "on")}{externalDeleteTarget?.manager.targetLabel}.
             </DialogDescription>
           </DialogHeader>
@@ -1665,7 +1665,7 @@ export default function AutomationsPage(): React.JSX.Element {
                       ) : (
                         <Play className="size-3.5" />
                       )}
-                      {automation.enabled ? 'Pause' : 'Resume'}
+                      {automation.enabled ? translate("auto.components.automations.AutomationsPage.b457436d6a", "Pause") : translate("auto.components.automations.AutomationsPage.376631ef2b", "Resume")}
                     </ContextMenuItem>
                     <ContextMenuSeparator />
                     <ContextMenuItem
@@ -1763,11 +1763,11 @@ export default function AutomationsPage(): React.JSX.Element {
                           </span>
                           <span className="shrink-0">·</span>
                           <span className="truncate">
-                            {entry.manager.provider === 'hermes'
+                            {entry.manager.provider === "hermes"
                               ? `${entry.job.runCount} ${entry.job.runCount === 1 ? 'run' : 'runs'}`
                               : entry.manager.canManage
-                                ? 'Manageable'
-                                : 'Read-only'}
+                                ? translate("auto.components.automations.AutomationsPage.aecdc3681f", "Manageable")
+                                : translate("auto.components.automations.AutomationsPage.e059042585", "Read-only")}
                           </span>
                         </span>
                       </span>
@@ -1784,7 +1784,7 @@ export default function AutomationsPage(): React.JSX.Element {
                     >
                       <Play className="size-3.5" />
                       {translate("auto.components.automations.AutomationsPage.2faecab10b", "Run Now")}</ContextMenuItem>
-                    {entry.manager.provider === 'hermes' ? (
+                    {entry.manager.provider === "hermes" ? (
                       <ContextMenuItem
                         disabled={!entry.manager.canManage || externalActionKey !== null}
                         onSelect={() => openEditExternalDialog(entry.manager, entry.job)}
@@ -1807,7 +1807,7 @@ export default function AutomationsPage(): React.JSX.Element {
                       ) : (
                         <Play className="size-3.5" />
                       )}
-                      {entry.job.enabled ? 'Pause' : 'Resume'}
+                      {entry.job.enabled ? translate("auto.components.automations.AutomationsPage.b457436d6a", "Pause") : translate("auto.components.automations.AutomationsPage.376631ef2b", "Resume")}
                     </ContextMenuItem>
                     <ContextMenuSeparator />
                     <ContextMenuItem
@@ -1914,7 +1914,7 @@ export default function AutomationsPage(): React.JSX.Element {
                         {isSelectedExternalSshConnecting ? (
                           <RefreshCw className="size-3.5 animate-spin" />
                         ) : null}
-                        {isSelectedExternalSshConnecting ? 'Connecting...' : 'Connect SSH'}
+                        {isSelectedExternalSshConnecting ? translate("auto.components.automations.AutomationsPage.f93ed7a6f8", "Connecting...") : translate("auto.components.automations.AutomationsPage.7934ee0d81", "Connect SSH")}
                       </Button>
                     ) : null}
                   </div>

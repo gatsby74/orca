@@ -157,7 +157,7 @@ function SupportRow({
           ) : (
             <Star className="size-3.5" />
           )}
-          {state === 'starring' ? 'Starring...' : state === 'error' ? 'Try Again' : 'Star'}
+          {state === 'starring' ? translate("auto.components.settings.GeneralSupportSection.397719bee5", "Starring...") : state === 'error' ? translate("auto.components.settings.GeneralSupportSection.73b327e793", "Try Again") : translate("auto.components.settings.GeneralSupportSection.964acc6bb4", "Star")}
         </Button>
       )}
     </SearchableSetting>

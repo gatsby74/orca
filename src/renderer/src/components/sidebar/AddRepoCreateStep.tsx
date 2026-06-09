@@ -413,7 +413,7 @@ export function CreateStep({
         )}
 
         <Button onClick={onCreate} disabled={!canSubmit} size="lg" className="w-full">
-          {isCreating ? 'Creating…' : 'Create project'}
+          {isCreating ? translate("auto.components.sidebar.AddRepoCreateStep.85085d74d2", "Creating…") : translate("auto.components.sidebar.AddRepoCreateStep.45b7c26034", "Create project")}
         </Button>
       </div>
     </>

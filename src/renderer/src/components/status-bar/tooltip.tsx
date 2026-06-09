@@ -79,7 +79,7 @@ function ErrorMessage({
   return (
     <div className="space-y-0.5">
       <div className={`text-[11px] font-medium ${labelClass}`}>
-        {stale ? 'Refresh failed — showing cached data' : 'Usage unavailable'}
+        {stale ? translate("auto.components.status.bar.tooltip.a9a318b7a3", "Refresh failed — showing cached data") : translate("auto.components.status.bar.tooltip.7567cd1c6b", "Usage unavailable")}
       </div>
       <div className={detailClass}>{message}</div>
     </div>
@@ -167,7 +167,7 @@ export function ProviderPanel({
           <ProviderIcon provider={p.provider} />
           {name}
         </div>
-        <div className={mutedClass}>{p.error ?? 'Unavailable'}</div>
+        <div className={mutedClass}>{p.error ?? translate("auto.components.status.bar.tooltip.1292d4f2ee", "Unavailable")}</div>
       </div>
     )
   }
@@ -180,7 +180,7 @@ export function ProviderPanel({
           {name}
         </div>
         <div className="mt-2">
-          <ErrorMessage message={p.error ?? 'Unable to fetch usage'} inverted={inverted} />
+          <ErrorMessage message={p.error ?? translate("auto.components.status.bar.tooltip.2c35eca8d4", "Unable to fetch usage")} inverted={inverted} />
         </div>
       </div>
     )

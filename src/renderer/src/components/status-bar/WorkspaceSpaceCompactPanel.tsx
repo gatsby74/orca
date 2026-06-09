@@ -47,13 +47,13 @@ export function WorkspaceSpaceCompactPanel({
             <div className="truncate text-[11px] text-muted-foreground">
               {analysis
                 ? isScanning
-                  ? `${progressLabel ?? 'Scanning workspace sizes'} · last result kept`
+                  ? translate("auto.components.status.bar.WorkspaceSpaceCompactPanel.3d8d47ce77", "{{value0}} · last result kept", { value0: progressLabel ?? 'Scanning workspace sizes' })
                   : analysis.unavailableWorktreeCount > 0
-                    ? `${formatBytes(analysis.reclaimableBytes)} reclaimable · ${analysis.unavailableWorktreeCount} unavailable`
-                    : `${formatBytes(analysis.reclaimableBytes)} reclaimable · ${analysis.scannedWorktreeCount} workspaces`
+                    ? translate("auto.components.status.bar.WorkspaceSpaceCompactPanel.bef4dc0457", "{{value0}} reclaimable · {{value1}} unavailable", { value0: formatBytes(analysis.reclaimableBytes), value1: analysis.unavailableWorktreeCount })
+                    : translate("auto.components.status.bar.WorkspaceSpaceCompactPanel.bef4dc0457", "{{value0}} reclaimable · {{value1}} workspaces", { value0: formatBytes(analysis.reclaimableBytes), value1: analysis.scannedWorktreeCount })
                 : isScanning
-                  ? (progressLabel ?? 'Scanning workspace sizes.')
-                  : 'Workspace disk usage is not scanned.'}
+                  ? (progressLabel ?? translate("auto.components.status.bar.WorkspaceSpaceCompactPanel.39786e3b73", "Scanning workspace sizes."))
+                  : translate("auto.components.status.bar.WorkspaceSpaceCompactPanel.0583c806ac", "Workspace disk usage is not scanned.")}
             </div>
           </div>
         </div>
@@ -67,7 +67,7 @@ export function WorkspaceSpaceCompactPanel({
             className="w-24"
           >
             {isScanning ? (
-              progress?.state === 'cancelling' ? (
+              progress?.state === "cancelling" ? (
                 <Loader2 className="size-3 animate-spin" />
               ) : (
                 <X className="size-3" />
@@ -76,12 +76,12 @@ export function WorkspaceSpaceCompactPanel({
               <RefreshCw className="size-3" />
             )}
             {isScanning
-              ? progress?.state === 'cancelling'
-                ? 'Stopping'
-                : 'Cancel'
+              ? progress?.state === "cancelling"
+                ? translate("auto.components.status.bar.WorkspaceSpaceCompactPanel.5691353a21", "Stopping")
+                : translate("auto.components.status.bar.WorkspaceSpaceCompactPanel.2af2174d6d", "Cancel")
               : analysis
-                ? 'Refresh'
-                : 'Scan'}
+                ? translate("auto.components.status.bar.WorkspaceSpaceCompactPanel.f5e1a84d79", "Refresh")
+                : translate("auto.components.status.bar.WorkspaceSpaceCompactPanel.0582df6d2e", "Scan")}
           </Button>
           <Button variant="ghost" size="xs" onClick={onOpenFullPage}>
             {translate("auto.components.status.bar.WorkspaceSpaceCompactPanel.6a5dc3c61a", "Review")}</Button>

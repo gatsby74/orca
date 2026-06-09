@@ -157,9 +157,9 @@ function TargetRow({
           <span>{STATUS_LABELS[status]}</span>
           <span aria-hidden="true">·</span>
           <span className={`inline-flex min-w-0 items-center gap-1 ${syncStatusTone(syncStatus)}`}>
-            {syncStatus?.phase === 'pulling' || syncStatus?.phase === 'pushing' ? (
+            {syncStatus?.phase === "pulling" || syncStatus?.phase === "pushing" ? (
               <Loader2 className="size-2.5 shrink-0 animate-spin" />
-            ) : syncStatus?.phase === 'conflict' || syncStatus?.phase === 'error' ? (
+            ) : syncStatus?.phase === "conflict" || syncStatus?.phase === 'error' ? (
               <AlertTriangle className="size-2.5 shrink-0" />
             ) : (
               <Cloud className="size-2.5 shrink-0" />
@@ -177,7 +177,7 @@ function TargetRow({
           className="shrink-0 rounded px-1.5 py-0.5 text-[10px] font-medium text-foreground hover:bg-accent/70"
         >
           {translate("auto.components.status.bar.SshStatusSegment.63f36455cc", "Connect")}</button>
-      ) : status === 'connected' ? (
+      ) : status === "connected" ? (
         <button
           type="button"
           onClick={() => void handleDisconnect()}
@@ -266,9 +266,9 @@ export function SshStatusSegment({
                 <AlertTriangle className="size-3 text-destructive" />
               ) : anyConnecting ? (
                 <Loader2 className="size-3 animate-spin text-yellow-500" />
-              ) : overall === 'connected' ? (
+              ) : overall === "connected" ? (
                 <Server className="size-3 text-emerald-500" />
-              ) : overall === 'partial' ? (
+              ) : overall === "partial" ? (
                 <Server className="size-3 text-muted-foreground" />
               ) : (
                 <ServerOff className="size-3 text-muted-foreground" />

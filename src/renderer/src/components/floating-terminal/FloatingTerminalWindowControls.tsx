@@ -124,7 +124,7 @@ export function FloatingTerminalWindowControls({
           </Button>
         </TooltipTrigger>
         <TooltipContent side="bottom" sideOffset={6}>
-          {maximized ? 'Restore' : 'Maximize'}
+          {maximized ? translate("auto.components.floating.terminal.FloatingTerminalWindowControls.b5686fee1e", "Restore") : translate("auto.components.floating.terminal.FloatingTerminalWindowControls.109870e023", "Maximize")}
         </TooltipContent>
       </Tooltip>
       <Tooltip>

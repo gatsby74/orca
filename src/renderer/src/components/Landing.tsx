@@ -147,7 +147,7 @@ function GitHubStarButton({ hasRepos }: { hasRepos: boolean }): React.JSX.Elemen
               : 'text-amber-600 dark:text-amber-400/80'
           )}
         />
-        {state === 'starred' ? 'Starred on GitHub' : 'Star on GitHub'}
+        {state === 'starred' ? translate("auto.components.Landing.ec43b38ba7", "Starred on GitHub") : translate("auto.components.Landing.0d0ace8861", "Star on GitHub")}
       </button>
       {state === 'starred' && menuOpen && (
         <div className="absolute right-0 top-[calc(100%+4px)] z-10 min-w-[100px] rounded-md border border-border bg-popover py-1 shadow-md">
@@ -289,8 +289,8 @@ export default function Landing(): React.JSX.Element {
 
           <p className="text-sm text-muted-foreground text-center">
             {canCreateWorktree
-              ? 'Select a workspace from the sidebar to begin.'
-              : 'Add a project to get started.'}
+              ? translate("auto.components.Landing.9c00bd4adf", "Select a workspace from the sidebar to begin.")
+              : translate("auto.components.Landing.cd21242762", "Add a project to get started.")}
           </p>
 
           <div className="flex items-center justify-center gap-2.5 flex-wrap">

@@ -58,8 +58,8 @@ export function GeneralCacheTimerSection({
 
       {settings.promptCacheTimerEnabled && (
         <SearchableSetting
-          title="Timer Duration"
-          description="Match this to your provider's cache TTL."
+          title={translate("auto.components.settings.GeneralCacheTimerSection.a2a8962138", "Timer Duration")}
+          description={translate("auto.components.settings.GeneralCacheTimerSection.80c454e8a6", "Match this to your provider's cache TTL.")}
           keywords={['cache', 'timer', 'duration', 'ttl']}
           className="flex items-center justify-between gap-4 py-2 pl-7"
         >

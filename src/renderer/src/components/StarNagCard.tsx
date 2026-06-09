@@ -130,7 +130,7 @@ export function StarNagCard(): React.JSX.Element | null {
             className="mt-0.5 w-full gap-1.5"
           >
             <Star className="size-3.5" />
-            {busy ? 'Starring…' : 'Star on GitHub'}
+            {busy ? translate("auto.components.StarNagCard.af3c9bbb37", "Starring…") : translate("auto.components.StarNagCard.2d67b6c849", "Star on GitHub")}
           </Button>
         </div>
       </Card>

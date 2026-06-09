@@ -628,7 +628,7 @@ function WorkspaceDecisionHoverCard({
       <div className="flex items-center justify-between gap-3 border-t border-border/60 px-4 py-3">
         <div className="min-w-0 truncate font-mono text-[11px] text-muted-foreground">
           {details.browserTabCount > 0
-            ? `${pluralize(details.browserTabCount, 'browser tab')} open`
+            ? translate("auto.components.status.bar.WorkspaceSpaceManagerPanel.131662ac65", "{{value0}} open", { value0: pluralize(details.browserTabCount, 'browser tab') })
             : worktree.path}
         </div>
         <Button
@@ -709,10 +709,10 @@ function WorkspaceTreemap({
         <span className="flex items-center gap-2">
           {isScanning ? <Loader2 className="size-4 animate-spin" /> : null}
           {isScanning
-            ? 'Scanning workspace sizes. You can leave this page.'
+            ? translate("auto.components.status.bar.WorkspaceSpaceManagerPanel.c5135e7e4a", "Scanning workspace sizes. You can leave this page.")
             : isZoomed
-              ? 'No top-level items to show.'
-              : 'No scanned workspace sizes yet.'}
+              ? translate("auto.components.status.bar.WorkspaceSpaceManagerPanel.977bdf9a36", "No top-level items to show.")
+              : translate("auto.components.status.bar.WorkspaceSpaceManagerPanel.0990a63160", "No scanned workspace sizes yet.")}
         </span>
       </div>
     )
@@ -824,8 +824,8 @@ function BreakdownList({
         <span className="flex items-center gap-2">
           {isScanning ? <Loader2 className="size-4 animate-spin" /> : null}
           {isScanning
-            ? 'Scanning workspace sizes. You can leave this page.'
-            : 'Select a workspace to inspect.'}
+            ? translate("auto.components.status.bar.WorkspaceSpaceManagerPanel.c5135e7e4a", "Scanning workspace sizes. You can leave this page.")
+            : translate("auto.components.status.bar.WorkspaceSpaceManagerPanel.5c6d25720c", "Select a workspace to inspect.")}
         </span>
       </div>
     )
@@ -853,10 +853,10 @@ function BreakdownList({
         </div>
       </div>
 
-      {worktree.status !== 'ok' ? (
+      {worktree.status !== "ok" ? (
         <div className="flex items-start gap-2 px-4 py-4 text-xs text-destructive">
           <AlertTriangle className="mt-0.5 size-3.5 shrink-0" />
-          <span className="min-w-0 break-words">{worktree.error ?? 'Scan failed.'}</span>
+          <span className="min-w-0 break-words">{worktree.error ?? translate("auto.components.status.bar.WorkspaceSpaceManagerPanel.0ba046fbc5", "Scan failed.")}</span>
         </div>
       ) : worktree.topLevelItems.length === 0 ? (
         <div className="px-4 py-8 text-center text-sm text-muted-foreground">{translate("auto.components.status.bar.WorkspaceSpaceManagerPanel.16988df079", "No files found.")}</div>
@@ -1000,7 +1000,7 @@ function WorkspaceRow({
 
       <div className="min-w-0 space-y-1.5">
         <div className="text-right text-sm font-medium tabular-nums">
-          {worktree.status === 'ok' ? formatBytes(worktree.sizeBytes) : '—'}
+          {worktree.status === "ok" ? formatBytes(worktree.sizeBytes) : '—'}
         </div>
         <SizeBar value={worktree.sizeBytes} max={maxSize} />
       </div>
@@ -1469,11 +1469,11 @@ export function WorkspaceSpaceManagerPanel(): React.JSX.Element {
           <span className="truncate">
             {analysis
               ? isScanning
-                ? `${progressLabel ?? 'Scanning workspace sizes'}. You can leave this page; the last result stays visible.`
-                : `${formatBytes(analysis.reclaimableBytes)} can be reclaimed from linked worktrees.`
+                ? translate("auto.components.status.bar.WorkspaceSpaceManagerPanel.34174bd83d", "{{value0}}. You can leave this page; the last result stays visible.", { value0: progressLabel ?? 'Scanning workspace sizes' })
+                : translate("auto.components.status.bar.WorkspaceSpaceManagerPanel.d595295d7d", "{{value0}} can be reclaimed from linked worktrees.", { value0: formatBytes(analysis.reclaimableBytes) })
               : isScanning
-                ? `${progressLabel ?? 'Scanning workspace sizes'}. You can leave this page.`
-                : 'Run a scan to inspect workspace sizes.'}
+                ? translate("auto.components.status.bar.WorkspaceSpaceManagerPanel.265d956765", "{{value0}}. You can leave this page.", { value0: progressLabel ?? 'Scanning workspace sizes' })
+                : translate("auto.components.status.bar.WorkspaceSpaceManagerPanel.e91dd2a9ae", "Run a scan to inspect workspace sizes.")}
           </span>
         </div>
         <Button
@@ -1484,7 +1484,7 @@ export function WorkspaceSpaceManagerPanel(): React.JSX.Element {
           className="w-28 gap-1.5"
         >
           {isScanning ? (
-            progress?.state === 'cancelling' ? (
+            progress?.state === "cancelling" ? (
               <Loader2 className="size-3.5 animate-spin" />
             ) : (
               <X className="size-3.5" />
@@ -1493,12 +1493,12 @@ export function WorkspaceSpaceManagerPanel(): React.JSX.Element {
             <RefreshCw className="size-3.5" />
           )}
           {isScanning
-            ? progress?.state === 'cancelling'
-              ? 'Stopping'
-              : 'Cancel'
+            ? progress?.state === "cancelling"
+              ? translate("auto.components.status.bar.WorkspaceSpaceManagerPanel.1fce91d1b9", "Stopping")
+              : translate("auto.components.status.bar.WorkspaceSpaceManagerPanel.8dc9ddac8a", "Cancel")
             : analysis
-              ? 'Refresh'
-              : 'Scan'}
+              ? translate("auto.components.status.bar.WorkspaceSpaceManagerPanel.508673bac0", "Refresh")
+              : translate("auto.components.status.bar.WorkspaceSpaceManagerPanel.8c7c57fbf8", "Scan")}
         </Button>
       </div>
 
@@ -1507,7 +1507,7 @@ export function WorkspaceSpaceManagerPanel(): React.JSX.Element {
           <AlertTriangle className="mt-0.5 size-3.5 shrink-0" />
           <span className="min-w-0 break-words">
             {scanError}
-            {analysis ? ' Last successful results remain visible.' : ''}
+            {analysis ? translate("auto.components.status.bar.WorkspaceSpaceManagerPanel.20a4204dce", "Last successful results remain visible.") : ''}
           </span>
         </div>
       ) : null}
@@ -1603,7 +1603,7 @@ export function WorkspaceSpaceManagerPanel(): React.JSX.Element {
             className="w-32"
             aria-label={translate("auto.components.status.bar.WorkspaceSpaceManagerPanel.81aaf1de65", "Show only deletable workspaces")}
           >
-            {onlyDeletable ? 'Deletable' : 'All'}
+            {onlyDeletable ? translate("auto.components.status.bar.WorkspaceSpaceManagerPanel.b2f82ed5ae", "Deletable") : translate("auto.components.status.bar.WorkspaceSpaceManagerPanel.ef890d31b9", "All")}
           </Button>
 
           <Button
@@ -1617,7 +1617,7 @@ export function WorkspaceSpaceManagerPanel(): React.JSX.Element {
             }
           >
             <Check className="size-3.5" />
-            {allVisibleSelected ? 'Clear' : 'Select'}
+            {allVisibleSelected ? translate("auto.components.status.bar.WorkspaceSpaceManagerPanel.e4a12c455b", "Clear") : translate("auto.components.status.bar.WorkspaceSpaceManagerPanel.f39d291997", "Select")}
           </Button>
         </div>
       ) : null}
@@ -1717,10 +1717,10 @@ export function WorkspaceSpaceManagerPanel(): React.JSX.Element {
       ) : (
         <div className="rounded-lg border border-border/70 bg-background/30 px-4 py-10 text-center text-sm text-muted-foreground">
           {scanError
-            ? 'Scan failed before any workspace sizes were collected.'
+            ? translate("auto.components.status.bar.WorkspaceSpaceManagerPanel.8194a4fb29", "Scan failed before any workspace sizes were collected.")
             : analysis
-              ? 'No workspace rows were available from the scan.'
-              : 'Run a scan to inspect workspace sizes.'}
+              ? translate("auto.components.status.bar.WorkspaceSpaceManagerPanel.61e25239da", "No workspace rows were available from the scan.")
+              : translate("auto.components.status.bar.WorkspaceSpaceManagerPanel.e91dd2a9ae", "Run a scan to inspect workspace sizes.")}
         </div>
       )}
     </div>

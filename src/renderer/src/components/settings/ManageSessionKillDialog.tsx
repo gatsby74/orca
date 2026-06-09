@@ -66,7 +66,7 @@ export function ManageSessionKillDialog({
                 {translate("auto.components.settings.ManageSessionKillDialog.6bf4627168", "Cancel")}</Button>
               <Button variant="destructive" onClick={onConfirm} disabled={isBusy}>
                 {isBusy ? <LoaderCircle className="size-4 animate-spin" /> : null}
-                {isBusy ? 'Killing…' : 'Kill session'}
+                {isBusy ? translate("auto.components.settings.ManageSessionKillDialog.d3dba51b15", "Killing…") : translate("auto.components.settings.ManageSessionKillDialog.0b0db4c68c", "Kill session")}
               </Button>
             </DialogFooter>
           </>

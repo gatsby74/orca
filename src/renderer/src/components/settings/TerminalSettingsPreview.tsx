@@ -309,7 +309,7 @@ export function TerminalSettingsPreview({
                         : 'text-muted-foreground hover:text-foreground'
                     }`}
                   >
-                    {mode === 'dark' ? <Moon className="size-3.5" /> : <Sun className="size-3.5" />}
+                    {mode === "dark" ? <Moon className="size-3.5" /> : <Sun className="size-3.5" />}
                   </button>
                 ))}
               </div>

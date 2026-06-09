@@ -53,7 +53,7 @@ export function McpConfigFileRow({ config, onOpen }: McpConfigFileRowProps): Rea
   return (
     <div className="space-y-2 px-3 py-2.5">
       <div className="flex items-center gap-2">
-        {config.status === 'valid' && !config.readError ? (
+        {config.status === "valid" && !config.readError ? (
           <CheckCircle2 className="size-3.5 shrink-0 text-muted-foreground" />
         ) : (
           <AlertCircle className="size-3.5 shrink-0 text-destructive" />

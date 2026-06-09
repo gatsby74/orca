@@ -176,7 +176,7 @@ function AgentCapabilitySetupControls(props: {
             ) : (
               <Terminal className="size-4" />
             )}
-            {props.setupBusyLabel ?? 'Install CLI & Skills'}
+            {props.setupBusyLabel ?? translate("auto.components.feature.wall.AgentCapabilitiesSetupAction.c89534cbe9", "Install CLI & Skills")}
           </Button>
         </div>
       ) : null}
@@ -261,7 +261,7 @@ function AgentCapabilityStatusNote(props: {
       <span className="mt-2 flex flex-wrap items-center gap-1.5">
         <span className="rounded-full border border-green-500/45 bg-green-500/10 px-2 py-0.5 text-[11px] font-semibold leading-none text-green-700 dark:text-green-300">
           {translate("auto.components.feature.wall.AgentCapabilitiesSetupAction.b8dc9dd8a2", "Installed")}</span>
-        {props.status.label !== 'Installed' ? (
+        {props.status.label !== "Installed" ? (
           <span
             className={cn(
               'text-xs font-medium',

@@ -95,11 +95,11 @@ export function GitPane({
                   : 'text-muted-foreground hover:text-foreground'
               }`}
             >
-              {option === 'git-username' ? 'Git Username' : option === 'custom' ? 'Custom' : 'None'}
+              {option === "git-username" ? translate("auto.components.settings.GitPane.a182c5125e", "Git Username") : option === "custom" ? translate("auto.components.settings.GitPane.1f32ba27a6", "Custom") : translate("auto.components.settings.GitPane.3d172725cc", "None")}
             </button>
           ))}
         </div>
-        {(settings.branchPrefix === 'custom' || settings.branchPrefix === 'git-username') && (
+        {(settings.branchPrefix === "custom" || settings.branchPrefix === "git-username") && (
           <Input
             value={
               settings.branchPrefix === 'git-username'
@@ -108,9 +108,9 @@ export function GitPane({
             }
             onChange={(e) => updateSettings({ branchPrefixCustom: e.target.value })}
             placeholder={
-              settings.branchPrefix === 'git-username'
-                ? 'No git username configured'
-                : 'e.g. feature'
+              settings.branchPrefix === "git-username"
+                ? translate("auto.components.settings.GitPane.aefa1ecb59", "No git username configured")
+                : translate("auto.components.settings.GitPane.b559bf9899", "e.g. feature")
             }
             className="max-w-xs"
             readOnly={settings.branchPrefix === 'git-username'}

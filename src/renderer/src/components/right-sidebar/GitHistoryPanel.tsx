@@ -296,7 +296,7 @@ export function GitHistoryPanel({
       {!collapsed && (
         <div
           role="separator"
-          aria-label="Resize commits"
+          aria-label={translate("auto.components.right.sidebar.GitHistoryPanel.e5e81e59a6", "Resize commits")}
           aria-orientation="horizontal"
           aria-valuemin={MIN_GIT_HISTORY_PANEL_HEIGHT}
           aria-valuemax={MAX_GIT_HISTORY_PANEL_HEIGHT}
@@ -372,7 +372,7 @@ export function GitHistoryPanel({
           {state.error}
         </div>
       )}
-      {!collapsed && (state.status === 'idle' || state.status === 'loading') && !result && (
+      {!collapsed && (state.status === 'idle' || state.status === "loading") && !result && (
         <div
           className={cn(
             expandedBodyClassName,

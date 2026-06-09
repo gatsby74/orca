@@ -236,7 +236,7 @@ export function RightPanelCommentComposer({
               disabled={disabled || submitting || body.trim().length === 0}
               onClick={() => void submit()}
             >
-              {submitting ? 'Sending...' : submitLabel}
+              {submitting ? translate("auto.components.right.sidebar.right.panel.comment.composer.87aff03d63", "Sending...") : submitLabel}
             </Button>
           </TooltipTrigger>
           <TooltipContent side="top" sideOffset={4}>

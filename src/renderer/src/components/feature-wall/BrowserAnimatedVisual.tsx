@@ -568,7 +568,7 @@ export function BrowserAnimatedVisual(props: {
                   <>
                     <span className="truncate text-foreground">{translate("auto.components.feature.wall.BrowserAnimatedVisual.7da6eed7bf", "localhost:3000")}</span>
                     <span className="truncate text-muted-foreground transition-colors duration-200">
-                      {showSignup ? '/signup' : '/pricing'}
+                      {showSignup ? translate("auto.components.feature.wall.BrowserAnimatedVisual.f39be6ca14", "/signup") : translate("auto.components.feature.wall.BrowserAnimatedVisual.73bbb46073", "/pricing")}
                     </span>
                   </>
                 )}
@@ -683,21 +683,7 @@ export function BrowserAnimatedVisual(props: {
           </div>
         </div>
       </div>
-      <style>{`
-        @keyframes browserFlash {
-          0%   { opacity: 0; }
-          20%  { opacity: 0.85; }
-          100% { opacity: 0; }
-        }
-        @keyframes browserTabIn {
-          from { opacity: 0; transform: translateY(-2px); }
-          to   { opacity: 1; transform: none; }
-        }
-        @keyframes browserViewIn {
-          from { opacity: 0; transform: translateY(4px); }
-          to   { opacity: 1; transform: none; }
-        }
-      `}</style>
+      <style>{translate("auto.components.feature.wall.BrowserAnimatedVisual.1bec24acc1", "@keyframes browserFlash { 0% { opacity: 0; } 20% { opacity: 0.85; } 100% { opacity: 0; } } @keyframes browserTabIn { from { opacity: 0; transform: translateY(-2px); } to { opacity: 1; transform: none; } } @keyframes browserViewIn { from { opacity: 0; transform: translateY(4px); } to { opacity: 1; transform: none; } }")}</style>
     </div>
   )
 }

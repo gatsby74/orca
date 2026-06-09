@@ -183,7 +183,7 @@ export function TerminalQuickCommandDialog({
       <DialogContent className="max-w-md sm:max-w-md" showCloseButton={false}>
         <DialogHeader>
           <DialogTitle className="text-sm">
-            {mode === 'edit' ? 'Edit Quick Command' : 'Add Quick Command'}
+            {mode === "edit" ? translate("auto.components.terminal.quick.commands.TerminalQuickCommandDialog.f9b184fc16", "Edit Quick Command") : translate("auto.components.terminal.quick.commands.TerminalQuickCommandDialog.5b3f634a55", "Add Quick Command")}
           </DialogTitle>
           <DialogDescription className="text-xs">
             {translate("auto.components.terminal.quick.commands.TerminalQuickCommandDialog.ed04233b3e", "Save terminal commands or agent prompts for quick access.")}</DialogDescription>
@@ -278,7 +278,7 @@ export function TerminalQuickCommandDialog({
             </div>
 
             <div className="space-y-2">
-              <Label>{isAgentAction ? 'Prompt' : 'Command Text'}</Label>
+              <Label>{isAgentAction ? translate("auto.components.terminal.quick.commands.TerminalQuickCommandDialog.dc921c17ee", "Prompt") : translate("auto.components.terminal.quick.commands.TerminalQuickCommandDialog.ca414324ee", "Command Text")}</Label>
               <textarea
                 value={isAgentAction ? draft.prompt : draft.command}
                 onChange={(event) => {

@@ -122,7 +122,7 @@ export function ReviewStateBadge({
       label={translate("auto.components.sidebar.WorktreeCardMetadataStatusBadges.fe188062a1", "State: Open")}
       className="border-emerald-500/25 bg-emerald-500/5 text-emerald-600 dark:text-emerald-300"
     >
-      {label === 'MR' ? <GitMerge /> : <PullRequestIcon />}
+      {label === "MR" ? <GitMerge /> : <PullRequestIcon />}
     </MetadataStatusBadge>
   )
 }
