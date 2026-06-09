@@ -451,7 +451,10 @@ export default function NewWorkspaceComposerCard({
             </p>
           ) : eligibleRepos.length === 0 ? (
             <p id={projectDescriptionId} className="text-[11px] text-muted-foreground">
-              Add a project before creating a workspace.
+              {translate(
+                'auto.components.NewWorkspaceComposerCard.addProjectBeforeWorkspace',
+                'Add a project before creating a workspace.'
+              )}
             </p>
           ) : null}
           {selectedRepoRequiresConnection && selectedRepoConnectionId ? (
