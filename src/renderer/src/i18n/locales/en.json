@@ -1846,7 +1846,10 @@
             "22df63c393": "Sub-issue data is unavailable for your token.",
             "067119985c": "GitHub search, e.g. assignee:@me is:open",
             "1850fceac8": "{{value0}}/{{value1}} isn't added to Orca. Add it to start work, or open in GitHub.",
-            "1aa7c952b9": "Project view"
+            "1aa7c952b9": "Project view",
+            "f352abf7c3": "Repository list is updating.",
+            "1ce21b8cff": "This item is outside the selected repositories.",
+            "030de75bc5": "This item matches multiple selected repositories."
           },
           "slug": {
             "dialog": {
@@ -2497,7 +2500,8 @@
           "SortableTab": {
             "ab19f603eb": "Rename tab {{value0}}",
             "6df69d9388": "Close tab {{value0}}",
-            "fdb2691425": "Collapse pane"
+            "fdb2691425": "Collapse pane",
+            "95db5f2f7d": "Close tab"
           },
           "SortableTabContextMenu": {
             "35e8892fd0": "Tab Color",
@@ -2621,6 +2625,10 @@
             "down": "Down",
             "up": "Up",
             "moveToPaneColumn": "Move Tab to Split"
+          },
+          "EditorFileTabCloseButton": {
+            "4655cf570e": "Close tab",
+            "a768f428f1": "Close tab"
           }
         }
       },
@@ -10396,7 +10404,8 @@
           "4cc7b83ffe": "Filter files...",
           "21783df79f": "Collapse file tree",
           "481e63ca52": "Files",
-          "d5ac717d65": "uncommitted"
+          "d5ac717d65": "uncommitted",
+          "39b6b9e4e4": "Committed on Branch"
         },
         "CombinedDiffViewer": {
           "35cc27aeb2": "in Source Control",
@@ -10423,7 +10432,7 @@
           "f786fd54e1": "Inline",
           "ea08dae15b": "Collapse All",
           "19c45cfdc0": "Expand All",
-          "982d14bfa5": "Open Uncommitted Diff",
+          "982d14bfa5": "Open All Changes",
           "3d909843bb": "Open Branch Diff",
           "8368d256ec": "combined-branch",
           "8f68ad9ca9": "Show {{value0}} AI {{value1}}",

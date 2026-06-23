@@ -1846,7 +1846,10 @@
             "22df63c393": "Los datos de la subemisión no están disponibles para su token.",
             "067119985c": "Búsqueda de GitHub, p. cesionario:@yo es:abierto",
             "1850fceac8": "{{value0}}/{{value1}} no se agrega a Orca. Agréguelo para comenzar a trabajar o ábralo en GitHub.",
-            "1aa7c952b9": "Project view"
+            "1aa7c952b9": "Project view",
+            "f352abf7c3": "Repository list is updating.",
+            "1ce21b8cff": "This item is outside the selected repositories.",
+            "030de75bc5": "This item matches multiple selected repositories."
           },
           "slug": {
             "dialog": {
@@ -2497,7 +2500,8 @@
           "SortableTab": {
             "ab19f603eb": "Cambiar nombre de pestaña {{value0}}",
             "6df69d9388": "Cerrar pestaña {{value0}}",
-            "fdb2691425": "Contraer panel"
+            "fdb2691425": "Contraer panel",
+            "95db5f2f7d": "Cerrar pestaña"
           },
           "SortableTabContextMenu": {
             "35e8892fd0": "Color de pestaña",
@@ -2621,6 +2625,10 @@
             "down": "Abajo",
             "up": "Arriba",
             "moveToPaneColumn": "Mover pestaña a división"
+          },
+          "EditorFileTabCloseButton": {
+            "4655cf570e": "Cerrar pestaña",
+            "a768f428f1": "Cerrar pestaña"
           }
         }
       },
@@ -3819,7 +3827,8 @@
           "1b0a156717": "Agents"
         },
         "WorktreeCardReviewDetailSection": {
-          "reviewHeader": "{{value0}} #{{value1}}"
+          "reviewHeader": "{{value0}} #{{value1}}",
+          "copyLink": "Copy link"
         },
         "WorktreeCardMeta": {
           "3e65e11cc6": "Metadatos del espacio de trabajo",
@@ -3846,7 +3855,13 @@
           "checkingAutomationAvailability": "Comprobando disponibilidad de la automatización...",
           "automationMissing": "La automatización ya no está disponible.",
           "automationRunMissing": "El historial de ejecuciones ya no está disponible.",
-          "automationAvailabilityUnavailable": "No se pudo comprobar la disponibilidad de la automatización."
+          "automationAvailabilityUnavailable": "No se pudo comprobar la disponibilidad de la automatización.",
+          "moreIssueActions": "More issue actions",
+          "copyLink": "Copy link",
+          "copyLinkSuccess": "{{value0}} copied",
+          "copyLinkFailure": "Failed to copy link",
+          "issueLinkLabel": "Issue link",
+          "reviewLinkLabel": "{{value0}} link"
         },
         "WorktreeCardMetadataStatusBadges": {
           "fe188062a1": "Estado: Abierto",
@@ -10389,7 +10404,8 @@
           "4cc7b83ffe": "Filtrar archivos...",
           "21783df79f": "Contraer árbol de archivos",
           "481e63ca52": "Archivos",
-          "d5ac717d65": "no comprometido"
+          "d5ac717d65": "no comprometido",
+          "39b6b9e4e4": "Committed on Branch"
         },
         "CombinedDiffViewer": {
           "35cc27aeb2": "en control de fuente",
