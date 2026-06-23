@@ -44,7 +44,7 @@ import { isWorkspaceLinkedItemSourceContextMatch } from '../../shared/workspace-
 import { DiffCommentSchema } from '../../shared/diff-comment-schema'
 import { invalidateAuthorizedRootsCache } from './filesystem-auth'
 import type { ChildProcess } from 'node:child_process'
-import { access, mkdir, readdir, rm } from 'node:fs/promises'
+import { access, mkdir, readdir, rm, writeFile } from 'node:fs/promises'
 import {
   awaitWindowsHostGitEnvironmentReady,
   gitExecFileAsync,
@@ -52,6 +52,11 @@ import {
   nonInteractiveGitEnv
 } from '../git/runner'
 import { isAbsolute, join, posix } from 'node:path'
+import {
+  convertStepLabel,
+  GIT_IDENTITY_NOT_CONFIGURED_MESSAGE,
+  initGitRepoInExistingFolder
+} from '../git/convert-folder-to-git'
 import {
   cleanupClaimedCloneTarget,
   claimCloneTarget,
@@ -367,6 +372,65 @@ async function addLocalRepoFromPath(
   store.addRepo(repo)
   await prepareLocalWorktreeRootForRepo(store, repo)
   return { repo, alreadyExisted: false }
+}
+
+// Turns an existing non-git LOCAL folder into a git repo (init + .gitignore +
+// initial commit) and registers it as a `git` project. The always-present
+// initial commit is what lets worktree creation resolve a base ref afterwards.
+async function convertLocalFolderToGitRepo(
+  store: Store,
+  path: string
+): Promise<{ repo: Repo } | { error: string }> {
+  const targetPath = path?.trim() ?? ''
+  if (!targetPath) {
+    return { error: 'Folder path is required' }
+  }
+  // Guard direct IPC use; the renderer always passes absolute picker paths.
+  if (!isAbsolute(targetPath)) {
+    return { error: 'Folder path must be an absolute path' }
+  }
+
+  // Skip init when it's somehow already a repo (e.g. converted out-of-band) and
+  // just add it as git, so the caller still ends up with a usable project.
+  if (!isGitRepo(targetPath)) {
+    const gitignorePath = join(targetPath, '.gitignore')
+    const outcome = await initGitRepoInExistingFolder({
+      exec: async (gitArgs) => {
+        await gitExecFileAsync(gitArgs, { cwd: targetPath })
+      },
+      hasGitignore: async () => {
+        try {
+          await access(gitignorePath)
+          return true
+        } catch {
+          return false
+        }
+      },
+      writeGitignore: async (content) => {
+        await writeFile(gitignorePath, content, 'utf8')
+      }
+    })
+
+    if (!outcome.ok) {
+      // We never created the user's folder, so only strip a `.git` we just made
+      // — leaving the folder as the user had it. A written .gitignore is
+      // harmless and helps a retry, so it stays.
+      if (outcome.step !== 'init') {
+        await rm(join(targetPath, '.git'), { recursive: true, force: true }).catch(() => {})
+      }
+      if (outcome.isIdentityError) {
+        return { error: GIT_IDENTITY_NOT_CONFIGURED_MESSAGE }
+      }
+      return { error: `${convertStepLabel(outcome.step)}: ${outcome.message}` }
+    }
+  }
+
+  const result = await addLocalRepoFromPath(store, targetPath, 'git')
+  if ('error' in result) {
+    return result
+  }
+  emitRepoAdded('folder_picker', result.alreadyExisted, true)
+  return { repo: result.repo }
 }
 
 async function addRemoteRepoFromPath(
@@ -726,6 +790,93 @@ async function createRemoteRepo(
     return result
   }
   emitRepoAdded('folder_picker', result.alreadyExisted)
+  return { repo: result.repo }
+}
+
+// Remote (SSH) counterpart of convertLocalFolderToGitRepo: runs init + commit
+// on the host via the git provider and writes the .gitignore via the filesystem
+// provider, then registers the host folder as a `git` project.
+async function convertRemoteFolderToGitRepo(
+  store: Store,
+  args: { connectionId: string; remotePath: string }
+): Promise<{ repo: Repo } | { error: string }> {
+  const gitProvider = getSshGitProvider(args.connectionId)
+  const fsProvider = getSshFilesystemProvider(args.connectionId)
+  if (!gitProvider || !fsProvider) {
+    return { error: `SSH connection "${args.connectionId}" not found or not connected` }
+  }
+  const host = gitProvider.getHostPlatform?.()
+  if (!host) {
+    return {
+      error: 'SSH host platform is unavailable. Reconnect the SSH target before converting.'
+    }
+  }
+  const resolvedPath = await resolveRemoteHomePath(args.connectionId, args.remotePath?.trim() ?? '')
+  if (!resolvedPath) {
+    return { error: 'Folder path is required' }
+  }
+
+  // Already a repo on the host: skip init and add it (using the detected root).
+  try {
+    const check = await gitProvider.isGitRepoAsync(resolvedPath)
+    if (check.isRepo) {
+      const result = await addRemoteRepoFromPath(store, {
+        connectionId: args.connectionId,
+        remotePath: check.rootPath ?? resolvedPath,
+        kind: 'git'
+      })
+      if ('error' in result) {
+        return result
+      }
+      emitRepoAdded('folder_picker', result.alreadyExisted, true)
+      return { repo: result.repo }
+    }
+  } catch {
+    // Probe failed or not a repo — fall through and convert.
+  }
+
+  const gitignorePath = joinRemotePath(host, resolvedPath, '.gitignore')
+  const outcome = await initGitRepoInExistingFolder({
+    exec: async (gitArgs) => {
+      await gitProvider.exec(gitArgs, resolvedPath)
+    },
+    hasGitignore: async () => {
+      try {
+        await fsProvider.stat(gitignorePath)
+        return true
+      } catch {
+        return false
+      }
+    },
+    writeGitignore: async (content) => {
+      await fsProvider.writeFile(gitignorePath, content)
+    }
+  })
+
+  if (!outcome.ok) {
+    if (outcome.step !== 'init') {
+      await fsProvider
+        .deletePath(joinRemotePath(host, resolvedPath, '.git'), true)
+        .catch(() => undefined)
+    }
+    if (outcome.isIdentityError) {
+      return {
+        error:
+          'Git author identity is not configured on the SSH host. Run `git config --global user.name "Your Name"` and `git config --global user.email "you@example.com"` on that host, then try again.'
+      }
+    }
+    return { error: `${convertStepLabel(outcome.step)}: ${outcome.message}` }
+  }
+
+  const result = await addRemoteRepoFromPath(store, {
+    connectionId: args.connectionId,
+    remotePath: resolvedPath,
+    kind: 'git'
+  })
+  if ('error' in result) {
+    return result
+  }
+  emitRepoAdded('folder_picker', result.alreadyExisted, true)
   return { repo: result.repo }
 }
 
@@ -1861,6 +2012,37 @@ export function registerRepoHandlers(mainWindow: BrowserWindow, store: Store): v
       notifyReposChanged(mainWindow)
       emitRepoAdded('folder_picker', result.alreadyExisted, result.repo.kind === 'git')
       return { repo: result.repo }
+    }
+  )
+
+  // Converts an existing non-git folder into a git repo in place, then registers
+  // it as a full git project — the in-dialog alternative to "Open as Folder"
+  // (orca#3839). emitRepoAdded is handled inside the convert helpers.
+  ipcMain.handle(
+    'repos:convertToGit',
+    async (_event, args: { path: string }): Promise<{ repo: Repo } | { error: string }> => {
+      const result = await convertLocalFolderToGitRepo(store, args.path)
+      if ('error' in result) {
+        return result
+      }
+      invalidateAuthorizedRootsCache()
+      notifyReposChanged(mainWindow)
+      return result
+    }
+  )
+
+  ipcMain.handle(
+    'repos:convertRemoteToGit',
+    async (
+      _event,
+      args: { connectionId: string; remotePath: string }
+    ): Promise<{ repo: Repo } | { error: string }> => {
+      const result = await convertRemoteFolderToGitRepo(store, args)
+      if ('error' in result) {
+        return result
+      }
+      notifyReposChanged(mainWindow)
+      return result
     }
   )
 
