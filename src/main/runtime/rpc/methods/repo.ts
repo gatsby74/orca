@@ -7,9 +7,7 @@ import { normalizeRepoSourceControlAiOverrides } from '../../../../shared/source
 import { PROJECT_RUNTIME_METHODS } from './project-runtime-rpc-methods'
 import { FOLDER_WORKSPACE_METHODS } from './folder-workspace'
 
-const RepoSelector = z.object({
-  repo: requiredString('Missing repo selector')
-})
+const RepoSelector = z.object({ repo: requiredString('Missing repo selector') })
 
 const RepoPath = z.object({
   path: requiredString('Missing repo path'),
@@ -233,6 +231,11 @@ export const REPO_METHODS: RpcMethod[] = [
     params: RepoCreate,
     handler: async (params, { runtime }) =>
       runtime.createRepo(params.parentPath, params.name, params.kind)
+  }),
+  defineMethod({
+    name: 'repo.convertToGit',
+    params: RepoPath,
+    handler: async (params, { runtime }) => runtime.convertRepoToGit(params.path)
   }),
   defineMethod({
     name: 'repo.gitAvailable',

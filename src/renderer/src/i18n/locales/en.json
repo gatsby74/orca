@@ -236,7 +236,9 @@
           "90d129b48b": "Folder added",
           "8bb3ad7935": "Project added",
           "a8e4b3af5b": "Project already added",
-          "6d3318e813": "Failed to import repositories"
+          "6d3318e813": "Failed to import repositories",
+          "24424c2102": "Converted to a Git repository",
+          "e6c1e9dba0": "Failed to convert folder to a Git repository"
         },
         "settings": {
           "e12dab333b": "Failed to switch servers",
@@ -3499,7 +3501,11 @@
           "e52454b7f6": "Open as Folder",
           "05b33a17a9": "Cancel",
           "8fba4b8cbb": "This folder isn't a Git repository. You'll have the editor, terminal, and search, but Git-based features won't be available.",
-          "c49fb13492": "Failed to add folder on this host"
+          "c49fb13492": "Failed to add folder on this host",
+          "eb079b3809": "Convert to Git Repository",
+          "d885e6adbe": "Converting runs git init, adds a .gitignore if one is missing, and makes an initial commit. Your files aren't changed.",
+          "15b3ae7310": "This folder isn't a Git repository",
+          "1d9e5c8007": "Convert it to a Git repository to use worktrees, source control, and pull requests. Or open it as a plain folder with just the editor, terminal, and search."
         },
         "OrcaYamlTrustDialog": {
           "f3e2b868fb": "Run hooks",

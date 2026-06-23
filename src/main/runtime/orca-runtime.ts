@@ -38,7 +38,12 @@ import { getGitCloneFailureMessage } from '../../shared/git-clone-failure-messag
 import { createHash, randomUUID } from 'crypto'
 import { homedir } from 'os'
 import { isAbsolute, join, resolve } from 'path'
-import { mkdir, readFile, readdir, rm, stat } from 'fs/promises'
+import { access, mkdir, readFile, readdir, rm, stat, writeFile } from 'fs/promises'
+import {
+  convertStepLabel,
+  GIT_IDENTITY_NOT_CONFIGURED_MESSAGE,
+  initGitRepoInExistingFolder
+} from '../git/convert-folder-to-git'
 import { OrchestrationDb } from './orchestration/db'
 import { formatMessagesForInjection } from './orchestration/formatter'
 import type {
@@ -9423,6 +9428,54 @@ export class OrcaRuntimeService {
     this.invalidateResolvedWorktreeCache()
     this.notifyReposChanged()
     return { repo: this.store.getRepo(repo.id) ?? repo }
+  }
+
+  // Converts an existing non-git folder on this host into a git repo, then
+  // registers it as a git project — the runtime-target counterpart of the
+  // local `repos:convertToGit` IPC (orca#3839).
+  async convertRepoToGit(path: string): Promise<{ repo: Repo } | { error: string }> {
+    if (!this.store) {
+      throw new Error('runtime_unavailable')
+    }
+    const targetPath = path.trim()
+    if (!targetPath) {
+      return { error: 'Folder path is required' }
+    }
+    if (!isAbsolute(targetPath)) {
+      return { error: 'Folder path must be an absolute path' }
+    }
+
+    if (!isGitRepo(targetPath)) {
+      const gitignorePath = join(targetPath, '.gitignore')
+      const outcome = await initGitRepoInExistingFolder({
+        exec: async (gitArgs) => {
+          await gitExecFileAsync(gitArgs, { cwd: targetPath })
+        },
+        hasGitignore: async () => {
+          try {
+            await access(gitignorePath)
+            return true
+          } catch {
+            return false
+          }
+        },
+        writeGitignore: async (content) => {
+          await writeFile(gitignorePath, content, 'utf8')
+        }
+      })
+      if (!outcome.ok) {
+        if (outcome.step !== 'init') {
+          await rm(join(targetPath, '.git'), { recursive: true, force: true }).catch(() => {})
+        }
+        if (outcome.isIdentityError) {
+          return { error: GIT_IDENTITY_NOT_CONFIGURED_MESSAGE }
+        }
+        return { error: `${convertStepLabel(outcome.step)}: ${outcome.message}` }
+      }
+    }
+
+    const repo = await this.addRepo(targetPath, 'git')
+    return { repo }
   }
 
   async cloneRepo(url: string, destination: string): Promise<Repo> {

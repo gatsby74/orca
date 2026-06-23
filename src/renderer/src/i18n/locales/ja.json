@@ -236,7 +236,9 @@
           "90d129b48b": "フォルダーが追加されました",
           "8bb3ad7935": "プロジェクトを追加しました",
           "a8e4b3af5b": "プロジェクトはすでに追加されています",
-          "6d3318e813": "repos のインポートに失敗しました"
+          "6d3318e813": "repos のインポートに失敗しました",
+          "24424c2102": "Converted to a Git repository",
+          "e6c1e9dba0": "Failed to convert folder to a Git repository"
         },
         "settings": {
           "e12dab333b": "サーバーの切り替えに失敗しました",
@@ -3474,7 +3476,11 @@
           "e52454b7f6": "フォルダーとして開く",
           "05b33a17a9": "キャンセル",
           "8fba4b8cbb": "このフォルダーは Git repos ではありません。エディター、terminal、検索は利用できますが、Git ベースの機能は利用できません。",
-          "c49fb13492": "リモートフォルダーの追加に失敗しました"
+          "c49fb13492": "リモートフォルダーの追加に失敗しました",
+          "15b3ae7310": "This folder isn't a Git repository",
+          "d885e6adbe": "Converting runs git init, adds a .gitignore if one is missing, and makes an initial commit. Your files aren't changed.",
+          "eb079b3809": "Convert to Git Repository",
+          "1d9e5c8007": "Convert it to a Git repository to use worktrees, source control, and pull requests. Or open it as a plain folder with just the editor, terminal, and search."
         },
         "OrcaYamlTrustDialog": {
           "f3e2b868fb": "フックを実行する",
