@@ -178,8 +178,8 @@ const NonGitFolderDialog = React.memo(function NonGitFolderDialog() {
 
         <p className="text-xs text-muted-foreground">
           {translate(
-            'auto.components.sidebar.NonGitFolderDialog.d885e6adbe',
-            "Converting runs git init, adds a .gitignore if one is missing, and makes an initial commit. Your files aren't changed."
+            'auto.components.sidebar.NonGitFolderDialog.2bef0e9e6d',
+            "Converting runs git init, adds a .gitignore if one is missing, and makes an initial commit. It won't edit your existing files."
           )}
         </p>
 

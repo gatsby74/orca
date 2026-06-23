@@ -3627,10 +3627,11 @@ export const createRepoSlice: StateCreator<AppState, [], [], RepoSlice> = (set, 
       }
       repo = repoWithFetchedOwner(repo, target)
       set((s) => {
-        if (s.repos.some((r) => r.id === repo.id)) {
-          return s
-        }
-        const nextRepos = [...s.repos, repo]
+        // Upsert: replace an existing entry in place so converting a path that
+        // was already known as a folder doesn't leave stale folder metadata.
+        const nextRepos = s.repos.some((r) => r.id === repo.id)
+          ? s.repos.map((r) => (r.id === repo.id ? repo : r))
+          : [...s.repos, repo]
         return {
           repos: nextRepos,
           ...projectCompatibilityFromRepos(nextRepos),

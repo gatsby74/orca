@@ -374,6 +374,28 @@ async function addLocalRepoFromPath(
   return { repo, alreadyExisted: false }
 }
 
+// Why: two concurrent conversions of the SAME target can both pass the non-git
+// probe; if one then fails and runs the `.git` cleanup while the other
+// succeeded, the cleanup destroys the successful repo. Serialize per target so
+// unrelated conversions still run in parallel.
+const conversionsInFlight = new Set<string>()
+
+// Exclusive-create a .gitignore: never clobber one that appears between the
+// hasGitignore() check and this write — respect the existing file instead.
+async function writeGitignoreExclusive(gitignorePath: string, content: string): Promise<void> {
+  try {
+    await writeFile(gitignorePath, content, { encoding: 'utf8', flag: 'wx' })
+  } catch (err) {
+    const code =
+      err && typeof err === 'object' && 'code' in err
+        ? (err as NodeJS.ErrnoException).code
+        : undefined
+    if (code !== 'EEXIST') {
+      throw err
+    }
+  }
+}
+
 // Turns an existing non-git LOCAL folder into a git repo (init + .gitignore +
 // initial commit) and registers it as a `git` project. The always-present
 // initial commit is what lets worktree creation resolve a base ref afterwards.
@@ -381,8 +403,10 @@ async function convertLocalFolderToGitRepo(
   store: Store,
   path: string
 ): Promise<{ repo: Repo } | { error: string }> {
-  const targetPath = path?.trim() ?? ''
-  if (!targetPath) {
+  // Don't trim: trailing spaces can be part of a real folder name, so trimming
+  // could touch the wrong path. Only reject empty / whitespace-only input.
+  const targetPath = path ?? ''
+  if (targetPath.trim().length === 0) {
     return { error: 'Folder path is required' }
   }
   // Guard direct IPC use; the renderer always passes absolute picker paths.
@@ -390,47 +414,54 @@ async function convertLocalFolderToGitRepo(
     return { error: 'Folder path must be an absolute path' }
   }
 
-  // Skip init when it's somehow already a repo (e.g. converted out-of-band) and
-  // just add it as git, so the caller still ends up with a usable project.
-  if (!isGitRepo(targetPath)) {
-    const gitignorePath = join(targetPath, '.gitignore')
-    const outcome = await initGitRepoInExistingFolder({
-      exec: async (gitArgs) => {
-        await gitExecFileAsync(gitArgs, { cwd: targetPath })
-      },
-      hasGitignore: async () => {
-        try {
-          await access(gitignorePath)
-          return true
-        } catch {
-          return false
+  const lockKey = `local:${normalizeRuntimePathForComparison(targetPath)}`
+  if (conversionsInFlight.has(lockKey)) {
+    return { error: 'A conversion is already in progress for this folder.' }
+  }
+  conversionsInFlight.add(lockKey)
+  try {
+    // Skip init when it's somehow already a repo (e.g. converted out-of-band)
+    // and just add it as git, so the caller still ends up with a usable project.
+    if (!isGitRepo(targetPath)) {
+      const gitignorePath = join(targetPath, '.gitignore')
+      const outcome = await initGitRepoInExistingFolder({
+        exec: async (gitArgs) => {
+          await gitExecFileAsync(gitArgs, { cwd: targetPath })
+        },
+        hasGitignore: async () => {
+          try {
+            await access(gitignorePath)
+            return true
+          } catch {
+            return false
+          }
+        },
+        writeGitignore: (content) => writeGitignoreExclusive(gitignorePath, content)
+      })
+
+      if (!outcome.ok) {
+        // We never created the user's folder, so only strip a `.git` we just made
+        // — leaving the folder as the user had it. A written .gitignore is
+        // harmless and helps a retry, so it stays.
+        if (outcome.step !== 'init') {
+          await rm(join(targetPath, '.git'), { recursive: true, force: true }).catch(() => {})
         }
-      },
-      writeGitignore: async (content) => {
-        await writeFile(gitignorePath, content, 'utf8')
+        if (outcome.isIdentityError) {
+          return { error: GIT_IDENTITY_NOT_CONFIGURED_MESSAGE }
+        }
+        return { error: `${convertStepLabel(outcome.step)}: ${outcome.message}` }
       }
-    })
-
-    if (!outcome.ok) {
-      // We never created the user's folder, so only strip a `.git` we just made
-      // — leaving the folder as the user had it. A written .gitignore is
-      // harmless and helps a retry, so it stays.
-      if (outcome.step !== 'init') {
-        await rm(join(targetPath, '.git'), { recursive: true, force: true }).catch(() => {})
-      }
-      if (outcome.isIdentityError) {
-        return { error: GIT_IDENTITY_NOT_CONFIGURED_MESSAGE }
-      }
-      return { error: `${convertStepLabel(outcome.step)}: ${outcome.message}` }
     }
-  }
 
-  const result = await addLocalRepoFromPath(store, targetPath, 'git')
-  if ('error' in result) {
-    return result
+    const result = await addLocalRepoFromPath(store, targetPath, 'git')
+    if ('error' in result) {
+      return result
+    }
+    emitRepoAdded('folder_picker', result.alreadyExisted, true)
+    return { repo: result.repo }
+  } finally {
+    conversionsInFlight.delete(lockKey)
   }
-  emitRepoAdded('folder_picker', result.alreadyExisted, true)
-  return { repo: result.repo }
 }
 
 async function addRemoteRepoFromPath(
@@ -811,73 +842,88 @@ async function convertRemoteFolderToGitRepo(
       error: 'SSH host platform is unavailable. Reconnect the SSH target before converting.'
     }
   }
-  const resolvedPath = await resolveRemoteHomePath(args.connectionId, args.remotePath?.trim() ?? '')
-  if (!resolvedPath) {
+  // Don't trim: trailing spaces can be part of a real folder name on the host.
+  const resolvedPath = await resolveRemoteHomePath(args.connectionId, args.remotePath ?? '')
+  if (resolvedPath.trim().length === 0) {
     return { error: 'Folder path is required' }
   }
+  // Mirror the local converter's absolute-path guard; the SSH path otherwise
+  // accepts relative values like "src" and would run git in the host's cwd.
+  if (!isRuntimePathAbsolute(resolvedPath, host.pathFlavor)) {
+    return { error: 'Folder path must be an absolute path on the SSH host' }
+  }
 
-  // Already a repo on the host: skip init and add it (using the detected root).
+  const lockKey = `${args.connectionId}:${normalizeRuntimePathForComparison(resolvedPath)}`
+  if (conversionsInFlight.has(lockKey)) {
+    return { error: 'A conversion is already in progress for this folder.' }
+  }
+  conversionsInFlight.add(lockKey)
   try {
-    const check = await gitProvider.isGitRepoAsync(resolvedPath)
-    if (check.isRepo) {
-      const result = await addRemoteRepoFromPath(store, {
-        connectionId: args.connectionId,
-        remotePath: check.rootPath ?? resolvedPath,
-        kind: 'git'
-      })
-      if ('error' in result) {
-        return result
+    // Already a repo on the host: skip init and add it (using the detected root).
+    try {
+      const check = await gitProvider.isGitRepoAsync(resolvedPath)
+      if (check.isRepo) {
+        const result = await addRemoteRepoFromPath(store, {
+          connectionId: args.connectionId,
+          remotePath: check.rootPath ?? resolvedPath,
+          kind: 'git'
+        })
+        if ('error' in result) {
+          return result
+        }
+        emitRepoAdded('folder_picker', result.alreadyExisted, true)
+        return { repo: result.repo }
       }
-      emitRepoAdded('folder_picker', result.alreadyExisted, true)
-      return { repo: result.repo }
+    } catch {
+      // Probe failed or not a repo — fall through and convert.
     }
-  } catch {
-    // Probe failed or not a repo — fall through and convert.
-  }
 
-  const gitignorePath = joinRemotePath(host, resolvedPath, '.gitignore')
-  const outcome = await initGitRepoInExistingFolder({
-    exec: async (gitArgs) => {
-      await gitProvider.exec(gitArgs, resolvedPath)
-    },
-    hasGitignore: async () => {
-      try {
-        await fsProvider.stat(gitignorePath)
-        return true
-      } catch {
-        return false
+    const gitignorePath = joinRemotePath(host, resolvedPath, '.gitignore')
+    const outcome = await initGitRepoInExistingFolder({
+      exec: async (gitArgs) => {
+        await gitProvider.exec(gitArgs, resolvedPath)
+      },
+      hasGitignore: async () => {
+        try {
+          await fsProvider.stat(gitignorePath)
+          return true
+        } catch {
+          return false
+        }
+      },
+      writeGitignore: async (content) => {
+        await fsProvider.writeFile(gitignorePath, content)
       }
-    },
-    writeGitignore: async (content) => {
-      await fsProvider.writeFile(gitignorePath, content)
-    }
-  })
+    })
 
-  if (!outcome.ok) {
-    if (outcome.step !== 'init') {
-      await fsProvider
-        .deletePath(joinRemotePath(host, resolvedPath, '.git'), true)
-        .catch(() => undefined)
-    }
-    if (outcome.isIdentityError) {
-      return {
-        error:
-          'Git author identity is not configured on the SSH host. Run `git config --global user.name "Your Name"` and `git config --global user.email "you@example.com"` on that host, then try again.'
+    if (!outcome.ok) {
+      if (outcome.step !== 'init') {
+        await fsProvider
+          .deletePath(joinRemotePath(host, resolvedPath, '.git'), true)
+          .catch(() => undefined)
       }
+      if (outcome.isIdentityError) {
+        return {
+          error:
+            'Git author identity is not configured on the SSH host. Run `git config --global user.name "Your Name"` and `git config --global user.email "you@example.com"` on that host, then try again.'
+        }
+      }
+      return { error: `${convertStepLabel(outcome.step)}: ${outcome.message}` }
     }
-    return { error: `${convertStepLabel(outcome.step)}: ${outcome.message}` }
-  }
 
-  const result = await addRemoteRepoFromPath(store, {
-    connectionId: args.connectionId,
-    remotePath: resolvedPath,
-    kind: 'git'
-  })
-  if ('error' in result) {
-    return result
+    const result = await addRemoteRepoFromPath(store, {
+      connectionId: args.connectionId,
+      remotePath: resolvedPath,
+      kind: 'git'
+    })
+    if ('error' in result) {
+      return result
+    }
+    emitRepoAdded('folder_picker', result.alreadyExisted, true)
+    return { repo: result.repo }
+  } finally {
+    conversionsInFlight.delete(lockKey)
   }
-  emitRepoAdded('folder_picker', result.alreadyExisted, true)
-  return { repo: result.repo }
 }
 
 async function resolveRemoteHomePath(connectionId: string, path: string): Promise<string> {
@@ -1472,6 +1518,8 @@ export function registerRepoHandlers(mainWindow: BrowserWindow, store: Store): v
   ipcMain.removeHandler('repos:searchBaseRefs')
   ipcMain.removeHandler('repos:searchBaseRefDetails')
   ipcMain.removeHandler('repos:addRemote')
+  ipcMain.removeHandler('repos:convertToGit')
+  ipcMain.removeHandler('repos:convertRemoteToGit')
   ipcMain.removeHandler('repos:create')
   ipcMain.removeHandler('repos:createRemote')
   ipcMain.removeHandler('sparsePresets:list')

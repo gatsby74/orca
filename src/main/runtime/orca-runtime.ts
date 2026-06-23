@@ -19376,8 +19376,10 @@ export class OrcaRuntimeService {
     if (!this.store) {
       throw new Error('runtime_unavailable')
     }
-    const targetPath = path.trim()
-    if (!targetPath) {
+    // Don't trim: trailing spaces can be part of a real folder name, so trimming
+    // could touch the wrong path. Only reject empty / whitespace-only input.
+    const targetPath = path
+    if (targetPath.trim().length === 0) {
       return { error: 'Folder path is required' }
     }
     if (!isAbsolute(targetPath)) {
@@ -19399,7 +19401,19 @@ export class OrcaRuntimeService {
           }
         },
         writeGitignore: async (content) => {
-          await writeFile(gitignorePath, content, 'utf8')
+          // Exclusive create so a .gitignore appearing between the check and this
+          // write is respected, not clobbered.
+          try {
+            await writeFile(gitignorePath, content, { encoding: 'utf8', flag: 'wx' })
+          } catch (err) {
+            const code =
+              err && typeof err === 'object' && 'code' in err
+                ? (err as NodeJS.ErrnoException).code
+                : undefined
+            if (code !== 'EEXIST') {
+              throw err
+            }
+          }
         }
       })
       if (!outcome.ok) {

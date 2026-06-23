@@ -20,7 +20,14 @@ test.use({
 const tempRoots: string[] = []
 
 function git(cwd: string, args: string[]): string {
-  return execFileSync('git', args, { cwd, encoding: 'utf-8', stdio: ['pipe', 'pipe', 'pipe'] })
+  // Why: a host-level git lock/prompt could otherwise block a worker forever;
+  // fail fast so CI stays predictable.
+  return execFileSync('git', args, {
+    cwd,
+    encoding: 'utf-8',
+    stdio: ['pipe', 'pipe', 'pipe'],
+    timeout: 30_000
+  })
 }
 
 function createNonGitFolderFixture(): string {

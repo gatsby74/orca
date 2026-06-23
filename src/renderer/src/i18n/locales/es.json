@@ -4147,9 +4147,9 @@
           "79fd02cf5f": "Esta ruta se verificó en {{hostName}}.",
           "8851b77327": "Esta ruta se verificó localmente.",
           "15b3ae7310": "This folder isn't a Git repository",
-          "d885e6adbe": "Converting runs git init, adds a .gitignore if one is missing, and makes an initial commit. Your files aren't changed.",
           "eb079b3809": "Convert to Git Repository",
-          "1d9e5c8007": "Convert it to a Git repository to use worktrees, source control, and pull requests. Or open it as a plain folder with just the editor, terminal, and search."
+          "1d9e5c8007": "Convert it to a Git repository to use worktrees, source control, and pull requests. Or open it as a plain folder with just the editor, terminal, and search.",
+          "2bef0e9e6d": "Converting runs git init, adds a .gitignore if one is missing, and makes an initial commit. It won't edit your existing files."
         },
         "OrcaYamlTrustDialog": {
           "f3e2b868fb": "Ejecutar hooks",
