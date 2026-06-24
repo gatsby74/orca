@@ -92,10 +92,8 @@ async function newestClaudeFilesInDir(projectDir: string): Promise<string[]> {
 }
 
 async function readFirstCwd(filePath: string): Promise<string | null> {
-  const lines = createInterface({
-    input: createReadStream(filePath, { encoding: 'utf-8' }),
-    crlfDelay: Infinity
-  })
+  const input = createReadStream(filePath, { encoding: 'utf-8' })
+  const lines = createInterface({ input, crlfDelay: Infinity })
   let read = 0
   try {
     for await (const line of lines) {
@@ -110,7 +108,10 @@ async function readFirstCwd(filePath: string): Promise<string | null> {
   } catch {
     return null
   } finally {
+    // readline.close() leaves the underlying stream open; destroy it so the early
+    // break/catch paths don't leak a file descriptor (this runs per project dir).
     lines.close()
+    input.destroy()
   }
   return null
 }
