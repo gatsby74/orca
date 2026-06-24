@@ -30,6 +30,7 @@ import {
 import { makePaneKey } from '../../../../shared/stable-pane-id'
 import { runQuickCommandInNewTab } from '@/lib/run-quick-command-in-new-tab'
 import {
+  copyAgentSessionForkContext,
   prepareAgentSessionForkFromPane,
   type PreparedAgentSessionFork
 } from './terminal-agent-session-fork'
@@ -90,6 +91,7 @@ type TerminalMenuState = {
   onClosePane: () => void
   onClearScreen: () => void
   onForkAgentSession: () => Promise<void>
+  onCopyAgentSessionContext: () => Promise<void>
   onQuickCommand: (command: TerminalQuickCommand) => void
   onToggleExpand: () => void
   onSetTitle: () => void
@@ -388,6 +390,20 @@ export function useTerminalPaneContextMenu({
     }
   }
 
+  // Why: the captured session transcript is often wanted on its own — to paste
+  // into another tool — so expose it directly instead of forcing a trip through
+  // the fork dialog (issue #5020).
+  const onCopyAgentSessionContext = async (): Promise<void> => {
+    const pane = resolveMenuPane()
+    if (!pane) {
+      return
+    }
+    const fork = prepareAgentSessionForkFromPane({ pane, tabId, worktreeId, groupId })
+    if (fork) {
+      await copyAgentSessionForkContext(fork)
+    }
+  }
+
   const onQuickCommand = (command: TerminalQuickCommand): void => {
     if (isTerminalAgentQuickCommand(command)) {
       runQuickCommandInNewTab({ command, worktreeId, groupId })
@@ -514,6 +530,7 @@ export function useTerminalPaneContextMenu({
     onClosePane,
     onClearScreen,
     onForkAgentSession,
+    onCopyAgentSessionContext,
     onQuickCommand,
     onToggleExpand,
     onSetTitle: handleSetTitle
