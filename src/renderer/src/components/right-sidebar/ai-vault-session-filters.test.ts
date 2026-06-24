@@ -2,13 +2,16 @@ import { describe, expect, it } from 'vitest'
 import type { AiVaultSession } from '../../../../shared/ai-vault-types'
 import {
   AI_VAULT_SESSION_FILTER_QUERY_MAX_BYTES,
-  deriveAiVaultWorkspaceScopePaths,
   filterAiVaultSessions,
   folderLabel,
   groupAiVaultSessions,
   isAiVaultSessionFilterQueryTooLarge,
   parseVaultQuery
 } from './ai-vault-session-filters'
+import {
+  deriveAiVaultScopeSessionPaths,
+  deriveAiVaultWorkspaceScopePaths
+} from './ai-vault-scope-paths'
 
 const baseSession: AiVaultSession = {
   id: 'claude:1',
@@ -412,6 +415,45 @@ describe('deriveAiVaultWorkspaceScopePaths', () => {
       '/Users/ada/workspaces/orca/fix-agent-history',
       '/Users/ada/workspaces/orca/unclaimed-old-path'
     ])
+  })
+})
+
+describe('deriveAiVaultScopeSessionPaths', () => {
+  it('adds same-repo sibling worktrees on top of the workspace paths', () => {
+    expect(
+      deriveAiVaultScopeSessionPaths(
+        {
+          id: 'repo1::/Users/ada/workspaces/orca/fix-agent-history',
+          repoId: 'repo1',
+          path: '/Users/ada/workspaces/orca/fix-agent-history',
+          priorWorktreeIds: []
+        },
+        [
+          {
+            id: 'repo1::/Users/ada/workspaces/orca/fix-agent-history',
+            repoId: 'repo1',
+            path: '/Users/ada/workspaces/orca/fix-agent-history'
+          },
+          {
+            id: 'repo1::/Users/ada/workspaces/orca/sibling',
+            repoId: 'repo1',
+            path: '/Users/ada/workspaces/orca/sibling'
+          },
+          {
+            id: 'repo2::/Users/ada/workspaces/other/elsewhere',
+            repoId: 'repo2',
+            path: '/Users/ada/workspaces/other/elsewhere'
+          }
+        ]
+      )
+    ).toEqual([
+      '/Users/ada/workspaces/orca/fix-agent-history',
+      '/Users/ada/workspaces/orca/sibling'
+    ])
+  })
+
+  it('returns no paths without an active worktree', () => {
+    expect(deriveAiVaultScopeSessionPaths(null, [])).toEqual([])
   })
 })
 

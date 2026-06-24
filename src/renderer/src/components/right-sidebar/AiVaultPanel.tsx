@@ -11,12 +11,11 @@ import {
   useRepoById,
   useRepos
 } from '@/store/selectors'
+import { agentLabel, filterAiVaultSessions, groupAiVaultSessions } from './ai-vault-session-filters'
 import {
-  agentLabel,
-  deriveAiVaultWorkspaceScopePaths,
-  filterAiVaultSessions,
-  groupAiVaultSessions
-} from './ai-vault-session-filters'
+  deriveAiVaultScopeSessionPaths,
+  deriveAiVaultWorkspaceScopePaths
+} from './ai-vault-scope-paths'
 import {
   DEFAULT_AI_VAULT_SCOPE,
   getRestorableAiVaultScope,
@@ -60,6 +59,8 @@ export default function AiVaultPanel(): React.JSX.Element {
   const [collapsedGroups, setCollapsedGroups] = useState<Set<string>>(() => new Set())
   const refreshIdRef = useRef(0)
   const refreshInFlightRef = useRef(false)
+  const pendingRefreshRef = useRef(false)
+  const pendingForceRef = useRef(false)
   const mountedRef = useRef(true)
   const userChangedScopeRef = useRef(false)
   const preferredScopeRef = useRef<AiVaultScope>(DEFAULT_AI_VAULT_SCOPE)
@@ -71,6 +72,14 @@ export default function AiVaultPanel(): React.JSX.Element {
     () => deriveAiVaultWorkspaceScopePaths(activeWorktree ?? null, allWorktrees),
     [activeWorktree, allWorktrees]
   )
+  // Sent to the scanner so scoped views surface sessions older than the global cap.
+  const scopePaths = useMemo(
+    () => deriveAiVaultScopeSessionPaths(activeWorktree ?? null, allWorktrees),
+    [activeWorktree, allWorktrees]
+  )
+  const scopePathsKey = useMemo(() => scopePaths.join('\n'), [scopePaths])
+  const scopePathsRef = useRef<readonly string[]>(scopePaths)
+  scopePathsRef.current = scopePaths
   const projectContext = useMemo(
     () =>
       buildAiVaultProjectContext({
@@ -119,7 +128,12 @@ export default function AiVaultPanel(): React.JSX.Element {
   }, [activeProjectKey, activeWorktreePath, scope])
 
   const refresh = useCallback(async (args: { force?: boolean } = {}): Promise<void> => {
+    // A scope change during an in-flight scan must not be dropped: queue it so the
+    // panel re-scans for the now-active scope once the current scan settles. An
+    // explicit refresh (force) stays sticky so the queued run still bypasses cache.
     if (refreshInFlightRef.current) {
+      pendingRefreshRef.current = true
+      pendingForceRef.current ||= args.force === true
       return
     }
 
@@ -131,6 +145,7 @@ export default function AiVaultPanel(): React.JSX.Element {
     try {
       const result = await window.api.aiVault.listSessions({
         limit: SESSION_LIMIT,
+        scopePaths: scopePathsRef.current,
         force: args.force
       })
       if (!mountedRef.current || refreshIdRef.current !== refreshId) {
@@ -147,7 +162,16 @@ export default function AiVaultPanel(): React.JSX.Element {
       if (mountedRef.current && refreshIdRef.current === refreshId) {
         setLoading(false)
       }
+      if (pendingRefreshRef.current && mountedRef.current) {
+        pendingRefreshRef.current = false
+        const force = pendingForceRef.current
+        pendingForceRef.current = false
+        void refresh({ force })
+      }
     }
+    // Deps are intentionally empty: refresh reads all changing values through refs
+    // (scopePathsRef, *Ref guards) and recurses on itself, so its identity must stay
+    // stable. Any new dependency must be read via a ref, not captured directly.
   }, [])
 
   useEffect(() => {
@@ -159,9 +183,11 @@ export default function AiVaultPanel(): React.JSX.Element {
     }
   }, [])
 
+  // Re-scan on mount and whenever the active scope changes, since the scanner now
+  // tailors its in-scope results to scopePaths.
   useEffect(() => {
     void refresh()
-  }, [refresh])
+  }, [refresh, scopePathsKey])
 
   const filteredSessions = useMemo(
     () =>
