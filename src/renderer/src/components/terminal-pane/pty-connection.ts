@@ -103,16 +103,17 @@ import {
   getRuntimeEnvironmentIdForWorktree
 } from '@/lib/worktree-runtime-owner'
 import { CLIENT_PLATFORM } from '@/lib/new-workspace'
-import { buildAgentResumeStartupPlan } from '@/lib/tui-agent-startup'
+import { buildAgentResumeStartupPlan, buildAgentStartupPlan } from '@/lib/tui-agent-startup'
 import { resolveAgentStatusTerminalTitle } from '@/lib/agent-status-terminal-title'
 import {
   resolveTuiAgentLaunchArgs,
   resolveTuiAgentLaunchEnv
 } from '../../../../shared/tui-agent-launch-defaults'
+import { isTuiAgent } from '../../../../shared/tui-agent-config'
+import { isTuiAgentEnabled } from '../../../../shared/tui-agent-selection'
 import {
   isResumableTuiAgent,
   normalizeAgentProviderSession,
-  type ResumableTuiAgent,
   type SleepingAgentSessionRecord
 } from '../../../../shared/agent-session-resume'
 import type { TuiAgent } from '../../../../shared/types'
@@ -193,7 +194,9 @@ type PendingStartupCommand = {
 }
 
 type ColdRestoreAgentResumeStartup = PendingStartupCommand & {
-  agent: ResumableTuiAgent
+  // TuiAgent (not just ResumableTuiAgent): the fresh-launch fallback can spawn any
+  // agent the terminal previously ran, including ones without resume support.
+  agent: TuiAgent
   launchConfig: NonNullable<ReturnType<typeof buildAgentResumeStartupPlan>>['launchConfig']
   launchToken: string
   useLiveEntry: boolean
@@ -897,13 +900,19 @@ export function connectPanePty(
     consumed: { paneKey: string; record: SleepingAgentSessionRecord }
   ): void => {
     state.clearSleepingAgentSession(consumed.paneKey)
+    const consumedSession = consumed.record.providerSession
+    // No provider session (e.g. a fresh-launch fallback record) means there is no
+    // shared session to alias, so there is nothing else to clear.
+    if (!consumedSession) {
+      return
+    }
     for (const [paneKey, record] of Object.entries(state.sleepingAgentSessionsByPaneKey)) {
       if (
         paneKey !== consumed.paneKey &&
         record.worktreeId === consumed.record.worktreeId &&
         record.agent === consumed.record.agent &&
-        record.providerSession.key === consumed.record.providerSession.key &&
-        record.providerSession.id === consumed.record.providerSession.id
+        record.providerSession?.key === consumedSession.key &&
+        record.providerSession?.id === consumedSession.id
       ) {
         // Why: legacy pane aliases can leave multiple sleeping rows for one
         // provider session; once this pane resumes it, every alias is stale.
@@ -2207,15 +2216,69 @@ export function connectPanePty(
       const sleepingRecordEntry = getSleepingRecordForPane(state)
       const sleepingRecord = sleepingRecordEntry?.record
       const useLiveEntry = entry && entry.state !== 'done'
+
+      // When the provider session can't be resumed, an agent terminal should still
+      // come back as its agent (or the default), not a blank shell (#4557). A plain
+      // shell — no agent ever ran here — stays blank (buildFreshFallback returns null).
+      const buildFreshFallback = (): ColdRestoreAgentResumeStartup | null => {
+        const tab = (state.tabsByWorktree[deps.worktreeId] ?? []).find(
+          (candidate) => candidate.id === deps.tabId
+        )
+        const liveAgent = isTuiAgent(entry?.agentType) ? entry.agentType : undefined
+        const priorAgent =
+          liveAgent ?? sleepingRecord?.agent ?? tab?.launchAgent ?? paneStartup?.launchAgent
+        const defaultPref = state.settings?.defaultTuiAgent
+        const defaultAgent =
+          defaultPref &&
+          defaultPref !== 'blank' &&
+          isTuiAgentEnabled(defaultPref, state.settings?.disabledTuiAgents)
+            ? defaultPref
+            : undefined
+        // Fall back to the default agent only when this was an agent terminal whose
+        // specific agent is unrecoverable — never for a genuine plain shell.
+        const fallbackAgent = priorAgent ?? (entry || sleepingRecord ? defaultAgent : undefined)
+        if (!fallbackAgent) {
+          return null
+        }
+        const freshPlan = buildAgentStartupPlan({
+          agent: fallbackAgent,
+          prompt: '',
+          cmdOverrides: state.settings?.agentCmdOverrides ?? {},
+          agentArgs: resolveTuiAgentLaunchArgs(fallbackAgent, state.settings?.agentDefaultArgs),
+          agentEnv: resolveTuiAgentLaunchEnv(fallbackAgent, state.settings?.agentDefaultEnv),
+          platform: getColdRestoreAgentResumePlatform(),
+          allowEmptyPromptLaunch: true
+        })
+        if (!freshPlan) {
+          return null
+        }
+        const freshLaunchToken = createBrowserUuid()
+        return {
+          agent: fallbackAgent,
+          command: freshPlan.launchCommand,
+          env: {
+            ...freshPlan.env,
+            ORCA_AGENT_LAUNCH_TOKEN: freshLaunchToken
+          },
+          launchConfig: freshPlan.launchConfig,
+          launchToken: freshLaunchToken,
+          useLiveEntry: Boolean(useLiveEntry),
+          // A fresh launch is a new session, not a restored one, so no "restored"
+          // banner; the stale sleeping record is still cleared after the spawn.
+          hasSleepingRecord: false,
+          sleepingRecordEntry
+        }
+      }
+
       const agent = useLiveEntry ? entry.agentType : sleepingRecord?.agent
       if (!agent || !isResumableTuiAgent(agent)) {
-        return null
+        return buildFreshFallback()
       }
       const providerSession = normalizeAgentProviderSession(
         useLiveEntry ? entry.providerSession : sleepingRecord?.providerSession
       )
       if (!providerSession) {
-        return null
+        return buildFreshFallback()
       }
       const matchingSleepingLaunchConfig =
         sleepingRecord?.launchConfig &&
@@ -2245,7 +2308,7 @@ export function connectPanePty(
         platform: resumePlatform
       })
       if (!startupPlan) {
-        return null
+        return buildFreshFallback()
       }
       const coldRestoreLaunchToken = createBrowserUuid()
       // Why: cold restore means the PTY process is gone but the agent provider

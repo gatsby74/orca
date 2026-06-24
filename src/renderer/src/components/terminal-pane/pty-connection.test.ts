@@ -50,7 +50,10 @@ function leafIdForPane(paneId: number): string {
 
 type StoreState = {
   activeWorktreeId: string | null
-  tabsByWorktree: Record<string, { id: string; ptyId: string | null; title?: string }[]>
+  tabsByWorktree: Record<
+    string,
+    { id: string; ptyId: string | null; title?: string; launchAgent?: string }[]
+  >
   ptyIdsByTabId?: Record<string, string[]>
   terminalLayoutsByTabId?: Record<string, TerminalLayoutSnapshot>
   unreadTerminalTabs?: Record<string, true>
@@ -3805,6 +3808,128 @@ describe('connectPanePty', () => {
     // Why: consuming the record prevents a later worktree activation from
     // launching a duplicate resume tab for the same session.
     expect(mockStoreState.clearSleepingAgentSession).toHaveBeenCalledWith(paneKey)
+  })
+
+  // #4557: an agent terminal that can't be resumed should come back as a fresh
+  // agent (prior agent, else default) instead of a blank shell.
+  const findReattachConnect = (transport: ReturnType<typeof createMockTransport>) => {
+    const call = transport.connect.mock.calls.find(
+      (args) => (args[0] as { sessionId?: string })?.sessionId === 'lost-pty'
+    )
+    return call?.[0] as
+      | { command?: string; launchAgent?: string; env?: Record<string, string> }
+      | undefined
+  }
+
+  const mountColdRestore = async (transport: ReturnType<typeof createMockTransport>) => {
+    const { connectPanePty } = await import('./pty-connection')
+    transport.connect.mockImplementation(async ({ sessionId }: { sessionId?: string }) => {
+      if (sessionId) {
+        return { id: 'fresh-pty', coldRestore: { scrollback: 'cold-payload', cwd: '/tmp/wt-1' } }
+      }
+      return 'fresh-pty'
+    })
+    transportFactoryQueue.push(transport)
+    const pane = createPane(1)
+    const manager = createManager(1)
+    const deps = createDeps({
+      restoredLeafId: LEAF_1,
+      restoredPtyIdByLeafId: { [LEAF_1]: 'lost-pty' }
+    })
+    connectPanePty(pane as never, manager as never, deps as never)
+    await flushAsyncTicks(20)
+    await new Promise((resolve) => setTimeout(resolve, 70))
+    return deps
+  }
+
+  it('cold-restores a fresh agent from the sleeping record when its session is unresumable', async () => {
+    const transport = createMockTransport('fresh-pty')
+    const paneKey = makePaneKey('tab-1', LEAF_1)
+    mockStoreState = {
+      ...mockStoreState,
+      tabsByWorktree: { 'wt-1': [{ id: 'tab-1', ptyId: 'lost-pty' }] },
+      settings: { ...mockStoreState.settings, agentCmdOverrides: {} },
+      agentStatusByPaneKey: {},
+      sleepingAgentSessionsByPaneKey: {
+        // Agent known, but no resumable provider session id.
+        [paneKey]: {
+          paneKey,
+          tabId: 'tab-1',
+          worktreeId: 'wt-1',
+          agent: 'codex',
+          prompt: 'finish the task',
+          state: 'working',
+          capturedAt: 1,
+          updatedAt: 1
+        }
+      }
+    } as StoreState
+
+    await mountColdRestore(transport)
+
+    const reattach = findReattachConnect(transport)
+    expect(reattach?.command).toMatch(/^codex /)
+    expect(reattach?.command).not.toContain('resume')
+    expect(reattach?.launchAgent).toBe('codex')
+    expect(reattach?.env?.ORCA_AGENT_LAUNCH_TOKEN).toMatch(new RegExp(`^${UUID_RE}$`))
+  })
+
+  it('cold-restores the prior agent from the persisted tab launchAgent after a restart', async () => {
+    const transport = createMockTransport('fresh-pty')
+    mockStoreState = {
+      ...mockStoreState,
+      // After a restart there is no live status nor sleeping record — only the
+      // persisted tab.launchAgent tells us this terminal ran an agent.
+      tabsByWorktree: { 'wt-1': [{ id: 'tab-1', ptyId: 'lost-pty', launchAgent: 'claude' }] },
+      settings: { ...mockStoreState.settings, agentCmdOverrides: {} },
+      agentStatusByPaneKey: {},
+      sleepingAgentSessionsByPaneKey: {}
+    } as StoreState
+
+    await mountColdRestore(transport)
+
+    const reattach = findReattachConnect(transport)
+    expect(reattach?.command).toContain('claude')
+    expect(reattach?.command).not.toContain('resume')
+    expect(reattach?.launchAgent).toBe('claude')
+  })
+
+  it('cold-restores the default agent when an agent terminal has no recoverable agent', async () => {
+    const transport = createMockTransport('fresh-pty')
+    const paneKey = makePaneKey('tab-1', LEAF_1)
+    mockStoreState = {
+      ...mockStoreState,
+      tabsByWorktree: { 'wt-1': [{ id: 'tab-1', ptyId: 'lost-pty' }] },
+      settings: { ...mockStoreState.settings, agentCmdOverrides: {}, defaultTuiAgent: 'codex' },
+      agentStatusByPaneKey: {},
+      // A record exists (it was an agent terminal) but carries no usable agent id.
+      sleepingAgentSessionsByPaneKey: {
+        [paneKey]: { paneKey, tabId: 'tab-1', worktreeId: 'wt-1', capturedAt: 1, updatedAt: 1 }
+      }
+    } as StoreState
+
+    await mountColdRestore(transport)
+
+    const reattach = findReattachConnect(transport)
+    expect(reattach?.command).toMatch(/^codex /)
+    expect(reattach?.launchAgent).toBe('codex')
+  })
+
+  it('leaves a plain shell blank on cold restore (no prior agent, no default)', async () => {
+    const transport = createMockTransport('fresh-pty')
+    mockStoreState = {
+      ...mockStoreState,
+      tabsByWorktree: { 'wt-1': [{ id: 'tab-1', ptyId: 'lost-pty' }] },
+      settings: { ...mockStoreState.settings, agentCmdOverrides: {} },
+      agentStatusByPaneKey: {},
+      sleepingAgentSessionsByPaneKey: {}
+    } as StoreState
+
+    await mountColdRestore(transport)
+
+    const reattach = findReattachConnect(transport)
+    expect(reattach?.command).toBeUndefined()
+    expect(reattach?.launchAgent).toBeUndefined()
   })
 
   it('resumes from an unambiguous legacy sleeping record when cold-restoring a preserved pane', async () => {
