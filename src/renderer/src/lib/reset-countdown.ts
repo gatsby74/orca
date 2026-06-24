@@ -10,6 +10,11 @@ export function formatResetDuration(ms: number): string {
     return 'now'
   }
   const totalMins = Math.floor(ms / 60_000)
+  // Why: sub-minute durations floor to 0, and "0m" reads as already-reset; show
+  // "<1m" so the final minute before reset stays distinct from "now" (ms <= 0).
+  if (totalMins === 0) {
+    return '<1m'
+  }
   if (totalMins < 60) {
     return `${totalMins}m`
   }

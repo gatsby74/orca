@@ -10,6 +10,14 @@ describe('formatResetDuration', () => {
     expect(formatResetDuration(-1)).toBe('now')
   })
 
+  it('returns "<1m" for sub-minute positive durations, not "0m"', () => {
+    // Why: the 30s tick makes the final minute before reset reachable; "0m"
+    // would read as already-reset.
+    expect(formatResetDuration(1)).toBe('<1m')
+    expect(formatResetDuration(30_000)).toBe('<1m')
+    expect(formatResetDuration(59_999)).toBe('<1m')
+  })
+
   it('returns whole minutes under an hour', () => {
     expect(formatResetDuration(45 * MINUTE)).toBe('45m')
     expect(formatResetDuration(MINUTE)).toBe('1m')
@@ -38,6 +46,10 @@ describe('formatResetDuration', () => {
 describe('formatResetCountdown', () => {
   it('prefixes "Resets in" for positive durations', () => {
     expect(formatResetCountdown(3 * HOUR + 31 * MINUTE)).toBe('Resets in 3h 31m')
+  })
+
+  it('reads "Resets in <1m" in the final minute', () => {
+    expect(formatResetCountdown(30_000)).toBe('Resets in <1m')
   })
 
   it('reads "Resets now" once elapsed', () => {
