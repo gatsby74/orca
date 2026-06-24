@@ -3912,6 +3912,7 @@ describe('connectPanePty', () => {
 
     const reattach = findReattachConnect(transport)
     expect(reattach?.command).toMatch(/^codex /)
+    expect(reattach?.command).not.toContain('resume')
     expect(reattach?.launchAgent).toBe('codex')
   })
 
