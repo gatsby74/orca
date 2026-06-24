@@ -11,6 +11,7 @@ import {
   createProvider,
   createProviderSetup,
   makeBufferLine,
+  makeExistsCache,
   makePane
 } from './terminal-link-provider-buffer-fixtures'
 import {
@@ -111,7 +112,7 @@ describe('createFilePathLinkProvider range bounds', () => {
     setPlatform('Macintosh')
     const { provider } = createProviderSetup(
       [makeBufferLine('/repo/unknown-dir/')],
-      new Map([['active\0/repo/unknown-dir', true]])
+      makeExistsCache([['active\0/repo/unknown-dir', true]])
     )
 
     const links = await new Promise<ILink[]>((resolve) => {
@@ -139,9 +140,9 @@ describe('createFilePathLinkProvider range bounds', () => {
   })
 
   it('bounds the terminal path-exists cache while preserving recent probes', async () => {
-    const pathExistsCache = new Map<string, boolean>()
+    const pathExistsCache = makeExistsCache()
     for (let index = 0; index < TERMINAL_PATH_EXISTS_CACHE_MAX_ENTRIES; index += 1) {
-      pathExistsCache.set(`active\0/repo/old-${index}.ts`, true)
+      pathExistsCache.set(`active\0/repo/old-${index}.ts`, { exists: true, checkedAt: Date.now() })
     }
     const pane = makePane([makeBufferLine('fresh.ts')])
     const managerRef = {
@@ -168,12 +169,12 @@ describe('createFilePathLinkProvider range bounds', () => {
     expect(links.map((link) => link.text)).toEqual(['fresh.ts'])
     expect(pathExistsCache.size).toBe(TERMINAL_PATH_EXISTS_CACHE_MAX_ENTRIES)
     expect(pathExistsCache.has('active\0/repo/old-0.ts')).toBe(false)
-    expect(pathExistsCache.get('active\0/repo/fresh.ts')).toBe(true)
+    expect(pathExistsCache.get('active\0/repo/fresh.ts')?.exists).toBe(true)
   })
 
   it('does not reuse SSH path-exists cache entries across connections', async () => {
     setPlatform('Macintosh')
-    const pathExistsCache = new Map<string, boolean>()
+    const pathExistsCache = makeExistsCache()
     const rows = [makeBufferLine('shared.ts')]
     const pane = makePane(rows)
     const managerRef = {

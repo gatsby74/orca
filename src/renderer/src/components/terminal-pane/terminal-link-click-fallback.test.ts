@@ -11,6 +11,7 @@ import {
   getRegisteredMouseUpHandler,
   makeBuffer,
   makeBufferLine,
+  makeExistsCache,
   makeFallbackTerminal
 } from './terminal-link-provider-buffer-fixtures'
 import {
@@ -95,7 +96,7 @@ describe('createFilePathLinkProvider range bounds', () => {
         worktreePath: '\\\\wsl.localhost\\Ubuntu\\home\\repo',
         runtimeEnvironmentId: null,
         wslDistro: 'Ubuntu',
-        pathExistsCache: new Map([
+        pathExistsCache: makeExistsCache([
           ['active\0\\\\wsl.localhost\\Ubuntu\\root\\workspace\\myrepo\\README.md', true]
         ])
       }
@@ -235,7 +236,7 @@ describe('createFilePathLinkProvider range bounds', () => {
         worktreeId: 'wt-1',
         worktreePath: '/repo',
         runtimeEnvironmentId: null,
-        pathExistsCache: new Map<string, boolean>([
+        pathExistsCache: makeExistsCache([
           ['active\0/repo/My Folder now', false],
           ['active\0/repo/My Folder', true]
         ])
@@ -263,7 +264,7 @@ describe('createFilePathLinkProvider range bounds', () => {
         worktreeId: 'wt-1',
         worktreePath: '/repo',
         runtimeEnvironmentId: null,
-        pathExistsCache: new Map([['active\0/repo/unknown-dir', true]])
+        pathExistsCache: makeExistsCache([['active\0/repo/unknown-dir', true]])
       }
     )
     await flushAsyncWork()
@@ -288,7 +289,7 @@ describe('createFilePathLinkProvider range bounds', () => {
       runtimeEnvironmentId: null,
       managerRef: { current: null },
       linkProviderDisposablesRef: { current: new Map<number, IDisposable>() },
-      pathExistsCache: new Map<string, boolean>()
+      pathExistsCache: makeExistsCache()
     })
     const mouseUp = getRegisteredMouseUpHandler(element)
     const preventDefault = vi.fn()
@@ -330,7 +331,7 @@ describe('createFilePathLinkProvider range bounds', () => {
       runtimeEnvironmentId: null,
       managerRef: { current: null },
       linkProviderDisposablesRef: { current: new Map<number, IDisposable>() },
-      pathExistsCache: new Map<string, boolean>()
+      pathExistsCache: makeExistsCache()
     })
     const mouseUp = getRegisteredMouseUpHandler(element)
     const preventDefault = vi.fn()
@@ -567,7 +568,7 @@ describe('createFilePathLinkProvider range bounds', () => {
       makeBufferLine(`${firstPath} · ${middleStart}`),
       makeBufferLine(`${middleEnd} · ${thirdPath}`)
     ]
-    const pathExistsCache = new Map([[`active\0/repo/${middlePath}`, true]])
+    const pathExistsCache = makeExistsCache([[`active\0/repo/${middlePath}`, true]])
     const positions = [
       { x: firstPath.length + ' · '.length + 2, y: 1 },
       { x: 2, y: 2 }
