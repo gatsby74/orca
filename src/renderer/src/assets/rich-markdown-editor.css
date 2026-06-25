@@ -367,14 +367,14 @@
    slight dim — but stay as history rather than disappearing. Hover restores
    full strength so the thread is readable. */
 .rich-markdown-review-note-card.is-resolved > .orca-diff-comment-card {
-  opacity: 0.78;
-  border-color: color-mix(in srgb, var(--status-success) 50%, var(--border));
-  background: color-mix(in srgb, var(--status-success) 16%, var(--editor-surface));
+  opacity: 0.62;
+  border-color: color-mix(in srgb, var(--status-success) 28%, var(--border));
+  background: color-mix(in srgb, var(--status-success) 7%, var(--editor-surface));
 }
 
 .rich-markdown-review-note-card.is-resolved:hover > .orca-diff-comment-card {
   opacity: 1;
-  background: color-mix(in srgb, var(--status-success) 22%, var(--editor-surface));
+  background: color-mix(in srgb, var(--status-success) 11%, var(--editor-surface));
 }
 
 .rich-markdown-review-thread {

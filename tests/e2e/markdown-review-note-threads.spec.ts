@@ -114,6 +114,19 @@ test.describe('Markdown review note threads', () => {
       )
       await expect(orcaPage.locator('.rich-markdown-review-note-card.is-resolved')).toHaveCount(1)
 
+      // Regression: a reply typed through the UI must appear immediately, not
+      // only after a second reply forces a re-measure (rAF stale-closure bug).
+      const openCard = orcaPage
+        .locator('.rich-markdown-review-note-card')
+        .filter({ hasText: 'Can we tighten this intro?' })
+      const replyInput = openCard.locator('.rich-markdown-review-reply-input')
+      await replyInput.fill('typed via UI')
+      await replyInput.press('Enter')
+      await expect(
+        openCard.locator('.rich-markdown-review-reply-body').filter({ hasText: 'typed via UI' })
+      ).toBeVisible({ timeout: 5_000 })
+      await expect(replyInput, 'reply input should clear after a successful send').toHaveValue('')
+
       await orcaPage.screenshot({
         path: testInfo.outputPath('markdown-review-note-threads.png'),
         fullPage: false
