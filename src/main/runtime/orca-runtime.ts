@@ -38,7 +38,7 @@ import { getGitCloneFailureMessage } from '../../shared/git-clone-failure-messag
 import { createHash, randomUUID } from 'crypto'
 import { homedir } from 'os'
 import { isAbsolute, join, resolve } from 'path'
-import { access, mkdir, readFile, readdir, rm, stat, writeFile } from 'fs/promises'
+import { lstat, mkdir, readFile, readdir, rm, stat, writeFile } from 'fs/promises'
 import {
   convertStepLabel,
   GIT_IDENTITY_NOT_CONFIGURED_MESSAGE,
@@ -9455,10 +9455,23 @@ export class OrcaRuntimeService {
         },
         hasGitignore: async () => {
           try {
-            await access(gitignorePath)
+            // Why: lstat doesn't follow symlinks, so a .gitignore symlink
+            // planted between calls can't pretend to exist (or point outside
+            // the folder) and suppress our exclusive-create write below.
+            await lstat(gitignorePath)
             return true
-          } catch {
-            return false
+          } catch (err) {
+            const code =
+              err && typeof err === 'object' && 'code' in err
+                ? (err as NodeJS.ErrnoException).code
+                : undefined
+            // Why: only "missing" should be treated as "no .gitignore". A
+            // permission or I/O error must propagate so the user sees the real
+            // problem instead of a misleading write failure later.
+            if (code === 'ENOENT') {
+              return false
+            }
+            throw err
           }
         },
         writeGitignore: async (content) => {
