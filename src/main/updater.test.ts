@@ -1100,6 +1100,66 @@ describe('updater', () => {
     expect(autoUpdaterMock.allowPrerelease).not.toBe(true)
   })
 
+  it('clears a session-sticky RC flag when a plain menu check runs after the channel reverts to stable', async () => {
+    appMock.getVersion.mockReturnValue('1.3.17')
+    fetchNewerReleaseTagsMock.mockResolvedValue(['v1.3.18-rc.1'])
+    autoUpdaterMock.checkForUpdates.mockImplementation(() => {
+      const callCount = autoUpdaterMock.checkForUpdates.mock.calls.length
+      autoUpdaterMock.emit('checking-for-update')
+      // Why: emit 'update-not-available' for the first (Shift-click) check so its
+      // state settles out of 'checking' — otherwise the second plain-click
+      // check would short-circuit as in-flight and skip the disable fetch.
+      if (callCount === 1) {
+        queueMicrotask(() => {
+          autoUpdaterMock.emit('update-not-available')
+        })
+      }
+      return Promise.resolve(undefined)
+    })
+    const mainWindow = { webContents: { send: vi.fn() } }
+
+    const { setupAutoUpdater, checkForUpdatesFromMenu } = await import('./updater')
+
+    let channel: 'stable' | 'prerelease' = 'prerelease'
+    setupAutoUpdater(mainWindow as never, {
+      getLastUpdateCheckAt: () => Date.now(),
+      getReleaseChannel: () => channel
+    })
+
+    // Shift-click once — leaves the session sticky on the RC feed.
+    checkForUpdatesFromMenu({ includePrerelease: true })
+    await vi.waitFor(() => {
+      expect(autoUpdaterMock.allowPrerelease).toBe(true)
+      expect(autoUpdaterMock.checkForUpdates).toHaveBeenCalledTimes(1)
+    })
+    // Why: wait for the first check to fully settle (state -> 'not-available')
+    // so the second menu call is not short-circuited as in-flight.
+    await vi.waitFor(() => {
+      const calls = mainWindow.webContents.send.mock.calls
+      expect(calls.some((c) => c[0] === 'updater:status' && c[1]?.state === 'not-available')).toBe(
+        true
+      )
+    })
+
+    // Switch the persisted channel back to stable and fire a plain menu check.
+    // The disable path in checkForUpdatesFromMenu must revert allowPrerelease
+    // and let pinDefaultReleaseFeed fetch the stable feed again — without this,
+    // the user's UI revert Stable <- Pre-Release would be ignored until restart.
+    channel = 'stable'
+    checkForUpdatesFromMenu()
+
+    // Why: the disable runs synchronously inside the menu call; assert it
+    // before awaiting the async fetch so a future timing change can't mask the
+    // regression of the no-disable path CodeRabbit flagged.
+    expect(autoUpdaterMock.allowPrerelease).toBe(false)
+
+    await vi.waitFor(() => {
+      expect(fetchNewerReleaseTagsMock).toHaveBeenLastCalledWith('1.3.17', 1, {
+        includePrerelease: false
+      })
+    })
+  })
+
   it('leaves the feed URL alone for a normal user-initiated check', async () => {
     autoUpdaterMock.checkForUpdates.mockResolvedValue(undefined)
     const mainWindow = { webContents: { send: vi.fn() } }

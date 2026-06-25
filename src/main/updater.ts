@@ -925,11 +925,10 @@ function runBackgroundUpdateCheck(
   activeUpdateNudgeId = nudgeId
   // Why: a persisted 'prerelease' channel must drive background checks (auto
   // 24h timer, app focus resume, nudge) onto the RC feed too — otherwise only
-  //  the Shift-click one-shot would ever opt in. Done before pinDefaultReleaseFeed
-  //  reads `includePrereleaseActive` so the right tags are fetched.
-  if (shouldIncludePrerelease(false)) {
-    enableIncludePrerelease()
-  }
+  //  the Shift-click one-shot would ever opt in. Mirroring (and clearing) the
+  //  flag here, before pinDefaultReleaseFeed reads it, also lets a UI switch
+  //  back to 'stable' take effect without a process restart.
+  syncIncludePrereleaseToPersistedChannel()
   // Why: autoUpdater.checkForUpdates() is async and 'checking-for-update'
   // arrives on a later tick, so a second focus/resume event can slip in before
   // currentStatus flips to 'checking'. Track the launch in memory to dedupe
@@ -995,11 +994,34 @@ function enableIncludePrerelease(): void {
   includePrereleaseActive = true
 }
 
+function disableIncludePrerelease(): void {
+  if (!includePrereleaseActive) {
+    return
+  }
+  // Why: once the persisted channel flips back to `stable` (or was already
+  //  stable), a session that had previously opted into RC — via an earlier
+  //  Shift-click or an earlier Pre-Release channel choice — must drop the
+  //  RC flags so the next pinDefaultReleaseFeed fetches stable tags again.
+  getAutoUpdater().allowPrerelease = false
+  includePrereleaseActive = false
+}
+
 /** True when this check should consult the RC feed — either the user
  *  Shift-clicked this menu invocation (`perClick === true`) or the persisted
  *  Settings > Updates channel is `prerelease`. */
 function shouldIncludePrerelease(perClick?: boolean): boolean {
   return perClick === true || _getReleaseChannel?.() === 'prerelease'
+}
+
+/** Mirror the persisted channel onto the auto-updater's RC flags. Used by
+ *  every background check so a UI change Stable ↔ Pre-Release takes effect
+ *  on the very next check instead of waiting for a process restart. */
+function syncIncludePrereleaseToPersistedChannel(): void {
+  if (shouldIncludePrerelease(false)) {
+    enableIncludePrerelease()
+  } else {
+    disableIncludePrerelease()
+  }
 }
 
 /** Menu-triggered check — delegates feedback to renderer toasts via userInitiated flag */
@@ -1010,10 +1032,13 @@ export function checkForUpdatesFromMenu(options?: { includePrerelease?: boolean 
   }
 
   if (options?.includePrerelease) {
+    // Why: an explicit Shift-click wins for this single invocation. The
+    //  persisted channel never disables below; only the absense of a Shift
+    //  click (and a non-prerelease channel) clears an RC flag set earlier.
     clearPrereleaseFallbackContext()
-  }
-  if (shouldIncludePrerelease(options?.includePrerelease)) {
     enableIncludePrerelease()
+  } else {
+    syncIncludePrereleaseToPersistedChannel()
   }
 
   const checkAlreadyInFlight = backgroundCheckLaunchPending || currentStatus.state === 'checking'
