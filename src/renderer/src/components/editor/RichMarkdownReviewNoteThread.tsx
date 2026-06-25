@@ -1,11 +1,14 @@
 import { useState } from 'react'
 import { CornerDownLeft } from 'lucide-react'
 import type { DiffCommentReply } from '../../../../shared/types'
+import { formatReviewNoteTimestamp } from '@/lib/markdown-review-note-time'
 import { translate } from '@/i18n/i18n'
 
 type RichMarkdownReviewNoteThreadProps = {
   replies: readonly DiffCommentReply[]
-  onAddReply: (body: string) => Promise<void>
+  /** Returns true when the reply persisted. The thread clears the input
+   *  optimistically and restores the draft when this resolves false/throws. */
+  onAddReply: (body: string) => Promise<boolean>
   onContentResize: () => void
 }
 
@@ -23,14 +26,21 @@ export function RichMarkdownReviewNoteThread({
       return
     }
     setSubmitting(true)
+    // Why: clear the input immediately so the reply feels instant — the store
+    // update is optimistic, so the new reply renders on the next frame. Restore
+    // the draft only if the persist actually fails, so text is never lost.
+    const pending = trimmed
+    setDraft('')
     try {
-      await onAddReply(trimmed)
-      setDraft('')
-      // Why: a sent reply shrinks the input back to one row, so re-measure the
-      // Monaco view zone height the same way the edit textarea does.
-      onContentResize()
+      const ok = await onAddReply(pending)
+      if (!ok) {
+        setDraft(pending)
+      }
+    } catch {
+      setDraft(pending)
     } finally {
       setSubmitting(false)
+      onContentResize()
     }
   }
 
@@ -43,17 +53,22 @@ export function RichMarkdownReviewNoteThread({
               key={reply.id}
               className={`rich-markdown-review-reply rich-markdown-review-reply--${reply.authorRole}`}
             >
-              <span className="rich-markdown-review-reply-author">
-                {reply.authorRole === 'agent'
-                  ? translate(
-                      'auto.components.editor.RichMarkdownReviewNoteThread.2bf33695c2',
-                      'Agent'
-                    )
-                  : translate(
-                      'auto.components.editor.RichMarkdownReviewNoteThread.88270bb163',
-                      'You'
-                    )}
-              </span>
+              <div className="rich-markdown-review-reply-meta">
+                <span className="rich-markdown-review-reply-author">
+                  {reply.authorRole === 'agent'
+                    ? translate(
+                        'auto.components.editor.RichMarkdownReviewNoteThread.2bf33695c2',
+                        'Agent'
+                      )
+                    : translate(
+                        'auto.components.editor.RichMarkdownReviewNoteThread.88270bb163',
+                        'You'
+                      )}
+                </span>
+                <span className="rich-markdown-review-reply-time">
+                  {formatReviewNoteTimestamp(reply.createdAt)}
+                </span>
+              </div>
               <span className="rich-markdown-review-reply-body">{reply.body}</span>
             </li>
           ))}

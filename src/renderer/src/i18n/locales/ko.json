@@ -10808,7 +10808,8 @@
           "117432e2c6": "복사된 메모",
           "3ababd949d": "리뷰 노트",
           "004e3fa53a": "Resolve note",
-          "3695b489ca": "Reopen note"
+          "3695b489ca": "Reopen note",
+          "cd102ad42c": "Agent"
         },
         "RichMarkdownReviewRailActions": {
           "636394af72": "agent 용 메모 복사",

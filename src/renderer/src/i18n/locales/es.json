@@ -10808,7 +10808,8 @@
           "117432e2c6": "nota copiada",
           "3ababd949d": "Notas de revisión",
           "004e3fa53a": "Resolve note",
-          "3695b489ca": "Reopen note"
+          "3695b489ca": "Reopen note",
+          "cd102ad42c": "Agent"
         },
         "RichMarkdownReviewRailActions": {
           "636394af72": "Copiar notas para el agente",

@@ -9,6 +9,7 @@ import {
   type MarkdownReviewNote
 } from '@/lib/markdown-review-notes'
 import type { RichMarkdownReviewNotePosition } from './rich-markdown-review-note-layout'
+import { formatReviewNoteTimestamp } from '@/lib/markdown-review-note-time'
 import { useAppStore } from '@/store'
 import { translate } from '@/i18n/i18n'
 
@@ -85,7 +86,15 @@ export function RichMarkdownReviewNoteLayer({
             quote={getMarkdownReviewCardQuote(markdownReviewContent, comment)}
             body={comment.body}
             sentAt={comment.sentAt}
-            author={comment.authorRole === 'agent' ? 'Agent' : undefined}
+            author={
+              comment.authorRole === 'agent'
+                ? translate(
+                    'auto.components.editor.RichMarkdownReviewNoteLayer.cd102ad42c',
+                    'Agent'
+                  )
+                : undefined
+            }
+            createdAtLabel={formatReviewNoteTimestamp(comment.createdAt)}
             onDelete={() => onDeleteComment(comment.id)}
             onSubmitEdit={(body) => onSubmitEdit(comment.id, body)}
             onContentResize={onContentResize}
@@ -93,10 +102,11 @@ export function RichMarkdownReviewNoteLayer({
               <RichMarkdownReviewNoteThread
                 replies={comment.replies ?? []}
                 onAddReply={async (body) => {
-                  await addDiffCommentReply(worktreeId, comment.id, {
+                  const reply = await addDiffCommentReply(worktreeId, comment.id, {
                     body,
                     authorRole: 'user'
                   })
+                  return reply !== null
                 }}
                 onContentResize={onContentResize}
               />

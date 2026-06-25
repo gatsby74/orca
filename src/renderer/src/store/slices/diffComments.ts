@@ -454,10 +454,35 @@ export const createDiffCommentsSlice: StateCreator<AppState, [], [], DiffComment
     if (get().settings?.clearReviewNotesAfterSend) {
       return get().clearDeliveredDiffComments(worktreeId, comments)
     }
-    return get().markDiffCommentsSent(
-      worktreeId,
-      comments.map((comment) => comment.id)
-    )
+    // Why: stamp sentAt only on notes whose current body still matches what the
+    // agent was shown. A note edited after send started (same snapshot guard as
+    // clearDeliveredDiffComments) must stay unsent so it can be re-sent.
+    const snapshotsById = new Map(comments.map((comment) => [comment.id, comment]))
+    const sentAt = Date.now()
+    const result = mutateComments(set, worktreeId, (existing) => {
+      let changed = false
+      const next = existing.map((comment) => {
+        const snapshot = snapshotsById.get(comment.id)
+        if (!snapshot || !deliverySnapshotMatches(comment, snapshot) || comment.sentAt === sentAt) {
+          return comment
+        }
+        changed = true
+        return { ...comment, sentAt }
+      })
+      return changed ? next : null
+    })
+    if (!result) {
+      return true
+    }
+    try {
+      await enqueuePersist(worktreeId, get)
+      get().recordFeatureInteraction?.('review-notes')
+      return true
+    } catch (err) {
+      console.error('Failed to persist diff comments:', err)
+      rollback(set, worktreeId, result.previous, result.next)
+      return false
+    }
   },
 
   markDiffCommentsSent: async (worktreeId, commentIds, sentAt = Date.now()) => {

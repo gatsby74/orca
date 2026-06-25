@@ -22,12 +22,11 @@ const FIXTURE = [
   '- two',
   '- three',
   '',
-  'More prose so the resolved note lands lower in the document and the',
-  'two review cards do not overlap in the rail.',
-  '',
   '## History',
   '',
   'This line gets a resolved note that stays as dimmed history.',
+  '',
+  'Trailing paragraph so the history line is not the final document line.',
   ''
 ].join('\n')
 
@@ -75,18 +74,16 @@ test.describe('Markdown review note threads', () => {
               body: 'Reworded it — better?',
               authorRole: 'agent'
             })
-            await store
-              .getState()
-              .addDiffCommentReply(worktreeId, open.id, {
-                body: 'Yes, ship it',
-                authorRole: 'user'
-              })
+            await store.getState().addDiffCommentReply(worktreeId, open.id, {
+              body: 'Yes, ship it',
+              authorRole: 'user'
+            })
           }
           const resolved = await store.getState().addDiffComment({
             worktreeId,
             filePath: relativePath,
             source: 'markdown',
-            lineNumber: 19,
+            lineNumber: 15,
             body: 'Confirmed history line.',
             side: 'modified'
           })

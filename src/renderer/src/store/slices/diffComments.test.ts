@@ -753,6 +753,20 @@ describe('applyReviewNotesDelivery', () => {
     expect(ok).toBe(true)
     expect(store.getState().getDiffComments(WT)).toEqual([pending])
   })
+
+  it('does not stamp a note edited after send started (snapshot guard)', async () => {
+    const store = createTestStore()
+    const sentSnapshot = makeComment({ id: 'c1', body: 'old body' })
+    const edited = makeComment({ id: 'c1', body: 'new body' })
+    seed(store, [edited])
+
+    const ok = await store.getState().applyReviewNotesDelivery(WT, [sentSnapshot])
+
+    // The newer unsent edit must stay unsent — the agent only saw the old body.
+    expect(ok).toBe(true)
+    expect(store.getState().getDiffComments(WT)[0].sentAt).toBeUndefined()
+    expect(updateMeta).not.toHaveBeenCalled()
+  })
 })
 
 describe('resolveDiffComment', () => {
