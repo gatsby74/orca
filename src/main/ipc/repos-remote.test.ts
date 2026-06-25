@@ -798,7 +798,7 @@ describe('writeGitignoreExclusiveRemote', () => {
     const boom = new Error('rename boom')
     const fs = makeFs({
       renameNoClobber: vi.fn().mockRejectedValue(boom),
-      deletePath: vi.fn().mockResolvedValue(undefined)
+      deletePath: vi.fn().mockRejectedValue(new Error('cleanup failed'))
     })
 
     await expect(writeGitignoreExclusiveRemote(fs, TMP, GITIGNORE, CONTENT)).rejects.toThrow(
