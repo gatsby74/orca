@@ -2,9 +2,12 @@ import { createReadStream } from 'fs'
 import { readdir, stat } from 'fs/promises'
 import { createInterface } from 'readline'
 import { extname, join } from 'path'
-import { isPathInsideOrEqual } from '../../shared/cross-platform-path'
+import {
+  isPathInsideOrEqual,
+  normalizeRuntimePathForComparison
+} from '../../shared/cross-platform-path'
 import type { AiVaultScanIssue } from '../../shared/ai-vault-types'
-import { walkSessionFiles } from './session-scanner-discovery'
+import { parseWslUncPath } from '../../shared/wsl-paths'
 import type { FileWithMtime } from './session-scanner-types'
 import { errorMessage, extractString, parseJsonObject } from './session-scanner-values'
 
@@ -27,32 +30,91 @@ const CLAUDE_EXTENSIONS = new Set(['.jsonl'])
 export async function discoverInScopeClaudeFiles(args: {
   rootDirs: readonly string[]
   scopePaths: readonly string[]
+  limit: number
+  excludedFilePaths: ReadonlySet<string>
   issues: AiVaultScanIssue[]
 }): Promise<FileWithMtime[]> {
-  if (args.scopePaths.length === 0) {
+  if (args.scopePaths.length === 0 || args.limit <= 0) {
     return []
   }
+  const scopeProjectPrefixes = claudeProjectScopePrefixes(args.scopePaths)
   const collected = new Map<string, FileWithMtime>()
   for (const rootDir of args.rootDirs) {
-    for (const projectDir of await listProjectDirs(rootDir)) {
+    for (const projectDir of await listProjectDirs(rootDir, scopeProjectPrefixes)) {
       const cwd = await readProjectDirCwd(projectDir)
-      if (!cwd || !args.scopePaths.some((scopePath) => isPathInsideOrEqual(scopePath, cwd))) {
+      if (!cwd || !args.scopePaths.some((scopePath) => isCwdInsideScopePath(scopePath, cwd))) {
         continue
       }
-      await collectClaudeFiles(projectDir, args.issues, collected)
+      await collectClaudeFiles({
+        projectDir,
+        issues: args.issues,
+        collected,
+        limit: args.limit,
+        excludedFilePaths: args.excludedFilePaths
+      })
     }
   }
-  return [...collected.values()]
+  return [...collected.values()].sort((left, right) => right.mtimeMs - left.mtimeMs)
 }
 
-async function listProjectDirs(rootDir: string): Promise<string[]> {
+function claudeProjectScopePrefixes(scopePaths: readonly string[]): Set<string> {
+  const prefixes = new Set<string>()
+  for (const scopePath of scopePaths) {
+    for (const candidate of scopePathCandidates(scopePath)) {
+      prefixes.add(encodeClaudeProjectPath(candidate))
+    }
+  }
+  return prefixes
+}
+
+function scopePathCandidates(scopePath: string): string[] {
+  const wslScopePath = parseWslUncPath(scopePath)
+  return wslScopePath ? [scopePath, wslScopePath.linuxPath] : [scopePath]
+}
+
+function encodeClaudeProjectPath(pathValue: string): string {
+  return normalizeRuntimePathForComparison(pathValue).replace(/[^a-zA-Z0-9]/g, '-')
+}
+
+function isClaudeProjectDirInScope(projectDirName: string, scopePrefixes: ReadonlySet<string>) {
+  for (const prefix of scopePrefixes) {
+    if (projectDirName === prefix || projectDirName.startsWith(`${prefix}-`)) {
+      return true
+    }
+  }
+  return false
+}
+
+function isCwdInsideScopePath(scopePath: string, cwd: string): boolean {
+  if (isPathInsideOrEqual(scopePath, cwd)) {
+    return true
+  }
+
+  const wslScopePath = parseWslUncPath(scopePath)
+  if (!wslScopePath) {
+    return false
+  }
+
+  // WSL transcripts record Linux cwd values even when the renderer sends the
+  // active worktree as a Windows UNC path.
+  return isPathInsideOrEqual(wslScopePath.linuxPath, cwd)
+}
+
+async function listProjectDirs(
+  rootDir: string,
+  scopeProjectPrefixes: ReadonlySet<string>
+): Promise<string[]> {
   let entries
   try {
     entries = await readdir(rootDir, { withFileTypes: true })
   } catch {
     return []
   }
-  return entries.filter((entry) => entry.isDirectory()).map((entry) => join(rootDir, entry.name))
+  return entries
+    .filter(
+      (entry) => entry.isDirectory() && isClaudeProjectDirInScope(entry.name, scopeProjectPrefixes)
+    )
+    .map((entry) => join(rootDir, entry.name))
 }
 
 async function readProjectDirCwd(projectDir: string): Promise<string | null> {
@@ -73,22 +135,23 @@ async function newestClaudeFilesInDir(projectDir: string): Promise<string[]> {
   } catch {
     return []
   }
-  const stats = await Promise.all(
-    entries
-      .filter((entry) => entry.isFile() && CLAUDE_EXTENSIONS.has(extname(entry.name).toLowerCase()))
-      .map(async (entry) => {
-        const path = join(projectDir, entry.name)
-        try {
-          return { path, mtimeMs: (await stat(path)).mtimeMs }
-        } catch {
-          return null
-        }
+  const newest: { path: string; mtimeMs: number }[] = []
+  for (const entry of entries) {
+    if (!entry.isFile() || !CLAUDE_EXTENSIONS.has(extname(entry.name).toLowerCase())) {
+      continue
+    }
+    const path = join(projectDir, entry.name)
+    try {
+      addBoundedPath(newest, REPRESENTATIVE_FILE_LIMIT, {
+        path,
+        mtimeMs: (await stat(path)).mtimeMs
       })
-  )
-  return stats
-    .filter((value): value is { path: string; mtimeMs: number } => value !== null)
-    .sort((left, right) => right.mtimeMs - left.mtimeMs)
-    .map((value) => value.path)
+    } catch {
+      // Best effort: unreadable candidates are ignored here and reported during
+      // full collection if the project directory proves in-scope.
+    }
+  }
+  return newest.sort((left, right) => right.mtimeMs - left.mtimeMs).map((value) => value.path)
 }
 
 async function readFirstCwd(filePath: string): Promise<string | null> {
@@ -116,27 +179,75 @@ async function readFirstCwd(filePath: string): Promise<string | null> {
   return null
 }
 
-async function collectClaudeFiles(
-  projectDir: string,
-  issues: AiVaultScanIssue[],
+async function collectClaudeFiles(args: {
+  projectDir: string
+  issues: AiVaultScanIssue[]
   collected: Map<string, FileWithMtime>
-): Promise<void> {
-  const paths = await walkSessionFiles(projectDir, 'claude', issues, {
-    extensions: CLAUDE_EXTENSIONS
-  })
-  for (const path of paths) {
-    if (collected.has(path)) {
+  limit: number
+  excludedFilePaths: ReadonlySet<string>
+}): Promise<void> {
+  let entries
+  try {
+    entries = await readdir(args.projectDir, { withFileTypes: true })
+  } catch {
+    return
+  }
+  for (const entry of entries) {
+    if (!entry.isFile() || !CLAUDE_EXTENSIONS.has(extname(entry.name).toLowerCase())) {
+      continue
+    }
+    const path = join(args.projectDir, entry.name)
+    if (args.collected.has(path) || args.excludedFilePaths.has(path)) {
       continue
     }
     try {
       const fileStat = await stat(path)
-      collected.set(path, {
+      addBoundedFile(args.collected, args.limit, {
         path,
         mtimeMs: fileStat.mtimeMs,
         modifiedAt: fileStat.mtime.toISOString()
       })
     } catch (err) {
-      issues.push({ agent: 'claude', path, message: errorMessage(err) })
+      args.issues.push({ agent: 'claude', path, message: errorMessage(err) })
     }
+  }
+}
+
+function addBoundedFile(
+  collected: Map<string, FileWithMtime>,
+  limit: number,
+  file: FileWithMtime
+): void {
+  if (collected.size < limit) {
+    collected.set(file.path, file)
+    return
+  }
+
+  let oldest: FileWithMtime | null = null
+  for (const candidate of collected.values()) {
+    if (!oldest || candidate.mtimeMs < oldest.mtimeMs) {
+      oldest = candidate
+    }
+  }
+  if (oldest && file.mtimeMs > oldest.mtimeMs) {
+    collected.delete(oldest.path)
+    collected.set(file.path, file)
+  }
+}
+
+function addBoundedPath<T extends { mtimeMs: number }>(items: T[], limit: number, item: T): void {
+  if (items.length < limit) {
+    items.push(item)
+    return
+  }
+
+  let oldestIndex = 0
+  for (let index = 1; index < items.length; index++) {
+    if (items[index].mtimeMs < items[oldestIndex].mtimeMs) {
+      oldestIndex = index
+    }
+  }
+  if (item.mtimeMs > items[oldestIndex].mtimeMs) {
+    items[oldestIndex] = item
   }
 }

@@ -72,14 +72,6 @@ export default function AiVaultPanel(): React.JSX.Element {
     () => deriveAiVaultWorkspaceScopePaths(activeWorktree ?? null, allWorktrees),
     [activeWorktree, allWorktrees]
   )
-  // Sent to the scanner so scoped views surface sessions older than the global cap.
-  const scopePaths = useMemo(
-    () => deriveAiVaultScopeSessionPaths(activeWorktree ?? null, allWorktrees),
-    [activeWorktree, allWorktrees]
-  )
-  const scopePathsKey = useMemo(() => scopePaths.join('\n'), [scopePaths])
-  const scopePathsRef = useRef<readonly string[]>(scopePaths)
-  scopePathsRef.current = scopePaths
   const projectContext = useMemo(
     () =>
       buildAiVaultProjectContext({
@@ -95,6 +87,18 @@ export default function AiVaultPanel(): React.JSX.Element {
   const activeProjectKey = projectContext.activeProjectKey
   const projectLabelByKey = projectContext.projectLabelByKey
   const sessionProjectById = projectContext.sessionProjectById
+  // Sent to the scanner so scoped views surface sessions older than the global cap.
+  const scopePaths = useMemo(
+    () =>
+      deriveAiVaultScopeSessionPaths(activeWorktree ?? null, allWorktrees, {
+        activeProjectKey,
+        projectHostSetupProjection
+      }),
+    [activeProjectKey, activeWorktree, allWorktrees, projectHostSetupProjection]
+  )
+  const scopePathsKey = useMemo(() => scopePaths.join('\n'), [scopePaths])
+  const scopePathsRef = useRef<readonly string[]>(scopePaths)
+  scopePathsRef.current = scopePaths
   const hasAllAgentsSelected = agents.length === AI_VAULT_AGENTS.length
   const viewAdjustmentCount =
     (hasAllAgentsSelected ? 0 : 1) +

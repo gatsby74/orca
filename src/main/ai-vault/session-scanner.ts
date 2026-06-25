@@ -22,8 +22,8 @@ import { clampPositiveInteger, errorMessage } from './session-scanner-values'
 const DEFAULT_LIMIT = 1000
 const DEFAULT_SCAN_LIMIT_PER_AGENT = 1000
 const SESSION_PARSE_CONCURRENCY = 8
-// Upper bound on extra in-scope transcripts parsed past the recency cap. Far
-// above any realistic project's session count; guards against a pathological dir.
+// Upper bound on extra in-scope transcripts discovered and parsed past the
+// recency cap; guards against a pathological scoped history directory.
 const SCOPE_PARSE_LIMIT = 2000
 
 /**
@@ -121,15 +121,13 @@ async function scanInScopeSessions(args: {
   const files = await discoverInScopeClaudeFiles({
     rootDirs: claudeRootDirs,
     scopePaths: args.scopePaths,
+    limit: SCOPE_PARSE_LIMIT,
+    excludedFilePaths: args.alreadyParsedFilePaths,
     issues: args.issues
   })
-  const candidates = files
-    // Skip files already in the capped result; merge would dedup them anyway.
-    .filter((file) => !args.alreadyParsedFilePaths.has(file.path))
-    // Newest first, then bound so a pathological project dir can't stall the scan.
-    .sort((left, right) => right.mtimeMs - left.mtimeMs)
-    .slice(0, SCOPE_PARSE_LIMIT)
-    .map((file): SessionFileCandidate => ({ agent: 'claude', file, codexHome: null }))
+  const candidates = files.map(
+    (file): SessionFileCandidate => ({ agent: 'claude', file, codexHome: null })
+  )
   if (candidates.length === 0) {
     return []
   }
