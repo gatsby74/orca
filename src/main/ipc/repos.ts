@@ -52,6 +52,7 @@ import {
   nonInteractiveGitEnv
 } from '../git/runner'
 import { isAbsolute, join, posix } from 'node:path'
+import type { IFilesystemProvider } from '../providers/types'
 import {
   convertStepLabel,
   GIT_IDENTITY_NOT_CONFIGURED_MESSAGE,
@@ -386,6 +387,34 @@ async function writeGitignoreExclusive(gitignorePath: string, content: string): 
   try {
     await writeFile(gitignorePath, content, { encoding: 'utf8', flag: 'wx' })
   } catch (err) {
+    const code =
+      err && typeof err === 'object' && 'code' in err
+        ? (err as NodeJS.ErrnoException).code
+        : undefined
+    if (code !== 'EEXIST') {
+      throw err
+    }
+  }
+}
+
+// Remote (SSH) counterpart of writeGitignoreExclusive. The filesystem
+// provider's writeFile accepts no exclusive-create flags, so we write a
+// sibling tmp file then renameNoClobber it into place — atomic on POSIX and
+// fails closed (rather than clobbering) on relays whose fs.renameNoClobber
+// isn't supported. A .gitignore that appears between the hasGitignore() check
+// and this rename is respected (EEXIST), matching the local wx-flag branch.
+export async function writeGitignoreExclusiveRemote(
+  fsProvider: IFilesystemProvider,
+  tmpPath: string,
+  gitignorePath: string,
+  content: string
+): Promise<void> {
+  try {
+    await fsProvider.writeFile(tmpPath, content)
+    await fsProvider.renameNoClobber(tmpPath, gitignorePath)
+  } catch (err) {
+    // Best-effort: a failed rename leaves the tmp behind on the host.
+    await fsProvider.deletePath(tmpPath, false).catch(() => undefined)
     const code =
       err && typeof err === 'object' && 'code' in err
         ? (err as NodeJS.ErrnoException).code
@@ -879,6 +908,14 @@ async function convertRemoteFolderToGitRepo(
     }
 
     const gitignorePath = joinRemotePath(host, resolvedPath, '.gitignore')
+    // Why: a sibling tmp next to the target keeps the write + renameNoClobber
+    // in the same directory so the rename is atomic on POSIX. The UUID suffix
+    // disambiguates concurrent conversion retries on the same host folder.
+    const gitignoreTmpPath = joinRemotePath(
+      host,
+      resolvedPath,
+      `.orca-gitignore-${Date.now()}-${randomUUID()}.tmp`
+    )
     const outcome = await initGitRepoInExistingFolder({
       exec: async (gitArgs) => {
         await gitProvider.exec(gitArgs, resolvedPath)
@@ -892,7 +929,7 @@ async function convertRemoteFolderToGitRepo(
         }
       },
       writeGitignore: async (content) => {
-        await fsProvider.writeFile(gitignorePath, content)
+        await writeGitignoreExclusiveRemote(fsProvider, gitignoreTmpPath, gitignorePath, content)
       }
     })
 
