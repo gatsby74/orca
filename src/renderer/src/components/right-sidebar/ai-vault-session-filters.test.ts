@@ -521,6 +521,71 @@ describe('deriveAiVaultScopeSessionPaths', () => {
       )
     ).toEqual(['/Users/ada/workspaces/orca/app', '/Users/ada/workspaces/orca/docs'])
   })
+
+  it('keeps live worktree paths when another setup shares the repo id', () => {
+    expect(
+      deriveAiVaultScopeSessionPaths(
+        {
+          id: 'repo1::/Users/ada/workspaces/orca/app',
+          repoId: 'repo1',
+          path: '/Users/ada/workspaces/orca/app',
+          priorWorktreeIds: []
+        },
+        [
+          {
+            id: 'repo2::/Users/ada/workspaces/orca/docs-worktree',
+            repoId: 'repo2',
+            path: '/Users/ada/workspaces/orca/docs-worktree'
+          }
+        ],
+        {
+          activeProjectKey: 'project:orca',
+          projectHostSetupProjection: {
+            projects: [
+              {
+                id: 'orca',
+                displayName: 'Orca',
+                badgeColor: '#2563eb',
+                sourceRepoIds: ['repo1', 'repo2'],
+                createdAt: 1,
+                updatedAt: 1
+              }
+            ],
+            setups: [
+              {
+                id: 'setup-1',
+                projectId: 'orca',
+                hostId: 'local',
+                repoId: 'repo2',
+                displayName: 'Docs',
+                path: '/Users/ada/workspaces/orca/docs',
+                setupState: 'ready',
+                setupMethod: 'imported-existing-folder',
+                createdAt: 1,
+                updatedAt: 1
+              },
+              {
+                id: 'setup-2',
+                projectId: 'other',
+                hostId: 'local',
+                repoId: 'repo2',
+                displayName: 'Other',
+                path: '/Users/ada/workspaces/other',
+                setupState: 'ready',
+                setupMethod: 'imported-existing-folder',
+                createdAt: 1,
+                updatedAt: 1
+              }
+            ]
+          }
+        }
+      )
+    ).toEqual([
+      '/Users/ada/workspaces/orca/app',
+      '/Users/ada/workspaces/orca/docs-worktree',
+      '/Users/ada/workspaces/orca/docs'
+    ])
+  })
 })
 
 describe('isAiVaultSessionFilterQueryTooLarge', () => {

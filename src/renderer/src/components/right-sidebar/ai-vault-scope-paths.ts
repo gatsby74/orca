@@ -52,15 +52,14 @@ export function deriveAiVaultScopeSessionPaths(
   if (!activeWorktree) {
     return paths
   }
-  const setupByRepoId = new Map(
-    (options.projectHostSetupProjection?.setups ?? [])
-      .filter((setup) => setup.repoId)
-      .map((setup) => [setup.repoId, setup])
-  )
+  const setupsByRepoId = buildProjectSetupsByRepoId(options.projectHostSetupProjection)
   for (const worktree of liveWorktrees) {
     if (
       worktree.repoId === activeWorktree.repoId ||
-      worktreeProjectKey(worktree, setupByRepoId.get(worktree.repoId)) === options.activeProjectKey
+      worktreeProjectKey(worktree) === options.activeProjectKey ||
+      (setupsByRepoId.get(worktree.repoId) ?? []).some(
+        (setup) => worktreeProjectKey(setup, setup) === options.activeProjectKey
+      )
     ) {
       addAiVaultWorkspaceScopePath(paths, worktree.path)
     }
@@ -71,6 +70,18 @@ export function deriveAiVaultScopeSessionPaths(
     }
   }
   return paths
+}
+
+function buildProjectSetupsByRepoId(
+  projection?: ProjectHostSetupProjection
+): Map<string, ProjectHostSetupProjection['setups']> {
+  const setupsByRepoId = new Map<string, ProjectHostSetupProjection['setups']>()
+  for (const setup of projection?.setups ?? []) {
+    const setups = setupsByRepoId.get(setup.repoId) ?? []
+    setups.push(setup)
+    setupsByRepoId.set(setup.repoId, setups)
+  }
+  return setupsByRepoId
 }
 
 function worktreeProjectKey(
