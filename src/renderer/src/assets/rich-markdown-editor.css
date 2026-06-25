@@ -362,6 +362,83 @@
   color: var(--foreground);
 }
 
+/* Why: resolved notes stay as dimmed history (like a doc comment thread)
+   rather than disappearing; hovering restores full opacity to read them. */
+.rich-markdown-review-note-card.is-resolved > .orca-diff-comment-card {
+  opacity: 0.55;
+}
+
+.rich-markdown-review-note-card.is-resolved:hover > .orca-diff-comment-card {
+  opacity: 1;
+}
+
+.rich-markdown-review-thread {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  margin-top: 6px;
+}
+
+.rich-markdown-review-reply-list {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.rich-markdown-review-reply {
+  display: flex;
+  flex-direction: column;
+  gap: 1px;
+  padding: 4px 6px;
+  border-radius: 4px;
+  background: color-mix(in srgb, var(--foreground) 4%, transparent);
+  border-left: 2px solid color-mix(in srgb, var(--foreground) 12%, transparent);
+}
+
+.rich-markdown-review-reply--agent {
+  border-left-color: color-mix(in srgb, var(--ring) 55%, transparent);
+}
+
+.rich-markdown-review-reply-author {
+  font-size: 10px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  color: var(--muted-foreground);
+}
+
+.rich-markdown-review-reply-body {
+  font-size: 12px;
+  color: var(--foreground);
+  white-space: pre-wrap;
+  word-break: break-word;
+}
+
+.rich-markdown-review-reply-compose {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.rich-markdown-review-reply-input {
+  flex: 1;
+  min-width: 0;
+  padding: 3px 6px;
+  font-size: 12px;
+  border: 1px solid var(--border);
+  border-radius: 4px;
+  background: var(--editor-surface);
+  color: var(--foreground);
+}
+
+.rich-markdown-review-reply-input:focus {
+  outline: none;
+  border-color: color-mix(in srgb, var(--ring) 55%, transparent);
+}
+
 .rich-markdown-search {
   /* Why: overlay the editor like Monaco's find widget instead of occupying
      layout space — otherwise opening cmd+f shifts the document content down. */

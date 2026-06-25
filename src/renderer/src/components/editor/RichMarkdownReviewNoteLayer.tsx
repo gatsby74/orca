@@ -1,13 +1,15 @@
-import { Check, Copy } from 'lucide-react'
+import { Check, CircleCheck, Copy, RotateCcw } from 'lucide-react'
 import type { DiffComment } from '../../../../shared/types'
 import { DiffCommentCard } from '../diff-comments/DiffCommentCard'
 import { NotesSendMenu } from './NotesSendMenu'
+import { RichMarkdownReviewNoteThread } from './RichMarkdownReviewNoteThread'
 import {
   formatMarkdownReviewNotes,
   getMarkdownReviewCardQuote,
   type MarkdownReviewNote
 } from '@/lib/markdown-review-notes'
 import type { RichMarkdownReviewNotePosition } from './rich-markdown-review-note-layout'
+import { useAppStore } from '@/store'
 import { translate } from '@/i18n/i18n'
 
 function isRichMarkdownReviewNoteNavigationClick(target: EventTarget | null): boolean {
@@ -48,6 +50,8 @@ export function RichMarkdownReviewNoteLayer({
   onContentResize,
   onDelivered
 }: RichMarkdownReviewNoteLayerProps): React.JSX.Element {
+  const resolveDiffComment = useAppStore((s) => s.resolveDiffComment)
+  const addDiffCommentReply = useAppStore((s) => s.addDiffCommentReply)
   return (
     <div
       className="rich-markdown-review-note-layer"
@@ -62,7 +66,9 @@ export function RichMarkdownReviewNoteLayer({
           data-rich-markdown-review-note-id={comment.id}
           className={`rich-markdown-review-note-card ${
             activeCommentId === comment.id ? 'is-active' : ''
-          } ${attentionCommentId === comment.id ? 'is-attention' : ''}`.trim()}
+          } ${attentionCommentId === comment.id ? 'is-attention' : ''} ${
+            comment.resolvedAt ? 'is-resolved' : ''
+          }`.trim()}
           style={{ top }}
           onMouseDown={(event) => event.stopPropagation()}
           onClick={(event) => {
@@ -79,11 +85,62 @@ export function RichMarkdownReviewNoteLayer({
             quote={getMarkdownReviewCardQuote(markdownReviewContent, comment)}
             body={comment.body}
             sentAt={comment.sentAt}
+            author={comment.authorRole === 'agent' ? 'Agent' : undefined}
             onDelete={() => onDeleteComment(comment.id)}
             onSubmitEdit={(body) => onSubmitEdit(comment.id, body)}
             onContentResize={onContentResize}
+            footer={
+              <RichMarkdownReviewNoteThread
+                replies={comment.replies ?? []}
+                onAddReply={async (body) => {
+                  await addDiffCommentReply(worktreeId, comment.id, {
+                    body,
+                    authorRole: 'user'
+                  })
+                }}
+                onContentResize={onContentResize}
+              />
+            }
             headerActions={
               <>
+                <button
+                  type="button"
+                  className="rich-markdown-review-note-action"
+                  title={
+                    comment.resolvedAt
+                      ? translate(
+                          'auto.components.editor.RichMarkdownReviewNoteLayer.3695b489ca',
+                          'Reopen note'
+                        )
+                      : translate(
+                          'auto.components.editor.RichMarkdownReviewNoteLayer.004e3fa53a',
+                          'Resolve note'
+                        )
+                  }
+                  aria-label={
+                    comment.resolvedAt
+                      ? translate(
+                          'auto.components.editor.RichMarkdownReviewNoteLayer.3695b489ca',
+                          'Reopen note'
+                        )
+                      : translate(
+                          'auto.components.editor.RichMarkdownReviewNoteLayer.004e3fa53a',
+                          'Resolve note'
+                        )
+                  }
+                  onMouseDown={(event) => event.stopPropagation()}
+                  onClick={(event) => {
+                    event.preventDefault()
+                    event.stopPropagation()
+                    void resolveDiffComment(worktreeId, comment.id, !comment.resolvedAt)
+                  }}
+                >
+                  {comment.resolvedAt ? (
+                    <RotateCcw className="size-3.5" />
+                  ) : (
+                    <CircleCheck className="size-3.5" />
+                  )}
+                </button>
                 <button
                   type="button"
                   className="rich-markdown-review-note-action"

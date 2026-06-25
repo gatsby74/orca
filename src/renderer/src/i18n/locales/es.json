@@ -10806,7 +10806,9 @@
           "f3ef92952b": "esta nota",
           "9cde7ad994": "Copiar nota para el agente",
           "117432e2c6": "nota copiada",
-          "3ababd949d": "Notas de revisión"
+          "3ababd949d": "Notas de revisión",
+          "004e3fa53a": "Resolve note",
+          "3695b489ca": "Reopen note"
         },
         "RichMarkdownReviewRailActions": {
           "636394af72": "Copiar notas para el agente",
@@ -11010,6 +11012,12 @@
         },
         "richMarkdownLargeTextPaste": {
           "tooLarge": "El contenido pegado es demasiado grande."
+        },
+        "RichMarkdownReviewNoteThread": {
+          "4994dba39d": "Send reply",
+          "665b0d63d1": "Reply…",
+          "88270bb163": "You",
+          "2bf33695c2": "Agent"
         }
       },
       "diff": {
