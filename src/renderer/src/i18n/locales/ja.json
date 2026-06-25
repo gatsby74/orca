@@ -5011,7 +5011,13 @@
           "31fd7150cf": "アップデートをチェックしています...",
           "3394d1f663": "チェック中",
           "d69a09b672": "アップデートは起動時に自動的にチェックされます。",
-          "7173352632": "idle"
+          "7173352632": "idle",
+          "releaseChannel": {
+            "title": "Release Channel",
+            "description": "Stable skips release candidates; Pre-Release opts into early rc builds for every check.",
+            "stable": "Stable",
+            "prerelease": "Pre-Release"
+          }
         },
         "GeneralWorkspaceSettingsSection": {
           "3d538a98f7": "ワークスペースの「開く」メニューから利用可能なアプリを選択します。",

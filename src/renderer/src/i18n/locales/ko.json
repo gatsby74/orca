@@ -5011,7 +5011,13 @@
           "31fd7150cf": "업데이트 확인 중...",
           "3394d1f663": "확인 중",
           "d69a09b672": "업데이트는 시작 시 자동으로 확인됩니다.",
-          "7173352632": "idle"
+          "7173352632": "idle",
+          "releaseChannel": {
+            "title": "Release Channel",
+            "description": "Stable skips release candidates; Pre-Release opts into early rc builds for every check.",
+            "stable": "Stable",
+            "prerelease": "Pre-Release"
+          }
         },
         "GeneralWorkspaceSettingsSection": {
           "3d538a98f7": "워크스페이스의 열기 메뉴에서 사용 가능한 앱을 선택하세요.",

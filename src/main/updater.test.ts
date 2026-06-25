@@ -1012,6 +1012,94 @@ describe('updater', () => {
     expect(autoUpdaterMock.setFeedURL.mock.calls.length).toBe(setupFeedUrlCalls + 1)
   })
 
+  it('honors a persisted prerelease channel during a menu check without an explicit Shift-click', async () => {
+    appMock.getVersion.mockReturnValue('1.3.17')
+    fetchNewerReleaseTagsMock.mockResolvedValue(['v1.3.18-rc.1'])
+    autoUpdaterMock.checkForUpdates.mockResolvedValue(undefined)
+    const mainWindow = { webContents: { send: vi.fn() } }
+
+    const { setupAutoUpdater, checkForUpdatesFromMenu } = await import('./updater')
+
+    // Why: defer the startup background check so we observe the channel-driven
+    // opt-in from the *menu* call, not the auto timer.
+    setupAutoUpdater(mainWindow as never, {
+      getLastUpdateCheckAt: () => Date.now(),
+      getReleaseChannel: () => 'prerelease'
+    })
+    expect(autoUpdaterMock.allowPrerelease).not.toBe(true)
+
+    checkForUpdatesFromMenu()
+
+    await vi.waitFor(() => {
+      expect(fetchNewerReleaseTagsMock).toHaveBeenCalledWith('1.3.17', 2, {
+        includePrerelease: true
+      })
+      expect(autoUpdaterMock.setFeedURL).toHaveBeenLastCalledWith({
+        provider: 'generic',
+        url: 'https://github.com/stablyai/orca/releases/download/v1.3.18-rc.1'
+      })
+      expect(autoUpdaterMock.checkForUpdates).toHaveBeenCalledTimes(1)
+    })
+    expect(autoUpdaterMock.allowPrerelease).toBe(true)
+  })
+
+  it('honors a persisted prerelease channel during the startup background check', async () => {
+    appMock.getVersion.mockReturnValue('1.3.17')
+    fetchNewerReleaseTagsMock.mockResolvedValue(['v1.3.18-rc.1'])
+    autoUpdaterMock.checkForUpdates.mockResolvedValue(undefined)
+    const mainWindow = { webContents: { send: vi.fn() } }
+
+    const { setupAutoUpdater } = await import('./updater')
+
+    // Why: lastUpdateCheckAt=null makes the startup block in setupAutoUpdater
+    // schedule an immediate runBackgroundUpdateCheck, so we can observe the
+    // channel-driven RC opt-in without any manual menu invocation.
+    setupAutoUpdater(mainWindow as never, {
+      getLastUpdateCheckAt: () => null,
+      getReleaseChannel: () => 'prerelease'
+    })
+
+    await vi.waitFor(() => {
+      expect(fetchNewerReleaseTagsMock).toHaveBeenCalledWith('1.3.17', 2, {
+        includePrerelease: true
+      })
+      expect(autoUpdaterMock.setFeedURL).toHaveBeenLastCalledWith({
+        provider: 'generic',
+        url: 'https://github.com/stablyai/orca/releases/download/v1.3.18-rc.1'
+      })
+      expect(autoUpdaterMock.checkForUpdates).toHaveBeenCalledTimes(1)
+    })
+    expect(autoUpdaterMock.allowPrerelease).toBe(true)
+  })
+
+  it('keeps the stable feed when the persisted channel is stable or unset', async () => {
+    appMock.getVersion.mockReturnValue('1.3.17')
+    fetchNewerReleaseTagsMock.mockResolvedValue(['v1.3.18'])
+    autoUpdaterMock.checkForUpdates.mockResolvedValue(undefined)
+    const mainWindow = { webContents: { send: vi.fn() } }
+
+    const { setupAutoUpdater, checkForUpdatesFromMenu } = await import('./updater')
+
+    setupAutoUpdater(mainWindow as never, {
+      getLastUpdateCheckAt: () => Date.now(),
+      getReleaseChannel: () => 'stable'
+    })
+
+    checkForUpdatesFromMenu()
+
+    await vi.waitFor(() => {
+      expect(fetchNewerReleaseTagsMock).toHaveBeenCalledWith('1.3.17', 1, {
+        includePrerelease: false
+      })
+      expect(autoUpdaterMock.setFeedURL).toHaveBeenLastCalledWith({
+        provider: 'generic',
+        url: 'https://github.com/stablyai/orca/releases/download/v1.3.18'
+      })
+      expect(autoUpdaterMock.checkForUpdates).toHaveBeenCalledTimes(1)
+    })
+    expect(autoUpdaterMock.allowPrerelease).not.toBe(true)
+  })
+
   it('leaves the feed URL alone for a normal user-initiated check', async () => {
     autoUpdaterMock.checkForUpdates.mockResolvedValue(undefined)
     const mainWindow = { webContents: { send: vi.fn() } }
