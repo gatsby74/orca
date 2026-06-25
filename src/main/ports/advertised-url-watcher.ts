@@ -121,6 +121,11 @@ function lastLineBreak(text: string): number {
   return -1
 }
 
+/** Reduce raw PTY bytes to the plain text a user would see, so URL scanning
+ *  runs on the rendered line rather than the escape-laden stream. Normalizes
+ *  newlines, drops OSC/CSI/control sequences, and neutralizes horizontal
+ *  cursor moves to a space so differential redraws cannot fuse a corrupted
+ *  hostname (see {@link CURSOR_MOVE_PATTERN}). */
 export function stripTerminalControls(text: string): string {
   return text
     .replace(/\r\n/g, '\n')
