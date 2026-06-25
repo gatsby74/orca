@@ -108,6 +108,24 @@ export function resolveTerminalShortcutAction(
     !event.metaKey &&
     !event.altKey &&
     !event.shiftKey &&
+    event.key === 'Enter'
+  ) {
+    // Why: xterm.js collapses Ctrl+Enter to a bare CR, so TUIs that probe the
+    // kitty keyboard handshake (CSI ? u) — e.g. the Factory Droid CLI — never
+    // receive the distinct chord and treat it as a plain Enter. Forward the
+    // kitty CSI-u sequence directly (modifier code 5 = Ctrl; cf. 2 = Shift
+    // above) so the cue/queue behavior reaches the TUI. Sibling of the
+    // Shift+Enter case; a Windows fallback is not added yet because, unlike
+    // #2418's Codex-on-PowerShell inertness, no Windows TUI is known to drop
+    // the CSI-u form for Ctrl+Enter.
+    return { type: 'sendInput', data: '\x1b[13;5u' }
+  }
+
+  if (
+    event.ctrlKey &&
+    !event.metaKey &&
+    !event.altKey &&
+    !event.shiftKey &&
     event.key === 'Backspace'
   ) {
     return { type: 'sendInput', data: '\x17' }
