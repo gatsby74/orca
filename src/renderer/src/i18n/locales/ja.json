@@ -7200,7 +7200,11 @@
             "161a86a9da": "ピン留めしたタブを閉じる前に確認",
             "8e593f04fc": "ピン留めしたタブを閉じる前に確認ダイアログを表示します。",
             "defaultProjectRuntime": "Default Project Runtime",
-            "defaultProjectRuntimeDescription": "Choose the runtime inherited by local Windows projects."
+            "defaultProjectRuntimeDescription": "Choose the runtime inherited by local Windows projects.",
+            "releaseChannel": {
+              "title": "Release Channel",
+              "description": "Stable skips release candidates; Pre-Release opts into early rc builds for every check."
+            }
           }
         },
         "git": {

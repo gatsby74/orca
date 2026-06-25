@@ -7163,7 +7163,11 @@
             "161a86a9da": "关闭固定标签页前确认",
             "8e593f04fc": "关闭固定标签页前显示确认对话框。",
             "defaultProjectRuntime": "默认项目运行时",
-            "defaultProjectRuntimeDescription": "选择本地 Windows 项目继承的运行时。"
+            "defaultProjectRuntimeDescription": "选择本地 Windows 项目继承的运行时。",
+            "releaseChannel": {
+              "title": "Release Channel",
+              "description": "Stable skips release candidates; Pre-Release opts into early rc builds for every check."
+            }
           }
         },
         "git": {

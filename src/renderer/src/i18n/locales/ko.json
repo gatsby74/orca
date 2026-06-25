@@ -7163,7 +7163,11 @@
             "161a86a9da": "고정된 탭을 닫기 전에 확인",
             "8e593f04fc": "고정된 탭을 닫기 전에 확인 대화상자를 표시합니다.",
             "defaultProjectRuntime": "기본 프로젝트 런타임",
-            "defaultProjectRuntimeDescription": "로컬 Windows 프로젝트가 상속할 런타임을 선택합니다."
+            "defaultProjectRuntimeDescription": "로컬 Windows 프로젝트가 상속할 런타임을 선택합니다.",
+            "releaseChannel": {
+              "title": "Release Channel",
+              "description": "Stable skips release candidates; Pre-Release opts into early rc builds for every check."
+            }
           }
         },
         "git": {

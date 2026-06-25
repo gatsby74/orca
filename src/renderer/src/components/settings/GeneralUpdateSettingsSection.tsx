@@ -258,7 +258,17 @@ export function GeneralUpdateSettingsSection(): React.JSX.Element {
           'auto.components.settings.GeneralUpdateSettingsSection.releaseChannel.description',
           'Stable skips release candidates; Pre-Release opts into early rc builds for every check.'
         )}
-        keywords={['release channel', 'stable', 'prerelease', 'rc', 'release candidate', 'beta']}
+        keywords={[
+          'update',
+          'updates',
+          'channel',
+          'release channel',
+          'stable',
+          'prerelease',
+          'rc',
+          'release candidate',
+          'beta'
+        ]}
       >
         <SettingsRow
           label={translate(
