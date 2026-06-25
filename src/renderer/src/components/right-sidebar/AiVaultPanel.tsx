@@ -26,7 +26,6 @@ import {
   AI_VAULT_AGENTS,
   type AiVaultAgent,
   type AiVaultGroup,
-  type AiVaultListResult,
   type AiVaultScope,
   type AiVaultSession,
   type AiVaultSort
@@ -35,8 +34,7 @@ import { getLocalExecutionHostLabel } from '../../../../shared/execution-host'
 import { translate } from '@/i18n/i18n'
 import { AiVaultPanelHeader } from './AiVaultPanelHeader'
 import { AiVaultSessionVirtualList } from './AiVaultSessionVirtualList'
-
-const SESSION_LIMIT = 500
+import { useAiVaultSessionRefresh } from './ai-vault-session-refresh'
 
 export default function AiVaultPanel(): React.JSX.Element {
   const activeWorktree = useActiveWorktree()
@@ -52,16 +50,7 @@ export default function AiVaultPanel(): React.JSX.Element {
   const [group, setGroup] = useState<AiVaultGroup>('project')
   const [hideEmptySessions, setHideEmptySessions] = useState(true)
   const [agents, setAgents] = useState<AiVaultAgent[]>([...AI_VAULT_AGENTS])
-  const [sessions, setSessions] = useState<AiVaultSession[]>([])
-  const [scanResult, setScanResult] = useState<AiVaultListResult | null>(null)
-  const [loading, setLoading] = useState(false)
-  const [error, setError] = useState<string | null>(null)
   const [collapsedGroups, setCollapsedGroups] = useState<Set<string>>(() => new Set())
-  const refreshIdRef = useRef(0)
-  const refreshInFlightRef = useRef(false)
-  const pendingRefreshRef = useRef(false)
-  const pendingForceRef = useRef(false)
-  const mountedRef = useRef(true)
   const userChangedScopeRef = useRef(false)
   const preferredScopeRef = useRef<AiVaultScope>(DEFAULT_AI_VAULT_SCOPE)
 
@@ -72,7 +61,7 @@ export default function AiVaultPanel(): React.JSX.Element {
     () => deriveAiVaultWorkspaceScopePaths(activeWorktree ?? null, allWorktrees),
     [activeWorktree, allWorktrees]
   )
-  const projectContext = useMemo(
+  const projectScopeContext = useMemo(
     () =>
       buildAiVaultProjectContext({
         repos,
@@ -80,13 +69,12 @@ export default function AiVaultPanel(): React.JSX.Element {
         projectHostSetupProjection,
         activeRepo,
         activeWorktree,
-        sessions
+        sessions: []
       }),
-    [activeRepo, activeWorktree, allWorktrees, projectHostSetupProjection, repos, sessions]
+    [activeRepo, activeWorktree, allWorktrees, projectHostSetupProjection, repos]
   )
-  const activeProjectKey = projectContext.activeProjectKey
-  const projectLabelByKey = projectContext.projectLabelByKey
-  const sessionProjectById = projectContext.sessionProjectById
+  const activeProjectKey = projectScopeContext.activeProjectKey
+  const projectLabelByKey = projectScopeContext.projectLabelByKey
   // Sent to the scanner so scoped views surface sessions older than the global cap.
   const scopePaths = useMemo(
     () =>
@@ -96,9 +84,19 @@ export default function AiVaultPanel(): React.JSX.Element {
       }),
     [activeProjectKey, activeWorktree, allWorktrees, projectHostSetupProjection]
   )
-  const scopePathsKey = useMemo(() => scopePaths.join('\n'), [scopePaths])
-  const scopePathsRef = useRef<readonly string[]>(scopePaths)
-  scopePathsRef.current = scopePaths
+  const { error, loading, refresh, scanResult, sessions } = useAiVaultSessionRefresh(scopePaths)
+  const sessionProjectById = useMemo(
+    () =>
+      buildAiVaultProjectContext({
+        repos,
+        worktrees: allWorktrees,
+        projectHostSetupProjection,
+        activeRepo,
+        activeWorktree,
+        sessions
+      }).sessionProjectById,
+    [activeRepo, activeWorktree, allWorktrees, projectHostSetupProjection, repos, sessions]
+  )
   const hasAllAgentsSelected = agents.length === AI_VAULT_AGENTS.length
   const viewAdjustmentCount =
     (hasAllAgentsSelected ? 0 : 1) +
@@ -130,68 +128,6 @@ export default function AiVaultPanel(): React.JSX.Element {
       setScope(restorableScope)
     }
   }, [activeProjectKey, activeWorktreePath, scope])
-
-  const refresh = useCallback(async (args: { force?: boolean } = {}): Promise<void> => {
-    // A scope change during an in-flight scan must not be dropped: queue it so the
-    // panel re-scans for the now-active scope once the current scan settles. An
-    // explicit refresh (force) stays sticky so the queued run still bypasses cache.
-    if (refreshInFlightRef.current) {
-      pendingRefreshRef.current = true
-      pendingForceRef.current ||= args.force === true
-      return
-    }
-
-    refreshInFlightRef.current = true
-    const refreshId = refreshIdRef.current + 1
-    refreshIdRef.current = refreshId
-    setLoading(true)
-    setError(null)
-    try {
-      const result = await window.api.aiVault.listSessions({
-        limit: SESSION_LIMIT,
-        scopePaths: scopePathsRef.current,
-        force: args.force
-      })
-      if (!mountedRef.current || refreshIdRef.current !== refreshId) {
-        return
-      }
-      setScanResult(result)
-      setSessions(result.sessions)
-    } catch (err) {
-      if (mountedRef.current && refreshIdRef.current === refreshId) {
-        setError(err instanceof Error ? err.message : String(err))
-      }
-    } finally {
-      refreshInFlightRef.current = false
-      if (mountedRef.current && refreshIdRef.current === refreshId) {
-        setLoading(false)
-      }
-      if (pendingRefreshRef.current && mountedRef.current) {
-        pendingRefreshRef.current = false
-        const force = pendingForceRef.current
-        pendingForceRef.current = false
-        void refresh({ force })
-      }
-    }
-    // Deps are intentionally empty: refresh reads all changing values through refs
-    // (scopePathsRef, *Ref guards) and recurses on itself, so its identity must stay
-    // stable. Any new dependency must be read via a ref, not captured directly.
-  }, [])
-
-  useEffect(() => {
-    mountedRef.current = true
-    return () => {
-      mountedRef.current = false
-      refreshIdRef.current += 1
-      refreshInFlightRef.current = false
-    }
-  }, [])
-
-  // Re-scan on mount and whenever the active scope changes, since the scanner now
-  // tailors its in-scope results to scopePaths.
-  useEffect(() => {
-    void refresh()
-  }, [refresh, scopePathsKey])
 
   const filteredSessions = useMemo(
     () =>
