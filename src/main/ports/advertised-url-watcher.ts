@@ -24,6 +24,15 @@ const URL_CANDIDATE_LIMIT = 2048
 // ANSI/OSC strippers mirror normalizeTerminalChunk in
 // src/main/runtime/orca-runtime.ts so the two stay in lockstep.
 const OSC_PATTERN = /\x1b\][^\x07\x1b]*(?:\x07|\x1b\\)/g
+// Why: horizontal cursor moves (forward/back `C`/`D`, absolute column `G`,
+// position `H`/`f`) are how CLIs redraw a line differentially — they step the
+// cursor *over* characters already on screen instead of reprinting them. A real
+// terminal emulates that and shows the underlying glyph; deleting the sequence
+// (as CSI_PATTERN does) instead splices the two text runs together and drops
+// the skipped cell, turning `http://localh⟨→1⟩st` into `http://localhst`. Turn
+// these into a space first so the URL candidate matcher breaks at the seam and
+// can't fuse a corrupted hostname. Must run before CSI_PATTERN.
+const CURSOR_MOVE_PATTERN = /\x1b\[[0-?]*[ -/]*[CDGHf]/g
 const CSI_PATTERN = /\x1b\[[0-?]*[ -/]*[@-~]/g
 const SINGLE_ESC_PATTERN = /\x1b[@-_]/g
 const CONTROL_PATTERN = /[\x00-\x08\x0b-\x1f\x7f]/g
@@ -117,6 +126,7 @@ export function stripTerminalControls(text: string): string {
     .replace(/\r\n/g, '\n')
     .replace(/\r/g, '\n')
     .replace(OSC_PATTERN, '')
+    .replace(CURSOR_MOVE_PATTERN, ' ')
     .replace(CSI_PATTERN, '')
     .replace(SINGLE_ESC_PATTERN, '')
     .replace(CONTROL_PATTERN, '')
