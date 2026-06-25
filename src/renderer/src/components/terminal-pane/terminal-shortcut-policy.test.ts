@@ -109,8 +109,8 @@ describe('resolveTerminalShortcutAction', () => {
 
   it('forwards Ctrl+Enter as the kitty CSI-u chord so TUIs can cue instead of send', () => {
     // Why: xterm.js collapses Ctrl+Enter to a bare CR; intercept upstream and
-    // emit the kitty sequence (modifier code 5 = Ctrl) so probing TUIs (e.g.
-    // Factory Droid CLI) receive the distinct chord on every platform.
+    // emit the kitty sequence (modifier code 5 = Ctrl) so probing TUIs receive
+    // the distinct chord on every platform.
     expect(
       resolveTerminalShortcutAction(event({ key: 'Enter', code: 'Enter', ctrlKey: true }), true)
     ).toEqual({ type: 'sendInput', data: '\x1b[13;5u' })
