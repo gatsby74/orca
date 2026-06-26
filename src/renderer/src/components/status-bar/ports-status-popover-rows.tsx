@@ -14,8 +14,10 @@ import {
   resolvePortOpenInOrcaBrowser
 } from '@/lib/workspace-port-actions'
 import type { WorkspacePortGroup } from '@/lib/workspace-port-groups'
+import { localhostWorktreeLabelRouteForPort } from '@/lib/workspace-port-localhost-label'
 import { getActiveRuntimeTarget } from '@/runtime/runtime-rpc-client'
 import { useAppStore } from '@/store'
+import { useRepoById, useWorktreeById } from '@/store/selectors'
 import { getRuntimeEnvironmentIdForWorktree } from '@/lib/worktree-runtime-owner'
 import type { WorkspacePort } from '../../../../shared/workspace-ports'
 import { translate } from '@/i18n/i18n'
@@ -76,6 +78,15 @@ export function PortRow({
   external?: boolean
 }): React.JSX.Element {
   const settings = useAppStore((s) => s.settings)
+  const portWorktreeId = port.kind === 'workspace' ? port.owner.worktreeId : null
+  const portRepoId = port.kind === 'workspace' ? port.owner.repoId : null
+  const portRepo = useRepoById(portRepoId)
+  const portWorktree = useWorktreeById(portWorktreeId)
+  const portProject = useAppStore((s) =>
+    portWorktree?.projectId
+      ? (s.projects.find((project) => project.id === portWorktree.projectId) ?? null)
+      : null
+  )
   const runtimeEnvironmentId = useAppStore((s) =>
     getRuntimeEnvironmentIdForWorktree(
       s,
@@ -94,6 +105,12 @@ export function PortRow({
   )
   const processLabel = port.processName ?? (port.pid ? `PID ${port.pid}` : 'Unknown process')
   const canStop = canStopWorkspacePort(port)
+  const localhostLabelRoute = localhostWorktreeLabelRouteForPort({
+    port,
+    repo: portRepo,
+    project: portProject,
+    settings
+  })
   const openBrowserLabel = translate(
     'auto.components.status.bar.ports.status.popover.rows.085f4f0334',
     'Open in Browser'
@@ -116,7 +133,8 @@ export function PortRow({
         runtimeTarget,
         createBrowserTab,
         setRemoteBrowserPageHandle,
-        openInOrcaBrowser
+        openInOrcaBrowser,
+        localhostLabelRoute
       }).then((result) => {
         if (!result.ok) {
           toast.error(
@@ -132,6 +150,7 @@ export function PortRow({
     [
       activeWorktreeId,
       createBrowserTab,
+      localhostLabelRoute,
       port,
       recordFeatureInteraction,
       runtimeTarget,

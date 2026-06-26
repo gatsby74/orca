@@ -264,6 +264,7 @@ export function getDefaultSettings(homedir: string): GlobalSettings {
     httpProxyBypassRules: '',
     electronHttp1CompatibilityMode: false,
     openLinksInApp: false,
+    localhostWorktreeLabelsEnabled: true,
     openLinksInAppPreferencePrompted: false,
     openInApplications: [...DEFAULT_OPEN_IN_APPLICATIONS],
     rightSidebarOpenByDefault: true,

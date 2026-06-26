@@ -16,7 +16,9 @@ import {
   refreshWorkspacePortScanAfterStop,
   resolvePortOpenInOrcaBrowser
 } from '@/lib/workspace-port-actions'
+import { localhostWorktreeLabelRouteForPort } from '@/lib/workspace-port-localhost-label'
 import { addressForPort } from '@/lib/workspace-port-urls'
+import { useRepoById, useWorktreeById } from '@/store/selectors'
 import type { WorkspacePort } from '../../../../shared/workspace-ports'
 import { WORKTREE_NATIVE_CONTEXT_MENU_ATTR } from './WorktreeContextMenu'
 import {
@@ -101,6 +103,15 @@ function PortAction({
 
 function WorktreePortRow({ port }: { port: WorkspacePort }): React.JSX.Element {
   const settings = useAppStore((s) => s.settings)
+  const portWorktreeId = port.kind === 'workspace' ? port.owner.worktreeId : null
+  const portRepoId = port.kind === 'workspace' ? port.owner.repoId : null
+  const portRepo = useRepoById(portRepoId)
+  const portWorktree = useWorktreeById(portWorktreeId)
+  const portProject = useAppStore((s) =>
+    portWorktree?.projectId
+      ? (s.projects.find((project) => project.id === portWorktree.projectId) ?? null)
+      : null
+  )
   const runtimeEnvironmentId = useAppStore((s) =>
     getRuntimeEnvironmentIdForWorktree(s, port.kind === 'workspace' ? port.owner.worktreeId : null)
   )
@@ -117,6 +128,12 @@ function WorktreePortRow({ port }: { port: WorkspacePort }): React.JSX.Element {
   const processLabel = port.processName ?? (port.pid ? `PID ${port.pid}` : 'Unknown process')
   const address = addressForPort(port)
   const canStop = canStopWorkspacePort(port)
+  const localhostLabelRoute = localhostWorktreeLabelRouteForPort({
+    port,
+    repo: portRepo,
+    project: portProject,
+    settings
+  })
   const openBrowserLabel = translate(
     'auto.components.sidebar.WorktreeCardPorts.33bc7d7495',
     'Open in Browser'
@@ -138,7 +155,8 @@ function WorktreePortRow({ port }: { port: WorkspacePort }): React.JSX.Element {
         runtimeTarget,
         createBrowserTab,
         setRemoteBrowserPageHandle,
-        openInOrcaBrowser
+        openInOrcaBrowser,
+        localhostLabelRoute
       }).then((result) => {
         if (!result.ok) {
           toast.error(
@@ -154,6 +172,7 @@ function WorktreePortRow({ port }: { port: WorkspacePort }): React.JSX.Element {
     [
       createBrowserTab,
       port,
+      localhostLabelRoute,
       recordFeatureInteraction,
       runtimeTarget,
       setRemoteBrowserPageHandle,

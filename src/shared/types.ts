@@ -2538,6 +2538,9 @@ export type GlobalSettings = {
    *  The setting stays opt-in so existing workflows continue to use the system browser
    *  until the user explicitly wants worktree-scoped in-app browsing. */
   openLinksInApp: boolean
+  /** Why: worktree-scoped localhost hostnames make same-app tabs distinguishable
+   *  in external browsers, while this switch preserves a raw localhost escape hatch. */
+  localhostWorktreeLabelsEnabled?: boolean
   /** Why: terminal link routing asks once at first use instead of silently
    *  changing where links open for new users. */
   openLinksInAppPreferencePrompted: boolean

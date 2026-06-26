@@ -6792,7 +6792,9 @@
             "0dbb1eaf4e": "主页",
             "291f480a5e": "家",
             "a942905148": "创建新浏览器选项卡时打开的 URL。留空以打开空白选项卡。",
-            "c3903322d2": "默认主页"
+            "c3903322d2": "默认主页",
+            "19ea5607cf": "Localhost Worktree Labels",
+            "4e0fdf0a3f": "Open workspace ports as worktree-specific Orca localhost URLs so browser tabs are easier to tell apart."
           },
           "use": {
             "search": {
@@ -8328,6 +8330,10 @@
         "ShortcutRemoveButton": {
           "9e29aff18b": "Remove {{value0}} shortcut {{value1}}",
           "2a9588b1c2": "移除此绑定"
+        },
+        "BrowserLocalhostWorktreeLabelsSetting": {
+          "8ac8c3ad19": "Localhost Worktree Labels",
+          "1db3c8b983": "Open workspace ports as worktree-specific Orca localhost URLs so browser tabs are easier to tell apart."
         }
       },
       "right": {
@@ -11323,6 +11329,21 @@
                 }
               }
             }
+          },
+          "LocalhostLabelMock": {
+            "tabTitlePreview": "Tab title preview:",
+            "ariaLabel": "Localhost label mock",
+            "buttonLabel": "Label mock",
+            "tooltip": "Compare localhost worktree labels",
+            "popoverTitle": "Localhost labeling mock",
+            "friendlyHostTitle": "Labeled URL",
+            "friendlyHostDescription": "Show an Orca-managed host alias instead of forcing users to remember ports.",
+            "titlePrefixTitle": "Title prefix",
+            "titlePrefixDescription": "Prefix the browser title with the worktree name so identical apps differ in tabs.",
+            "faviconBadgeTitle": "Favicon badge",
+            "faviconBadgeDescription": "Use a small color-coded mark per worktree for fast visual scanning.",
+            "pageChipTitle": "In-page chip",
+            "pageChipDescription": "Overlay a compact label in the page for screenshots and full-screen testing."
           }
         }
       },

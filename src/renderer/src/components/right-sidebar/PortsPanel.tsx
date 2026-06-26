@@ -36,6 +36,7 @@ import {
   advertisedBrowserUrlForForwardedRow,
   browserUrlForPortForwardEntry
 } from '@/lib/workspace-port-urls'
+import { localhostWorktreeLabelRouteForPort } from '@/lib/workspace-port-localhost-label'
 import { useMountedRef } from '@/hooks/useMountedRef'
 import {
   Dialog,
@@ -283,6 +284,16 @@ function LocalWorkspacePortsPanel({ isVisible }: { isVisible: boolean }): React.
 
   const handleOpenPortInBrowser = useCallback(
     async (port: WorkspacePort, event?: React.MouseEvent<HTMLButtonElement>) => {
+      const state = useAppStore.getState()
+      const portRepo =
+        port.kind === 'workspace'
+          ? (state.repos.find((repo) => repo.id === port.owner.repoId) ?? null)
+          : null
+      const portWorktree =
+        port.kind === 'workspace' ? state.getKnownWorktreeById(port.owner.worktreeId) : null
+      const portProject = portWorktree?.projectId
+        ? (state.projects.find((project) => project.id === portWorktree.projectId) ?? null)
+        : null
       const result = await openWorkspacePortInBrowser({
         port,
         activeWorktreeId: activeWorktree?.id,
@@ -293,6 +304,12 @@ function LocalWorkspacePortsPanel({ isVisible }: { isVisible: boolean }): React.
           settings,
           event,
           isMac: navigator.userAgent.includes('Mac')
+        }),
+        localhostLabelRoute: localhostWorktreeLabelRouteForPort({
+          port,
+          repo: portRepo,
+          project: portProject,
+          settings
         })
       })
       if (!result.ok) {

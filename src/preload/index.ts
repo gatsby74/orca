@@ -177,6 +177,7 @@ import { subscribeRuntimeEnvironmentFromPreload } from './runtime-environment-su
 import type { RuntimeEnvironmentSubscriptionHandle } from './runtime-environment-subscriptions'
 import type { HostedReviewForBranchArgs } from '../shared/hosted-review'
 import type { ReadClipboardTextOptions } from '../shared/clipboard-text'
+import type { LocalhostWorktreeLabelRoute } from '../shared/localhost-worktree-labels'
 import type {
   CrashReportBreadcrumbData,
   CrashReportSubmitArgs,
@@ -1623,6 +1624,11 @@ const api = {
       ipcRenderer.on('settings:changed', listener)
       return () => ipcRenderer.removeListener('settings:changed', listener)
     }
+  },
+
+  localhostWorktreeLabels: {
+    register: (args: LocalhostWorktreeLabelRoute): Promise<unknown> =>
+      ipcRenderer.invoke('localhostWorktreeLabels:register', args)
   },
 
   keybindings: {
