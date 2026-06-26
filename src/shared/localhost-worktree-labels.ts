@@ -6,6 +6,7 @@ const TRAILING_MAIN_PATTERN = /(?:^|[-_\s/])main$/i
 export type LocalhostWorktreeLabelInput = {
   projectName: string
   worktreeName: string
+  worktreePath?: string | null
   repoId?: string | null
   worktreeId?: string | null
 }
@@ -14,6 +15,7 @@ export type LocalhostWorktreeLabelRoute = {
   targetUrl: string
   projectName: string
   worktreeName: string
+  worktreePath?: string | null
   repoId?: string | null
   worktreeId?: string | null
   repoIcon?: RepoIcon | null
@@ -39,11 +41,22 @@ export function slugifyLocalhostWorktreeLabel(value: string): string {
 
 export function getLocalhostWorktreeHostLabel(input: LocalhostWorktreeLabelInput): string {
   const projectSlug = slugifyLocalhostWorktreeLabel(input.projectName)
-  const worktreeSlug = slugifyLocalhostWorktreeLabel(input.worktreeName)
+  const shortWorktreeName = getLocalhostWorktreeShortName(input.worktreePath ?? input.worktreeName)
+  const worktreeSlug = slugifyLocalhostWorktreeLabel(shortWorktreeName)
   if (worktreeSlug === 'main' || TRAILING_MAIN_PATTERN.test(input.worktreeName)) {
     return slugifyLocalhostWorktreeLabel(`${projectSlug}-main`)
   }
   return worktreeSlug
+}
+
+function getLocalhostWorktreeShortName(worktreeName: string): string {
+  return (
+    worktreeName
+      .split(/[\\/]/)
+      .map((part) => part.trim())
+      .filter(Boolean)
+      .at(-1) ?? worktreeName
+  )
 }
 
 export function getLocalhostWorktreeRouteKey(route: LocalhostWorktreeLabelRoute): string {

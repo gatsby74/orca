@@ -237,7 +237,7 @@ describe('launchAgentInNewTab', () => {
       environmentId: 'web-runtime',
       targetGroupId: 'group-1',
       activate: true,
-      command: "codex '--model' 'gpt-5' '--reasoning-effort' 'high' 'fix the spinner'",
+      command: expect.stringContaining('localhost open --url'),
       env: { CODEX_PROFILE: 'captured' },
       startupCommandDelivery: 'shell-ready',
       launchConfig: {
@@ -284,7 +284,7 @@ describe('launchAgentInNewTab', () => {
     expect(mockQueueTabStartupCommand).toHaveBeenCalledWith(
       'tab-1',
       expect.objectContaining({
-        command: "command-code --trust '--yolo' 'fix the spinner'",
+        command: expect.stringContaining('localhost open --url'),
         initialAgentStatus: {
           agent: 'command-code',
           prompt: 'fix the spinner'

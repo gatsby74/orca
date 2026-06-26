@@ -63,6 +63,7 @@ import {
   FLOATING_TERMINAL_WORKTREE_ID,
   getDefaultWorkspaceSession
 } from '../../shared/constants'
+import { ORCA_LOCALHOST_OPEN_ENV_VALUE } from '../../shared/tui-agent-startup'
 import { advertisedUrlWatcher } from '../ports/advertised-url-watcher'
 import { makePaneKey } from '../../shared/stable-pane-id'
 import { FOLDER_WORKSPACE_INSTANCE_SEPARATOR } from '../../shared/worktree-id'
@@ -6259,6 +6260,7 @@ describe('OrcaRuntimeService', () => {
     expectStablePaneKeyEnv(spawnedEnv)
     const spawnedLeafId = spawnedEnv.ORCA_PANE_KEY.slice(`${spawnedEnv.ORCA_TAB_ID}:`.length)
     expect(spawnedEnv.ORCA_WORKTREE_ID).toBe(TEST_WORKTREE_ID)
+    expect(spawnedEnv.ORCA_LOCALHOST_OPEN).toBe(ORCA_LOCALHOST_OPEN_ENV_VALUE)
     expect(spawnedEnv.ORCA_AGENT_LAUNCH_TOKEN).toMatch(UUID_RE)
     expect(revealTerminalSession).toHaveBeenCalledWith(TEST_WORKTREE_ID, {
       ptyId: 'pty-bg',
@@ -6316,6 +6318,7 @@ describe('OrcaRuntimeService', () => {
     expect(spawnedEnv.ORCA_PROJECT_GROUP_ID).toBe(TEST_FOLDER_PROJECT_GROUP_ID)
     expect(spawnedEnv.ORCA_WORKSPACE_ROOT).toBe(folderPath)
     expect(spawnedEnv.ORCA_WORKTREE_ID).toBe(TEST_FOLDER_WORKSPACE_KEY)
+    expect(spawnedEnv.ORCA_LOCALHOST_OPEN).toBe(ORCA_LOCALHOST_OPEN_ENV_VALUE)
   })
 
   it.each([
@@ -6819,6 +6822,7 @@ describe('OrcaRuntimeService', () => {
     expect(splitTerminal).not.toHaveBeenCalled()
     expect(splitEnv.ORCA_TAB_ID).toBe(sourceEnv.ORCA_TAB_ID)
     expect(splitEnv.ORCA_WORKTREE_ID).toBe(TEST_WORKTREE_ID)
+    expect(splitEnv.ORCA_LOCALHOST_OPEN).toBe(ORCA_LOCALHOST_OPEN_ENV_VALUE)
     expect(revealTerminalSession).toHaveBeenLastCalledWith(TEST_WORKTREE_ID, {
       ptyId: 'pty-split',
       title: null,

@@ -3064,7 +3064,8 @@ export function useComposerState(options: UseComposerStateOptions): UseComposerS
         cmdOverrides: settings?.agentCmdOverrides ?? {},
         agentArgs: resolveTuiAgentLaunchArgs(tuiAgent, settings?.agentDefaultArgs),
         agentEnv: resolveTuiAgentLaunchEnv(tuiAgent, settings?.agentDefaultEnv),
-        platform: selectedRepoAgentLaunchPlatform
+        platform: selectedRepoAgentLaunchPlatform,
+        includeLocalhostOpeningHint: true
       })
       const shouldSeedInitialAgentStatus =
         tuiAgent === 'command-code' && submitStartupPrompt.trim().length > 0
@@ -3482,7 +3483,8 @@ export function useComposerState(options: UseComposerStateOptions): UseComposerS
             agentArgs: resolveTuiAgentLaunchArgs(agent, settings?.agentDefaultArgs),
             agentEnv: resolveTuiAgentLaunchEnv(agent, settings?.agentDefaultEnv),
             platform: selectedRepoAgentLaunchPlatform,
-            allowEmptyPromptLaunch: true
+            allowEmptyPromptLaunch: true,
+            includeLocalhostOpeningHint: true
           })
           if (startupPlan && quickDraftPrompt) {
             startupPlan.draftPrompt = quickDraftPrompt

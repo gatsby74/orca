@@ -20,6 +20,8 @@ type RegisteredRoute = LocalhostWorktreeLabelRoute & {
   faviconHref: string
 }
 
+type LocalhostLabelHtmlRoute = Pick<RegisteredRoute, 'label' | 'projectName' | 'faviconHref'>
+
 const ORCA_LOCALHOST_SUFFIX = '.orca.localhost'
 const HTML_CONTENT_TYPE_PATTERN = /\btext\/html\b/i
 const TITLE_FALLBACK_PATTERN = /^(?:https?:\/\/)?(?:localhost|127\.0\.0\.1|\[::1\])/i
@@ -249,9 +251,9 @@ function escapeScriptString(value: string): string {
   return JSON.stringify(value).replace(/</g, '\\u003c')
 }
 
-function injectLocalhostLabelHtml(html: string, route: RegisteredRoute): string {
+export function injectLocalhostLabelHtml(html: string, route: LocalhostLabelHtmlRoute): string {
   const label = `[${route.label}]`
-  const script = `<script>(()=>{const p=${escapeScriptString(label)};const isBad=t=>!t||${TITLE_FALLBACK_PATTERN.toString()}.test(t);let last='';const apply=()=>{const raw=(document.title||'').trim();if(raw&&!raw.startsWith(p)&&!isBad(raw))last=raw;const title=last||raw||${escapeScriptString(route.projectName)};if(!title.startsWith(p))document.title=p+' '+title};new MutationObserver(apply).observe(document.querySelector('title')||document.documentElement,{childList:true,subtree:true,characterData:true});apply();})();</script>`
+  const script = `<script>(()=>{const p=${escapeScriptString(label)};const isBad=t=>!t||${TITLE_FALLBACK_PATTERN.toString()}.test(t);let last='';const apply=()=>{const raw=(document.title||'').trim();if(raw.startsWith(p)){last=raw.slice(p.length).trim()||last;return}if(raw&&!isBad(raw))last=raw;const title=last||raw||${escapeScriptString(route.projectName)};const next=title.startsWith(p)?title:p+' '+title;if(document.title!==next)document.title=next};new MutationObserver(apply).observe(document.querySelector('title')||document.documentElement,{childList:true,subtree:true,characterData:true});apply();})();</script>`
   const favicon = `<link rel="icon" href="${route.faviconHref}">`
   const injection = `${favicon}${script}`
   if (/<\/head>/i.test(html)) {

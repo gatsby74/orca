@@ -160,7 +160,11 @@ import { FIRST_PANE_ID } from '../../shared/pane-key'
 import { isTerminalLeafId, makePaneKey, parsePaneKey } from '../../shared/stable-pane-id'
 import { parseAppSshPtyId } from '../../shared/ssh-pty-id'
 import { isValidHostTerminalTabId } from '../../shared/terminal-tab-id'
-import { buildAgentDraftLaunchPlan, buildAgentStartupPlan } from '../../shared/tui-agent-startup'
+import {
+  buildAgentDraftLaunchPlan,
+  buildAgentStartupPlan,
+  ORCA_LOCALHOST_OPEN_ENV_VALUE
+} from '../../shared/tui-agent-startup'
 import {
   isAgentForegroundWrapperProcess,
   isExpectedAgentProcess,
@@ -213,7 +217,8 @@ import type {
   WorkspacePortKillRequest,
   WorkspacePortKillResult,
   WorkspacePortProbe,
-  WorkspacePortScanResult
+  WorkspacePortScanResult,
+  WorkspacePort
 } from '../../shared/workspace-ports'
 import {
   filterWorkspacePortProbes,
@@ -221,6 +226,7 @@ import {
   scanWorkspacePortProbes
 } from '../ports/workspace-port-ownership'
 import { advertisedUrlWatcher } from '../ports/advertised-url-watcher'
+import { localhostWorktreeLabelProxy } from '../localhost-worktree-label-proxy'
 import type {
   RuntimeGraphStatus,
   RuntimeRepoSearchRefs,
@@ -304,7 +310,7 @@ import {
 } from '../../shared/claude-agent-teams-tmux-compat'
 import { joinWorktreeRelativePath } from './runtime-relative-paths'
 import { collectMemorySnapshot } from '../memory/collector'
-import { BrowserWindow, ipcMain } from 'electron'
+import { BrowserWindow, ipcMain, shell } from 'electron'
 import type { AgentBrowserBridge } from '../browser/agent-browser-bridge'
 import type { BrowserBackend } from '../browser/browser-backend'
 import { BrowserError } from '../browser/cdp-bridge'
@@ -765,6 +771,7 @@ type RuntimeStore = {
     mobileEmulatorDefaultDeviceUdid?: string | null
     voice?: VoiceSettings
     claudeAgentTeamsMode?: GlobalSettings['claudeAgentTeamsMode']
+    localhostWorktreeLabelsEnabled?: GlobalSettings['localhostWorktreeLabelsEnabled']
   }
   // Why: narrow to `unknown` return so test mocks can return void without
   // a cast. The runtime never reads the return value — the persisted value
@@ -773,6 +780,25 @@ type RuntimeStore = {
     updates: Partial<GlobalSettings>,
     options?: { notifyListeners?: boolean; originWebContentsId?: number }
   ) => unknown
+}
+
+const LOOPBACK_LOCALHOST_HOSTS = new Set(['localhost', '127.0.0.1', '0.0.0.0', '::1', '::'])
+
+function parseLocalhostUrlWithPort(rawUrl: string): URL | null {
+  let url: URL
+  try {
+    url = new URL(rawUrl)
+  } catch {
+    return null
+  }
+  if (url.protocol !== 'http:' && url.protocol !== 'https:') {
+    return null
+  }
+  const hostname = url.hostname.replace(/^\[|\]$/g, '').toLowerCase()
+  if (!url.port || !LOOPBACK_LOCALHOST_HOSTS.has(hostname)) {
+    return null
+  }
+  return url
 }
 
 export type RuntimeAutomationCreateInput = Omit<
@@ -11442,6 +11468,60 @@ export class OrcaRuntimeService {
     return killWorkspacePort(await this.getWorkspacePortProbes(args.repoId), args)
   }
 
+  async labelLocalhostUrl(rawUrl: string): Promise<{
+    url: string
+    labeled: boolean
+    label?: string
+  }> {
+    const target = parseLocalhostUrlWithPort(rawUrl)
+    if (!target || this.requireStore().getSettings().localhostWorktreeLabelsEnabled === false) {
+      return { url: rawUrl, labeled: false }
+    }
+
+    const scan = await this.scanWorkspacePorts()
+    const port = scan.ports.find(
+      (candidate): candidate is WorkspacePort & { kind: 'workspace' } =>
+        candidate.kind === 'workspace' && candidate.port === Number(target.port)
+    )
+    if (!port) {
+      return { url: rawUrl, labeled: false }
+    }
+
+    const store = this.requireStore()
+    const repo = store.getRepos().find((entry) => entry.id === port.owner.repoId)
+    if (!repo) {
+      return { url: rawUrl, labeled: false }
+    }
+
+    const worktreeMeta = store.getWorktreeMeta(port.owner.worktreeId)
+    const project =
+      worktreeMeta?.projectId && store.getProjects
+        ? (store.getProjects().find((entry) => entry.id === worktreeMeta.projectId) ?? null)
+        : null
+    const projectSource = project ?? repo
+    const result = await localhostWorktreeLabelProxy.registerRoute({
+      targetUrl: target.toString(),
+      projectName: projectSource.displayName,
+      worktreeName: port.owner.displayName,
+      worktreePath: port.owner.path,
+      repoId: repo.id,
+      worktreeId: port.owner.worktreeId,
+      repoIcon: projectSource.repoIcon ?? repo.repoIcon ?? null,
+      badgeColor: projectSource.badgeColor ?? repo.badgeColor
+    })
+    return { url: result.url, labeled: true, label: result.label }
+  }
+
+  async openLocalhostUrl(rawUrl: string): Promise<{
+    url: string
+    labeled: boolean
+    label?: string
+  }> {
+    const result = await this.labelLocalhostUrl(rawUrl)
+    await shell.openExternal(result.url)
+    return result
+  }
+
   // Why: remote clients may invoke this over RPC, so the runtime derives
   // allowed worktree paths from its own store instead of trusting client paths.
   private async getWorkspacePortProbes(repoId?: string): Promise<WorkspacePortProbe[]> {
@@ -11606,7 +11686,8 @@ export class OrcaRuntimeService {
       agentArgs: resolveTuiAgentLaunchArgs(agent, settings.agentDefaultArgs),
       agentEnv: resolveTuiAgentLaunchEnv(agent, settings.agentDefaultEnv),
       platform: agentLaunchPlatform,
-      allowEmptyPromptLaunch: true
+      allowEmptyPromptLaunch: true,
+      includeLocalhostOpeningHint: Boolean(prompt?.trim())
     })
     if (!startupPlan) {
       throw new Error(`Could not build launch command for ${agent}.`)
@@ -15889,11 +15970,18 @@ export class OrcaRuntimeService {
       ORCA_TAB_ID: tabId,
       ORCA_WORKTREE_ID: scope.id
     }
+    const scopedEnv =
+      scope.connectionId === null
+        ? {
+            ...env,
+            ORCA_LOCALHOST_OPEN: ORCA_LOCALHOST_OPEN_ENV_VALUE
+          }
+        : env
     if (!scope.folderWorkspace) {
-      return env
+      return scopedEnv
     }
     return {
-      ...env,
+      ...scopedEnv,
       ORCA_WORKSPACE_ID: scope.id,
       ORCA_PROJECT_GROUP_ID: scope.folderWorkspace.projectGroupId,
       ORCA_WORKSPACE_ROOT: scope.folderWorkspace.folderPath

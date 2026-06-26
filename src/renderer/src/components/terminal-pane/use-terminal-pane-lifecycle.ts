@@ -25,6 +25,7 @@ import {
   installHttpLinkClickFallback,
   type TerminalLinkRoutingPreferenceRequester
 } from './terminal-url-link-hit-testing'
+import { resolveLocalhostHttpLinkDisplayUrl } from '@/lib/http-link-routing'
 import type {
   GlobalSettings,
   SetupSplitDirection,
@@ -124,6 +125,19 @@ function reportActiveRendererPtyForPane(
       continue
     }
     window.api.pty.setActiveRendererPty?.(ptyId, activePaneId === paneId)
+  }
+}
+
+async function formatTerminalUrlTooltip(url: string, openLinkHint: string): Promise<string | null> {
+  const labeledUrl = await resolveLocalhostHttpLinkDisplayUrl(url)
+  if (!labeledUrl) {
+    return null
+  }
+  try {
+    const originalHost = new URL(url).host
+    return `${labeledUrl} (${originalHost}; ${openLinkHint})`
+  } catch {
+    return `${labeledUrl} (${openLinkHint})`
   }
 }
 
@@ -894,6 +908,11 @@ export function useTerminalPaneLifecycle({
           hover: (_event, text) => {
             pane.linkTooltip.textContent = `${text} (${urlOpenLinkHint})`
             pane.linkTooltip.style.display = ''
+            void formatTerminalUrlTooltip(text, urlOpenLinkHint).then((nextText) => {
+              if (nextText && pane.linkTooltip.style.display !== 'none') {
+                pane.linkTooltip.textContent = nextText
+              }
+            })
           },
           leave: () => {
             pane.linkTooltip.style.display = 'none'
@@ -1194,6 +1213,7 @@ export function useTerminalPaneLifecycle({
         // SelectionService._removeMouseDownListeners).
         managerRef.current?.getActivePane()?.terminal.clearSelection()
       },
+      formatLinkTooltip: (url, openLinkHint) => formatTerminalUrlTooltip(url, openLinkHint),
       // Why: TerminalPane instances stay mounted for hidden visited worktrees
       // so PTYs survive navigation. Creating WebGL for those offscreen panes
       // still consumes Chromium's context budget and can blank visible panes.

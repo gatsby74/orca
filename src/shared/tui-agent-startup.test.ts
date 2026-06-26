@@ -60,6 +60,20 @@ describe('tui agent startup plans', () => {
     expect(plan?.startupCommandDelivery).toBe('shell-ready')
   })
 
+  it('adds a localhost opener instruction when requested', () => {
+    const plan = buildAgentStartupPlan({
+      agent: 'codex',
+      prompt: 'launch the UI',
+      cmdOverrides: {},
+      platform: 'linux',
+      includeLocalhostOpeningHint: true
+    })
+
+    expect(plan?.launchCommand).toContain('ORCA_LOCALHOST_OPEN')
+    expect(plan?.launchCommand).toContain('orca localhost open --url')
+    expect(plan?.launchCommand).toContain('Do not use raw')
+  })
+
   it('keeps plain empty Codex startup on the fast delivery path', () => {
     const plan = buildAgentStartupPlan({
       agent: 'codex',

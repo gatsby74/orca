@@ -218,7 +218,8 @@ export function launchAgentInNewTab(args: LaunchAgentInNewTabArgs): LaunchAgentI
       platform: resolvedLaunchPlatform,
       agentArgs: effectiveAgentArgs,
       agentEnv,
-      allowEmptyPromptLaunch: !hasPrompt
+      allowEmptyPromptLaunch: !hasPrompt,
+      includeLocalhostOpeningHint: hasPrompt
     })
   }
 

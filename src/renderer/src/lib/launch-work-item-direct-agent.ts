@@ -82,7 +82,8 @@ export function buildDirectWorkItemAgentStartupPlan(args: {
     platform: args.launchPlatform,
     agentArgs: effectiveAgentArgs,
     agentEnv: effectiveAgentEnv,
-    allowEmptyPromptLaunch: true
+    allowEmptyPromptLaunch: true,
+    includeLocalhostOpeningHint: true
   })
   return {
     startupPlan,
