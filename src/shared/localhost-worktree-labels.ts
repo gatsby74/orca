@@ -43,6 +43,7 @@ export function getLocalhostWorktreeHostLabel(input: LocalhostWorktreeLabelInput
   const projectSlug = slugifyLocalhostWorktreeLabel(input.projectName)
   const shortWorktreeName = getLocalhostWorktreeShortName(input.worktreePath ?? input.worktreeName)
   const worktreeSlug = slugifyLocalhostWorktreeLabel(shortWorktreeName)
+  // Why: primary worktrees need project context so every project does not collapse into "main".
   if (worktreeSlug === 'main' || TRAILING_MAIN_PATTERN.test(input.worktreeName)) {
     return slugifyLocalhostWorktreeLabel(`${projectSlug}-main`)
   }
@@ -61,10 +62,10 @@ function getLocalhostWorktreeShortName(worktreeName: string): string {
 
 export function getLocalhostWorktreeRouteKey(route: LocalhostWorktreeLabelRoute): string {
   if (route.worktreeId) {
-    return `worktree:${route.worktreeId}`
+    return `worktree:${route.worktreeId}:${route.targetUrl}`
   }
   if (route.repoId) {
-    return `repo:${route.repoId}:${route.worktreeName}`
+    return `repo:${route.repoId}:${route.worktreeName}:${route.targetUrl}`
   }
   return `${route.projectName}:${route.worktreeName}:${route.targetUrl}`
 }

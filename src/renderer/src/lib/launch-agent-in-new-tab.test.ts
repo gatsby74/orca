@@ -237,7 +237,7 @@ describe('launchAgentInNewTab', () => {
       environmentId: 'web-runtime',
       targetGroupId: 'group-1',
       activate: true,
-      command: expect.stringContaining('localhost open --url'),
+      command: expect.stringMatching(/codex[\s\S]*localhost open --url/),
       env: { CODEX_PROFILE: 'captured' },
       startupCommandDelivery: 'shell-ready',
       launchConfig: {
@@ -284,7 +284,7 @@ describe('launchAgentInNewTab', () => {
     expect(mockQueueTabStartupCommand).toHaveBeenCalledWith(
       'tab-1',
       expect.objectContaining({
-        command: expect.stringContaining('localhost open --url'),
+        command: expect.stringMatching(/command-code[\s\S]*localhost open --url/),
         initialAgentStatus: {
           agent: 'command-code',
           prompt: 'fix the spinner'
@@ -333,7 +333,9 @@ describe('launchAgentInNewTab', () => {
     expect(mockQueueTabStartupCommand).toHaveBeenCalledWith(
       'tab-1',
       expect.objectContaining({
-        command: "claude '--dangerously-skip-permissions' --prefill 'review Bob''s change'"
+        command: expect.stringMatching(
+          /claude '--dangerously-skip-permissions' --prefill 'review Bob''s change[\s\S]*localhost open --url/
+        )
       })
     )
   })
@@ -369,7 +371,9 @@ describe('launchAgentInNewTab', () => {
     expect(mockQueueTabStartupCommand).toHaveBeenCalledWith(
       'tab-1',
       expect.objectContaining({
-        command: "claude '--dangerously-skip-permissions' --prefill 'review Bob'\\''s change'"
+        command: expect.stringMatching(
+          /claude '--dangerously-skip-permissions' --prefill 'review Bob'\\''s change[\s\S]*localhost open --url/
+        )
       })
     )
   })
@@ -395,7 +399,7 @@ describe('launchAgentInNewTab', () => {
     expect(mockPasteDraftWhenAgentReady).toHaveBeenCalledWith(
       expect.objectContaining({
         tabId: 'tab-1',
-        content: prompt,
+        content: expect.stringMatching(/^x+[\s\S]*localhost open --url/),
         agent: 'claude',
         submit: false,
         forcePaste: false
@@ -424,7 +428,7 @@ describe('launchAgentInNewTab', () => {
     expect(mockPasteDraftWhenAgentReady).toHaveBeenCalledWith(
       expect.objectContaining({
         tabId: 'tab-1',
-        content: 'large generated prompt',
+        content: expect.stringMatching(/large generated prompt[\s\S]*localhost open --url/),
         agent: 'command-code',
         submit: true,
         forcePaste: true

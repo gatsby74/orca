@@ -11517,6 +11517,9 @@ export class OrcaRuntimeService {
     labeled: boolean
     label?: string
   }> {
+    if (!parseLocalhostUrlWithPort(rawUrl)) {
+      throw new Error('Only localhost URLs with an explicit port can be opened through Orca.')
+    }
     const result = await this.labelLocalhostUrl(rawUrl)
     await shell.openExternal(result.url)
     return result
@@ -11687,7 +11690,7 @@ export class OrcaRuntimeService {
       agentEnv: resolveTuiAgentLaunchEnv(agent, settings.agentDefaultEnv),
       platform: agentLaunchPlatform,
       allowEmptyPromptLaunch: true,
-      includeLocalhostOpeningHint: Boolean(prompt?.trim())
+      includeLocalhostOpeningHint: Boolean(prompt?.trim()) && !repo.connectionId
     })
     if (!startupPlan) {
       throw new Error(`Could not build launch command for ${agent}.`)

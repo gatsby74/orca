@@ -53,6 +53,8 @@ export function createPaneDOM(
   const searchAddon = new SearchAddon()
   const unicode11Addon = new Unicode11Addon()
   const openLinkHint = getTerminalUrlOpenHint()
+  // Why: async tooltip formatting can resolve after hover changes, so stale
+  // results must not overwrite the tooltip for the currently hovered link.
   let linkTooltipHoverToken = 0
 
   const linkTooltip = document.createElement('div')
@@ -80,11 +82,14 @@ export function createPaneDOM(
           linkTooltip.style.display = ''
           const formatted = options.formatLinkTooltip?.(uri, openLinkHint)
           if (formatted && typeof formatted === 'object' && 'then' in formatted) {
-            void formatted.then((nextText) => {
-              if (hoverToken === linkTooltipHoverToken && nextText) {
-                linkTooltip.textContent = nextText
-              }
-            })
+            void formatted.then(
+              (nextText) => {
+                if (hoverToken === linkTooltipHoverToken && nextText) {
+                  linkTooltip.textContent = nextText
+                }
+              },
+              () => undefined
+            )
           } else if (formatted) {
             linkTooltip.textContent = formatted
           }

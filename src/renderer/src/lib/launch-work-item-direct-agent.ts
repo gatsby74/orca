@@ -2,6 +2,7 @@ import { toast } from 'sonner'
 import { pasteDraftWhenAgentReady } from '@/lib/agent-paste-draft'
 import { track, tuiAgentToAgentKind } from '@/lib/telemetry'
 import {
+  appendLocalhostOpeningHint,
   buildAgentDraftLaunchPlan,
   buildAgentStartupPlan,
   type AgentStartupPlan
@@ -45,12 +46,13 @@ export function buildDirectWorkItemAgentStartupPlan(args: {
       ? resolveTuiAgentLaunchArgs(args.agent, args.settings?.agentDefaultArgs)
       : args.agentArgs
   const effectiveAgentEnv = resolveTuiAgentLaunchEnv(args.agent, args.settings?.agentDefaultEnv)
+  const draftContentWithLocalhostHint = appendLocalhostOpeningHint(args.draftContent)
   const draftLaunchPlan =
     args.promptDelivery === 'submit-after-ready'
       ? null
       : buildAgentDraftLaunchPlan({
           agent: args.agent,
-          draft: args.draftContent,
+          draft: draftContentWithLocalhostHint,
           cmdOverrides: args.settings?.agentCmdOverrides ?? {},
           platform: args.launchPlatform,
           agentArgs: effectiveAgentArgs,
@@ -82,6 +84,8 @@ export function buildDirectWorkItemAgentStartupPlan(args: {
     platform: args.launchPlatform,
     agentArgs: effectiveAgentArgs,
     agentEnv: effectiveAgentEnv,
+    // Why: direct launches still need localhost-open guidance even when
+    // the user's draft will be pasted after the empty startup command.
     allowEmptyPromptLaunch: true,
     includeLocalhostOpeningHint: true
   })
@@ -137,7 +141,7 @@ export async function pasteDirectWorkItemDraftWhenAgentReady(args: {
   const { primaryTabId, startupPlan, content, submit = false, forcePaste = false } = args
   await pasteDraftWhenAgentReady({
     tabId: primaryTabId,
-    content,
+    content: appendLocalhostOpeningHint(content),
     agent: startupPlan.agent,
     submit,
     forcePaste,

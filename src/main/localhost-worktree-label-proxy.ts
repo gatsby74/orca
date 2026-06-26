@@ -29,6 +29,7 @@ const TITLE_FALLBACK_PATTERN = /^(?:https?:\/\/)?(?:localhost|127\.0\.0\.1|\[::1
 export class LocalhostWorktreeLabelProxy {
   private server: Server | null = null
   private listenPort: number | null = null
+  private serverReady: Promise<void> | null = null
   private readonly routes = new Map<string, RegisteredRoute>()
   private readonly routeKeys = new Map<string, string>()
 
@@ -62,6 +63,10 @@ export class LocalhostWorktreeLabelProxy {
     if (this.server && this.listenPort !== null) {
       return
     }
+    if (this.serverReady) {
+      await this.serverReady
+      return
+    }
 
     const server = http.createServer((request, response) => {
       void this.handleRequest(request, response)
@@ -69,7 +74,7 @@ export class LocalhostWorktreeLabelProxy {
     server.on('upgrade', (request, socket, head) => {
       this.handleUpgrade(request, socket, head)
     })
-    await new Promise<void>((resolve, reject) => {
+    this.serverReady = new Promise<void>((resolve, reject) => {
       server.once('error', reject)
       server.listen(0, '127.0.0.1', () => {
         server.off('error', reject)
@@ -83,6 +88,12 @@ export class LocalhostWorktreeLabelProxy {
         resolve()
       })
     })
+    try {
+      await this.serverReady
+    } catch (error) {
+      this.serverReady = null
+      throw error
+    }
   }
 
   private nextAvailableLabel(baseLabel: string): string {
@@ -196,8 +207,8 @@ export const localhostWorktreeLabelProxy = new LocalhostWorktreeLabelProxy()
 
 function parseTargetUrl(rawUrl: string): URL {
   const url = new URL(rawUrl)
-  if (url.protocol !== 'http:' && url.protocol !== 'https:') {
-    throw new Error('Only http(s) workspace ports can be labeled.')
+  if (url.protocol !== 'http:') {
+    throw new Error('Only http workspace ports can be labeled.')
   }
   return url
 }
@@ -251,10 +262,27 @@ function escapeScriptString(value: string): string {
   return JSON.stringify(value).replace(/</g, '\\u003c')
 }
 
+function escapeHtmlAttribute(value: string): string {
+  return value.replace(/[&<>"']/g, (char) => {
+    switch (char) {
+      case '&':
+        return '&amp;'
+      case '<':
+        return '&lt;'
+      case '>':
+        return '&gt;'
+      case '"':
+        return '&quot;'
+      default:
+        return '&#39;'
+    }
+  })
+}
+
 export function injectLocalhostLabelHtml(html: string, route: LocalhostLabelHtmlRoute): string {
   const label = `[${route.label}]`
   const script = `<script>(()=>{const p=${escapeScriptString(label)};const isBad=t=>!t||${TITLE_FALLBACK_PATTERN.toString()}.test(t);let last='';const apply=()=>{const raw=(document.title||'').trim();if(raw.startsWith(p)){last=raw.slice(p.length).trim()||last;return}if(raw&&!isBad(raw))last=raw;const title=last||raw||${escapeScriptString(route.projectName)};const next=title.startsWith(p)?title:p+' '+title;if(document.title!==next)document.title=next};new MutationObserver(apply).observe(document.querySelector('title')||document.documentElement,{childList:true,subtree:true,characterData:true});apply();})();</script>`
-  const favicon = `<link rel="icon" href="${route.faviconHref}">`
+  const favicon = `<link rel="icon" href="${escapeHtmlAttribute(route.faviconHref)}">`
   const injection = `${favicon}${script}`
   if (/<\/head>/i.test(html)) {
     return html.replace(/<\/head>/i, `${injection}</head>`)

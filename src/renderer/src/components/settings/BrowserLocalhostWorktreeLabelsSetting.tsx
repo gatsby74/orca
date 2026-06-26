@@ -33,7 +33,7 @@ export function BrowserLocalhostWorktreeLabelsSetting({
         checked={settings.localhostWorktreeLabelsEnabled !== false}
         onChange={() =>
           updateSettings({
-            localhostWorktreeLabelsEnabled: !settings.localhostWorktreeLabelsEnabled
+            localhostWorktreeLabelsEnabled: settings.localhostWorktreeLabelsEnabled === false
           })
         }
       />

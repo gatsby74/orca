@@ -1,6 +1,7 @@
 import { toast } from 'sonner'
 import { useAppStore } from '@/store'
 import {
+  appendLocalhostOpeningHint,
   buildAgentDraftLaunchPlan,
   buildAgentStartupPlan,
   type AgentStartupPlan
@@ -138,6 +139,9 @@ export function launchAgentInNewTab(args: LaunchAgentInNewTabArgs): LaunchAgentI
       : resolveTuiAgentLaunchArgs(agent, store.settings?.agentDefaultArgs)
   const agentEnv = resolveTuiAgentLaunchEnv(agent, store.settings?.agentDefaultEnv)
   const trimmedPrompt = prompt?.trim() ?? ''
+  const promptWithLocalhostHint = repo?.connectionId
+    ? trimmedPrompt
+    : appendLocalhostOpeningHint(trimmedPrompt)
   const hasPrompt = trimmedPrompt.length > 0
   const isFollowupPath = TUI_AGENT_CONFIG[agent].promptInjectionMode === 'stdin-after-start'
   // Why: argv/flag agents fold the prompt into the launch command and
@@ -163,13 +167,13 @@ export function launchAgentInNewTab(args: LaunchAgentInNewTabArgs): LaunchAgentI
       agentEnv,
       allowEmptyPromptLaunch: true
     })
-    pasteDraftAfterLaunch = trimmedPrompt
+    pasteDraftAfterLaunch = promptWithLocalhostHint
     submitPastedPrompt = true
     forcePasteAfterLaunch = true
   } else if (hasPrompt && promptDelivery === 'draft') {
     const draftLaunchPlan = buildAgentDraftLaunchPlan({
       agent,
-      draft: trimmedPrompt,
+      draft: promptWithLocalhostHint,
       cmdOverrides,
       platform: resolvedLaunchPlatform,
       agentArgs: effectiveAgentArgs,
@@ -197,7 +201,7 @@ export function launchAgentInNewTab(args: LaunchAgentInNewTabArgs): LaunchAgentI
         agentEnv,
         allowEmptyPromptLaunch: true
       })
-      pasteDraftAfterLaunch = trimmedPrompt
+      pasteDraftAfterLaunch = promptWithLocalhostHint
     }
   } else if (hasPrompt && isFollowupPath) {
     startupPlan = buildAgentStartupPlan({
@@ -209,7 +213,7 @@ export function launchAgentInNewTab(args: LaunchAgentInNewTabArgs): LaunchAgentI
       agentEnv,
       allowEmptyPromptLaunch: true
     })
-    pasteDraftAfterLaunch = trimmedPrompt
+    pasteDraftAfterLaunch = promptWithLocalhostHint
   } else {
     startupPlan = buildAgentStartupPlan({
       agent,
@@ -219,7 +223,7 @@ export function launchAgentInNewTab(args: LaunchAgentInNewTabArgs): LaunchAgentI
       agentArgs: effectiveAgentArgs,
       agentEnv,
       allowEmptyPromptLaunch: !hasPrompt,
-      includeLocalhostOpeningHint: hasPrompt
+      includeLocalhostOpeningHint: hasPrompt && !repo?.connectionId
     })
   }
 
@@ -358,7 +362,7 @@ export function launchAgentInNewTab(args: LaunchAgentInNewTabArgs): LaunchAgentI
         if (agent === 'command-code' && submitPastedPrompt) {
           // Why: Command Code has no prompt-submit hook; when Orca submits a
           // generated prompt after readiness, seed working at delivery time.
-          seedCommandCodeSubmittedPromptStatus(tabId, pasteDraftAfterLaunch)
+          seedCommandCodeSubmittedPromptStatus(tabId, trimmedPrompt)
         }
         onPromptDelivered?.()
       }

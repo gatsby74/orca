@@ -1,5 +1,6 @@
 import { describe, expect, it } from 'vitest'
 import {
+  appendLocalhostOpeningHint,
   buildAgentDraftLaunchPlan,
   buildAgentResumeStartupPlan,
   buildAgentStartupPlan,
@@ -72,6 +73,12 @@ describe('tui agent startup plans', () => {
     expect(plan?.launchCommand).toContain('ORCA_LOCALHOST_OPEN')
     expect(plan?.launchCommand).toContain('orca localhost open --url')
     expect(plan?.launchCommand).toContain('Do not use raw')
+  })
+
+  it('does not duplicate the localhost opener instruction', () => {
+    const prompt = appendLocalhostOpeningHint('launch the UI')
+
+    expect(appendLocalhostOpeningHint(prompt)).toBe(prompt)
   })
 
   it('keeps plain empty Codex startup on the fast delivery path', () => {

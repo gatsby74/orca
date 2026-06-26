@@ -111,6 +111,7 @@ const electronMocks = vi.hoisted(() => {
     BrowserWindow: { fromId: vi.fn((_id: number): unknown => null) },
     webContents: { fromId: vi.fn((_id: number): unknown => null) },
     ipcMain,
+    shell: { openExternal: vi.fn() },
     app: { getPath: vi.fn(() => '/tmp') }
   }
 })
@@ -497,6 +498,7 @@ function resetRuntimeTestMocks(): void {
   electronMocks.ipcMain.on.mockClear()
   electronMocks.ipcMain.removeListener.mockClear()
   electronMocks.ipcMain.emit.mockClear()
+  electronMocks.shell.openExternal.mockClear()
   vi.mocked(listWorktrees).mockResolvedValue(MOCK_GIT_WORKTREES)
   vi.mocked(listWorktreesStrict).mockResolvedValue(MOCK_GIT_WORKTREES)
   vi.mocked(addWorktree).mockReset()
@@ -1129,6 +1131,15 @@ computeWorktreePathMock.mockImplementation(
 ensurePathWithinWorkspaceMock.mockImplementation((targetPath: string) => targetPath)
 
 describe('OrcaRuntimeService', () => {
+  it('rejects non-loopback URLs before opening localhost labels externally', async () => {
+    const runtime = createRuntime()
+
+    await expect(runtime.openLocalhostUrl('file:///tmp/not-localhost')).rejects.toThrow(
+      'Only localhost URLs with an explicit port can be opened through Orca.'
+    )
+    expect(electronMocks.shell.openExternal).not.toHaveBeenCalled()
+  })
+
   it('projects worktree card display settings to paired clients', () => {
     const runtime = new OrcaRuntimeService({
       ...store,
@@ -18573,7 +18584,9 @@ describe('OrcaRuntimeService', () => {
     expect(spawn).toHaveBeenCalledWith(
       expect.objectContaining({
         cwd: '/tmp/workspaces/runtime-cli-agent-startup',
-        command: "codex '--dangerously-bypass-approvals-and-sandbox' 'hi'",
+        command: expect.stringMatching(
+          /codex '--dangerously-bypass-approvals-and-sandbox' 'hi[\s\S]*localhost open --url/
+        ),
         worktreeId: result.worktree.id
       })
     )
@@ -18647,7 +18660,10 @@ describe('OrcaRuntimeService', () => {
       })
     )
     await vi.waitFor(() => {
-      expect(write).toHaveBeenCalledWith('pty-cli-aider-startup', 'fix it\r')
+      expect(write).toHaveBeenCalledWith(
+        'pty-cli-aider-startup',
+        expect.stringMatching(/fix it[\s\S]*localhost open --url[\s\S]*\r/)
+      )
     })
   })
 

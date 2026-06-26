@@ -19,8 +19,7 @@ import type { TuiAgent } from './types'
 
 const WIN32_INLINE_DRAFT_LIMIT_CHARS = 24_000
 export const ORCA_LOCALHOST_OPEN_ENV_VALUE = 'orca localhost open --url'
-const LOCALHOST_OPENING_AGENT_HINT =
-  'Orca local server note: when you need to open or share a localhost dev server URL and `ORCA_LOCALHOST_OPEN` is set, use the command text it contains with the URL appended; normally that is `orca localhost open --url <url>`. Do not use raw `open`, `xdg-open`, `start`, or a plain localhost link for this flow, because Orca needs to apply the server-owning worktree label before the browser opens.'
+const LOCALHOST_OPENING_AGENT_HINT = `Orca local server note: when you need to open or share a localhost dev server URL and \`ORCA_LOCALHOST_OPEN\` is set, use the command text it contains with the URL appended; normally that is \`${ORCA_LOCALHOST_OPEN_ENV_VALUE} <url>\`. Do not use raw \`open\`, \`xdg-open\`, \`start\`, or a plain localhost link for this flow, because Orca needs to apply the server-owning worktree label before the browser opens.`
 
 export type AgentStartupPlan = {
   agent: TuiAgent
@@ -66,9 +65,9 @@ function buildSleepingAgentLaunchConfig(args: {
   }
 }
 
-function appendLocalhostOpeningHint(prompt: string): string {
+export function appendLocalhostOpeningHint(prompt: string): string {
   const trimmedPrompt = prompt.trim()
-  if (!trimmedPrompt || trimmedPrompt.includes('localhost open --url')) {
+  if (!trimmedPrompt || trimmedPrompt.includes(ORCA_LOCALHOST_OPEN_ENV_VALUE)) {
     return trimmedPrompt
   }
   return `${trimmedPrompt}\n\n${LOCALHOST_OPENING_AGENT_HINT}`

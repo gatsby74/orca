@@ -131,9 +131,14 @@ function localhostLabelRouteForTerminalLink(
   rawUrl: string,
   state: ReturnType<StoreAccessor>
 ): LocalhostWorktreeLabelRoute | null {
-  if (state.settings?.localhostWorktreeLabelsEnabled === false) {
+  if (
+    state.settings?.localhostWorktreeLabelsEnabled === false ||
+    state.settings?.activeRuntimeEnvironmentId?.trim()
+  ) {
     return null
   }
+  // Why: only loopback links we can attribute to a scanned workspace port
+  // should get a worktree label; everything else must stay as-is.
   const parsed = parseLoopbackUrlWithPort(rawUrl)
   if (!parsed) {
     return null

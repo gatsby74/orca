@@ -244,4 +244,37 @@ describe('openHttpLink', () => {
     expect(openUrlMock).not.toHaveBeenCalled()
     expect(createBrowserTabMock).not.toHaveBeenCalled()
   })
+
+  it('does not label localhost links while a remote runtime is active', async () => {
+    storeState.settings = {
+      localhostWorktreeLabelsEnabled: true,
+      activeRuntimeEnvironmentId: 'web-runtime'
+    }
+    storeState.workspacePortScan = {
+      result: {
+        platform: 'darwin',
+        scannedAt: 1,
+        ports: [
+          {
+            id: 'tcp:5180',
+            kind: 'workspace',
+            port: 5180,
+            protocol: 'http',
+            bindHost: '127.0.0.1',
+            connectHost: 'localhost',
+            owner: {
+              repoId: 'repo-1',
+              worktreeId: 'wt-main',
+              displayName: 'main',
+              path: '/repo/main',
+              confidence: 'cwd'
+            }
+          }
+        ]
+      }
+    }
+
+    await expect(resolveLocalhostHttpLinkDisplayUrl('http://localhost:5180/')).resolves.toBe(null)
+    expect(registerLocalhostLabelMock).not.toHaveBeenCalled()
+  })
 })
