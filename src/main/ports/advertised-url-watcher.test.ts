@@ -31,13 +31,13 @@ describe('stripTerminalControls', () => {
     expect(stripTerminalControls('a\x00b\x08c\td')).toBe('abc\td')
   })
 
-  it('turns horizontal cursor moves into a space so redraws cannot fuse text', () => {
+  it('turns horizontal cursor moves into a URL-invalid guard', () => {
     // A differential redraw steps the cursor over the on-screen `o` instead of
-    // reprinting it. Deleting the move would splice `localh` + `st` → `localhst`.
-    expect(stripTerminalControls('http://localh\x1b[1Cst:5199/')).toBe('http://localh st:5199/')
+    // reprinting it. Deleting the move would splice `localh` + `st` into `localhst`.
+    expect(stripTerminalControls('http://localh\x1b[1Cst:5199/')).toBe('http://localh[st:5199/')
     // Absolute column (G) and position (H) moves are neutralized the same way.
-    expect(stripTerminalControls('localh\x1b[8Gst')).toBe('localh st')
-    expect(stripTerminalControls('localh\x1b[1;9Hst')).toBe('localh st')
+    expect(stripTerminalControls('localh\x1b[8Gst')).toBe('localh[st')
+    expect(stripTerminalControls('localh\x1b[1;9Hst')).toBe('localh[st')
   })
 })
 
@@ -70,10 +70,15 @@ describe('extractUrlCandidates', () => {
     // Regression: a CLI redrawing `http://localhost:5199/` via a cursor-forward
     // over the already-drawn `o` must not yield the plausible-but-wrong
     // `localhst` host that `new URL()` would otherwise accept verbatim.
-    const cleaned = stripTerminalControls('  ➜  Local: http://localh\x1b[1Cst:5199/\r\n')
+    const cleaned = stripTerminalControls('  >  Local: http://localh\x1b[1Cst:5199/\r\n')
     const urls = extractUrlCandidates(cleaned)
-    expect(urls.map((u) => u.hostname)).not.toContain('localhst')
-    expect(urls.every((u) => u.hostname !== 'localhst')).toBe(true)
+    expect(urls).toHaveLength(0)
+  })
+
+  it('does not cache a partial default-port URL from a cursor-skip redraw', () => {
+    const watcher = bindFresh()
+    watcher.ingest(PTY, 'Local: http://localh\x1b[1Cst/\n')
+    expect(watcher.lookup(WORKTREE, 80)).toBeUndefined()
   })
 
   it('handles multiple URLs in one line', () => {
