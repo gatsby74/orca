@@ -17,7 +17,6 @@ import type { WorkspacePortGroup } from '@/lib/workspace-port-groups'
 import { localhostWorktreeLabelRouteForPort } from '@/lib/workspace-port-localhost-label'
 import { getActiveRuntimeTarget } from '@/runtime/runtime-rpc-client'
 import { useAppStore } from '@/store'
-import { useRepoById, useWorktreeById } from '@/store/selectors'
 import { getRuntimeEnvironmentIdForWorktree } from '@/lib/worktree-runtime-owner'
 import type { WorkspacePort } from '../../../../shared/workspace-ports'
 import { translate } from '@/i18n/i18n'
@@ -80,11 +79,15 @@ export function PortRow({
   const settings = useAppStore((s) => s.settings)
   const portWorktreeId = port.kind === 'workspace' ? port.owner.worktreeId : null
   const portRepoId = port.kind === 'workspace' ? port.owner.repoId : null
-  const portRepo = useRepoById(portRepoId)
-  const portWorktree = useWorktreeById(portWorktreeId)
+  const portRepo = useAppStore((s) =>
+    portRepoId ? ((s.repos ?? []).find((repo) => repo.id === portRepoId) ?? null) : null
+  )
+  const portWorktree = useAppStore((s) =>
+    portWorktreeId ? (s.getKnownWorktreeById?.(portWorktreeId) ?? null) : null
+  )
   const portProject = useAppStore((s) =>
     portWorktree?.projectId
-      ? (s.projects.find((project) => project.id === portWorktree.projectId) ?? null)
+      ? ((s.projects ?? []).find((project) => project.id === portWorktree.projectId) ?? null)
       : null
   )
   const runtimeEnvironmentId = useAppStore((s) =>

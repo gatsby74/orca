@@ -18,7 +18,6 @@ import {
 } from '@/lib/workspace-port-actions'
 import { localhostWorktreeLabelRouteForPort } from '@/lib/workspace-port-localhost-label'
 import { addressForPort } from '@/lib/workspace-port-urls'
-import { useRepoById, useWorktreeById } from '@/store/selectors'
 import type { WorkspacePort } from '../../../../shared/workspace-ports'
 import { WORKTREE_NATIVE_CONTEXT_MENU_ATTR } from './WorktreeContextMenu'
 import {
@@ -105,11 +104,15 @@ function WorktreePortRow({ port }: { port: WorkspacePort }): React.JSX.Element {
   const settings = useAppStore((s) => s.settings)
   const portWorktreeId = port.kind === 'workspace' ? port.owner.worktreeId : null
   const portRepoId = port.kind === 'workspace' ? port.owner.repoId : null
-  const portRepo = useRepoById(portRepoId)
-  const portWorktree = useWorktreeById(portWorktreeId)
+  const portRepo = useAppStore((s) =>
+    portRepoId ? ((s.repos ?? []).find((repo) => repo.id === portRepoId) ?? null) : null
+  )
+  const portWorktree = useAppStore((s) =>
+    portWorktreeId ? (s.getKnownWorktreeById?.(portWorktreeId) ?? null) : null
+  )
   const portProject = useAppStore((s) =>
     portWorktree?.projectId
-      ? (s.projects.find((project) => project.id === portWorktree.projectId) ?? null)
+      ? ((s.projects ?? []).find((project) => project.id === portWorktree.projectId) ?? null)
       : null
   )
   const runtimeEnvironmentId = useAppStore((s) =>
