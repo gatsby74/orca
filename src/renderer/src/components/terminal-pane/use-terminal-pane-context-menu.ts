@@ -30,7 +30,7 @@ import {
 import { makePaneKey } from '../../../../shared/stable-pane-id'
 import { runQuickCommandInNewTab } from '@/lib/run-quick-command-in-new-tab'
 import {
-  copyAgentSessionForkContext,
+  copyAgentSessionContextFromPane,
   prepareAgentSessionForkFromPane,
   type PreparedAgentSessionFork
 } from './terminal-agent-session-fork'
@@ -391,17 +391,14 @@ export function useTerminalPaneContextMenu({
   }
 
   // Why: the captured session transcript is often wanted on its own — to paste
-  // into another tool — so expose it directly instead of forcing a trip through
-  // the fork dialog (issue #5020).
+  // into another tool — so copy the bounded transcript directly, without the
+  // fork prompt's framing or the fork dialog detour (issue #5020).
   const onCopyAgentSessionContext = async (): Promise<void> => {
     const pane = resolveMenuPane()
     if (!pane) {
       return
     }
-    const fork = prepareAgentSessionForkFromPane({ pane, tabId, worktreeId, groupId })
-    if (fork) {
-      await copyAgentSessionForkContext(fork)
-    }
+    await copyAgentSessionContextFromPane(pane)
   }
 
   const onQuickCommand = (command: TerminalQuickCommand): void => {
