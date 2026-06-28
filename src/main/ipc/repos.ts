@@ -2130,6 +2130,7 @@ export function registerRepoHandlers(mainWindow: BrowserWindow, store: Store): v
             | 'worktreeVisibilitySourcePreferences'
             | 'projectGroupId'
             | 'projectGroupOrder'
+            | 'todos'
           >
         > & {
           externalWorktreeVisibility?: Repo['externalWorktreeVisibility'] | null
