@@ -227,18 +227,32 @@ export const WorktreePrefetchCreateBase = z.object({
 // Why: validate persisted todo items at the boundary so a skewed renderer or
 // other IPC caller cannot write malformed todos. `.passthrough()` keeps any
 // future fields intact instead of stripping them.
-export const WorktreeTodoSchema = z
+// Why: enforce the per-worktree vs per-project storage contract — worktree
+// storage only holds worktree-scoped todos (with a worktreeId); project storage
+// only project-scoped todos (with a repoId). Validate at each persistence boundary.
+const TodoBaseShape = {
+  id: z.string(),
+  body: z.string(),
+  order: z.number(),
+  authorRole: z.enum(['user', 'agent']),
+  createdAt: z.number(),
+  completedAt: z.number().optional(),
+  updatedAt: z.number().optional()
+}
+export const WorktreeScopedTodoSchema = z
   .object({
-    id: z.string(),
-    scope: z.enum(['worktree', 'project']),
-    body: z.string(),
-    order: z.number(),
-    authorRole: z.enum(['user', 'agent']),
-    createdAt: z.number(),
-    worktreeId: z.string().optional(),
-    repoId: z.string().optional(),
-    completedAt: z.number().optional(),
-    updatedAt: z.number().optional()
+    ...TodoBaseShape,
+    scope: z.literal('worktree'),
+    worktreeId: z.string(),
+    repoId: z.string().optional()
+  })
+  .passthrough()
+export const ProjectScopedTodoSchema = z
+  .object({
+    ...TodoBaseShape,
+    scope: z.literal('project'),
+    repoId: z.string(),
+    worktreeId: z.string().optional()
   })
   .passthrough()
 
@@ -283,7 +297,7 @@ export const WorktreeSet = WorktreeSelector.extend({
     .nullable()
     .optional(),
   diffComments: z.array(z.unknown()).optional(),
-  todos: z.array(WorktreeTodoSchema).optional(),
+  todos: z.array(WorktreeScopedTodoSchema).optional(),
   mobileDiffReview: z.unknown().optional(),
   parentWorktree: OptionalString,
   noParent: OptionalBoolean

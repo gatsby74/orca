@@ -7,7 +7,7 @@ import {
   normalizeCustomWorktreeVisibilitySources,
   normalizeWorktreeVisibilitySourcePreferences
 } from '../../../../shared/worktree/visibility-sources'
-import { WorktreeTodoSchema } from './worktree-schemas'
+import { ProjectScopedTodoSchema } from './worktree-schemas'
 
 export const RepoSourceControlAiOverrides = z
   .unknown()
@@ -74,7 +74,7 @@ export function createRepoUpdateSchema<T extends z.ZodRawShape>(
       sourceControlAi: RepoSourceControlAiOverrides,
       // Why: validate each per-project todo at the boundary so a skewed caller
       // can't persist malformed items (mirrors worktree.set).
-      todos: z.array(WorktreeTodoSchema).optional()
+      todos: z.array(ProjectScopedTodoSchema).optional()
     })
   }) as z.ZodObject<T & { updates: z.ZodObject<z.ZodRawShape> }>
 }

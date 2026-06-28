@@ -31,7 +31,7 @@ import { isFolderRepo } from '../../shared/repo-kind'
 import { DEFAULT_REPO_BADGE_COLOR } from '../../shared/constants'
 import { normalizeRepoBadgeColor } from '../../shared/repo-badge-color'
 import { sanitizeRepoIcon } from '../../shared/repo-icon'
-import { WorktreeTodoSchema } from '../runtime/rpc/methods/worktree-schemas'
+import { ProjectScopedTodoSchema } from '../runtime/rpc/methods/worktree-schemas'
 import { normalizeRepoSourceControlAiOverrides } from '../../shared/source-control-ai'
 import {
   isRuntimePathAbsolute,
@@ -2294,7 +2294,7 @@ export function registerRepoHandlers(mainWindow: BrowserWindow, store: Store): v
         const v = updates.todos as unknown
         if (Array.isArray(v)) {
           updates.todos = (v as unknown[]).filter(
-            (item) => WorktreeTodoSchema.safeParse(item).success
+            (item) => ProjectScopedTodoSchema.safeParse(item).success
           ) as Repo['todos']
         } else {
           delete updates.todos
