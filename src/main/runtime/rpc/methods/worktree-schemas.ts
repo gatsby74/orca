@@ -174,6 +174,24 @@ export const WorktreePrefetchCreateBase = z.object({
   baseBranch: OptionalString
 })
 
+// Why: validate persisted todo items at the boundary so a skewed renderer or
+// other IPC caller cannot write malformed todos. `.passthrough()` keeps any
+// future fields intact instead of stripping them.
+export const WorktreeTodoSchema = z
+  .object({
+    id: z.string(),
+    scope: z.enum(['worktree', 'project']),
+    body: z.string(),
+    order: z.number(),
+    authorRole: z.enum(['user', 'agent']),
+    createdAt: z.number(),
+    worktreeId: z.string().optional(),
+    repoId: z.string().optional(),
+    completedAt: z.number().optional(),
+    updatedAt: z.number().optional()
+  })
+  .passthrough()
+
 export const WorktreeSet = WorktreeSelector.extend({
   displayName: OptionalString,
   // Why: empty comments are meaningful metadata updates, so use the plain
@@ -210,7 +228,7 @@ export const WorktreeSet = WorktreeSelector.extend({
     .nullable()
     .optional(),
   diffComments: z.array(z.unknown()).optional(),
-  todos: z.array(z.unknown()).optional(),
+  todos: z.array(WorktreeTodoSchema).optional(),
   mobileDiffReview: z.unknown().optional(),
   parentWorktree: OptionalString,
   noParent: OptionalBoolean

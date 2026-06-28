@@ -112,6 +112,7 @@ import {
   stripOrcaProvenanceMetaUpdates,
   UNREGISTERED_MISSING_WORKTREE_MESSAGE
 } from '../worktree-removal-safety'
+import { WorktreeTodoSchema } from '../runtime/rpc/methods/worktree-schemas'
 import { isWindowsAbsolutePathLike } from '../../shared/cross-platform-path'
 import { DEFAULT_WORKSPACE_STATUS_ID } from '../../shared/workspace-statuses'
 import { FOLDER_WORKSPACE_INSTANCE_SEPARATOR } from '../../shared/worktree-id'
@@ -151,6 +152,26 @@ async function mapWithConcurrency<T, R>(
     })
   )
   return results
+}
+
+// Why: validate each todo item at the IPC boundary so a skewed renderer or
+// other caller cannot persist malformed todos. Filter invalid items rather than
+// rejecting the whole batch; drop a non-array shape so existing todos survive.
+function sanitizeWorktreeMetaTodosUpdate(updates: Partial<WorktreeMeta>): Partial<WorktreeMeta> {
+  if (!('todos' in updates) || updates.todos === undefined) {
+    return updates
+  }
+  const raw = updates.todos as unknown
+  if (!Array.isArray(raw)) {
+    const { todos: _todos, ...rest } = updates
+    return rest
+  }
+  return {
+    ...updates,
+    todos: (raw as unknown[]).filter(
+      (item) => WorktreeTodoSchema.safeParse(item).success
+    ) as WorktreeMeta['todos']
+  }
 }
 
 function removeWorktreeMetadataAndTransientState(store: Store, worktreeId: string): void {
@@ -1797,7 +1818,7 @@ export function registerWorktreeHandlers(
   ipcMain.handle(
     'worktrees:updateMeta',
     (_event, args: { worktreeId: string; updates: Partial<WorktreeMeta> }) => {
-      const updates =
+      const updates = sanitizeWorktreeMetaTodosUpdate(
         args.updates.displayName !== undefined
           ? {
               ...args.updates,
@@ -1805,6 +1826,7 @@ export function registerWorktreeHandlers(
               firstAgentMessageRenameError: null
             }
           : args.updates
+      )
       const meta = store.setWorktreeMeta(args.worktreeId, stripOrcaProvenanceMetaUpdates(updates))
       // Do NOT call notifyWorktreesChanged here. The renderer applies meta
       // updates optimistically before calling this IPC, so a notification

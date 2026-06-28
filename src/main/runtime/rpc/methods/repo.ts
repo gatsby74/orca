@@ -6,6 +6,7 @@ import { normalizeRepoBadgeColor } from '../../../../shared/repo-badge-color'
 import { normalizeRepoSourceControlAiOverrides } from '../../../../shared/source-control-ai'
 import { PROJECT_RUNTIME_METHODS } from './project-runtime-rpc-methods'
 import { FOLDER_WORKSPACE_METHODS } from './folder-workspace'
+import { WorktreeTodoSchema } from './worktree-schemas'
 
 const RepoSelector = z.object({
   repo: requiredString('Missing repo selector')
@@ -51,10 +52,7 @@ const RepoBadgeColor = z
   )
 
 const RepoUpstream = z
-  .object({
-    owner: z.string().min(1),
-    repo: z.string().min(1)
-  })
+  .object({ owner: z.string().min(1), repo: z.string().min(1) })
   .nullable()
   .optional()
 
@@ -79,9 +77,8 @@ const RepoUpdate = RepoSelector.extend({
     projectGroupId: OptionalString.nullable().optional(),
     projectGroupOrder: OptionalFiniteNumber,
     sourceControlAi: RepoSourceControlAiOverrides,
-    // Why: native per-project todos persist on Repo; pass them verbatim like
-    // worktree.set forwards diffComments/todos. Normalization happens client-side.
-    todos: z.array(z.unknown()).optional()
+    // Why: validate each per-project todo at the boundary so a skewed caller can't persist malformed items (mirrors worktree.set).
+    todos: z.array(WorktreeTodoSchema).optional()
   })
 })
 
