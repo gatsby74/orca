@@ -99,8 +99,10 @@ import {
 } from '../../../../src/terminal/terminal-accessory-layout'
 import {
   clearTerminalLiveInputFocusTimer,
+  defaultTerminalLiveInputHandles,
   getTerminalLiveSpecialKeyBytes,
   isTerminalLiveInputWithinByteLimit,
+  pruneTerminalLiveInputHandles,
   scheduleTerminalLiveInputFocus
 } from '../../../../src/terminal/terminal-live-input'
 import {
@@ -895,6 +897,7 @@ export default function SessionScreen() {
   const {
     branch: prBranch,
     headSha: prHeadSha,
+    status: prStatus,
     isGithubRepo: prIsGithubRepo,
     repoLoaded: prRepoContextLoaded,
     loaded: prContextLoaded
@@ -937,6 +940,8 @@ export default function SessionScreen() {
   const [liveInputTerminalHandles, setLiveInputTerminalHandles] = useState<Set<string>>(
     () => new Set()
   )
+  const liveInputTerminalHandlesRef = useRef<Set<string>>(new Set())
+  const defaultedLiveInputTerminalHandlesRef = useRef<Set<string>>(new Set())
   const [activeHandle, setActiveHandle] = useState<string | null>(null)
   const [activeSessionTabId, setActiveSessionTabId] = useState<string | null>(null)
   const activeSessionTabIdRef = useRef<string | null>(null)
@@ -1111,6 +1116,7 @@ export default function SessionScreen() {
   sessionTabsRef.current = sessionTabs
   activeSessionTabIdRef.current = activeSessionTabId
   markdownDocsRef.current = markdownDocs
+  liveInputTerminalHandlesRef.current = liveInputTerminalHandles
   const reconciledCreateWarningState = reconcileMobileSessionCreateWarningState(
     createWarningState,
     initialCreateWarning
@@ -1174,6 +1180,52 @@ export default function SessionScreen() {
       })
     },
     [clearToastHideTimer]
+  )
+
+  // Why: direct input is now the mobile default, but only once per discovered
+  // handle so a user's buffered-mode toggle survives tab/list refreshes.
+  const defaultTerminalHandlesToLiveInput = useCallback((handles: readonly string[]) => {
+    const result = defaultTerminalLiveInputHandles(
+      liveInputTerminalHandlesRef.current,
+      defaultedLiveInputTerminalHandlesRef.current,
+      handles
+    )
+    if (!result.changed) {
+      return
+    }
+    const nextEnabledHandles = new Set(result.enabledHandles)
+    const nextDefaultedHandles = new Set(result.defaultedHandles)
+    liveInputTerminalHandlesRef.current = nextEnabledHandles
+    defaultedLiveInputTerminalHandlesRef.current = nextDefaultedHandles
+    setLiveInputTerminalHandles(nextEnabledHandles)
+  }, [])
+
+  const pruneTerminalHandlesFromLiveInput = useCallback((liveHandles: ReadonlySet<string>) => {
+    const result = pruneTerminalLiveInputHandles(
+      liveInputTerminalHandlesRef.current,
+      defaultedLiveInputTerminalHandlesRef.current,
+      liveHandles
+    )
+    if (!result.changed) {
+      return
+    }
+    const nextEnabledHandles = new Set(result.enabledHandles)
+    const nextDefaultedHandles = new Set(result.defaultedHandles)
+    liveInputTerminalHandlesRef.current = nextEnabledHandles
+    defaultedLiveInputTerminalHandlesRef.current = nextDefaultedHandles
+    setLiveInputTerminalHandles(nextEnabledHandles)
+  }, [])
+
+  const clearTerminalLiveInputDefault = useCallback(
+    (handle: string) => {
+      const liveHandles = new Set([
+        ...liveInputTerminalHandlesRef.current,
+        ...defaultedLiveInputTerminalHandlesRef.current
+      ])
+      liveHandles.delete(handle)
+      pruneTerminalHandlesFromLiveInput(liveHandles)
+    },
+    [pruneTerminalHandlesFromLiveInput]
   )
 
   const dictation = useMobileDictation({
@@ -1613,11 +1665,16 @@ export default function SessionScreen() {
           }
 
           const liveHandles = new Set(result.terminals.map((terminal) => terminal.handle))
+          // Why: terminal.list is the lifetime signal; session-tab snapshots can lag
+          // mobile-created tabs and must not erase a user's buffered-mode opt-out.
+          pruneTerminalHandlesFromLiveInput(liveHandles)
+          defaultTerminalHandlesToLiveInput([...liveHandles])
           for (const handle of Array.from(terminalUnsubsRef.current.keys())) {
             if (!liveHandles.has(handle)) {
               unsubscribeTerminal(handle)
               terminalRefs.current.delete(handle)
               initializedHandlesRef.current.delete(handle)
+              clearTerminalLiveInputDefault(handle)
               setTerminalKeyboardMetrics((prev) => {
                 if (!prev.has(handle)) {
                   return prev
@@ -1662,7 +1719,15 @@ export default function SessionScreen() {
         fetchTerminalsInFlightRef.current = false
       }
     },
-    [client, worktreeId, subscribeToTerminal, unsubscribeTerminal]
+    [
+      client,
+      worktreeId,
+      clearTerminalLiveInputDefault,
+      defaultTerminalHandlesToLiveInput,
+      pruneTerminalHandlesFromLiveInput,
+      subscribeToTerminal,
+      unsubscribeTerminal
+    ]
   )
 
   const applySessionTabs = useCallback(
@@ -1703,6 +1768,8 @@ export default function SessionScreen() {
       // render loop where the subscription effect tears down and replays itself.
       setSessionTabs((prev) => (mobileSessionTabsEqual(prev, nextTabs) ? prev : nextTabs))
       const terminalTabs = getTerminalRecordsFromSessionTabs(nextTabs)
+      const terminalTabHandles = terminalTabs.map((terminal) => terminal.handle)
+      defaultTerminalHandlesToLiveInput(terminalTabHandles)
       const mergedTerminalsForActive = mergeTerminalRecordsByCurrentOrder(
         terminalTabs,
         terminalsRef.current
@@ -1797,7 +1864,7 @@ export default function SessionScreen() {
         setActiveHandle(null)
       }
     },
-    [subscribeToTerminal, unsubscribeTerminal]
+    [defaultTerminalHandlesToLiveInput, subscribeToTerminal, unsubscribeTerminal]
   )
 
   const readMarkdownTab = useCallback(
@@ -2588,6 +2655,8 @@ export default function SessionScreen() {
     setSessionTabs([])
     setActiveSessionTabId(null)
     setLiveInputCapture('')
+    liveInputTerminalHandlesRef.current = new Set()
+    defaultedLiveInputTerminalHandlesRef.current = new Set()
     setLiveInputTerminalHandles(new Set())
     setMarkdownDocs(new Map())
     setFileDocs(new Map())
@@ -2595,7 +2664,7 @@ export default function SessionScreen() {
     return () => {
       clearDelayedActionTimers()
     }
-  }, [clearDelayedActionTimers, clearTerminalCache, worktreeId])
+  }, [clearDelayedActionTimers, clearTerminalCache, hostId, worktreeId])
 
   useEffect(() => {
     if (connState !== 'connected') {
@@ -2624,11 +2693,12 @@ export default function SessionScreen() {
     }
     void (async () => {
       if (client && created !== '1') {
-        // Why: desktop reveal can be slow on cold/busy hosts, but mobile
-        // session tabs are addressed by worktree id and can load immediately.
+        // Why: mobile needs host-owned tabs hydrated for this route, but should
+        // not pull other paired clients, especially desktop, into this worktree.
         void client
           .sendRequest('worktree.activate', {
-            worktree: `id:${worktreeId}`
+            worktree: `id:${worktreeId}`,
+            notifyClients: false
           })
           .catch(() => null)
       }
@@ -2653,7 +2723,8 @@ export default function SessionScreen() {
           void (async () => {
             await client
               .sendRequest('worktree.activate', {
-                worktree: `id:${worktreeId}`
+                worktree: `id:${worktreeId}`,
+                notifyClients: false
               })
               .catch(() => null)
             if (disposed) {
@@ -2782,6 +2853,7 @@ export default function SessionScreen() {
       pendingActiveSessionTabIdRef.current = matchingTab?.id ?? null
       pendingActiveTerminalHandleRef.current = handle
       activeSessionTabTypeRef.current = 'terminal'
+      defaultTerminalHandlesToLiveInput([handle])
       setActiveSessionTabId(matchingTab?.id ?? null)
       const prev = activeHandleRef.current
       activeHandleRef.current = handle
@@ -2802,13 +2874,21 @@ export default function SessionScreen() {
           void client
             .sendRequest('session.tabs.activate', {
               worktree: `id:${worktreeId}`,
-              tabId: matchingTab.id
+              tabId: matchingTab.id,
+              notifyClients: false
             })
             .catch(() => {})
         }
       }
     },
-    [client, sessionTabs, subscribeToTerminal, unsubscribeTerminal, worktreeId]
+    [
+      client,
+      defaultTerminalHandlesToLiveInput,
+      sessionTabs,
+      subscribeToTerminal,
+      unsubscribeTerminal,
+      worktreeId
+    ]
   )
 
   const switchSessionTab = useCallback(
@@ -2834,7 +2914,8 @@ export default function SessionScreen() {
           void client
             .sendRequest('session.tabs.activate', {
               worktree: `id:${worktreeId}`,
-              tabId: tab.id
+              tabId: tab.id,
+              notifyClients: false
             })
             .catch(() => {})
         }
@@ -2857,7 +2938,8 @@ export default function SessionScreen() {
         void client
           .sendRequest('session.tabs.activate', {
             worktree: `id:${worktreeId}`,
-            tabId: tab.id
+            tabId: tab.id,
+            notifyClients: false
           })
           .catch(() => {})
       }
@@ -3166,6 +3248,7 @@ export default function SessionScreen() {
       } else {
         next.delete(activeHandle)
       }
+      liveInputTerminalHandlesRef.current = next
       return next
     })
     setLiveInputCapture('')
@@ -3809,6 +3892,7 @@ export default function SessionScreen() {
         })
         if (typeof created.terminal === 'string') {
           const createdHandle = created.terminal
+          defaultTerminalHandlesToLiveInput([createdHandle])
           activeHandleRef.current = createdHandle
           setActiveHandle(createdHandle)
           setTerminals((prev) => {
@@ -4052,6 +4136,7 @@ export default function SessionScreen() {
         unsubscribeTerminal(target.handle)
         terminalRefs.current.delete(target.handle)
         initializedHandlesRef.current.delete(target.handle)
+        clearTerminalLiveInputDefault(target.handle)
         const next = terminals.filter((terminal) => terminal.handle !== target.handle)
         setTerminals(next)
         terminalsRef.current = next
@@ -4084,6 +4169,7 @@ export default function SessionScreen() {
           unsubscribeTerminal(tab.terminal)
           terminalRefs.current.delete(tab.terminal)
           initializedHandlesRef.current.delete(tab.terminal)
+          clearTerminalLiveInputDefault(tab.terminal)
         }
         setSessionTabs((prev) => prev.filter((candidate) => candidate.id !== tab.id))
         // Why: tombstone the closed tab and rely on the subscription/poll
@@ -4137,7 +4223,8 @@ export default function SessionScreen() {
       .sendRequest('session.tabs.activate', {
         worktree: `id:${worktreeId}`,
         tabId: activePendingTerminalTab.id,
-        leafId: activePendingTerminalTab.leafId
+        leafId: activePendingTerminalTab.leafId,
+        notifyClients: false
       })
       .then((response) => {
         if (!response.ok) {
@@ -5040,6 +5127,7 @@ export default function SessionScreen() {
               connState={connState}
               branch={prBranch}
               headSha={prHeadSha}
+              gitStatus={prStatus}
               isGithubRepo={prIsGithubRepo}
               branchContextLoaded={prContextLoaded && prRepoContextLoaded}
               availableWidth={sessionContentRowWidth}
