@@ -1928,6 +1928,7 @@ export function registerRepoHandlers(mainWindow: BrowserWindow, store: Store): v
             | 'externalWorktreeVisibilityPromptDismissedAt'
             | 'projectGroupId'
             | 'projectGroupOrder'
+            | 'todos'
           >
         > & { sourceControlAi?: Repo['sourceControlAi'] | null }
       }

@@ -78,7 +78,10 @@ const RepoUpdate = RepoSelector.extend({
     externalWorktreeVisibilityPromptDismissedAt: z.number().finite().optional(),
     projectGroupId: OptionalString.nullable().optional(),
     projectGroupOrder: OptionalFiniteNumber,
-    sourceControlAi: RepoSourceControlAiOverrides
+    sourceControlAi: RepoSourceControlAiOverrides,
+    // Why: native per-project todos persist on Repo; pass them verbatim like
+    // worktree.set forwards diffComments/todos. Normalization happens client-side.
+    todos: z.array(z.unknown()).optional()
   })
 })
 

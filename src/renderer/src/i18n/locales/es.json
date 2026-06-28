@@ -9039,7 +9039,8 @@
             "fc3095d2ed": "explorador",
             "aiVaultSessionHistory": "Agentes",
             "folderWorkspaces": "Árboles de trabajo adjuntos",
-            "parentPrChecks": "Comprobaciones de PR"
+            "parentPrChecks": "Comprobaciones de PR",
+            "todosTab": "Todos"
           },
           "right": {
             "panel": {
@@ -9383,6 +9384,20 @@
             "archivedJumpUnavailable": "Esta sesión se encuentra en un árbol de trabajo archivado.",
             "noActiveWorktreeMatch": "Ningún árbol de trabajo activo coincide con esta sesión.",
             "noActiveWorktreeTarget": "No hay ningún árbol de trabajo activo disponible."
+          },
+          "TodosPanel": {
+            "worktreeSection": "This worktree",
+            "worktreeEmpty": "No todos for this worktree yet.",
+            "addPlaceholder": "Add a todo…",
+            "noWorktree": "Open a worktree to track todos.",
+            "projectSection": "Project",
+            "projectEmpty": "No project todos yet."
+          },
+          "todos": {
+            "TodoRow": {
+              "toggle": "Toggle todo",
+              "delete": "Delete todo"
+            }
           }
         }
       },

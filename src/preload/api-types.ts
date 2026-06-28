@@ -791,6 +791,7 @@ export type PreloadApi = {
           | 'projectGroupId'
           | 'projectGroupOrder'
           | 'forkSyncMode'
+          | 'todos'
         >
       > & { sourceControlAi?: Repo['sourceControlAi'] | null }
     }) => Promise<Repo>
