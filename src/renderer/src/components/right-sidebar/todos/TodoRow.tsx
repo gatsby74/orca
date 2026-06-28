@@ -125,7 +125,9 @@ export function TodoRow({ todo, onToggle, onSave, onDelete }: TodoRowProps): Rea
         disabled={busy}
         onClick={() => void runAction(onDelete)}
         // Why: keep delete discoverable but quiet — revealed on row hover / focus.
-        className="shrink-0 text-muted-foreground opacity-0 transition-opacity hover:text-destructive focus-visible:opacity-100 group-hover:opacity-100"
+        // Gate the hide behind `can-hover:` so touch (hover: none) devices keep
+        // the button visible instead of stranding it at opacity-0.
+        className="shrink-0 text-muted-foreground transition-opacity hover:text-destructive focus-visible:opacity-100 can-hover:opacity-0 can-hover:group-hover:opacity-100"
         aria-label={translate('auto.components.right.sidebar.todos.TodoRow.delete', 'Delete todo')}
         title={translate('auto.components.right.sidebar.todos.TodoRow.delete', 'Delete todo')}
       >

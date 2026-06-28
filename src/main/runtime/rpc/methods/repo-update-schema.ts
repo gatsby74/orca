@@ -7,6 +7,7 @@ import {
   normalizeCustomWorktreeVisibilitySources,
   normalizeWorktreeVisibilitySourcePreferences
 } from '../../../../shared/worktree/visibility-sources'
+import { WorktreeTodoSchema } from './worktree-schemas'
 
 export const RepoSourceControlAiOverrides = z
   .unknown()
@@ -71,9 +72,9 @@ export function createRepoUpdateSchema<T extends z.ZodRawShape>(
       projectGroupId: OptionalString.nullable().optional(),
       projectGroupOrder: OptionalFiniteNumber,
       sourceControlAi: RepoSourceControlAiOverrides,
-      // Why: native per-project todos persist on Repo; pass them verbatim like
-      // worktree.set forwards diffComments/todos. Normalization happens client-side.
-      todos: z.array(z.unknown()).optional()
+      // Why: validate each per-project todo at the boundary so a skewed caller
+      // can't persist malformed items (mirrors worktree.set).
+      todos: z.array(WorktreeTodoSchema).optional()
     })
   }) as z.ZodObject<T & { updates: z.ZodObject<z.ZodRawShape> }>
 }

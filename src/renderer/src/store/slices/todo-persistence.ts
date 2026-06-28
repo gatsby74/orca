@@ -162,14 +162,20 @@ async function persist(
   )
 }
 
-// Why: IPC writes from `persist` are not ordered with respect to each other.
-// Serialize per owner so only one write runs at a time, and read the LATEST
-// todos from the store at dequeue time — this collapses a burst of N mutations
-// into at most 2 in-flight writes per owner (1 running + 1 queued) and
-// guarantees the last disk write reflects the newest state. Mirrors the
-// diffComments per-worktree queue. Keyed by `scope:ownerId` so a worktree id
-// and a repo id can never collide.
-const persistQueueByOwner: Map<string, Promise<void>> = new Map()
+// Why: IPC writes from `persist` are not ordered with respect to each other, so
+// serialize per owner. Because `run` reads the LATEST store state at execution
+// time, a burst of N mutations does not need N writes — only the running write
+// plus a single trailing write that captures the final state. We therefore
+// coalesce to at most ONE pending persist per owner: while a write is in flight,
+// the first follow-up schedules the trailing write and every later mutation
+// reuses that same pending promise instead of stacking another. Keyed by
+// `scope:ownerId` so a worktree id and a repo id can never collide.
+type OwnerPersistState = {
+  inFlight: Promise<void> | null
+  pending: Promise<void> | null
+}
+
+const persistStateByOwner: Map<string, OwnerPersistState> = new Map()
 
 function persistQueueKey(scope: WorktreeTodoScope, ownerId: string): string {
   return `${scope}:${ownerId}`
@@ -181,24 +187,50 @@ export function enqueueTodoPersist(
   get: () => AppState
 ): Promise<void> {
   const key = persistQueueKey(scope, ownerId)
-  const prior = persistQueueByOwner.get(key) ?? Promise.resolve()
   const run = async (): Promise<void> => {
     const latest = (readOwnerTodos(get(), scope, ownerId) ?? []).map(normalizeTodo)
     await persist(settingsForOwner(get(), scope, ownerId), scope, ownerId, latest)
   }
-  // Why: `.then(run, run)` keeps the chain alive even if the prior write failed.
-  const next = prior.then(run, run)
-  persistQueueByOwner.set(key, next)
-  // Why: clear the queue entry only if no later write chained on top; use
-  // `then(cleanup, cleanup)` (not `finally`) so a rejection is fully consumed
-  // here and the caller's own try/catch is the only place that observes it.
-  const cleanup = (): void => {
-    if (persistQueueByOwner.get(key) === next) {
-      persistQueueByOwner.delete(key)
+
+  let state = persistStateByOwner.get(key)
+  if (!state) {
+    state = { inFlight: null, pending: null }
+    persistStateByOwner.set(key, state)
+  }
+  const ownerState = state
+
+  // Why: when the in-flight write settles, promote the single pending trailing
+  // write (if any) to in-flight, otherwise drop the owner entry once idle. Use
+  // `then(.,.)` so a rejected write still advances the queue.
+  const afterSettle = (): void => {
+    if (ownerState.pending) {
+      ownerState.inFlight = ownerState.pending
+      ownerState.pending = null
+      ownerState.inFlight.then(afterSettle, afterSettle)
+    } else {
+      ownerState.inFlight = null
+      if (persistStateByOwner.get(key) === ownerState) {
+        persistStateByOwner.delete(key)
+      }
     }
   }
-  next.then(cleanup, cleanup)
-  return next
+
+  // No write running → start immediately and return that write's promise.
+  if (!ownerState.inFlight) {
+    ownerState.inFlight = run()
+    ownerState.inFlight.then(afterSettle, afterSettle)
+    return ownerState.inFlight
+  }
+  // A write is running and a trailing write is already scheduled. That pending
+  // write reads the latest store state when it runs, so it subsumes this
+  // mutation too — reuse it rather than enqueuing another (trailing-coalesce).
+  if (ownerState.pending) {
+    return ownerState.pending
+  }
+  // First follow-up while a write is in flight: schedule the single trailing
+  // write to run after the current one settles (success or failure).
+  ownerState.pending = ownerState.inFlight.then(run, run)
+  return ownerState.pending
 }
 
 // Why: derive the next list from the latest store snapshot inside the `set`

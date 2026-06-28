@@ -1,4 +1,4 @@
-import { describe, it, expect, vi, beforeEach } from 'vitest'
+import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest'
 import type { WorktreeTodo } from '../../../../shared/worktree-todo-types'
 import { createTestStore, makeWorktree, seedStore, TEST_REPO } from './store-test-helpers'
 
@@ -89,8 +89,17 @@ const mockApi = {
   }
 }
 
-// @ts-expect-error -- mock
-globalThis.window = { api: mockApi }
+// Why: patch only `window.api` (in place, creating `window` only if absent in
+// the node test env) and restore the original in afterEach — rather than
+// replacing the whole global, which would clobber any other window properties.
+const originalWindow = globalThis.window
+
+function installMockApi(): void {
+  const win = globalThis.window ?? ({} as Window & typeof globalThis)
+  // @ts-expect-error -- partial api surface mocked for tests
+  win.api = mockApi
+  globalThis.window = win
+}
 
 const REPO = TEST_REPO.id
 const WT = `${REPO}::/path/wt`
@@ -101,9 +110,13 @@ type TodoOwner = {
 }
 
 function makeTodo(overrides: Partial<WorktreeTodo> & Pick<WorktreeTodo, 'id'>): WorktreeTodo {
+  // Why: keep the owner id scope-aware so project-scope fixtures use realistic
+  // todos — repoId (no worktreeId) for 'project', worktreeId (no repoId) for
+  // 'worktree' — instead of always stamping worktreeId.
+  const scope = overrides.scope ?? 'worktree'
   return {
-    scope: 'worktree',
-    worktreeId: WT,
+    scope,
+    ...(scope === 'project' ? { repoId: REPO } : { worktreeId: WT }),
     body: 'todo',
     order: 0,
     authorRole: 'user',
@@ -141,10 +154,15 @@ const owners: TodoOwner[] = [
 
 describe('todos slice', () => {
   beforeEach(() => {
+    installMockApi()
     vi.clearAllMocks()
     updateMeta.mockResolvedValue({})
     updateRepo.mockResolvedValue({})
     vi.spyOn(Date, 'now').mockReturnValue(5000)
+  })
+
+  afterEach(() => {
+    globalThis.window = originalWindow
   })
 
   it.each(owners)('adds a $scope todo optimistically with the expected shape', async (owner) => {

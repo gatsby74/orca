@@ -170,10 +170,21 @@ export const createTodosSlice: StateCreator<AppState, [], [], TodosSlice> = (set
 
   reorderTodos: async (scope, ownerId, orderedIds) => {
     const result = mutateTodos(set, scope, ownerId, (existing) => {
-      // Why: refuse a non-permutation (stale id set from a racing add/delete)
-      // so a partial order can't silently drop items.
+      // Why: only reorder when orderedIds is an EXACT permutation of the existing
+      // ids — same length, no duplicates, and an identical id-set. A length-only
+      // check would accept e.g. ['a','a'] over [a,b], duplicating one item and
+      // silently dropping the other. Reject any non-permutation as a no-op (stale
+      // id set from a racing add/delete, or a duplicate id).
       if (orderedIds.length !== existing.length) {
         return null
+      }
+      const existingIds = new Set(existing.map((t) => t.id))
+      const seen = new Set<string>()
+      for (const id of orderedIds) {
+        if (seen.has(id) || !existingIds.has(id)) {
+          return null
+        }
+        seen.add(id)
       }
       const byId = new Map(existing.map((t) => [t.id, t]))
       const next: WorktreeTodo[] = []
@@ -183,7 +194,7 @@ export const createTodosSlice: StateCreator<AppState, [], [], TodosSlice> = (set
           next.push({ ...todo, order: index })
         }
       })
-      return next.length === existing.length ? next : null
+      return next
     })
     if (!result) {
       return false
