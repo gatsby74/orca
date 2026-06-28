@@ -112,7 +112,7 @@ import {
   stripOrcaProvenanceMetaUpdates,
   UNREGISTERED_MISSING_WORKTREE_MESSAGE
 } from '../worktree-removal-safety'
-import { WorktreeTodoSchema } from '../runtime/rpc/methods/worktree-schemas'
+import { WorktreeScopedTodoSchema } from '../runtime/rpc/methods/worktree-schemas'
 import { isWindowsAbsolutePathLike } from '../../shared/cross-platform-path'
 import { DEFAULT_WORKSPACE_STATUS_ID } from '../../shared/workspace-statuses'
 import { FOLDER_WORKSPACE_INSTANCE_SEPARATOR } from '../../shared/worktree-id'
@@ -169,7 +169,7 @@ function sanitizeWorktreeMetaTodosUpdate(updates: Partial<WorktreeMeta>): Partia
   return {
     ...updates,
     todos: (raw as unknown[]).filter(
-      (item) => WorktreeTodoSchema.safeParse(item).success
+      (item) => WorktreeScopedTodoSchema.safeParse(item).success
     ) as WorktreeMeta['todos']
   }
 }

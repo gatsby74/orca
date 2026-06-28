@@ -6,7 +6,7 @@ import { normalizeRepoBadgeColor } from '../../../../shared/repo-badge-color'
 import { normalizeRepoSourceControlAiOverrides } from '../../../../shared/source-control-ai'
 import { PROJECT_RUNTIME_METHODS } from './project-runtime-rpc-methods'
 import { FOLDER_WORKSPACE_METHODS } from './folder-workspace'
-import { WorktreeTodoSchema } from './worktree-schemas'
+import { ProjectScopedTodoSchema } from './worktree-schemas'
 
 const RepoSelector = z.object({
   repo: requiredString('Missing repo selector')
@@ -78,7 +78,7 @@ const RepoUpdate = RepoSelector.extend({
     projectGroupOrder: OptionalFiniteNumber,
     sourceControlAi: RepoSourceControlAiOverrides,
     // Why: validate each per-project todo at the boundary so a skewed caller can't persist malformed items (mirrors worktree.set).
-    todos: z.array(WorktreeTodoSchema).optional()
+    todos: z.array(ProjectScopedTodoSchema).optional()
   })
 })
 
