@@ -26,6 +26,11 @@ function TodoSection({
 }: TodoSectionProps): React.JSX.Element {
   const addTodo = useAppStore((s) => s.addTodo)
   const updateTodo = useAppStore((s) => s.updateTodo)
+  const addTodoNote = useAppStore((s) => s.addTodoNote)
+  const updateTodoNote = useAppStore((s) => s.updateTodoNote)
+  const deleteTodoNote = useAppStore((s) => s.deleteTodoNote)
+  const setTodoNotesDoc = useAppStore((s) => s.setTodoNotesDoc)
+  const openTodoPage = useAppStore((s) => s.openTodoPage)
   const toggleTodoComplete = useAppStore((s) => s.toggleTodoComplete)
   const deleteTodo = useAppStore((s) => s.deleteTodo)
 
@@ -45,6 +50,11 @@ function TodoSection({
             onToggle={() => toggleTodoComplete(scope, ownerId, todo.id)}
             onSave={(body) => updateTodo(scope, ownerId, todo.id, body)}
             onDelete={() => deleteTodo(scope, ownerId, todo.id)}
+            onAddNote={(body) => addTodoNote(scope, ownerId, todo.id, body)}
+            onUpdateNote={(noteId, body) => updateTodoNote(scope, ownerId, todo.id, noteId, body)}
+            onDeleteNote={(noteId) => deleteTodoNote(scope, ownerId, todo.id, noteId)}
+            onSetNotesDoc={(body) => setTodoNotesDoc(scope, ownerId, todo.id, body)}
+            onOpenFullPage={() => openTodoPage(scope, ownerId, todo.id)}
           />
         ))}
         {todos.length === 0 && (

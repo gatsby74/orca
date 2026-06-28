@@ -112,7 +112,12 @@ import {
 } from '@/lib/github-work-item-source-lookup'
 import type { SettingsNavTarget } from '@/lib/settings-navigation-types'
 import { getHostDisplayLabelOverrides } from '../../../shared/host-setting-overrides'
-import type { BrowserPage, BrowserWorkspace, Worktree } from '../../../shared/types'
+import type {
+  BrowserPage,
+  BrowserWorkspace,
+  WorkspaceVisibleTabType,
+  Worktree
+} from '../../../shared/types'
 import { isGitRepoKind } from '../../../shared/repo-kind'
 import { buildTaskSourceContextFromRepo } from '../../../shared/task-source-context'
 import { translate } from '@/i18n/i18n'
@@ -391,9 +396,7 @@ export default function WorktreeJumpPalette(): React.JSX.Element | null {
   const deferredQuery = useDeferredValue(query)
   const [selectedItemId, setSelectedItemId] = useState('')
   const previousWorktreeIdRef = useRef<string | null>(null)
-  const previousActiveTabTypeRef = useRef<'browser' | 'editor' | 'terminal' | 'simulator'>(
-    'terminal'
-  )
+  const previousActiveTabTypeRef = useRef<WorkspaceVisibleTabType>('terminal')
   const previousBrowserPageIdRef = useRef<string | null>(null)
   const previousBrowserFocusTargetRef = useRef<'webview' | 'address-bar'>('webview')
   const activeGroupSnapshotRef = useRef<CmdJActiveGroupSnapshot | null>(null)

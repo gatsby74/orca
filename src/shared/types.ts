@@ -750,6 +750,17 @@ export type DiffComment = {
 export type WorktreeTodoScope = 'worktree' | 'project'
 export type WorktreeTodoAuthorRole = 'user' | 'agent'
 
+// Why: one entry in a todo's notes timeline. `authorRole` mirrors the todo's
+// own role field and distinguishes user-written context from notes an agent
+// will later be able to append (no agent wiring yet — the field reserves it).
+export type TodoNote = {
+  id: string
+  body: string
+  authorRole: WorktreeTodoAuthorRole
+  createdAt: number
+  updatedAt?: number
+}
+
 export type WorktreeTodo = {
   id: string
   scope: WorktreeTodoScope
@@ -758,6 +769,22 @@ export type WorktreeTodo = {
   /** Set when scope is 'project'. Owning repo id. */
   repoId?: string
   body: string
+  /** Internal notes timeline for this item — a chronological list of "what this
+   *  means" / progress entries. Local and persisted inside the todos array (no
+   *  separate IPC). Empty/all-malformed lists normalize to undefined so the row
+   *  shows the add-note affordance instead of the has-notes icon. */
+  notes?: TodoNote[]
+  /** Freeform markdown "page" body for this item — the durable context document
+   *  (headings, nested lists, links, bold/italic) shown above the updates
+   *  timeline. Optional; empty/whitespace normalizes to undefined. Persisted in
+   *  the todos array like the rest (no separate IPC). */
+  notesDoc?: string
+  /** Who last edited {@link notesDoc}. Reserves the agent case (no agent wiring
+   *  yet). Only meaningful when notesDoc is set. */
+  notesDocAuthorRole?: WorktreeTodoAuthorRole
+  /** When {@link notesDoc} was last edited, for the quiet "last edited by X ·
+   *  <time>" meta. Only meaningful when notesDoc is set. */
+  notesDocUpdatedAt?: number
   /** Set when the item is checked off; cleared when re-opened. */
   completedAt?: number
   /** Manual ordering key; lower renders first. */
@@ -791,7 +818,7 @@ export type TabContentType =
   | 'browser'
   | 'simulator'
 
-export type WorkspaceVisibleTabType = 'terminal' | 'editor' | 'browser' | 'simulator'
+export type WorkspaceVisibleTabType = 'terminal' | 'editor' | 'browser' | 'simulator' | 'todo'
 export type CtrlTabOrderMode = 'mru' | 'sequential'
 
 export type Tab = {

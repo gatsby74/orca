@@ -13,11 +13,28 @@ import {
   rollbackTodos,
   type TodoInput
 } from './todo-persistence'
+import { createTodoNoteActions, type TodoNoteActions } from './todo-note-actions'
 
 export type { TodoInput } from './todo-persistence'
 
+// Why: identifies which todo a worktree's full-page view is showing. Held
+// per-worktree (in-memory) so switching worktrees and back restores the page
+// within a session, mirroring activeFileIdByWorktree. Not persisted to disk —
+// the page CONTENT persists via the todos array; the open-view is transient.
+export type ActiveTodoRef = {
+  scope: WorktreeTodoScope
+  ownerId: string
+  todoId: string
+}
+
 export type TodosSlice = {
   getTodos: (scope: WorktreeTodoScope, ownerId: string | null | undefined) => WorktreeTodo[]
+  /** Per-worktree full-page todo selection (host worktree id -> ref). */
+  activeTodoByWorktree: Record<string, ActiveTodoRef>
+  /** Open the full-page todo view in the active worktree's main pane. */
+  openTodoPage: (scope: WorktreeTodoScope, ownerId: string, todoId: string) => void
+  /** Return the active worktree's main pane to the terminal workbench. */
+  closeTodoPage: () => void
   addTodo: (input: TodoInput) => Promise<WorktreeTodo | null>
   updateTodo: (
     scope: WorktreeTodoScope,
@@ -37,9 +54,28 @@ export type TodosSlice = {
     ownerId: string,
     orderedIds: readonly string[]
   ) => Promise<boolean>
-}
+} & TodoNoteActions
 
 export const createTodosSlice: StateCreator<AppState, [], [], TodosSlice> = (set, get) => ({
+  activeTodoByWorktree: {},
+
+  openTodoPage: (scope, ownerId, todoId) => {
+    const worktreeId = get().activeWorktreeId
+    if (!worktreeId) {
+      return
+    }
+    set((s) => ({
+      activeTodoByWorktree: { ...s.activeTodoByWorktree, [worktreeId]: { scope, ownerId, todoId } }
+    }))
+    // Why: reuse the existing per-worktree tab-type switch so the main pane swaps
+    // to the todo page (and the workbench hides) exactly like editor/browser do.
+    get().setActiveTabType('todo')
+  },
+
+  closeTodoPage: () => {
+    get().setActiveTabType('terminal')
+  },
+
   getTodos: (scope, ownerId) => {
     // Why: accept null/undefined so callers with an optional active owner can
     // pass it through without allocating a fresh `[]` fallback each render,
@@ -123,6 +159,8 @@ export const createTodosSlice: StateCreator<AppState, [], [], TodosSlice> = (set
       return false
     }
   },
+
+  ...createTodoNoteActions(set, get),
 
   toggleTodoComplete: async (scope, ownerId, todoId, completedAt = Date.now()) => {
     const result = mutateTodos(set, scope, ownerId, (current) => {

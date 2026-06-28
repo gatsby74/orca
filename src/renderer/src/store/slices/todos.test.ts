@@ -1,5 +1,5 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest'
-import type { WorktreeTodo } from '../../../../shared/types'
+import type { TodoNote, WorktreeTodo } from '../../../../shared/types'
 import { createTestStore, makeWorktree, seedStore, TEST_REPO } from './store-test-helpers'
 
 vi.mock('sonner', () => ({ toast: { info: vi.fn(), success: vi.fn(), error: vi.fn() } }))
@@ -123,6 +123,10 @@ function makeTodo(overrides: Partial<WorktreeTodo> & Pick<WorktreeTodo, 'id'>): 
     createdAt: 1000,
     ...overrides
   }
+}
+
+function makeNote(overrides: Partial<TodoNote> & Pick<TodoNote, 'id'>): TodoNote {
+  return { body: 'note body', authorRole: 'user', createdAt: 2000, ...overrides }
 }
 
 function seedTodos(
@@ -308,6 +312,397 @@ describe('todos slice', () => {
     errSpy.mockRestore()
   })
 
+  it.each(owners)('appends a $scope todo note authored by the user', async (owner) => {
+    const store = createTestStore()
+    seedTodos(store, owner, [makeTodo({ id: 't1', scope: owner.scope })])
+
+    const created = await store
+      .getState()
+      .addTodoNote(owner.scope, owner.ownerId, 't1', '  first note  ')
+
+    expect(created).toEqual(
+      expect.objectContaining({ body: 'first note', authorRole: 'user', createdAt: 5000 })
+    )
+    expect(created?.id).toEqual(expect.any(String))
+    const notes = getTodos(store, owner)[0].notes
+    expect(notes).toHaveLength(1)
+    expect(notes?.[0]).toEqual(created)
+  })
+
+  it('returns null and persists nothing for an empty note body', async () => {
+    const store = createTestStore()
+    seedTodos(store, owners[0], [makeTodo({ id: 't1' })])
+
+    const created = await store.getState().addTodoNote('worktree', WT, 't1', '   ')
+
+    expect(created).toBeNull()
+    expect(updateMeta).not.toHaveBeenCalled()
+  })
+
+  it.each(owners)('edits a $scope todo note and sets updatedAt', async (owner) => {
+    const store = createTestStore()
+    seedTodos(store, owner, [
+      makeTodo({ id: 't1', scope: owner.scope, notes: [makeNote({ id: 'n1', body: 'old' })] })
+    ])
+
+    const ok = await store
+      .getState()
+      .updateTodoNote(owner.scope, owner.ownerId, 't1', 'n1', '  new  ')
+
+    expect(ok).toBe(true)
+    expect(getTodos(store, owner)[0].notes?.[0]).toEqual(
+      expect.objectContaining({ id: 'n1', body: 'new', updatedAt: 5000 })
+    )
+  })
+
+  it.each(owners)('deletes a $scope todo note', async (owner) => {
+    const store = createTestStore()
+    seedTodos(store, owner, [
+      makeTodo({
+        id: 't1',
+        scope: owner.scope,
+        notes: [makeNote({ id: 'n1' }), makeNote({ id: 'n2', body: 'keep' })]
+      })
+    ])
+
+    await store.getState().deleteTodoNote(owner.scope, owner.ownerId, 't1', 'n1')
+
+    expect(getTodos(store, owner)[0].notes).toEqual([expect.objectContaining({ id: 'n2' })])
+  })
+
+  it('clears notes to undefined when the last note is deleted', async () => {
+    const store = createTestStore()
+    seedTodos(store, owners[0], [makeTodo({ id: 't1', notes: [makeNote({ id: 'n1' })] })])
+
+    await store.getState().deleteTodoNote('worktree', WT, 't1', 'n1')
+
+    expect(getTodos(store, owners[0])[0].notes).toBeUndefined()
+  })
+
+  it('persists worktree notes in the updateMeta payload', async () => {
+    const store = createTestStore()
+    seedTodos(store, owners[0], [makeTodo({ id: 't1' })])
+
+    await store.getState().addTodoNote('worktree', WT, 't1', 'progress so far')
+
+    expect(updateMeta).toHaveBeenCalledWith({
+      worktreeId: WT,
+      updates: {
+        todos: [
+          expect.objectContaining({
+            id: 't1',
+            notes: [expect.objectContaining({ body: 'progress so far', authorRole: 'user' })]
+          })
+        ]
+      }
+    })
+  })
+
+  it('persists project notes in the repo update payload', async () => {
+    const store = createTestStore()
+    seedTodos(store, owners[1], [makeTodo({ id: 't1', scope: 'project', repoId: REPO })])
+
+    await store.getState().addTodoNote('project', REPO, 't1', 'design doc link')
+
+    expect(updateRepo).toHaveBeenCalledWith({
+      repoId: REPO,
+      updates: {
+        todos: [
+          expect.objectContaining({
+            id: 't1',
+            notes: [expect.objectContaining({ body: 'design doc link' })]
+          })
+        ]
+      }
+    })
+  })
+
+  it.each(owners)('rolls back a $scope note add when persistence fails', async (owner) => {
+    const store = createTestStore()
+    const original = [makeTodo({ id: 't1', scope: owner.scope })]
+    seedTodos(store, owner, original)
+    const persistMock = owner.scope === 'worktree' ? updateMeta : updateRepo
+    persistMock.mockRejectedValueOnce(new Error('disk full'))
+    const errSpy = vi.spyOn(console, 'error').mockImplementation(() => {})
+
+    const created = await store.getState().addTodoNote(owner.scope, owner.ownerId, 't1', 'note')
+
+    expect(created).toBeNull()
+    expect(getTodos(store, owner)).toBe(original)
+    errSpy.mockRestore()
+  })
+
+  it('drops malformed note entries on persist, keeping valid user + agent notes', async () => {
+    const store = createTestStore()
+    seedStore(store, {
+      worktreesByRepo: {
+        [REPO]: [
+          makeWorktree({
+            id: WT,
+            repoId: REPO,
+            todos: [
+              {
+                id: 't1',
+                scope: 'worktree',
+                worktreeId: WT,
+                body: 'has notes',
+                order: 0,
+                authorRole: 'user',
+                createdAt: 1000,
+                notes: [
+                  makeNote({ id: 'n1', body: 'valid' }),
+                  { id: '', body: 'no id', authorRole: 'user', createdAt: 1000 },
+                  { id: 'n3', body: '   ', authorRole: 'user', createdAt: 1000 },
+                  { id: 'n4', body: 'bad ts', authorRole: 'user', createdAt: 0 },
+                  makeNote({ id: 'n5', body: 'agent note', authorRole: 'agent', createdAt: 2500 })
+                ]
+              } as unknown as WorktreeTodo
+            ]
+          })
+        ]
+      }
+    })
+
+    await store.getState().updateTodo('worktree', WT, 't1', 'edited')
+
+    expect(updateMeta).toHaveBeenCalledWith({
+      worktreeId: WT,
+      updates: {
+        todos: [
+          expect.objectContaining({
+            id: 't1',
+            notes: [
+              expect.objectContaining({ id: 'n1', body: 'valid', authorRole: 'user' }),
+              expect.objectContaining({ id: 'n5', body: 'agent note', authorRole: 'agent' })
+            ]
+          })
+        ]
+      }
+    })
+  })
+
+  it('migrates a legacy string notes value into a single user note', async () => {
+    const store = createTestStore()
+    seedStore(store, {
+      worktreesByRepo: {
+        [REPO]: [
+          makeWorktree({
+            id: WT,
+            repoId: REPO,
+            todos: [
+              {
+                id: 't1',
+                scope: 'worktree',
+                worktreeId: WT,
+                body: 'legacy',
+                notes: 'old single note',
+                order: 0,
+                authorRole: 'user',
+                createdAt: 1234
+              } as unknown as WorktreeTodo
+            ]
+          })
+        ]
+      }
+    })
+
+    await store.getState().updateTodo('worktree', WT, 't1', 'edited')
+
+    expect(updateMeta).toHaveBeenCalledWith({
+      worktreeId: WT,
+      updates: {
+        todos: [
+          expect.objectContaining({
+            id: 't1',
+            notes: [
+              expect.objectContaining({
+                body: 'old single note',
+                authorRole: 'user',
+                createdAt: 1234
+              })
+            ]
+          })
+        ]
+      }
+    })
+  })
+
+  it.each(owners)('sets and stamps the $scope notesDoc page', async (owner) => {
+    const store = createTestStore()
+    seedTodos(store, owner, [makeTodo({ id: 't1', scope: owner.scope })])
+
+    const ok = await store
+      .getState()
+      .setTodoNotesDoc(owner.scope, owner.ownerId, 't1', '# Plan\n\n- a\n  - b')
+
+    expect(ok).toBe(true)
+    expect(getTodos(store, owner)[0]).toEqual(
+      expect.objectContaining({
+        id: 't1',
+        notesDoc: '# Plan\n\n- a\n  - b',
+        notesDocAuthorRole: 'user',
+        notesDocUpdatedAt: 5000
+      })
+    )
+  })
+
+  it('clears notesDoc and its meta when set to whitespace', async () => {
+    const store = createTestStore()
+    seedTodos(store, owners[0], [
+      makeTodo({
+        id: 't1',
+        notesDoc: 'old page',
+        notesDocAuthorRole: 'user',
+        notesDocUpdatedAt: 1000
+      })
+    ])
+
+    const ok = await store.getState().setTodoNotesDoc('worktree', WT, 't1', '   ')
+
+    expect(ok).toBe(true)
+    expect(getTodos(store, owners[0])[0]).toEqual(
+      expect.objectContaining({
+        id: 't1',
+        notesDoc: undefined,
+        notesDocAuthorRole: undefined,
+        notesDocUpdatedAt: undefined
+      })
+    )
+  })
+
+  it('persists notesDoc alongside the updates timeline (worktree)', async () => {
+    const store = createTestStore()
+    seedTodos(store, owners[0], [
+      makeTodo({ id: 't1', notes: [makeNote({ id: 'n1', body: 'an update' })] })
+    ])
+
+    await store.getState().setTodoNotesDoc('worktree', WT, 't1', 'page body')
+
+    expect(updateMeta).toHaveBeenCalledWith({
+      worktreeId: WT,
+      updates: {
+        todos: [
+          expect.objectContaining({
+            id: 't1',
+            notesDoc: 'page body',
+            notesDocAuthorRole: 'user',
+            notes: [expect.objectContaining({ id: 'n1', body: 'an update' })]
+          })
+        ]
+      }
+    })
+  })
+
+  it('persists project notesDoc in the repo update payload', async () => {
+    const store = createTestStore()
+    seedTodos(store, owners[1], [makeTodo({ id: 't1', scope: 'project', repoId: REPO })])
+
+    await store.getState().setTodoNotesDoc('project', REPO, 't1', 'project page')
+
+    expect(updateRepo).toHaveBeenCalledWith({
+      repoId: REPO,
+      updates: { todos: [expect.objectContaining({ id: 't1', notesDoc: 'project page' })] }
+    })
+  })
+
+  it.each(owners)('rolls back a $scope notesDoc set when persistence fails', async (owner) => {
+    const store = createTestStore()
+    const original = [makeTodo({ id: 't1', scope: owner.scope })]
+    seedTodos(store, owner, original)
+    const persistMock = owner.scope === 'worktree' ? updateMeta : updateRepo
+    persistMock.mockRejectedValueOnce(new Error('disk full'))
+    const errSpy = vi.spyOn(console, 'error').mockImplementation(() => {})
+
+    const ok = await store.getState().setTodoNotesDoc(owner.scope, owner.ownerId, 't1', 'page')
+
+    expect(ok).toBe(false)
+    expect(getTodos(store, owner)).toBe(original)
+    errSpy.mockRestore()
+  })
+
+  it('drops a non-string notesDoc on persist', async () => {
+    const store = createTestStore()
+    seedStore(store, {
+      worktreesByRepo: {
+        [REPO]: [
+          makeWorktree({
+            id: WT,
+            repoId: REPO,
+            todos: [
+              {
+                id: 't1',
+                scope: 'worktree',
+                worktreeId: WT,
+                body: 'b',
+                order: 0,
+                authorRole: 'user',
+                createdAt: 1000,
+                notesDoc: { not: 'a string' },
+                notesDocAuthorRole: 'user',
+                notesDocUpdatedAt: 1000
+              } as unknown as WorktreeTodo
+            ]
+          })
+        ]
+      }
+    })
+
+    await store.getState().updateTodo('worktree', WT, 't1', 'edited')
+
+    expect(updateMeta).toHaveBeenCalledWith({
+      worktreeId: WT,
+      updates: {
+        todos: [
+          expect.objectContaining({
+            id: 't1',
+            notesDoc: undefined,
+            notesDocAuthorRole: undefined,
+            notesDocUpdatedAt: undefined
+          })
+        ]
+      }
+    })
+  })
+
+  it('openTodoPage sets the active todo and switches the pane to the todo view', () => {
+    const store = createTestStore()
+    seedStore(store, {
+      activeWorktreeId: WT,
+      worktreesByRepo: { [REPO]: [makeWorktree({ id: WT, repoId: REPO })] }
+    })
+
+    store.getState().openTodoPage('worktree', WT, 't1')
+
+    expect(store.getState().activeTabType).toBe('todo')
+    expect(store.getState().activeTodoByWorktree[WT]).toEqual({
+      scope: 'worktree',
+      ownerId: WT,
+      todoId: 't1'
+    })
+  })
+
+  it('closeTodoPage returns the pane to the terminal', () => {
+    const store = createTestStore()
+    seedStore(store, {
+      activeWorktreeId: WT,
+      worktreesByRepo: { [REPO]: [makeWorktree({ id: WT, repoId: REPO })] }
+    })
+
+    store.getState().openTodoPage('worktree', WT, 't1')
+    store.getState().closeTodoPage()
+
+    expect(store.getState().activeTabType).toBe('terminal')
+  })
+
+  it('openTodoPage is a no-op without an active worktree', () => {
+    const store = createTestStore()
+
+    store.getState().openTodoPage('worktree', WT, 't1')
+
+    expect(store.getState().activeTabType).not.toBe('todo')
+    expect(store.getState().activeTodoByWorktree[WT]).toBeUndefined()
+  })
+
   it('normalizes malformed todo fields before persistence', async () => {
     const store = createTestStore()
     seedTodos(store, owners[0], [
@@ -316,6 +711,7 @@ describe('todos slice', () => {
         scope: 'invalid',
         worktreeId: WT,
         body: 'malformed',
+        notes: '   ',
         completedAt: -1,
         order: Number.NaN,
         authorRole: 'unknown',
@@ -333,6 +729,7 @@ describe('todos slice', () => {
           expect.objectContaining({
             scope: 'worktree',
             body: 'normalized',
+            notes: undefined,
             completedAt: undefined,
             order: 0,
             authorRole: 'user',

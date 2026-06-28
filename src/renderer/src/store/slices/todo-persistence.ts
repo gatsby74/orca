@@ -1,18 +1,18 @@
 import type { AppState } from '../types'
 import type {
   Repo,
+  TodoNote,
   Worktree,
   WorktreeTodo,
   WorktreeTodoAuthorRole,
   WorktreeTodoScope
 } from '../../../../shared/types'
 import { findWorktreeById, getRepoIdFromWorktreeId } from './worktree-helpers'
-import { findRepoForHost } from './repo-host-identity'
 import { callRuntimeRpc, getActiveRuntimeTarget } from '../../runtime/runtime-rpc-client'
 import { toRuntimeWorktreeSelector } from '../../runtime/runtime-worktree-selector'
 import { createBrowserUuid } from '@/lib/browser-uuid'
-import { getRuntimeEnvironmentIdForWorktree } from '@/lib/worktree-runtime-owner'
-import { getRepoExecutionHostId, parseExecutionHostId } from '../../../../shared/execution-host'
+import { normalizeNotes } from './todo-note-normalize'
+import { settingsForOwner } from './todo-owner-settings'
 
 // Why: addTodo accepts only the author-supplied fields; id/createdAt/order are
 // assigned by the slice so callers cannot desync the ordering key or identity.
@@ -33,7 +33,9 @@ export type TodoMutationResult = {
 
 // Why: zustand's setter shape, declared locally so this engine module doesn't
 // depend on TodosSlice (which lives in the slice file and references this one).
-type TodoSet = (partial: Partial<AppState> | ((state: AppState) => Partial<AppState>)) => void
+export type TodoSet = (
+  partial: Partial<AppState> | ((state: AppState) => Partial<AppState>)
+) => void
 
 export function generateTodoId(): string {
   return createBrowserUuid()
@@ -54,11 +56,42 @@ export function normalizeTodo(todo: WorktreeTodo): WorktreeTodo {
     typeof rawUpdatedAt === 'number' && Number.isFinite(rawUpdatedAt) && rawUpdatedAt > 0
       ? rawUpdatedAt
       : undefined
+  const rawCreatedAt = (todo as { createdAt?: unknown }).createdAt
+  const todoCreatedAt =
+    typeof rawCreatedAt === 'number' && Number.isFinite(rawCreatedAt) ? rawCreatedAt : 0
+  // Why: clean the notes timeline (drop malformed entries) and collapse an
+  // empty list to undefined so the row shows the add-note affordance, not the
+  // has-notes icon.
+  const cleanedNotes = normalizeNotes((todo as { notes?: unknown }).notes, todoCreatedAt)
+  const notes = cleanedNotes.length > 0 ? cleanedNotes : undefined
+  // Why: the markdown "page" body must be a non-empty string; anything else
+  // (number, object, whitespace-only) collapses to undefined so the page and its
+  // last-edited meta only render for real content.
+  const rawNotesDoc = (todo as { notesDoc?: unknown }).notesDoc
+  const notesDoc =
+    typeof rawNotesDoc === 'string' && rawNotesDoc.trim().length > 0 ? rawNotesDoc : undefined
+  const rawDocAuthor = (todo as { notesDocAuthorRole?: unknown }).notesDocAuthorRole
+  const notesDocAuthorRole: WorktreeTodoAuthorRole | undefined =
+    notesDoc === undefined ? undefined : rawDocAuthor === 'agent' ? 'agent' : 'user'
+  const rawDocUpdatedAt = (todo as { notesDocUpdatedAt?: unknown }).notesDocUpdatedAt
+  const notesDocUpdatedAt =
+    notesDoc !== undefined &&
+    typeof rawDocUpdatedAt === 'number' &&
+    Number.isFinite(rawDocUpdatedAt) &&
+    rawDocUpdatedAt > 0
+      ? rawDocUpdatedAt
+      : undefined
   return {
     ...todo,
     scope,
     authorRole,
     order,
+    ...(notes !== undefined ? { notes } : { notes: undefined }),
+    ...(notesDoc !== undefined ? { notesDoc } : { notesDoc: undefined }),
+    ...(notesDocAuthorRole !== undefined
+      ? { notesDocAuthorRole }
+      : { notesDocAuthorRole: undefined }),
+    ...(notesDocUpdatedAt !== undefined ? { notesDocUpdatedAt } : { notesDocUpdatedAt: undefined }),
     ...(completedAt !== undefined ? { completedAt } : { completedAt: undefined }),
     ...(updatedAt !== undefined ? { updatedAt } : { updatedAt: undefined })
   }
@@ -87,47 +120,6 @@ export function nextTodoOrder(existing: readonly WorktreeTodo[]): number {
 export function ownerIdForInput(input: TodoInput): string | null {
   const ownerId = input.scope === 'worktree' ? input.worktreeId : input.repoId
   return ownerId && ownerId.trim().length > 0 ? ownerId : null
-}
-
-// Why: mirror diffComments' settingsForWorktreeOwner so a worktree owned by a
-// runtime environment persists through that environment's RPC target.
-function settingsForWorktreeOwner(state: AppState, worktreeId: string): AppState['settings'] {
-  const runtimeEnvironmentId = getRuntimeEnvironmentIdForWorktree(state, worktreeId)
-  return state.settings
-    ? { ...state.settings, activeRuntimeEnvironmentId: runtimeEnvironmentId }
-    : ({ activeRuntimeEnvironmentId: runtimeEnvironmentId } as AppState['settings'])
-}
-
-// Why: mirror the repo slice's owner-settings resolution so a repo pinned to a
-// runtime/ssh host persists through the right target instead of the active one.
-function settingsForRepoOwner(state: AppState, repoId: string): AppState['settings'] {
-  const repo = findRepoForHost(state.repos, repoId, { settings: state.settings })
-  if (!repo || (!repo.executionHostId && !repo.connectionId)) {
-    return state.settings
-  }
-  const parsed = parseExecutionHostId(getRepoExecutionHostId(repo))
-  if (parsed?.kind === 'runtime') {
-    return state.settings
-      ? { ...state.settings, activeRuntimeEnvironmentId: parsed.environmentId }
-      : ({ activeRuntimeEnvironmentId: parsed.environmentId } as AppState['settings'])
-  }
-  if (
-    (parsed?.kind === 'local' || parsed?.kind === 'ssh') &&
-    state.settings?.activeRuntimeEnvironmentId
-  ) {
-    return { ...state.settings, activeRuntimeEnvironmentId: null }
-  }
-  return state.settings
-}
-
-function settingsForOwner(
-  state: AppState,
-  scope: WorktreeTodoScope,
-  ownerId: string
-): AppState['settings'] {
-  return scope === 'worktree'
-    ? settingsForWorktreeOwner(state, ownerId)
-    : settingsForRepoOwner(state, ownerId)
 }
 
 async function persist(
@@ -284,6 +276,36 @@ export function mutateTodos(
     return null
   }
   return { previous, next }
+}
+
+// Why: shared engine for the three note actions — locate the target todo, run a
+// notes-list transform, and write the result back (empty list -> undefined). The
+// todo's updatedAt is bumped so a note change registers as activity. Returning
+// null (todo missing or transform no-op) propagates as "no mutation".
+export function mutateTodoNotes(
+  set: TodoSet,
+  scope: WorktreeTodoScope,
+  ownerId: string,
+  todoId: string,
+  transform: (notes: TodoNote[]) => TodoNote[] | null
+): TodoMutationResult | null {
+  return mutateTodos(set, scope, ownerId, (current) => {
+    const idx = current.findIndex((t) => t.id === todoId)
+    if (idx === -1) {
+      return null
+    }
+    const nextNotes = transform(current[idx].notes ?? [])
+    if (nextNotes === null) {
+      return null
+    }
+    const next = current.slice()
+    next[idx] = {
+      ...current[idx],
+      notes: nextNotes.length > 0 ? nextNotes : undefined,
+      updatedAt: Date.now()
+    }
+    return next
+  })
 }
 
 // Why: if the IPC write fails, roll back so what the user sees matches what will
