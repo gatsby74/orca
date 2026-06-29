@@ -160,11 +160,7 @@ import { FIRST_PANE_ID } from '../../shared/pane-key'
 import { isTerminalLeafId, makePaneKey, parsePaneKey } from '../../shared/stable-pane-id'
 import { parseAppSshPtyId } from '../../shared/ssh-pty-id'
 import { isValidHostTerminalTabId } from '../../shared/terminal-tab-id'
-import {
-  buildAgentDraftLaunchPlan,
-  buildAgentStartupPlan,
-  ORCA_LOCALHOST_OPEN_ENV_VALUE
-} from '../../shared/tui-agent-startup'
+import { buildAgentDraftLaunchPlan, buildAgentStartupPlan } from '../../shared/tui-agent-startup'
 import {
   isAgentForegroundWrapperProcess,
   isExpectedAgentProcess,
@@ -217,8 +213,7 @@ import type {
   WorkspacePortKillRequest,
   WorkspacePortKillResult,
   WorkspacePortProbe,
-  WorkspacePortScanResult,
-  WorkspacePort
+  WorkspacePortScanResult
 } from '../../shared/workspace-ports'
 import {
   filterWorkspacePortProbes,
@@ -226,8 +221,6 @@ import {
   scanWorkspacePortProbes
 } from '../ports/workspace-port-ownership'
 import { advertisedUrlWatcher } from '../ports/advertised-url-watcher'
-import { localhostWorktreeLabelProxy } from '../localhost-worktree-label-proxy'
-import { parseLoopbackUrlWithPort } from '../../shared/localhost-worktree-labels'
 import type {
   RuntimeGraphStatus,
   RuntimeRepoSearchRefs,
@@ -311,7 +304,7 @@ import {
 } from '../../shared/claude-agent-teams-tmux-compat'
 import { joinWorktreeRelativePath } from './runtime-relative-paths'
 import { collectMemorySnapshot } from '../memory/collector'
-import { BrowserWindow, ipcMain, shell } from 'electron'
+import { BrowserWindow, ipcMain } from 'electron'
 import type { AgentBrowserBridge } from '../browser/agent-browser-bridge'
 import type { BrowserBackend } from '../browser/browser-backend'
 import { BrowserError } from '../browser/cdp-bridge'
@@ -11450,67 +11443,6 @@ export class OrcaRuntimeService {
     return killWorkspacePort(await this.getWorkspacePortProbes(args.repoId), args)
   }
 
-  async labelLocalhostUrl(rawUrl: string): Promise<{
-    url: string
-    labeled: boolean
-    label?: string
-  }> {
-    const target = parseLoopbackUrlWithPort(rawUrl)
-    if (!target || this.requireStore().getSettings().localhostWorktreeLabelsEnabled === false) {
-      return { url: rawUrl, labeled: false }
-    }
-
-    const scan = await this.scanWorkspacePorts()
-    const port = scan.ports.find(
-      (candidate): candidate is WorkspacePort & { kind: 'workspace' } =>
-        candidate.kind === 'workspace' && candidate.port === Number(target.port)
-    )
-    if (!port) {
-      return { url: rawUrl, labeled: false }
-    }
-
-    const store = this.requireStore()
-    const repo = store.getRepos().find((entry) => entry.id === port.owner.repoId)
-    if (!repo) {
-      return { url: rawUrl, labeled: false }
-    }
-
-    const worktreeMeta = store.getWorktreeMeta(port.owner.worktreeId)
-    const project =
-      worktreeMeta?.projectId && store.getProjects
-        ? (store.getProjects().find((entry) => entry.id === worktreeMeta.projectId) ?? null)
-        : null
-    const projectSource = project ?? repo
-    try {
-      const result = await localhostWorktreeLabelProxy.registerRoute({
-        targetUrl: target.toString(),
-        projectName: projectSource.displayName,
-        worktreeName: port.owner.displayName,
-        worktreePath: port.owner.path,
-        repoId: repo.id,
-        worktreeId: port.owner.worktreeId
-      })
-      return { url: result.url, labeled: true, label: result.label }
-    } catch {
-      // Why: registerRoute rejects non-http targets (e.g. https); fall back to
-      // opening the raw URL rather than failing the open entirely.
-      return { url: rawUrl, labeled: false }
-    }
-  }
-
-  async openLocalhostUrl(rawUrl: string): Promise<{
-    url: string
-    labeled: boolean
-    label?: string
-  }> {
-    if (!parseLoopbackUrlWithPort(rawUrl)) {
-      throw new Error('Only localhost URLs with an explicit port can be opened through Orca.')
-    }
-    const result = await this.labelLocalhostUrl(rawUrl)
-    await shell.openExternal(result.url)
-    return result
-  }
-
   // Why: remote clients may invoke this over RPC, so the runtime derives
   // allowed worktree paths from its own store instead of trusting client paths.
   private async getWorkspacePortProbes(repoId?: string): Promise<WorkspacePortProbe[]> {
@@ -11675,8 +11607,7 @@ export class OrcaRuntimeService {
       agentArgs: resolveTuiAgentLaunchArgs(agent, settings.agentDefaultArgs),
       agentEnv: resolveTuiAgentLaunchEnv(agent, settings.agentDefaultEnv),
       platform: agentLaunchPlatform,
-      allowEmptyPromptLaunch: true,
-      includeLocalhostOpeningHint: Boolean(prompt?.trim()) && !repo.connectionId
+      allowEmptyPromptLaunch: true
     })
     if (!startupPlan) {
       throw new Error(`Could not build launch command for ${agent}.`)
@@ -15959,18 +15890,11 @@ export class OrcaRuntimeService {
       ORCA_TAB_ID: tabId,
       ORCA_WORKTREE_ID: scope.id
     }
-    const scopedEnv =
-      scope.connectionId === null
-        ? {
-            ...env,
-            ORCA_LOCALHOST_OPEN: ORCA_LOCALHOST_OPEN_ENV_VALUE
-          }
-        : env
     if (!scope.folderWorkspace) {
-      return scopedEnv
+      return env
     }
     return {
-      ...scopedEnv,
+      ...env,
       ORCA_WORKSPACE_ID: scope.id,
       ORCA_PROJECT_GROUP_ID: scope.folderWorkspace.projectGroupId,
       ORCA_WORKSPACE_ROOT: scope.folderWorkspace.folderPath

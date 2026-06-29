@@ -52,44 +52,4 @@ describe('workspace port RPC methods', () => {
     })
     expect(response).toMatchObject({ ok: true, result: { ok: true } })
   })
-
-  it('labels a localhost URL on the runtime host', async () => {
-    const result = {
-      url: 'http://feature.orca.localhost:7777/',
-      labeled: true,
-      label: 'feature'
-    }
-    const runtime = {
-      getRuntimeId: () => 'test-runtime',
-      labelLocalhostUrl: vi.fn().mockResolvedValue(result)
-    } as unknown as OrcaRuntimeService
-    const dispatcher = new RpcDispatcher({ runtime, methods: WORKSPACE_PORT_METHODS })
-
-    const response = await dispatcher.dispatch(
-      makeRequest('workspacePorts.labelLocalhostUrl', { url: 'http://localhost:5173/' })
-    )
-
-    expect(runtime.labelLocalhostUrl).toHaveBeenCalledWith('http://localhost:5173/')
-    expect(response).toMatchObject({ ok: true, result })
-  })
-
-  it('opens a localhost URL on the runtime host', async () => {
-    const result = {
-      url: 'http://feature.orca.localhost:7777/',
-      labeled: true,
-      label: 'feature'
-    }
-    const runtime = {
-      getRuntimeId: () => 'test-runtime',
-      openLocalhostUrl: vi.fn().mockResolvedValue(result)
-    } as unknown as OrcaRuntimeService
-    const dispatcher = new RpcDispatcher({ runtime, methods: WORKSPACE_PORT_METHODS })
-
-    const response = await dispatcher.dispatch(
-      makeRequest('workspacePorts.openLocalhostUrl', { url: 'http://localhost:5173/' })
-    )
-
-    expect(runtime.openLocalhostUrl).toHaveBeenCalledWith('http://localhost:5173/')
-    expect(response).toMatchObject({ ok: true, result })
-  })
 })

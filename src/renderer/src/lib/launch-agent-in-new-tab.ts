@@ -1,7 +1,6 @@
 import { toast } from 'sonner'
 import { useAppStore } from '@/store'
 import {
-  appendLocalhostOpeningHint,
   buildAgentDraftLaunchPlan,
   buildAgentStartupPlan,
   type AgentStartupPlan
@@ -122,9 +121,6 @@ export function launchAgentInNewTab(args: LaunchAgentInNewTabArgs): LaunchAgentI
       : resolveTuiAgentLaunchArgs(agent, store.settings?.agentDefaultArgs)
   const agentEnv = resolveTuiAgentLaunchEnv(agent, store.settings?.agentDefaultEnv)
   const trimmedPrompt = prompt?.trim() ?? ''
-  const promptWithLocalhostHint = repo?.connectionId
-    ? trimmedPrompt
-    : appendLocalhostOpeningHint(trimmedPrompt)
   const hasPrompt = trimmedPrompt.length > 0
   const isFollowupPath = TUI_AGENT_CONFIG[agent].promptInjectionMode === 'stdin-after-start'
   // Why: argv/flag agents fold the prompt into the launch command and
@@ -150,13 +146,13 @@ export function launchAgentInNewTab(args: LaunchAgentInNewTabArgs): LaunchAgentI
       agentEnv,
       allowEmptyPromptLaunch: true
     })
-    pasteDraftAfterLaunch = promptWithLocalhostHint
+    pasteDraftAfterLaunch = trimmedPrompt
     submitPastedPrompt = true
     forcePasteAfterLaunch = true
   } else if (hasPrompt && promptDelivery === 'draft') {
     const draftLaunchPlan = buildAgentDraftLaunchPlan({
       agent,
-      draft: promptWithLocalhostHint,
+      draft: trimmedPrompt,
       cmdOverrides,
       platform: resolvedLaunchPlatform,
       agentArgs: effectiveAgentArgs,
@@ -184,7 +180,7 @@ export function launchAgentInNewTab(args: LaunchAgentInNewTabArgs): LaunchAgentI
         agentEnv,
         allowEmptyPromptLaunch: true
       })
-      pasteDraftAfterLaunch = promptWithLocalhostHint
+      pasteDraftAfterLaunch = trimmedPrompt
     }
   } else if (hasPrompt && isFollowupPath) {
     startupPlan = buildAgentStartupPlan({
@@ -196,7 +192,7 @@ export function launchAgentInNewTab(args: LaunchAgentInNewTabArgs): LaunchAgentI
       agentEnv,
       allowEmptyPromptLaunch: true
     })
-    pasteDraftAfterLaunch = promptWithLocalhostHint
+    pasteDraftAfterLaunch = trimmedPrompt
   } else {
     startupPlan = buildAgentStartupPlan({
       agent,
@@ -205,8 +201,7 @@ export function launchAgentInNewTab(args: LaunchAgentInNewTabArgs): LaunchAgentI
       platform: resolvedLaunchPlatform,
       agentArgs: effectiveAgentArgs,
       agentEnv,
-      allowEmptyPromptLaunch: !hasPrompt,
-      includeLocalhostOpeningHint: hasPrompt && !repo?.connectionId
+      allowEmptyPromptLaunch: !hasPrompt
     })
   }
 

@@ -2,7 +2,6 @@ export {
   buildAgentResumeStartupPlan,
   buildAgentDraftLaunchPlan,
   buildAgentStartupPlan,
-  appendLocalhostOpeningHint,
   planAgentCliArgsSuffix,
   isShellProcess,
   quoteStartupArg,

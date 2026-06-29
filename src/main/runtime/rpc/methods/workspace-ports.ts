@@ -12,10 +12,6 @@ const WorkspacePortKillParams = z.object({
   port: requiredNumber('Missing port')
 })
 
-const WorkspacePortLocalhostUrlParams = z.object({
-  url: z.string().min(1, 'Missing URL')
-})
-
 export const WORKSPACE_PORT_METHODS: RpcMethod[] = [
   defineMethod({
     name: 'workspacePorts.scan',
@@ -31,15 +27,5 @@ export const WORKSPACE_PORT_METHODS: RpcMethod[] = [
         pid: params.pid,
         port: params.port
       })
-  }),
-  defineMethod({
-    name: 'workspacePorts.labelLocalhostUrl',
-    params: WorkspacePortLocalhostUrlParams,
-    handler: async (params, { runtime }) => runtime.labelLocalhostUrl(params.url)
-  }),
-  defineMethod({
-    name: 'workspacePorts.openLocalhostUrl',
-    params: WorkspacePortLocalhostUrlParams,
-    handler: async (params, { runtime }) => runtime.openLocalhostUrl(params.url)
   })
 ]

@@ -22,7 +22,6 @@ import { AGENT_HOOK_HANDLERS } from './handlers/agent-hooks'
 import { DIAGNOSTICS_HANDLERS } from './handlers/diagnostics'
 import { EMULATOR_HANDLERS } from './handlers/emulator'
 import { LINEAR_HANDLERS } from './handlers/linear'
-import { LOCALHOST_HANDLERS } from './handlers/localhost'
 
 export type HandlerContext = {
   flags: Map<string, string | boolean>
@@ -57,7 +56,6 @@ function buildHandlers(): Map<string, CommandHandler> {
     COMPUTER_HANDLERS,
     AGENT_HOOK_HANDLERS,
     DIAGNOSTICS_HANDLERS,
-    LOCALHOST_HANDLERS,
     ENVIRONMENT_HANDLERS,
     LINEAR_HANDLERS
   ]

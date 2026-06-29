@@ -3064,8 +3064,7 @@ export function useComposerState(options: UseComposerStateOptions): UseComposerS
         cmdOverrides: settings?.agentCmdOverrides ?? {},
         agentArgs: resolveTuiAgentLaunchArgs(tuiAgent, settings?.agentDefaultArgs),
         agentEnv: resolveTuiAgentLaunchEnv(tuiAgent, settings?.agentDefaultEnv),
-        platform: selectedRepoAgentLaunchPlatform,
-        includeLocalhostOpeningHint: selectedRepoConnectionId === null
+        platform: selectedRepoAgentLaunchPlatform
       })
       const shouldSeedInitialAgentStatus =
         tuiAgent === 'command-code' && submitStartupPrompt.trim().length > 0
@@ -3225,7 +3224,6 @@ export function useComposerState(options: UseComposerStateOptions): UseComposerS
     resolvedInitialWorkspaceStatus,
     selectedRepo,
     selectedRepoAgentLaunchPlatform,
-    selectedRepoConnectionId,
     selectedRepoIsGit,
     selectedRepoRequiresConnection,
     showProjectRequiredError,
@@ -3484,8 +3482,7 @@ export function useComposerState(options: UseComposerStateOptions): UseComposerS
             agentArgs: resolveTuiAgentLaunchArgs(agent, settings?.agentDefaultArgs),
             agentEnv: resolveTuiAgentLaunchEnv(agent, settings?.agentDefaultEnv),
             platform: selectedRepoAgentLaunchPlatform,
-            allowEmptyPromptLaunch: true,
-            includeLocalhostOpeningHint: selectedRepoConnectionId === null
+            allowEmptyPromptLaunch: true
           })
           if (startupPlan && quickDraftPrompt) {
             startupPlan.draftPrompt = quickDraftPrompt
@@ -3627,7 +3624,6 @@ export function useComposerState(options: UseComposerStateOptions): UseComposerS
       resolvedInitialWorkspaceStatus,
       selectedRepo,
       selectedRepoAgentLaunchPlatform,
-      selectedRepoConnectionId,
       selectedRepoIsGit,
       selectedRepoSettings,
       selectedRepoRequiresConnection,

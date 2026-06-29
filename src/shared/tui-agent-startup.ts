@@ -18,8 +18,6 @@ import type { StartupCommandDelivery } from './codex-startup-delivery'
 import type { TuiAgent } from './types'
 
 const WIN32_INLINE_DRAFT_LIMIT_CHARS = 24_000
-export const ORCA_LOCALHOST_OPEN_ENV_VALUE = 'orca localhost open --url'
-const LOCALHOST_OPENING_AGENT_HINT = `Orca local server note: when you need to open or share a localhost dev server URL and \`ORCA_LOCALHOST_OPEN\` is set, use the command text it contains with the URL appended; normally that is \`${ORCA_LOCALHOST_OPEN_ENV_VALUE} <url>\`. Do not use raw \`open\`, \`xdg-open\`, \`start\`, or a plain localhost link for this flow, because Orca needs to apply the server-owning worktree label before the browser opens.`
 
 export type AgentStartupPlan = {
   agent: TuiAgent
@@ -65,14 +63,6 @@ function buildSleepingAgentLaunchConfig(args: {
   }
 }
 
-export function appendLocalhostOpeningHint(prompt: string): string {
-  const trimmedPrompt = prompt.trim()
-  if (!trimmedPrompt || trimmedPrompt.includes(ORCA_LOCALHOST_OPEN_ENV_VALUE)) {
-    return trimmedPrompt
-  }
-  return `${trimmedPrompt}\n\n${LOCALHOST_OPENING_AGENT_HINT}`
-}
-
 export function buildAgentStartupPlan(args: {
   agent: TuiAgent
   prompt: string
@@ -82,13 +72,10 @@ export function buildAgentStartupPlan(args: {
   allowEmptyPromptLaunch?: boolean
   agentArgs?: string | null
   agentEnv?: Record<string, string> | null
-  includeLocalhostOpeningHint?: boolean
 }): AgentStartupPlan | null {
   const { agent, prompt, cmdOverrides, platform, allowEmptyPromptLaunch = false } = args
   const shell = resolveStartupShell(platform, args.shell)
-  const trimmedPrompt = args.includeLocalhostOpeningHint
-    ? appendLocalhostOpeningHint(prompt)
-    : prompt.trim()
+  const trimmedPrompt = prompt.trim()
   const config = TUI_AGENT_CONFIG[agent]
   const baseCommand = resolveBaseCommand({
     agent,

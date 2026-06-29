@@ -63,7 +63,6 @@ import {
   FLOATING_TERMINAL_WORKTREE_ID,
   getDefaultWorkspaceSession
 } from '../../shared/constants'
-import { ORCA_LOCALHOST_OPEN_ENV_VALUE } from '../../shared/tui-agent-startup'
 import { advertisedUrlWatcher } from '../ports/advertised-url-watcher'
 import { makePaneKey } from '../../shared/stable-pane-id'
 import { FOLDER_WORKSPACE_INSTANCE_SEPARATOR } from '../../shared/worktree-id'
@@ -111,7 +110,6 @@ const electronMocks = vi.hoisted(() => {
     BrowserWindow: { fromId: vi.fn((_id: number): unknown => null) },
     webContents: { fromId: vi.fn((_id: number): unknown => null) },
     ipcMain,
-    shell: { openExternal: vi.fn() },
     app: { getPath: vi.fn(() => '/tmp') }
   }
 })
@@ -498,7 +496,6 @@ function resetRuntimeTestMocks(): void {
   electronMocks.ipcMain.on.mockClear()
   electronMocks.ipcMain.removeListener.mockClear()
   electronMocks.ipcMain.emit.mockClear()
-  electronMocks.shell.openExternal.mockClear()
   vi.mocked(listWorktrees).mockResolvedValue(MOCK_GIT_WORKTREES)
   vi.mocked(listWorktreesStrict).mockResolvedValue(MOCK_GIT_WORKTREES)
   vi.mocked(addWorktree).mockReset()
@@ -1131,15 +1128,6 @@ computeWorktreePathMock.mockImplementation(
 ensurePathWithinWorkspaceMock.mockImplementation((targetPath: string) => targetPath)
 
 describe('OrcaRuntimeService', () => {
-  it('rejects non-loopback URLs before opening localhost labels externally', async () => {
-    const runtime = createRuntime()
-
-    await expect(runtime.openLocalhostUrl('file:///tmp/not-localhost')).rejects.toThrow(
-      'Only localhost URLs with an explicit port can be opened through Orca.'
-    )
-    expect(electronMocks.shell.openExternal).not.toHaveBeenCalled()
-  })
-
   it('projects worktree card display settings to paired clients', () => {
     const runtime = new OrcaRuntimeService({
       ...store,
@@ -6271,7 +6259,6 @@ describe('OrcaRuntimeService', () => {
     expectStablePaneKeyEnv(spawnedEnv)
     const spawnedLeafId = spawnedEnv.ORCA_PANE_KEY.slice(`${spawnedEnv.ORCA_TAB_ID}:`.length)
     expect(spawnedEnv.ORCA_WORKTREE_ID).toBe(TEST_WORKTREE_ID)
-    expect(spawnedEnv.ORCA_LOCALHOST_OPEN).toBe(ORCA_LOCALHOST_OPEN_ENV_VALUE)
     expect(spawnedEnv.ORCA_AGENT_LAUNCH_TOKEN).toMatch(UUID_RE)
     expect(revealTerminalSession).toHaveBeenCalledWith(TEST_WORKTREE_ID, {
       ptyId: 'pty-bg',
@@ -6329,7 +6316,6 @@ describe('OrcaRuntimeService', () => {
     expect(spawnedEnv.ORCA_PROJECT_GROUP_ID).toBe(TEST_FOLDER_PROJECT_GROUP_ID)
     expect(spawnedEnv.ORCA_WORKSPACE_ROOT).toBe(folderPath)
     expect(spawnedEnv.ORCA_WORKTREE_ID).toBe(TEST_FOLDER_WORKSPACE_KEY)
-    expect(spawnedEnv.ORCA_LOCALHOST_OPEN).toBe(ORCA_LOCALHOST_OPEN_ENV_VALUE)
   })
 
   it.each([
@@ -6833,7 +6819,6 @@ describe('OrcaRuntimeService', () => {
     expect(splitTerminal).not.toHaveBeenCalled()
     expect(splitEnv.ORCA_TAB_ID).toBe(sourceEnv.ORCA_TAB_ID)
     expect(splitEnv.ORCA_WORKTREE_ID).toBe(TEST_WORKTREE_ID)
-    expect(splitEnv.ORCA_LOCALHOST_OPEN).toBe(ORCA_LOCALHOST_OPEN_ENV_VALUE)
     expect(revealTerminalSession).toHaveBeenLastCalledWith(TEST_WORKTREE_ID, {
       ptyId: 'pty-split',
       title: null,
@@ -18584,9 +18569,7 @@ describe('OrcaRuntimeService', () => {
     expect(spawn).toHaveBeenCalledWith(
       expect.objectContaining({
         cwd: '/tmp/workspaces/runtime-cli-agent-startup',
-        command: expect.stringMatching(
-          /codex '--dangerously-bypass-approvals-and-sandbox' 'hi[\s\S]*localhost open --url/
-        ),
+        command: "codex '--dangerously-bypass-approvals-and-sandbox' 'hi'",
         worktreeId: result.worktree.id
       })
     )
@@ -18660,10 +18643,7 @@ describe('OrcaRuntimeService', () => {
       })
     )
     await vi.waitFor(() => {
-      expect(write).toHaveBeenCalledWith(
-        'pty-cli-aider-startup',
-        expect.stringMatching(/fix it[\s\S]*localhost open --url[\s\S]*\r/)
-      )
+      expect(write).toHaveBeenCalledWith('pty-cli-aider-startup', 'fix it\r')
     })
   })
 
