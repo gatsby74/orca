@@ -8,6 +8,7 @@ import type {
   LocalhostWorktreeLabelRoute
 } from '../shared/localhost-worktree-labels'
 import {
+  connectableLoopbackHost,
   getLocalhostWorktreeHostLabel,
   getLocalhostWorktreeRouteKey
 } from '../shared/localhost-worktree-labels'
@@ -19,20 +20,6 @@ type RegisteredRoute = LocalhostWorktreeLabelRoute & {
 }
 
 const ORCA_LOCALHOST_SUFFIX = '.orca.localhost'
-
-// Why: 0.0.0.0 and :: are wildcard bind addresses, not connectable
-// destinations (connecting to them fails on Windows). Normalize them to
-// the matching loopback before using the host as a proxy target.
-function connectableHost(hostname: string): string {
-  const bare = hostname.replace(/^\[|\]$/g, '').toLowerCase()
-  if (bare === '0.0.0.0') {
-    return '127.0.0.1'
-  }
-  if (bare === '::') {
-    return '::1'
-  }
-  return hostname
-}
 
 export class LocalhostWorktreeLabelProxy {
   private server: Server | null = null
@@ -171,7 +158,7 @@ export class LocalhostWorktreeLabelProxy {
 
     const target = targetUrlForRequest(route.target, request)
     const targetPort = Number(target.port || (target.protocol === 'https:' ? 443 : 80))
-    const targetSocket = net.connect(targetPort, connectableHost(target.hostname), () => {
+    const targetSocket = net.connect(targetPort, connectableLoopbackHost(target.hostname), () => {
       const headers = requestHeadersForTarget(request, route.target)
       targetSocket.write(
         `${request.method ?? 'GET'} ${target.pathname}${target.search} HTTP/${request.httpVersion}\r\n`
@@ -225,7 +212,7 @@ function requestForTarget(
 ): http.ClientRequest {
   const requestOptions = {
     protocol: target.protocol,
-    hostname: connectableHost(target.hostname),
+    hostname: connectableLoopbackHost(target.hostname),
     port: target.port || (target.protocol === 'https:' ? 443 : 80),
     path: `${target.pathname}${target.search}`,
     method: options.method,

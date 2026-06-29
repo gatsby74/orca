@@ -1,8 +1,10 @@
 import { ipcMain } from 'electron'
 import { URL } from 'node:url'
-import type {
-  LocalhostWorktreeLabelResult,
-  LocalhostWorktreeLabelRoute
+import {
+  LOOPBACK_LOCALHOST_HOSTS,
+  normalizeLocalhostHostname,
+  type LocalhostWorktreeLabelResult,
+  type LocalhostWorktreeLabelRoute
 } from '../../shared/localhost-worktree-labels'
 import type { Store } from '../persistence'
 import { localhostWorktreeLabelProxy } from '../localhost-worktree-label-proxy'
@@ -10,10 +12,6 @@ import {
   getStoreWorkspacePortProbes,
   scanWorkspacePortProbes
 } from '../ports/workspace-port-ownership'
-
-// Loopback hosts are always safe proxy targets; everything else must match a
-// currently-scanned workspace port (see assertAllowedTarget).
-const LOOPBACK_HOSTS = new Set(['localhost', '127.0.0.1', '0.0.0.0', '::1', '::'])
 
 export function registerLocalhostWorktreeLabelHandlers(store: Store): void {
   ipcMain.handle(
@@ -29,10 +27,6 @@ export function registerLocalhostWorktreeLabelHandlers(store: Store): void {
   )
 }
 
-function normalizeHostname(hostname: string): string {
-  return hostname.replace(/^\[|\]$/g, '').toLowerCase()
-}
-
 async function assertAllowedTarget(store: Store, targetUrl: string): Promise<void> {
   let parsed: URL
   try {
@@ -40,8 +34,8 @@ async function assertAllowedTarget(store: Store, targetUrl: string): Promise<voi
   } catch {
     throw new Error('Localhost label target is not a valid URL.')
   }
-  const targetHost = normalizeHostname(parsed.hostname)
-  if (LOOPBACK_HOSTS.has(targetHost)) {
+  const targetHost = normalizeLocalhostHostname(parsed.hostname)
+  if (LOOPBACK_LOCALHOST_HOSTS.has(targetHost)) {
     return
   }
 
@@ -53,7 +47,7 @@ async function assertAllowedTarget(store: Store, targetUrl: string): Promise<voi
     if (String(port.port) !== targetPort) {
       return false
     }
-    if (normalizeHostname(port.connectHost) === targetHost) {
+    if (normalizeLocalhostHostname(port.connectHost) === targetHost) {
       return true
     }
     const advertisedUrl = 'advertisedUrl' in port ? port.advertisedUrl : undefined
@@ -61,7 +55,7 @@ async function assertAllowedTarget(store: Store, targetUrl: string): Promise<voi
       return false
     }
     try {
-      return normalizeHostname(new URL(advertisedUrl).hostname) === targetHost
+      return normalizeLocalhostHostname(new URL(advertisedUrl).hostname) === targetHost
     } catch {
       return false
     }

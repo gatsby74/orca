@@ -16,7 +16,7 @@ import {
   refreshWorkspacePortScanAfterStop,
   resolvePortOpenInOrcaBrowser
 } from '@/lib/workspace-port-actions'
-import { localhostWorktreeLabelRouteForPort } from '@/lib/workspace-port-localhost-label'
+import { useLocalhostLabelRouteForPort } from '@/lib/workspace-port-localhost-label-selector'
 import { addressForPort } from '@/lib/workspace-port-urls'
 import type { WorkspacePort } from '../../../../shared/workspace-ports'
 import { WORKTREE_NATIVE_CONTEXT_MENU_ATTR } from './WorktreeContextMenu'
@@ -102,19 +102,7 @@ function PortAction({
 
 function WorktreePortRow({ port }: { port: WorkspacePort }): React.JSX.Element {
   const settings = useAppStore((s) => s.settings)
-  const portWorktreeId = port.kind === 'workspace' ? port.owner.worktreeId : null
-  const portRepoId = port.kind === 'workspace' ? port.owner.repoId : null
-  const portRepo = useAppStore((s) =>
-    portRepoId ? ((s.repos ?? []).find((repo) => repo.id === portRepoId) ?? null) : null
-  )
-  const portWorktree = useAppStore((s) =>
-    portWorktreeId ? (s.getKnownWorktreeById?.(portWorktreeId) ?? null) : null
-  )
-  const portProject = useAppStore((s) =>
-    portWorktree?.projectId
-      ? ((s.projects ?? []).find((project) => project.id === portWorktree.projectId) ?? null)
-      : null
-  )
+  const localhostLabelRoute = useLocalhostLabelRouteForPort(port)
   const runtimeEnvironmentId = useAppStore((s) =>
     getRuntimeEnvironmentIdForWorktree(s, port.kind === 'workspace' ? port.owner.worktreeId : null)
   )
@@ -131,12 +119,6 @@ function WorktreePortRow({ port }: { port: WorkspacePort }): React.JSX.Element {
   const processLabel = port.processName ?? (port.pid ? `PID ${port.pid}` : 'Unknown process')
   const address = addressForPort(port)
   const canStop = canStopWorkspacePort(port)
-  const localhostLabelRoute = localhostWorktreeLabelRouteForPort({
-    port,
-    repo: portRepo,
-    project: portProject,
-    settings
-  })
   const openBrowserLabel = translate(
     'auto.components.sidebar.WorktreeCardPorts.33bc7d7495',
     'Open in Browser'

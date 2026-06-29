@@ -227,6 +227,7 @@ import {
 } from '../ports/workspace-port-ownership'
 import { advertisedUrlWatcher } from '../ports/advertised-url-watcher'
 import { localhostWorktreeLabelProxy } from '../localhost-worktree-label-proxy'
+import { parseLoopbackUrlWithPort } from '../../shared/localhost-worktree-labels'
 import type {
   RuntimeGraphStatus,
   RuntimeRepoSearchRefs,
@@ -780,25 +781,6 @@ type RuntimeStore = {
     updates: Partial<GlobalSettings>,
     options?: { notifyListeners?: boolean; originWebContentsId?: number }
   ) => unknown
-}
-
-const LOOPBACK_LOCALHOST_HOSTS = new Set(['localhost', '127.0.0.1', '0.0.0.0', '::1', '::'])
-
-function parseLocalhostUrlWithPort(rawUrl: string): URL | null {
-  let url: URL
-  try {
-    url = new URL(rawUrl)
-  } catch {
-    return null
-  }
-  if (url.protocol !== 'http:' && url.protocol !== 'https:') {
-    return null
-  }
-  const hostname = url.hostname.replace(/^\[|\]$/g, '').toLowerCase()
-  if (!url.port || !LOOPBACK_LOCALHOST_HOSTS.has(hostname)) {
-    return null
-  }
-  return url
 }
 
 export type RuntimeAutomationCreateInput = Omit<
@@ -11473,7 +11455,7 @@ export class OrcaRuntimeService {
     labeled: boolean
     label?: string
   }> {
-    const target = parseLocalhostUrlWithPort(rawUrl)
+    const target = parseLoopbackUrlWithPort(rawUrl)
     if (!target || this.requireStore().getSettings().localhostWorktreeLabelsEnabled === false) {
       return { url: rawUrl, labeled: false }
     }
@@ -11521,7 +11503,7 @@ export class OrcaRuntimeService {
     labeled: boolean
     label?: string
   }> {
-    if (!parseLocalhostUrlWithPort(rawUrl)) {
+    if (!parseLoopbackUrlWithPort(rawUrl)) {
       throw new Error('Only localhost URLs with an explicit port can be opened through Orca.')
     }
     const result = await this.labelLocalhostUrl(rawUrl)

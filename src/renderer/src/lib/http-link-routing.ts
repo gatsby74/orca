@@ -1,5 +1,8 @@
 import { FLOATING_TERMINAL_WORKTREE_ID } from '../../../shared/constants'
-import type { LocalhostWorktreeLabelRoute } from '../../../shared/localhost-worktree-labels'
+import {
+  parseLoopbackUrlWithPort,
+  type LocalhostWorktreeLabelRoute
+} from '../../../shared/localhost-worktree-labels'
 import type { GlobalSettings } from '../../../shared/types'
 import type { WorkspacePort, WorkspacePortScanResult } from '../../../shared/workspace-ports'
 
@@ -35,8 +38,6 @@ type LocalhostLinkWorktree = {
   id: string
   projectId?: string
 }
-
-const LOOPBACK_TERMINAL_LINK_HOSTS = new Set(['localhost', '127.0.0.1', '0.0.0.0', '::1', '::'])
 
 // Why: store access is injected via registerHttpLinkStoreAccessor rather than
 // a direct `import '@/store'` to avoid a circular import — store/slices/editor.ts
@@ -163,24 +164,6 @@ function localhostLabelRouteForTerminalLink(
     repoId: repo.id,
     worktreeId: port.owner.worktreeId
   }
-}
-
-function parseLoopbackUrlWithPort(rawUrl: string): URL | null {
-  let parsed: URL
-  try {
-    parsed = new URL(rawUrl)
-  } catch {
-    return null
-  }
-  const hostname = parsed.hostname.replace(/^\[|\]$/g, '').toLowerCase()
-  if (
-    (parsed.protocol !== 'http:' && parsed.protocol !== 'https:') ||
-    !parsed.port ||
-    !LOOPBACK_TERMINAL_LINK_HOSTS.has(hostname)
-  ) {
-    return null
-  }
-  return parsed
 }
 
 function findWorkspacePortByNumber(

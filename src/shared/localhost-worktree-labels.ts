@@ -1,6 +1,44 @@
 const HOST_LABEL_MAX_LENGTH = 48
 const TRAILING_MAIN_PATTERN = /(?:^|[-_\s/])main$/i
 
+export const LOOPBACK_LOCALHOST_HOSTS = new Set(['localhost', '127.0.0.1', '0.0.0.0', '::1', '::'])
+
+export function normalizeLocalhostHostname(hostname: string): string {
+  return hostname.replace(/^\[|\]$/g, '').toLowerCase()
+}
+
+// Why: only http(s) loopback URLs with an explicit port can be attributed to a
+// scanned workspace port and labeled; everything else stays as-is.
+export function parseLoopbackUrlWithPort(rawUrl: string): URL | null {
+  let url: URL
+  try {
+    url = new URL(rawUrl)
+  } catch {
+    return null
+  }
+  if (url.protocol !== 'http:' && url.protocol !== 'https:') {
+    return null
+  }
+  if (!url.port || !LOOPBACK_LOCALHOST_HOSTS.has(normalizeLocalhostHostname(url.hostname))) {
+    return null
+  }
+  return url
+}
+
+// Why: 0.0.0.0 and :: are wildcard bind addresses, not connectable
+// destinations (connecting to them fails on Windows). Normalize them to the
+// matching loopback before using the host as a proxy target.
+export function connectableLoopbackHost(hostname: string): string {
+  const bare = normalizeLocalhostHostname(hostname)
+  if (bare === '0.0.0.0') {
+    return '127.0.0.1'
+  }
+  if (bare === '::') {
+    return '::1'
+  }
+  return hostname
+}
+
 export type LocalhostWorktreeLabelInput = {
   projectName: string
   worktreeName: string

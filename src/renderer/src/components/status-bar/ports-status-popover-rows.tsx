@@ -14,7 +14,7 @@ import {
   resolvePortOpenInOrcaBrowser
 } from '@/lib/workspace-port-actions'
 import type { WorkspacePortGroup } from '@/lib/workspace-port-groups'
-import { localhostWorktreeLabelRouteForPort } from '@/lib/workspace-port-localhost-label'
+import { useLocalhostLabelRouteForPort } from '@/lib/workspace-port-localhost-label-selector'
 import { getActiveRuntimeTarget } from '@/runtime/runtime-rpc-client'
 import { useAppStore } from '@/store'
 import { getRuntimeEnvironmentIdForWorktree } from '@/lib/worktree-runtime-owner'
@@ -77,19 +77,7 @@ export function PortRow({
   external?: boolean
 }): React.JSX.Element {
   const settings = useAppStore((s) => s.settings)
-  const portWorktreeId = port.kind === 'workspace' ? port.owner.worktreeId : null
-  const portRepoId = port.kind === 'workspace' ? port.owner.repoId : null
-  const portRepo = useAppStore((s) =>
-    portRepoId ? ((s.repos ?? []).find((repo) => repo.id === portRepoId) ?? null) : null
-  )
-  const portWorktree = useAppStore((s) =>
-    portWorktreeId ? (s.getKnownWorktreeById?.(portWorktreeId) ?? null) : null
-  )
-  const portProject = useAppStore((s) =>
-    portWorktree?.projectId
-      ? ((s.projects ?? []).find((project) => project.id === portWorktree.projectId) ?? null)
-      : null
-  )
+  const localhostLabelRoute = useLocalhostLabelRouteForPort(port)
   const runtimeEnvironmentId = useAppStore((s) =>
     getRuntimeEnvironmentIdForWorktree(
       s,
@@ -108,12 +96,6 @@ export function PortRow({
   )
   const processLabel = port.processName ?? (port.pid ? `PID ${port.pid}` : 'Unknown process')
   const canStop = canStopWorkspacePort(port)
-  const localhostLabelRoute = localhostWorktreeLabelRouteForPort({
-    port,
-    repo: portRepo,
-    project: portProject,
-    settings
-  })
   const openBrowserLabel = translate(
     'auto.components.status.bar.ports.status.popover.rows.085f4f0334',
     'Open in Browser'
