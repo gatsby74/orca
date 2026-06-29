@@ -11499,15 +11499,21 @@ export class OrcaRuntimeService {
         ? (store.getProjects().find((entry) => entry.id === worktreeMeta.projectId) ?? null)
         : null
     const projectSource = project ?? repo
-    const result = await localhostWorktreeLabelProxy.registerRoute({
-      targetUrl: target.toString(),
-      projectName: projectSource.displayName,
-      worktreeName: port.owner.displayName,
-      worktreePath: port.owner.path,
-      repoId: repo.id,
-      worktreeId: port.owner.worktreeId
-    })
-    return { url: result.url, labeled: true, label: result.label }
+    try {
+      const result = await localhostWorktreeLabelProxy.registerRoute({
+        targetUrl: target.toString(),
+        projectName: projectSource.displayName,
+        worktreeName: port.owner.displayName,
+        worktreePath: port.owner.path,
+        repoId: repo.id,
+        worktreeId: port.owner.worktreeId
+      })
+      return { url: result.url, labeled: true, label: result.label }
+    } catch {
+      // Why: registerRoute rejects non-http targets (e.g. https); fall back to
+      // opening the raw URL rather than failing the open entirely.
+      return { url: rawUrl, labeled: false }
+    }
   }
 
   async openLocalhostUrl(rawUrl: string): Promise<{

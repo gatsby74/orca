@@ -884,6 +884,9 @@ export function useTerminalPaneLifecycle({
           const mouseHideDisposable = installMouseHideWhileTyping(pane.terminal, pane.container)
           mouseHideDisposablesRef.current.set(pane.id, mouseHideDisposable)
         }
+        // Why: async tooltip formatting can resolve after hover changes, so a
+        // stale result must not overwrite the tooltip for a newer hover/leave.
+        let oscTooltipHoverToken = 0
         pane.terminal.options.linkHandler = {
           allowNonHttpProtocols: true,
           activate: (event, text) => {
@@ -906,15 +909,18 @@ export function useTerminalPaneLifecycle({
           // GitHub owner/repo#issue references emitted by CLI tools) — same
           // behaviour as the WebLinksAddon provides for plain-text URLs.
           hover: (_event, text) => {
+            oscTooltipHoverToken += 1
+            const hoverToken = oscTooltipHoverToken
             pane.linkTooltip.textContent = `${text} (${urlOpenLinkHint})`
             pane.linkTooltip.style.display = ''
             void formatTerminalUrlTooltip(text, urlOpenLinkHint).then((nextText) => {
-              if (nextText && pane.linkTooltip.style.display !== 'none') {
+              if (hoverToken === oscTooltipHoverToken && nextText) {
                 pane.linkTooltip.textContent = nextText
               }
             })
           },
           leave: () => {
+            oscTooltipHoverToken += 1
             pane.linkTooltip.style.display = 'none'
           }
         }

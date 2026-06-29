@@ -154,7 +154,7 @@ export function registerCoreHandlers(
   registerEmulatorFrameStreamHandlers()
   registerWorkspaceSpaceHandlers(store)
   registerWorkspacePortHandlers(store)
-  registerLocalhostWorktreeLabelHandlers()
+  registerLocalhostWorktreeLabelHandlers(store)
   if (commitMessageAgentEnv) {
     registerFilesystemHandlers(store, commitMessageAgentEnv)
   } else {

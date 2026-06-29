@@ -136,14 +136,26 @@ export class LocalhostWorktreeLabelProxy {
       headers: requestHeadersForTarget(request, route.target)
     })
 
+    // Why: a client abort or downstream socket error must tear down the
+    // upstream request instead of surfacing as an uncaught exception/leak.
+    request.on('error', () => proxyRequest.destroy())
+    response.on('error', () => proxyRequest.destroy())
+
     // Why: the proxy only relabels the hostname; responses are streamed
     // through untouched so app headers (CSP, cookies) and bodies are
     // preserved exactly as the dev server sent them.
     proxyRequest.on('response', (proxyResponse) => {
+      proxyResponse.on('error', () => response.destroy())
       response.writeHead(proxyResponse.statusCode ?? 502, proxyResponse.headers)
       proxyResponse.pipe(response)
     })
     proxyRequest.on('error', (error) => {
+      // Why: once headers/bytes are flushed we can't write a 502, so tear the
+      // socket down to avoid an ERR_HTTP_HEADERS_SENT crash.
+      if (response.headersSent) {
+        response.destroy(error)
+        return
+      }
       response.writeHead(502, { 'content-type': 'text/plain; charset=utf-8' })
       response.end(`Proxy failed for ${route.label}: ${error.message}`)
     })
@@ -181,6 +193,7 @@ export class LocalhostWorktreeLabelProxy {
       socket.pipe(targetSocket)
     })
     targetSocket.on('error', () => socket.destroy())
+    socket.on('error', () => targetSocket.destroy())
   }
 
   private routeForRequest(request: IncomingMessage): RegisteredRoute | null {
