@@ -23,7 +23,7 @@ import {
   resolveTuiAgentLaunchEnv
 } from '../../../shared/tui-agent-launch-defaults'
 import { TUI_AGENT_CONFIG } from '../../../shared/tui-agent-config'
-import { makePaneKey } from '../../../shared/stable-pane-id'
+import { seedCommandCodeSubmittedPromptStatus } from '@/lib/seed-command-code-submitted-prompt-status'
 import type { TuiAgent } from '../../../shared/types'
 import type { LaunchSource } from '../../../shared/telemetry-events'
 import { translate } from '@/i18n/i18n'
@@ -68,23 +68,6 @@ export type LaunchAgentInNewTabResult = {
   startupPlan: AgentStartupPlan
   pasteDraftAfterLaunch: boolean
 } | null
-
-function seedCommandCodeSubmittedPromptStatus(tabId: string, prompt: string): void {
-  const state = useAppStore.getState()
-  const leafId = state.terminalLayoutsByTabId[tabId]?.activeLeafId
-  if (!leafId) {
-    return
-  }
-  try {
-    state.setAgentStatus(makePaneKey(tabId, leafId), {
-      state: 'working',
-      prompt,
-      agentType: 'command-code'
-    })
-  } catch {
-    // Best-effort UI seed. Real hooks still own refinement/completion.
-  }
-}
 
 /**
  * Create a new terminal tab and queue the agent's launch command, optionally
