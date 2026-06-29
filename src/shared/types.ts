@@ -2541,7 +2541,8 @@ export type GlobalSettings = {
    *  until the user explicitly wants worktree-scoped in-app browsing. */
   openLinksInApp: boolean
   /** Why: worktree-scoped localhost hostnames make same-app tabs distinguishable
-   *  in external browsers, while this switch preserves a raw localhost escape hatch. */
+   *  in external browsers. Opt-in (default off): serving the app under a different
+   *  host can break dev apps that bind cookies/sessions to localhost. */
   localhostWorktreeLabelsEnabled?: boolean
   /** Why: terminal link routing asks once at first use instead of silently
    *  changing where links open for new users. */

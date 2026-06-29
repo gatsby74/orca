@@ -14,7 +14,7 @@ export function localhostWorktreeLabelRouteForPort({
   project?: Project | null
   settings: Pick<GlobalSettings, 'localhostWorktreeLabelsEnabled'> | null | undefined
 }): LocalhostWorktreeLabelRoute | null {
-  if (settings?.localhostWorktreeLabelsEnabled === false || port.kind !== 'workspace' || !repo) {
+  if (settings?.localhostWorktreeLabelsEnabled !== true || port.kind !== 'workspace' || !repo) {
     return null
   }
   const projectSource = project ?? repo

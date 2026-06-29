@@ -30,10 +30,10 @@ export function BrowserLocalhostWorktreeLabelsSetting({
       <SettingsSwitchRow
         label={title}
         description={description}
-        checked={settings.localhostWorktreeLabelsEnabled !== false}
+        checked={settings.localhostWorktreeLabelsEnabled === true}
         onChange={() =>
           updateSettings({
-            localhostWorktreeLabelsEnabled: settings.localhostWorktreeLabelsEnabled === false
+            localhostWorktreeLabelsEnabled: settings.localhostWorktreeLabelsEnabled !== true
           })
         }
       />

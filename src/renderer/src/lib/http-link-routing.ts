@@ -131,7 +131,7 @@ function localhostLabelRouteForTerminalLink(
   state: ReturnType<StoreAccessor>
 ): LocalhostWorktreeLabelRoute | null {
   if (
-    state.settings?.localhostWorktreeLabelsEnabled === false ||
+    state.settings?.localhostWorktreeLabelsEnabled !== true ||
     state.settings?.activeRuntimeEnvironmentId?.trim()
   ) {
     return null
