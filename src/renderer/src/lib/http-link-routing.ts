@@ -27,8 +27,6 @@ type StoreAccessor = () => {
 type LocalhostLinkRepo = {
   id: string
   displayName: string
-  repoIcon?: LocalhostWorktreeLabelRoute['repoIcon']
-  badgeColor?: string
 }
 
 type LocalhostLinkProject = LocalhostLinkRepo
@@ -163,9 +161,7 @@ function localhostLabelRouteForTerminalLink(
     worktreeName: port.owner.displayName,
     worktreePath: port.owner.path,
     repoId: repo.id,
-    worktreeId: port.owner.worktreeId,
-    repoIcon: projectSource.repoIcon ?? repo.repoIcon ?? null,
-    badgeColor: projectSource.badgeColor ?? repo.badgeColor
+    worktreeId: port.owner.worktreeId
   }
 }
 

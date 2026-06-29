@@ -11505,9 +11505,7 @@ export class OrcaRuntimeService {
       worktreeName: port.owner.displayName,
       worktreePath: port.owner.path,
       repoId: repo.id,
-      worktreeId: port.owner.worktreeId,
-      repoIcon: projectSource.repoIcon ?? repo.repoIcon ?? null,
-      badgeColor: projectSource.badgeColor ?? repo.badgeColor
+      worktreeId: port.owner.worktreeId
     })
     return { url: result.url, labeled: true, label: result.label }
   }

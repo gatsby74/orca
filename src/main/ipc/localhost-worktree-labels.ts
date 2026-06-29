@@ -3,7 +3,6 @@ import type {
   LocalhostWorktreeLabelResult,
   LocalhostWorktreeLabelRoute
 } from '../../shared/localhost-worktree-labels'
-import { sanitizeRepoIcon } from '../../shared/repo-icon'
 import { localhostWorktreeLabelProxy } from '../localhost-worktree-label-proxy'
 
 export function registerLocalhostWorktreeLabelHandlers(): void {
@@ -23,15 +22,12 @@ function parseRegisterArgs(value: unknown): LocalhostWorktreeLabelRoute {
   const targetUrl = readRequiredString(candidate.targetUrl, 'targetUrl')
   const projectName = readRequiredString(candidate.projectName, 'projectName')
   const worktreeName = readRequiredString(candidate.worktreeName, 'worktreeName')
-  const repoIcon = sanitizeRepoIcon(candidate.repoIcon)
   return {
     targetUrl,
     projectName,
     worktreeName,
     repoId: readOptionalString(candidate.repoId),
-    worktreeId: readOptionalString(candidate.worktreeId),
-    repoIcon: repoIcon === undefined ? undefined : repoIcon,
-    badgeColor: readOptionalString(candidate.badgeColor)
+    worktreeId: readOptionalString(candidate.worktreeId)
   }
 }
 

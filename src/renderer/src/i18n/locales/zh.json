@@ -11349,21 +11349,6 @@
                 }
               }
             }
-          },
-          "LocalhostLabelMock": {
-            "tabTitlePreview": "Tab title preview:",
-            "ariaLabel": "Localhost label mock",
-            "buttonLabel": "Label mock",
-            "tooltip": "Compare localhost worktree labels",
-            "popoverTitle": "Localhost labeling mock",
-            "friendlyHostTitle": "Labeled URL",
-            "friendlyHostDescription": "Show an Orca-managed host alias instead of forcing users to remember ports.",
-            "titlePrefixTitle": "Title prefix",
-            "titlePrefixDescription": "Prefix the browser title with the worktree name so identical apps differ in tabs.",
-            "faviconBadgeTitle": "Favicon badge",
-            "faviconBadgeDescription": "Use a small color-coded mark per worktree for fast visual scanning.",
-            "pageChipTitle": "In-page chip",
-            "pageChipDescription": "Overlay a compact label in the page for screenshots and full-screen testing."
           }
         }
       },

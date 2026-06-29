@@ -1,5 +1,3 @@
-import type { RepoIcon } from './repo-icon'
-
 const HOST_LABEL_MAX_LENGTH = 48
 const TRAILING_MAIN_PATTERN = /(?:^|[-_\s/])main$/i
 
@@ -18,8 +16,6 @@ export type LocalhostWorktreeLabelRoute = {
   worktreePath?: string | null
   repoId?: string | null
   worktreeId?: string | null
-  repoIcon?: RepoIcon | null
-  badgeColor?: string | null
 }
 
 export type LocalhostWorktreeLabelResult = {

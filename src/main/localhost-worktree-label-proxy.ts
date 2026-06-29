@@ -11,20 +11,28 @@ import {
   getLocalhostWorktreeHostLabel,
   getLocalhostWorktreeRouteKey
 } from '../shared/localhost-worktree-labels'
-import { createLocalhostWorktreeFaviconDataUrl } from './localhost-worktree-label-favicon'
 
 type RegisteredRoute = LocalhostWorktreeLabelRoute & {
   label: string
   routeKey: string
   target: URL
-  faviconHref: string
 }
 
-type LocalhostLabelHtmlRoute = Pick<RegisteredRoute, 'label' | 'projectName' | 'faviconHref'>
-
 const ORCA_LOCALHOST_SUFFIX = '.orca.localhost'
-const HTML_CONTENT_TYPE_PATTERN = /\btext\/html\b/i
-const TITLE_FALLBACK_PATTERN = /^(?:https?:\/\/)?(?:localhost|127\.0\.0\.1|\[::1\])/i
+
+// Why: 0.0.0.0 and :: are wildcard bind addresses, not connectable
+// destinations (connecting to them fails on Windows). Normalize them to
+// the matching loopback before using the host as a proxy target.
+function connectableHost(hostname: string): string {
+  const bare = hostname.replace(/^\[|\]$/g, '').toLowerCase()
+  if (bare === '0.0.0.0') {
+    return '127.0.0.1'
+  }
+  if (bare === '::') {
+    return '::1'
+  }
+  return hostname
+}
 
 export class LocalhostWorktreeLabelProxy {
   private server: Server | null = null
@@ -44,12 +52,7 @@ export class LocalhostWorktreeLabelProxy {
       ...route,
       label,
       routeKey,
-      target,
-      faviconHref: createLocalhostWorktreeFaviconDataUrl({
-        repoIcon: route.repoIcon,
-        badgeColor: route.badgeColor,
-        projectName: route.projectName
-      })
+      target
     }
     this.routes.set(label, registered)
     this.routeKeys.set(routeKey, label)
@@ -133,22 +136,12 @@ export class LocalhostWorktreeLabelProxy {
       headers: requestHeadersForTarget(request, route.target)
     })
 
+    // Why: the proxy only relabels the hostname; responses are streamed
+    // through untouched so app headers (CSP, cookies) and bodies are
+    // preserved exactly as the dev server sent them.
     proxyRequest.on('response', (proxyResponse) => {
-      const headers = responseHeaders(proxyResponse.headers)
-      const contentType = String(proxyResponse.headers['content-type'] ?? '')
-      if (!HTML_CONTENT_TYPE_PATTERN.test(contentType)) {
-        response.writeHead(proxyResponse.statusCode ?? 502, headers)
-        proxyResponse.pipe(response)
-        return
-      }
-
-      const chunks: Buffer[] = []
-      proxyResponse.on('data', (chunk) => chunks.push(Buffer.from(chunk)))
-      proxyResponse.on('end', () => {
-        const html = Buffer.concat(chunks).toString('utf8')
-        response.writeHead(proxyResponse.statusCode ?? 200, htmlResponseHeaders(headers))
-        response.end(injectLocalhostLabelHtml(html, route))
-      })
+      response.writeHead(proxyResponse.statusCode ?? 502, proxyResponse.headers)
+      proxyResponse.pipe(response)
     })
     proxyRequest.on('error', (error) => {
       response.writeHead(502, { 'content-type': 'text/plain; charset=utf-8' })
@@ -166,7 +159,7 @@ export class LocalhostWorktreeLabelProxy {
 
     const target = targetUrlForRequest(route.target, request)
     const targetPort = Number(target.port || (target.protocol === 'https:' ? 443 : 80))
-    const targetSocket = net.connect(targetPort, target.hostname, () => {
+    const targetSocket = net.connect(targetPort, connectableHost(target.hostname), () => {
       const headers = requestHeadersForTarget(request, route.target)
       targetSocket.write(
         `${request.method ?? 'GET'} ${target.pathname}${target.search} HTTP/${request.httpVersion}\r\n`
@@ -219,7 +212,7 @@ function requestForTarget(
 ): http.ClientRequest {
   const requestOptions = {
     protocol: target.protocol,
-    hostname: target.hostname,
+    hostname: connectableHost(target.hostname),
     port: target.port || (target.protocol === 'https:' ? 443 : 80),
     path: `${target.pathname}${target.search}`,
     method: options.method,
@@ -239,53 +232,5 @@ function targetUrlForRequest(target: URL, request: IncomingMessage): URL {
 function requestHeadersForTarget(request: IncomingMessage, target: URL): http.OutgoingHttpHeaders {
   const headers: http.OutgoingHttpHeaders = { ...request.headers }
   headers.host = target.host
-  headers['accept-encoding'] = 'identity'
   return headers
-}
-
-function responseHeaders(headers: http.IncomingHttpHeaders): http.OutgoingHttpHeaders {
-  const next: http.OutgoingHttpHeaders = { ...headers }
-  delete next['content-length']
-  delete next['content-encoding']
-  delete next['content-security-policy']
-  return next
-}
-
-function htmlResponseHeaders(headers: http.OutgoingHttpHeaders): http.OutgoingHttpHeaders {
-  return {
-    ...headers,
-    'content-type': 'text/html; charset=utf-8'
-  }
-}
-
-function escapeScriptString(value: string): string {
-  return JSON.stringify(value).replace(/</g, '\\u003c')
-}
-
-function escapeHtmlAttribute(value: string): string {
-  return value.replace(/[&<>"']/g, (char) => {
-    switch (char) {
-      case '&':
-        return '&amp;'
-      case '<':
-        return '&lt;'
-      case '>':
-        return '&gt;'
-      case '"':
-        return '&quot;'
-      default:
-        return '&#39;'
-    }
-  })
-}
-
-export function injectLocalhostLabelHtml(html: string, route: LocalhostLabelHtmlRoute): string {
-  const label = `[${route.label}]`
-  const script = `<script>(()=>{const p=${escapeScriptString(label)};const isBad=t=>!t||${TITLE_FALLBACK_PATTERN.toString()}.test(t);let last='';const apply=()=>{const raw=(document.title||'').trim();if(raw.startsWith(p)){last=raw.slice(p.length).trim()||last;return}if(raw&&!isBad(raw))last=raw;const title=last||raw||${escapeScriptString(route.projectName)};const next=title.startsWith(p)?title:p+' '+title;if(document.title!==next)document.title=next};new MutationObserver(apply).observe(document.querySelector('title')||document.documentElement,{childList:true,subtree:true,characterData:true});apply();})();</script>`
-  const favicon = `<link rel="icon" href="${escapeHtmlAttribute(route.faviconHref)}">`
-  const injection = `${favicon}${script}`
-  if (/<\/head>/i.test(html)) {
-    return html.replace(/<\/head>/i, `${injection}</head>`)
-  }
-  return `${injection}${html}`
 }

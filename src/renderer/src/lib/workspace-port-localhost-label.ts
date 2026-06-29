@@ -23,8 +23,6 @@ export function localhostWorktreeLabelRouteForPort({
     projectName: projectSource.displayName,
     worktreeName: port.owner.displayName,
     repoId: repo.id,
-    worktreeId: port.owner.worktreeId,
-    repoIcon: projectSource.repoIcon ?? repo.repoIcon ?? null,
-    badgeColor: projectSource.badgeColor ?? repo.badgeColor
+    worktreeId: port.owner.worktreeId
   }
 }
