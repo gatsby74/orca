@@ -2,6 +2,7 @@ import { resolve, relative, isAbsolute, posix, sep, win32 } from 'node:path'
 import type { GlobalSettings, OrcaWorkspaceLayout } from '../../shared/global-settings-types'
 import type { Repo } from '../../shared/repo-types'
 import type { WorktreeLocationMode } from '../../shared/worktree-location-mode'
+import { isNestedWorktreeLocation } from '../../shared/worktree-location-mode'
 import { isWindowsAbsolutePathLike, resolveRuntimePath } from '../../shared/cross-platform-path'
 import { isWslUncPath } from '../../shared/wsl-paths'
 import { splitWorktreeId } from '../../shared/worktree/id'
@@ -11,6 +12,8 @@ import { getWslHome, getWslHomeAsync, parseWslPath } from '../wsl'
 type WorktreePathSettings = Pick<GlobalSettings, 'nestWorkspaces' | 'workspaceDir'> & {
   worktreeLocationMode?: WorktreeLocationMode
 }
+type WorktreeLocationSettings = Pick<GlobalSettings, 'nestWorkspaces' | 'workspaceDir'> &
+  Partial<Pick<GlobalSettings, 'defaultWorktreeLocationMode'>>
 type WorktreeBasePathRepo = Pick<Repo, 'path' | 'worktreeBasePath' | 'worktreeLocationMode'>
 
 export const NESTED_WORKTREE_DIRECTORY = '.worktrees'
@@ -200,9 +203,9 @@ export function computeRemoteWorktreePath(
 
 export function getWorktreePathSettings(
   repo: WorktreeBasePathRepo,
-  settings: WorktreePathSettings
+  settings: WorktreeLocationSettings
 ): WorktreePathSettings {
-  if (repo.worktreeLocationMode === 'nested') {
+  if (isNestedWorktreeLocation(repo, settings)) {
     return {
       nestWorkspaces: false,
       workspaceDir: NESTED_WORKTREE_DIRECTORY,
@@ -217,9 +220,9 @@ export function getWorktreePathSettings(
 
 export function getWorktreeCreationLayout(
   repo: WorktreeBasePathRepo,
-  settings: WorktreePathSettings
+  settings: WorktreeLocationSettings
 ): OrcaWorkspaceLayout {
-  if (repo.worktreeLocationMode === 'nested') {
+  if (isNestedWorktreeLocation(repo, settings)) {
     return {
       path: NESTED_WORKTREE_DIRECTORY,
       nestWorkspaces: false,
@@ -232,8 +235,11 @@ export function getWorktreeCreationLayout(
   }
 }
 
-export function usesNestedWorktreeLocation(repo: Pick<Repo, 'worktreeLocationMode'>): boolean {
-  return repo.worktreeLocationMode === 'nested'
+export function usesNestedWorktreeLocation(
+  repo: Pick<Repo, 'worktreeLocationMode'>,
+  settings: Partial<Pick<GlobalSettings, 'defaultWorktreeLocationMode'>>
+): boolean {
+  return isNestedWorktreeLocation(repo, settings)
 }
 
 export function hasRepoWorktreeBasePath(repo: Pick<Repo, 'worktreeBasePath'>): boolean {
