@@ -923,6 +923,7 @@ import {
   removeWorktree
 } from '../git/worktree'
 import type { AddWorktreeOptions, AddWorktreeResult } from '../git/worktree'
+import { ensureLocalNestedWorktreeRootIgnored } from '../git/nested-worktree-exclude'
 import { isENOENT, invalidateAuthorizedRootsCache } from '../ipc/filesystem-auth'
 import {
   createSetupRunnerScript,
@@ -995,6 +996,7 @@ import {
   formatWorktreeRemovalError,
   getWorktreeCreationLayout,
   getWorktreePathSettings,
+  usesNestedWorktreeLocation,
   isOrphanCompatiblePreflightError,
   isOrphanedWorktreeError,
   mergeWorktree,
@@ -19566,6 +19568,7 @@ export class OrcaRuntimeService {
         | 'hookSettings'
         | 'worktreeBaseRef'
         | 'worktreeBasePath'
+        | 'worktreeLocationMode'
         | 'kind'
         | 'symlinkPaths'
         | 'issueSourcePreference'
@@ -19601,6 +19604,9 @@ export class OrcaRuntimeService {
     ) {
       sanitizedUpdates.externalWorktreeDiscoverySuppressedAt = undefined
     }
+    if ('worktreeLocationMode' in updates && updates.worktreeLocationMode === undefined) {
+      sanitizedUpdates.worktreeLocationMode = undefined
+    }
     if ('sourceControlAi' in updates && updates.sourceControlAi === null) {
       sanitizedUpdates.sourceControlAi = null
     }
@@ -19608,7 +19614,7 @@ export class OrcaRuntimeService {
     if (!updated) {
       throw new Error('repo_not_found')
     }
-    if ('worktreeBasePath' in updates) {
+    if ('worktreeBasePath' in updates || 'worktreeLocationMode' in updates) {
       await prepareLocalWorktreeRootForRepo(this.store, updated)
       invalidateAuthorizedRootsCache()
     }
@@ -22872,6 +22878,9 @@ export class OrcaRuntimeService {
       checkoutExistingBranch,
       ...remoteTrackingBaseOption,
       ...(suggestLocalBaseRefUpdate ? { suggestLocalBaseRefUpdate } : {})
+    }
+    if (usesNestedWorktreeLocation(repo)) {
+      await ensureLocalNestedWorktreeRootIgnored(repo.path, localWorktreeGitOptions)
     }
     const defaultAddWorktreeOption = addProjectGitOptions()
     let addResult: AddWorktreeResult

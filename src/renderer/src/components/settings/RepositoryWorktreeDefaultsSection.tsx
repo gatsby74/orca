@@ -6,6 +6,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '.
 import { BaseRefPicker } from './BaseRefPicker'
 import { RepoSettingsDraftInput } from './RepositorySettingsDraftInput'
 import { SearchableSetting } from './SearchableSetting'
+import { SettingsSwitchRow } from './SettingsFormControls'
 import { translate } from '@/i18n/i18n'
 import { getRepoExecutionHostId } from '../../../../shared/execution-host'
 import {
@@ -13,7 +14,10 @@ import {
   isLegacyRepoForExternalWorktreeVisibility
 } from '../../../../shared/external-worktree-visibility'
 
-type RepositoryWorktreeDefaultsUpdate = Pick<Repo, 'worktreeBasePath' | 'worktreeBaseRef'> & {
+type RepositoryWorktreeDefaultsUpdate = Pick<
+  Repo,
+  'worktreeBasePath' | 'worktreeBaseRef' | 'worktreeLocationMode'
+> & {
   externalWorktreeVisibility?: Repo['externalWorktreeVisibility'] | null
 }
 
@@ -53,6 +57,7 @@ export function RepositoryWorktreeDefaultsSection({
       await refreshRepo(repo.id)
     }
   }
+  const nestedWorktrees = repo.worktreeLocationMode === 'nested'
   return (
     <>
       <SearchableSetting
@@ -182,7 +187,15 @@ export function RepositoryWorktreeDefaultsSection({
         <RepoSettingsDraftInput
           repoId={repo.id}
           storeValue={repo.worktreeBasePath ?? ''}
-          placeholder={settings?.workspaceDir ?? ''}
+          placeholder={
+            nestedWorktrees
+              ? translate(
+                  'auto.components.settings.RepositoryPane.nestedWorktreesPlaceholder',
+                  '.worktrees'
+                )
+              : (settings?.workspaceDir ?? '')
+          }
+          disabled={nestedWorktrees}
           onTextChange={() => {}}
           onBlur={(e) => {
             const worktreeBasePath = e.currentTarget.value.trim() || undefined
@@ -201,6 +214,30 @@ export function RepositoryWorktreeDefaultsSection({
             'Relative paths resolve from this project root.'
           )}
         </p>
+        <SettingsSwitchRow
+          label={translate(
+            'auto.components.settings.RepositoryPane.nestedWorktreesLabel',
+            'Store worktrees inside this project'
+          )}
+          description={translate(
+            'auto.components.settings.RepositoryPane.nestedWorktreesDescription',
+            'Create new worktrees in .worktrees inside the project root and keep that folder ignored.'
+          )}
+          checked={nestedWorktrees}
+          onChange={() =>
+            updateRepo(repo.id, {
+              worktreeLocationMode: nestedWorktrees ? undefined : 'nested'
+            })
+          }
+        />
+        {nestedWorktrees ? (
+          <p className="text-xs text-muted-foreground">
+            {translate(
+              'auto.components.settings.RepositoryPane.nestedWorktreesPath',
+              'New worktrees will be created under .worktrees in this project.'
+            )}
+          </p>
+        ) : null}
       </SearchableSetting>
     </>
   )

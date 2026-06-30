@@ -5,6 +5,7 @@ import type { GitLabProjectSettings } from './gitlab-types'
 import type { TaskProvider } from './task-providers'
 import type { KeybindingOverrides, TerminalShortcutPolicy } from './keybindings'
 import type { AppIconId } from './app-icon'
+import type { WorktreeLocationMode } from './worktree-location-mode'
 import type { SourceControlAiSettings } from './source-control-ai-types'
 import type { ClaudeAgentTeamsMode } from './claude-agent-teams-tmux-compat'
 import type { TerminalCustomTheme } from './terminal-custom-themes'
@@ -458,6 +459,7 @@ export type GlobalSettings = {
 export type OrcaWorkspaceLayout = {
   path: string
   nestWorkspaces: boolean
+  worktreeLocationMode?: WorktreeLocationMode
 }
 
 export type GhosttyImportPreview = {

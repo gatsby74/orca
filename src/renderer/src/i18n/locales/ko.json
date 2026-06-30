@@ -6635,7 +6635,11 @@
           "show": "표시",
           "hide": "숨기기",
           "externalWorktreesGlobal": "전역 기본값: {{value0}}",
-          "useGlobal": "전역 설정 사용"
+          "useGlobal": "전역 설정 사용",
+          "nestedWorktreesLabel": "Store worktrees inside this project",
+          "nestedWorktreesDescription": "Create new worktrees in .worktrees inside the project root and keep that folder ignored.",
+          "nestedWorktreesPath": "New worktrees will be created under .worktrees in this project.",
+          "nestedWorktreesPlaceholder": ".worktrees"
         },
         "RepositorySourceControlAiActionRows": {
           "548a6e1281": "명령 템플릿",

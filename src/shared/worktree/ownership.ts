@@ -33,9 +33,16 @@ export { shouldShowWorktree } from '../worktree-visibility-resolution'
 
 export function buildKnownOrcaWorkspaceLayouts(
   settings: Pick<GlobalSettings, 'workspaceDir' | 'nestWorkspaces' | 'workspaceDirHistory'>,
-  repo?: Pick<Repo, 'path' | 'connectionId' | 'worktreeBasePath'>
+  repo?: Pick<Repo, 'path' | 'connectionId' | 'worktreeBasePath' | 'worktreeLocationMode'>
 ): OrcaWorkspaceLayout[] {
   const layouts: OrcaWorkspaceLayout[] = []
+  if (repo?.worktreeLocationMode === 'nested') {
+    layouts.push({
+      path: resolveRuntimePath(repo.path, '.worktrees'),
+      nestWorkspaces: false,
+      worktreeLocationMode: 'nested'
+    })
+  }
   const repoBasePath = getRepoWorktreeBasePath(repo)
   if (repo && repoBasePath) {
     layouts.push({
@@ -247,6 +254,45 @@ function hasStrongOrcaMetadata(meta: WorktreeMeta | undefined): boolean {
     meta?.sparsePresetId ||
     meta?.preserveBranchOnDelete
   )
+}
+
+export function matchesStrongOrcaCreatePath(
+  worktreePath: string,
+  knownOrcaLayouts: readonly OrcaWorkspaceLayout[],
+  repo: Pick<Repo, 'path'>
+): boolean {
+  const repoName = getRuntimePathBasename(repo.path).replace(/\.git$/i, '')
+  if (!repoName) {
+    return false
+  }
+  for (const layout of knownOrcaLayouts) {
+    if (layout.worktreeLocationMode === 'nested') {
+      const relative = relativePathInsideRoot(layout.path, worktreePath)
+      if (relative === null) {
+        continue
+      }
+      return splitNormalizedPath(relative).length === 1
+    }
+    if (!layout.nestWorkspaces) {
+      continue
+    }
+    const relative = relativePathInsideRoot(layout.path, worktreePath)
+    if (relative === null) {
+      continue
+    }
+    const segments = splitNormalizedPath(relative)
+    const caseInsensitive =
+      isWindowsAbsolutePathLike(layout.path) || isWindowsAbsolutePathLike(worktreePath)
+    if (
+      segments.length === 2 &&
+      normalizePathSegment(segments[0], caseInsensitive) ===
+        normalizePathSegment(repoName, caseInsensitive) &&
+      segments[1].length > 0
+    ) {
+      return true
+    }
+  }
+  return false
 }
 
 function isUnderFlatOrUntrustedOrcaRoot(
