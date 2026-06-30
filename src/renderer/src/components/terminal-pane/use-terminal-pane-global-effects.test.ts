@@ -199,6 +199,15 @@ describe('useTerminalPaneGlobalEffects', () => {
       }
     }
     ;(globalThis as unknown as { ResizeObserver: unknown }).ResizeObserver = MockResizeObserver
+    // Why: the light tab-switch repaint is deferred to the next animation frame;
+    // run it synchronously so the resume assertions can observe refreshAllPanes.
+    vi.stubGlobal(
+      'requestAnimationFrame',
+      vi.fn((callback: FrameRequestCallback) => {
+        callback(0)
+        return 1
+      })
+    )
   })
 
   afterEach(() => {
@@ -297,6 +306,7 @@ describe('useTerminalPaneGlobalEffects', () => {
       getPanes: vi.fn(() => [{ id: 1, terminal }]),
       resumeRendering: vi.fn(),
       resetWebglTextureAtlases: vi.fn(),
+      refreshAllPanes: vi.fn(),
       suspendRendering: vi.fn(),
       fitAllPanes: vi.fn(),
       getActivePane: vi.fn(() => null),
@@ -326,6 +336,7 @@ describe('useTerminalPaneGlobalEffects', () => {
 
     manager.resumeRendering.mockClear()
     manager.resetWebglTextureAtlases.mockClear()
+    manager.refreshAllPanes.mockClear()
     manager.suspendRendering.mockClear()
     mocks.fitAndFocusPanes.mockClear()
     mocks.fitPanes.mockClear()
@@ -355,6 +366,9 @@ describe('useTerminalPaneGlobalEffects', () => {
     expect(mocks.fitAndFocusPanes).not.toHaveBeenCalled()
     expect(mocks.fitPanes).not.toHaveBeenCalled()
     expect(manager.resetWebglTextureAtlases).not.toHaveBeenCalled()
+    // Why: the light resume repaints (deferred) so a tab returned with unchanged
+    // geometry does not keep the stale glyphs xterm accumulated while hidden.
+    expect(manager.refreshAllPanes).toHaveBeenCalledTimes(1)
     expect(mocks.focusActivePane).toHaveBeenCalledWith(manager)
   })
 
@@ -364,6 +378,7 @@ describe('useTerminalPaneGlobalEffects', () => {
       getPanes: vi.fn(() => [{ id: 1, terminal }]),
       resumeRendering: vi.fn(),
       resetWebglTextureAtlases: vi.fn(),
+      refreshAllPanes: vi.fn(),
       suspendRendering: vi.fn(),
       fitAllPanes: vi.fn(),
       getActivePane: vi.fn(() => null),
@@ -393,6 +408,7 @@ describe('useTerminalPaneGlobalEffects', () => {
 
     manager.resumeRendering.mockClear()
     manager.resetWebglTextureAtlases.mockClear()
+    manager.refreshAllPanes.mockClear()
     mocks.fitAndFocusPanes.mockClear()
     mocks.fitPanes.mockClear()
     mocks.focusActivePane.mockClear()
@@ -412,6 +428,7 @@ describe('useTerminalPaneGlobalEffects', () => {
     expect(mocks.fitAndFocusPanes).not.toHaveBeenCalled()
     expect(mocks.fitPanes).not.toHaveBeenCalled()
     expect(manager.resetWebglTextureAtlases).not.toHaveBeenCalled()
+    expect(manager.refreshAllPanes).toHaveBeenCalledTimes(1)
     expect(mocks.focusActivePane).toHaveBeenCalledWith(manager)
   })
 

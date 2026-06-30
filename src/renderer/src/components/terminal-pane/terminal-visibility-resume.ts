@@ -55,6 +55,7 @@ export function resumeTerminalVisibility({
       // overlay's delayed geometry fit. Still request hidden-output recovery:
       // agent TUIs can suppress hidden bytes until the pane is foregrounded.
       requestLightTabBacklogRecovery(manager)
+      scheduleLightTabRepaint(manager)
       if (isActive) {
         focusActivePane(manager)
       }
@@ -111,6 +112,23 @@ function requestLightTabBacklogRecovery(manager: PaneManager): void {
   for (const pane of manager.getPanes()) {
     requestTerminalBacklogRecovery(pane.terminal)
   }
+}
+
+function scheduleLightTabRepaint(manager: PaneManager): void {
+  // Why: an intra-worktree tab switch re-fits the overlay (see #6041), but
+  // safeFit early-returns without repainting when cols/rows are unchanged (the
+  // common case), so xterm keeps the glyphs accumulated while the tab was
+  // hidden until the user scrolls. Repaint after the overlay's deferred
+  // geometry settles — the programmatic equivalent of that scroll refresh. The
+  // worktree-switch heavy path repaints through its own resume instead.
+  const repaint = (): void => {
+    manager.refreshAllPanes?.()
+  }
+  if (typeof requestAnimationFrame === 'function') {
+    requestAnimationFrame(repaint)
+    return
+  }
+  setTimeout(repaint, 0)
 }
 
 function resumeTerminalVisibilityHeavy(manager: PaneManager, isActive: boolean): void {
