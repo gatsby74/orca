@@ -5321,6 +5321,7 @@ export class Store {
       forkSyncMode: rawForkSyncMode,
       customWorktreeVisibilitySources: rawCustomWorktreeVisibilitySources,
       worktreeVisibilitySourcePreferences: rawWorktreeVisibilitySourcePreferences,
+      worktreeLocationMode: rawWorktreeLocationMode,
       ...repoWithoutIcon
     } = repo
     const repoIcon = sanitizeRepoIcon(rawRepoIcon)
@@ -5335,6 +5336,12 @@ export class Store {
     const worktreeVisibilitySourcePreferences = normalizeWorktreeVisibilitySourcePreferences(
       rawWorktreeVisibilitySourcePreferences
     )
+    // Why: writes are guarded, but a malformed on-disk value must not survive a
+    // reload — normalize unknown modes to undefined so the global default applies.
+    const worktreeLocationMode =
+      rawWorktreeLocationMode === 'sibling' || rawWorktreeLocationMode === 'nested'
+        ? rawWorktreeLocationMode
+        : undefined
     // Why: never spawn git/gh username resolution in hydration — a stuck probe froze Windows startup for minutes (issue #7225); read only cache/persisted value.
     const gitUsername = isFolderRepo(repo)
       ? ''
@@ -5352,6 +5359,7 @@ export class Store {
       ...(worktreeVisibilitySourcePreferences !== undefined
         ? { worktreeVisibilitySourcePreferences }
         : {}),
+      ...(worktreeLocationMode !== undefined ? { worktreeLocationMode } : {}),
       kind: isFolderRepo(repo) ? 'folder' : 'git',
       gitUsername,
       hookSettings: {
