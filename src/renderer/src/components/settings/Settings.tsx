@@ -1307,21 +1307,6 @@ function Settings(): React.JSX.Element {
                   {isSectionMounted('orchestration') ? <OrchestrationPane /> : null}
                 </SettingsSection>
 
-                <SettingsSection
-                  id="skills"
-                  title={translate('auto.components.settings.Settings.skillsTitle', 'Skills')}
-                  description={translate(
-                    'auto.components.settings.Settings.skillsDescription',
-                    'Browse local agent skills by provider and source.'
-                  )}
-                  badge={translate('auto.hooks.useSettingsNavigationMetadata.skillsBeta', 'Beta')}
-                  searchEntries={getSectionSearchEntries('skills')}
-                  headerAction={<SkillsManageButton />}
-                  bodyClassName="rounded-none border-0 bg-transparent p-0 shadow-none"
-                >
-                  {isSectionMounted('skills') ? <SkillsSettingsPane /> : null}
-                </SettingsSection>
-
                 {linearConnected ? (
                   <SettingsSection
                     id="linear"
@@ -1338,6 +1323,23 @@ function Settings(): React.JSX.Element {
 
                 {showDesktopOnlySettings ? (
                   <>
+                    <SettingsSection
+                      id="skills"
+                      title={translate('auto.components.settings.Settings.skillsTitle', 'Skills')}
+                      description={translate(
+                        'auto.components.settings.Settings.skillsDescription',
+                        'Browse local agent skills by provider and source.'
+                      )}
+                      badge={translate(
+                        'auto.hooks.useSettingsNavigationMetadata.skillsBeta',
+                        'Beta'
+                      )}
+                      searchEntries={getSectionSearchEntries('skills')}
+                      headerAction={<SkillsManageButton />}
+                      bodyClassName="rounded-none border-0 bg-transparent p-0 shadow-none"
+                    >
+                      {isSectionMounted('skills') ? <SkillsSettingsPane /> : null}
+                    </SettingsSection>
                     <SettingsSection
                       id="computer-use"
                       title={translate(

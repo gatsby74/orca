@@ -908,9 +908,6 @@
         "f70ac54d38": "AI Provider Accounts",
         "4121f7a0a2": "Manage AI agents, set a default, and customize commands.",
         "b49abbd2f7": "Agents",
-        "skillsBeta": "Beta",
-        "skillsTitle": "Skills",
-        "skillsDescription": "Browse local agent skills by provider and source.",
         "dev": "Dev Tools",
         "devDescription": "Dev-only tools for exercising UI states.",
         "devBadge": "Dev",
@@ -931,7 +928,10 @@
         "artifactsDescription": "Share HTML and Markdown files with your team and manage their public links.",
         "automationsTitle": "Automations",
         "automationsDescription": "Schedule agent work and choose whether Automations appears in the sidebar.",
-        "floatingWorkspaceWebDescription": "Global terminal and markdown tabs."
+        "floatingWorkspaceWebDescription": "Global terminal and markdown tabs.",
+        "skillsBeta": "Beta",
+        "skillsTitle": "Skills",
+        "skillsDescription": "Browse local agent skills by provider and source."
       },
       "useAppMenuPaste": {
         "pasteTooLarge": "Paste is too large."
@@ -4539,7 +4539,6 @@
           "5687ab246a": "GitHub",
           "5f83d86d92": "Changelog",
           "cdc87f897e": "Docs",
-          "1a2f3b9d44": "Skills",
           "e565171a7c": "Keyboard Shortcuts",
           "4cf5b868d7": "Send Feedback",
           "a428c25998": "Settings",
@@ -4549,7 +4548,8 @@
           "d396773ef0": "checking",
           "f8a2c91d4e": "Milestones",
           "b7e4d2a19c": "Onboarding",
-          "c4f8e1b72a": "X"
+          "c4f8e1b72a": "X",
+          "1a2f3b9d44": "Skills"
         },
         "SidebarToolbar": {
           "87d0064026": "Workspace board moved to the bottom bar",
@@ -7354,13 +7354,13 @@
           "23c6874fdf": "AI Capabilities",
           "2309068a6f": "destructive",
           "65358016ea": "Discard",
-          "skillsTitle": "Skills",
-          "skillsDescription": "Browse local agent skills by provider and source.",
           "dev": "Dev Tools",
           "devDescription": "Dev-only tools for exercising UI states.",
           "linearTitle": "Linear",
           "linearDescription": "How Linear works in Orca, setup checklist, agent skill, and example prompts.",
-          "tasksDescription": "Connect providers, install the Linear skill, and choose what appears in Tasks."
+          "tasksDescription": "Connect providers, install the Linear skill, and choose what appears in Tasks.",
+          "skillsTitle": "Skills",
+          "skillsDescription": "Browse local agent skills by provider and source."
         },
         "SettingsFormControls": {
           "42a4d15a30": "No matching fonts.",
@@ -9873,15 +9873,7 @@
           "f5ed5dcbf6": "Press keys…"
         },
         "ShortcutRemoveButton": {
-          "9e29aff18b": "Remove {{value0},
-        "skillsSearch": {
-          "title": "Skills",
-          "description": "Browse local Codex, Claude, Agent Skills, bundled, repository, and plugin skills.",
-          "keywordGallery": "skills gallery",
-          "keywordCodex": "codex skills",
-          "keywordClaude": "claude skills",
-          "keywordPlugins": "plugin skills"
-        }} shortcut {{value1}}",
+          "9e29aff18b": "Remove {{value0}} shortcut {{value1}}",
           "2a9588b1c2": "Remove this binding"
         },
         "BrowserLocalhostWorktreeLabelsSetting": {
@@ -10747,6 +10739,14 @@
           "cancel": "Keep cleaning",
           "stopping": "Stopping…",
           "confirm": "Stop cleanup"
+        },
+        "skillsSearch": {
+          "title": "Skills",
+          "description": "Browse local Codex, Claude, Agent Skills, bundled, repository, and plugin skills.",
+          "keywordGallery": "skills gallery",
+          "keywordCodex": "codex skills",
+          "keywordClaude": "claude skills",
+          "keywordPlugins": "plugin skills"
         }
       },
       "right": {

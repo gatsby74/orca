@@ -809,7 +809,6 @@
         "f70ac54d38": "AI 제공자 계정",
         "4121f7a0a2": "AI agents를 관리하고, 기본값을 설정하고, 명령을 사용자 정의하세요.",
         "b49abbd2f7": "에이전트",
-<<<<<<< HEAD
         "dev": "개발자 도구",
         "devDescription": "UI 상태를 테스트하기 위한 개발자 전용 도구.",
         "devBadge": "Dev",
@@ -825,12 +824,10 @@
         "linearDescription": "Orca에서 Linear가 작동하는 방식, 설정 체크리스트, 에이전트 스킬, 프롬프트 예시입니다.",
         "pluginsTitle": "플러그인",
         "pluginsDescription": "실험적인 Orca 플러그인을 설치하고 관리합니다.",
-        "tasksDescription": "제공업체를 연결하고 Linear 스킬을 설치한 다음 작업에 표시할 항목을 선택하세요."
-=======
-        "skillsBeta": "Beta",
-        "skillsTitle": "Skills",
-        "skillsDescription": "Browse local agent skills by provider and source."
->>>>>>> d2e81f2591 (Move skills gallery into settings)
+        "tasksDescription": "제공업체를 연결하고 Linear 스킬을 설치한 다음 작업에 표시할 항목을 선택하세요.",
+        "skillsBeta": "베타",
+        "skillsTitle": "스킬",
+        "skillsDescription": "제공자와 소스별로 로컬 에이전트 스킬을 탐색합니다."
       },
       "useAppMenuPaste": {
         "pasteTooLarge": "붙여넣기 내용이 너무 큽니다."
@@ -4307,7 +4304,6 @@
           "5687ab246a": "GitHub",
           "5f83d86d92": "변경 내역",
           "cdc87f897e": "문서",
-          "1a2f3b9d44": "스킬",
           "e565171a7c": "키보드 단축키",
           "4cf5b868d7": "피드백 보내기",
           "a428c25998": "설정",
@@ -4317,7 +4313,8 @@
           "d396773ef0": "확인 중",
           "f8a2c91d4e": "마일스톤",
           "b7e4d2a19c": "온보딩",
-          "c4f8e1b72a": "X"
+          "c4f8e1b72a": "X",
+          "1a2f3b9d44": "스킬"
         },
         "SidebarToolbar": {
           "19e32d0e5f": "폴더 선택기를 열어 프로젝트를 추가하세요.",
@@ -6923,16 +6920,13 @@
           "23c6874fdf": "AI 기능",
           "2309068a6f": "파괴적",
           "65358016ea": "버리기",
-<<<<<<< HEAD
           "dev": "Dev Tools",
           "devDescription": "UI 상태를 시험해 보기 위한 개발 전용 도구입니다.",
           "linearTitle": "Linear",
           "linearDescription": "Orca에서 Linear가 작동하는 방식, 설정 체크리스트, 에이전트 스킬, 프롬프트 예시입니다.",
-          "tasksDescription": "제공업체를 연결하고 Linear 스킬을 설치한 다음 작업에 표시할 항목을 선택하세요."
-=======
-          "skillsTitle": "Skills",
-          "skillsDescription": "Browse local agent skills by provider and source."
->>>>>>> d2e81f2591 (Move skills gallery into settings)
+          "tasksDescription": "제공업체를 연결하고 Linear 스킬을 설치한 다음 작업에 표시할 항목을 선택하세요.",
+          "skillsTitle": "스킬",
+          "skillsDescription": "제공자와 소스별로 로컬 에이전트 스킬을 탐색합니다."
         },
         "SettingsFormControls": {
           "42a4d15a30": "일치하는 글꼴이 없습니다.",
@@ -9457,7 +9451,6 @@
           "f5ed5dcbf6": "키를 누르세요…"
         },
         "ShortcutRemoveButton": {
-<<<<<<< HEAD
           "9e29aff18b": "{{value0}} 바로가기 {{value1}} 제거",
           "2a9588b1c2": "이 바인딩 제거"
         },
@@ -10153,18 +10146,14 @@
           "saveFailed": "가시성 기본값을 저장할 수 없습니다.",
           "updateServer": "소스 기본값을 구성하려면 이 서버를 업데이트하세요.",
           "updateServerDefaults": "표시 기본값을 구성하려면 이 서버를 업데이트하세요."
-=======
-          "9e29aff18b": "Remove {{value0}} shortcut {{value1}}",
-          "2a9588b1c2": "Remove this binding"
         },
         "skillsSearch": {
-          "title": "Skills",
-          "description": "Browse local Codex, Claude, Agent Skills, bundled, repository, and plugin skills.",
-          "keywordGallery": "skills gallery",
-          "keywordCodex": "codex skills",
-          "keywordClaude": "claude skills",
-          "keywordPlugins": "plugin skills"
->>>>>>> d2e81f2591 (Move skills gallery into settings)
+          "title": "스킬",
+          "description": "로컬 Codex, Claude, Agent Skills, 번들, 저장소, 플러그인 스킬을 탐색합니다.",
+          "keywordGallery": "스킬 갤러리",
+          "keywordCodex": "Codex 스킬",
+          "keywordClaude": "Claude 스킬",
+          "keywordPlugins": "플러그인 스킬"
         }
       },
       "right": {

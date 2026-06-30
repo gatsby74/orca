@@ -805,7 +805,6 @@
         "cd50cec5d7": "Orca を通じて複数のコーディング Agent を調整します。",
         "58a868e8e4": "オーケストレーション",
         "7c79d3b7bf": "任意",
-<<<<<<< HEAD
         "b1c2f8b0ac": "Claude、Codex、Gemini、OpenCode Go、MiniMax、Grok の任意のアカウント切り替えと使用量設定。",
         "f70ac54d38": "AI プロバイダーアカウント",
         "4121f7a0a2": "AI Agent を管理し、デフォルトを設定し、コマンドをカスタマイズします。",
@@ -825,16 +824,10 @@
         "linearDescription": "Orca での Linear の仕組み、セットアップチェックリスト、Agent スキル、プロンプト例。",
         "pluginsTitle": "プラグイン",
         "pluginsDescription": "実験的機能の Orca プラグインをインストール・管理します。",
-        "tasksDescription": "プロバイダーを接続し、Linear スキルをインストールして、タスクに表示する項目を選択します。"
-=======
-        "b1c2f8b0ac": "Claude、Codex、Gemini、OpenCode Go のオプションのアカウント切り替え。",
-        "f70ac54d38": "AI プロバイダー アカウント",
-        "4121f7a0a2": "AI agents を管理し、デフォルトを設定し、コマンドをカスタマイズします。",
-        "b49abbd2f7": "エージェント",
-        "skillsBeta": "Beta",
-        "skillsTitle": "Skills",
-        "skillsDescription": "Browse local agent skills by provider and source."
->>>>>>> d2e81f2591 (Move skills gallery into settings)
+        "tasksDescription": "プロバイダーを接続し、Linear スキルをインストールして、タスクに表示する項目を選択します。",
+        "skillsBeta": "ベータ",
+        "skillsTitle": "スキル",
+        "skillsDescription": "プロバイダーとソース別にローカルのエージェントスキルを閲覧します。"
       },
       "useAppMenuPaste": {
         "pasteTooLarge": "貼り付け内容が大きすぎます。"
@@ -4311,7 +4304,6 @@
           "5687ab246a": "GitHub",
           "5f83d86d92": "変更履歴",
           "cdc87f897e": "ドキュメント",
-          "1a2f3b9d44": "スキル",
           "e565171a7c": "キーボードショートカット",
           "4cf5b868d7": "フィードバックを送信する",
           "a428c25998": "設定",
@@ -4321,7 +4313,8 @@
           "d396773ef0": "チェック中",
           "f8a2c91d4e": "マイルストーン",
           "b7e4d2a19c": "オンボーディング",
-          "c4f8e1b72a": "X"
+          "c4f8e1b72a": "X",
+          "1a2f3b9d44": "スキル"
         },
         "SidebarToolbar": {
           "19e32d0e5f": "フォルダーピッカーを開いてプロジェクトを追加します",
@@ -6964,16 +6957,13 @@
           "23c6874fdf": "AI 機能",
           "2309068a6f": "破壊的な",
           "65358016ea": "破棄",
-<<<<<<< HEAD
           "dev": "開発者ツール",
           "devDescription": "UI の状態を確認するための開発者専用ツール。",
           "linearTitle": "Linear",
           "linearDescription": "Orca での Linear の仕組み、セットアップチェックリスト、Agent スキル、プロンプト例。",
-          "tasksDescription": "プロバイダーを接続し、Linear スキルをインストールして、タスクに表示する項目を選択します。"
-=======
-          "skillsTitle": "Skills",
-          "skillsDescription": "Browse local agent skills by provider and source."
->>>>>>> d2e81f2591 (Move skills gallery into settings)
+          "tasksDescription": "プロバイダーを接続し、Linear スキルをインストールして、タスクに表示する項目を選択します。",
+          "skillsTitle": "スキル",
+          "skillsDescription": "プロバイダーとソース別にローカルのエージェントスキルを閲覧します。"
         },
         "SettingsFormControls": {
           "42a4d15a30": "一致するフォントがありません。",
@@ -9461,7 +9451,6 @@
           "f5ed5dcbf6": "キーを押してください…"
         },
         "ShortcutRemoveButton": {
-<<<<<<< HEAD
           "9e29aff18b": "{{value0}} ショートカット {{value1}} を削除",
           "2a9588b1c2": "このバインディングを削除"
         },
@@ -10157,18 +10146,14 @@
           "saveFailed": "表示設定のデフォルトを保存できませんでした。",
           "updateServer": "ソースのデフォルトを設定するには、このサーバーを更新してください。",
           "updateServerDefaults": "表示のデフォルトを設定するには、このサーバーを更新してください。"
-=======
-          "9e29aff18b": "Remove {{value0}} shortcut {{value1}}",
-          "2a9588b1c2": "Remove this binding"
         },
         "skillsSearch": {
-          "title": "Skills",
-          "description": "Browse local Codex, Claude, Agent Skills, bundled, repository, and plugin skills.",
-          "keywordGallery": "skills gallery",
-          "keywordCodex": "codex skills",
-          "keywordClaude": "claude skills",
-          "keywordPlugins": "plugin skills"
->>>>>>> d2e81f2591 (Move skills gallery into settings)
+          "title": "スキル",
+          "description": "ローカルの Codex、Claude、Agent Skills、バンドル、リポジトリ、プラグインのスキルを閲覧します。",
+          "keywordGallery": "スキルギャラリー",
+          "keywordCodex": "Codex スキル",
+          "keywordClaude": "Claude スキル",
+          "keywordPlugins": "プラグインスキル"
         }
       },
       "right": {
