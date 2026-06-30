@@ -241,6 +241,7 @@ import {
   MAX_DEFERRED_REATTACH_LIVE_CHARS
 } from './deferred-reattach-live-data-queue'
 import { createTerminalGitHubPRLinkDetector } from '../../../../shared/terminal-github-pr-link-detector'
+import { createCodexAutoRelaunchAfterUpdate } from './codex-auto-relaunch-after-update'
 import {
   CONPTY_DA1_RESPONSE,
   DEFAULT_DA1_RESPONSE,
@@ -2988,6 +2989,16 @@ export function connectPanePty(
     }
     setRendererPtyVisibilityClaim(transport, ptyId, visible)
   }
+  const codexAutoRelaunchAfterUpdate = createCodexAutoRelaunchAfterUpdate({
+    startupCommand: paneStartup?.command,
+    getPtyId: () => transport.getPtyId(),
+    inspectForegroundProcess: async (ptyId) => {
+      const inspection = await inspectRuntimeTerminalProcess(useAppStore.getState().settings, ptyId)
+      return inspection.foregroundProcess
+    },
+    sendInput: (data) => transport.sendInput(data),
+    isDisposed: () => disposed
+  })
   const bindActivePanePty = (
     ptyId: string,
     options: {
@@ -7759,6 +7770,7 @@ export function connectPanePty(
       if (codexBackfillNotice) {
         reportError(codexBackfillNotice)
       }
+      codexAutoRelaunchAfterUpdate.observeOutput(data)
       // Why: split panes have visible-but-inactive panes the user watches; throttle only when the pane or whole document is hidden.
       const foreground =
         shouldWritePtyOutputForeground(deps.isVisibleRef.current) && meta?.background !== true
@@ -9402,6 +9414,7 @@ export function connectPanePty(
         clearTimeout(shiftEnterReconfirmTimer)
         shiftEnterReconfirmTimer = null
       }
+      codexAutoRelaunchAfterUpdate.dispose()
       // Why: resolve in-flight passphrase-gate waits so their zustand subscribers + async IIFEs don't hang when the pane is torn down before SSH state changes.
       while (waitTeardowns.length > 0) {
         const teardown = waitTeardowns.pop()
