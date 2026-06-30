@@ -807,6 +807,7 @@
         "7c79d3b7bf": "Opcional",
         "b1c2f8b0ac": "Configuración opcional de cuentas y uso para Claude, Codex, Gemini, OpenCode Go, MiniMax y Grok.",
         "f70ac54d38": "Cuentas de proveedores de IA",
+<<<<<<< HEAD
         "4121f7a0a2": "Administra agentes de IA, define uno predeterminado y personaliza comandos.",
         "b49abbd2f7": "Agentes",
         "dev": "Herramientas de desarrollo",
@@ -825,6 +826,13 @@
         "pluginsTitle": "Plugins",
         "pluginsDescription": "Instala y administra plugins experimentales de Orca.",
         "tasksDescription": "Conecta proveedores, instala la habilidad de Linear y elige qué aparece en Tareas."
+=======
+        "4121f7a0a2": "Administre agents de IA, establezca un valor predeterminado y personalice comandos.",
+        "b49abbd2f7": "Agentes",
+        "skillsBeta": "Beta",
+        "skillsTitle": "Skills",
+        "skillsDescription": "Browse local agent skills by provider and source."
+>>>>>>> d2e81f2591 (Move skills gallery into settings)
       },
       "useAppMenuPaste": {
         "pasteTooLarge": "El contenido pegado es demasiado grande."
@@ -6932,11 +6940,16 @@
           "23c6874fdf": "Capacidades de IA",
           "2309068a6f": "destructivo",
           "65358016ea": "Desechar",
+<<<<<<< HEAD
           "dev": "Herramientas de desarrollo",
           "devDescription": "Herramientas solo de desarrollo para probar estados de la UI.",
           "linearTitle": "Linear",
           "linearDescription": "Cómo funciona Linear en Orca, lista de configuración, habilidad del agente y ejemplos de prompts.",
           "tasksDescription": "Conecta proveedores, instala la habilidad de Linear y elige qué aparece en Tareas."
+=======
+          "skillsTitle": "Skills",
+          "skillsDescription": "Browse local agent skills by provider and source."
+>>>>>>> d2e81f2591 (Move skills gallery into settings)
         },
         "SettingsFormControls": {
           "42a4d15a30": "No hay fuentes coincidentes.",
@@ -9446,6 +9459,7 @@
           "f5ed5dcbf6": "Pulsa teclas…"
         },
         "ShortcutRemoveButton": {
+<<<<<<< HEAD
           "9e29aff18b": "Eliminar atajo {{value1}} de {{value0}}",
           "2a9588b1c2": "Eliminar esta combinación"
         },
@@ -10141,6 +10155,18 @@
           "saveFailed": "No se pudieron guardar los valores predeterminados de visibilidad.",
           "updateServer": "Actualiza este servidor para configurar los valores predeterminados de las fuentes.",
           "updateServerDefaults": "Actualiza este servidor para configurar los valores predeterminados de visibilidad."
+=======
+          "9e29aff18b": "Remove {{value0}} shortcut {{value1}}",
+          "2a9588b1c2": "Remove this binding"
+        },
+        "skillsSearch": {
+          "title": "Skills",
+          "description": "Browse local Codex, Claude, Agent Skills, bundled, repository, and plugin skills.",
+          "keywordGallery": "skills gallery",
+          "keywordCodex": "codex skills",
+          "keywordClaude": "claude skills",
+          "keywordPlugins": "plugin skills"
+>>>>>>> d2e81f2591 (Move skills gallery into settings)
         }
       },
       "right": {

@@ -809,6 +809,7 @@
         "f70ac54d38": "AI 提供商账户",
         "4121f7a0a2": "管理 AI 智能体、设置默认值并自定义命令。",
         "b49abbd2f7": "智能体",
+<<<<<<< HEAD
         "dev": "开发工具",
         "devDescription": "仅用于调试 UI 状态的开发工具。",
         "devBadge": "Dev",
@@ -825,6 +826,11 @@
         "pluginsTitle": "插件",
         "pluginsDescription": "安装和管理实验性 Orca 插件。",
         "tasksDescription": "连接提供商、安装 Linear 技能并选择要在任务中显示的内容。"
+=======
+        "skillsBeta": "Beta",
+        "skillsTitle": "Skills",
+        "skillsDescription": "Browse local agent skills by provider and source."
+>>>>>>> d2e81f2591 (Move skills gallery into settings)
       },
       "useAppMenuPaste": {
         "pasteTooLarge": "粘贴内容过大。"
@@ -6929,11 +6935,16 @@
           "23c6874fdf": "AI 能力",
           "2309068a6f": "destructive",
           "65358016ea": "放弃",
+<<<<<<< HEAD
           "dev": "开发工具",
           "devDescription": "仅用于调试 UI 状态的开发工具。",
           "linearTitle": "Linear",
           "linearDescription": "Linear 在 Orca 中的工作方式、设置清单、智能体技能和提示词示例。",
           "tasksDescription": "连接提供商、安装 Linear 技能并选择要在任务中显示的内容。"
+=======
+          "skillsTitle": "Skills",
+          "skillsDescription": "Browse local agent skills by provider and source."
+>>>>>>> d2e81f2591 (Move skills gallery into settings)
         },
         "SettingsFormControls": {
           "42a4d15a30": "没有匹配的字体。",
@@ -9461,6 +9472,7 @@
           "9e29aff18b": "移除 {{value0}} 快捷键 {{value1}}",
           "2a9588b1c2": "移除此绑定"
         },
+<<<<<<< HEAD
         "BrowserLocalhostWorktreeLabelsSetting": {
           "8ac8c3ad19": "本地主机工作区标签",
           "1db3c8b983": "将工作区端口打开为特定于工作区的 Orca localhost URL，便于区分浏览器标签页。"
@@ -10161,6 +10173,15 @@
           "saveFailed": "无法保存可见性默认设置。",
           "updateServer": "请更新此服务器以配置来源默认设置。",
           "updateServerDefaults": "请更新此服务器以配置可见性默认设置。"
+=======
+        "skillsSearch": {
+          "title": "Skills",
+          "description": "Browse local Codex, Claude, Agent Skills, bundled, repository, and plugin skills.",
+          "keywordGallery": "skills gallery",
+          "keywordCodex": "codex skills",
+          "keywordClaude": "claude skills",
+          "keywordPlugins": "plugin skills"
+>>>>>>> d2e81f2591 (Move skills gallery into settings)
         }
       },
       "right": {

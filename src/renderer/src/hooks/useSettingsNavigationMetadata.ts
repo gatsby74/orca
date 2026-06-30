@@ -10,6 +10,7 @@ import {
   Bell,
   Blocks,
   Bot,
+  BookOpen,
   Bug,
   Cable,
   CalendarClock,
@@ -64,6 +65,7 @@ import { getArtifactsSettingsSearchEntries } from '@/components/settings/artifac
 import { getAutomationsSettingsSearchEntries } from '@/components/settings/automations-settings-search'
 import { getOrcaAccountSettingsSearchEntries } from '@/components/settings/orca-account-settings-search'
 import { getLinearAgentSkillPaneSearchEntries } from '@/components/settings/linear-agent-skill-search'
+import { getSkillsPaneSearchEntries } from '@/components/settings/skills-search'
 import {
   getRuntimeEnvironmentsSearchEntry,
   getWebRuntimeEnvironmentsSearchEntry
@@ -202,6 +204,18 @@ export function buildSettingsNavigationMetadata({
       icon: Network,
       searchEntries: getOrchestrationPaneSearchEntries(),
       group: 'capabilities'
+    },
+    {
+      id: 'skills',
+      title: translate('auto.hooks.useSettingsNavigationMetadata.skillsTitle', 'Skills'),
+      description: translate(
+        'auto.hooks.useSettingsNavigationMetadata.skillsDescription',
+        'Browse local agent skills by provider and source.'
+      ),
+      icon: BookOpen,
+      searchEntries: getSkillsPaneSearchEntries(),
+      group: 'capabilities',
+      badge: translate('auto.hooks.useSettingsNavigationMetadata.skillsBeta', 'Beta')
     },
     // Why: only surfaced once Linear is connected — a capability that needs a
     // linked provider before the agent skill has anything to act on.
