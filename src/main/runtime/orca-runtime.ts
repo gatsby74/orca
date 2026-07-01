@@ -198,6 +198,7 @@ import {
   isPathInsideOrEqual,
   normalizeRuntimePathForComparison
 } from '../../shared/cross-platform-path'
+import { resolveTerminalStartupCwd } from '../../shared/terminal-startup-cwd'
 import { isWslUncPath } from '../../shared/wsl-paths'
 import {
   folderWorkspaceKey,
@@ -1122,6 +1123,7 @@ type RuntimeNotifier = {
     worktreeId: string,
     opts: {
       command?: string
+      cwd?: string
       env?: Record<string, string>
       title?: string
       presentation?: RuntimeTerminalPresentation
@@ -3823,21 +3825,15 @@ export class OrcaRuntimeService {
           group.tabOrder.includes(tab.parentTabId)
         )?.id
         try {
-          await this.createHeadlessMobileSessionTerminal(
-            worktreeId,
-            true,
-            undefined,
-            undefined,
-            undefined,
-            undefined,
-            {
+          await this.createHeadlessMobileSessionTerminal(worktreeId, true, undefined, {
+            identity: {
               tabId: tab.parentTabId,
               leafId: tab.leafId,
               sessionId
             },
-            tab.launchAgent,
+            launchAgent: tab.launchAgent,
             targetGroupId
-          )
+          })
         } catch (err) {
           if (sessionId && parseAppSshPtyId(sessionId)) {
             // Why: an expired SSH reattach clears durable bindings in the store,
@@ -15137,6 +15133,7 @@ export class OrcaRuntimeService {
     opts: {
       command?: string
       claudeAgentTeamsSourceCommand?: string
+      cwd?: string
       env?: Record<string, string>
       launchConfig?: WorktreeStartupLaunch['launchConfig']
       launchToken?: string
@@ -15180,6 +15177,7 @@ export class OrcaRuntimeService {
         throw new Error('runtime_unavailable')
       }
       const workspace = await this.resolveTerminalWorkspaceLaunchScope(worktreeSelector)
+      const cwd = resolveTerminalStartupCwd(workspace.path, opts.cwd) ?? workspace.path
       const preAllocatedHandle = this.createPreAllocatedTerminalHandle()
       // Why: mint tabId in main before spawn so paneKey is known at PTY env
       // build time. Hook-based agent status (Claude/Codex/Cursor/Gemini) keys
@@ -15267,7 +15265,7 @@ export class OrcaRuntimeService {
       const result = await this.ptyController.spawn({
         cols: 120,
         rows: 40,
-        cwd: workspace.path,
+        cwd,
         command: sequencedStartupCommand ? opts.command : (agentTeamsPlan?.command ?? opts.command),
         commandDelivery: 'provider',
         startupCommandDelivery: opts.startupCommandDelivery,
@@ -15358,9 +15356,11 @@ export class OrcaRuntimeService {
     const win = rendererWindow ?? this.getAuthoritativeWindow()
     // Why: mirrors browserTabCreate — when no worktree is specified, pass
     // undefined so the renderer uses its current active worktree.
-    const worktreeId = worktreeSelector
-      ? (await this.resolveTerminalWorkspaceLaunchScope(worktreeSelector)).id
-      : undefined
+    const workspace = worktreeSelector
+      ? await this.resolveTerminalWorkspaceLaunchScope(worktreeSelector)
+      : null
+    const worktreeId = workspace?.id
+    const cwd = workspace ? resolveTerminalStartupCwd(workspace.path, opts.cwd) : opts.cwd
     const requestId = randomUUID()
 
     // Why: terminal creation is a renderer-side Zustand store operation (like
@@ -15392,6 +15392,7 @@ export class OrcaRuntimeService {
         requestId,
         worktreeId,
         command: opts.command,
+        cwd,
         ...(opts.env ? { env: opts.env } : {}),
         ...(opts.launchConfig ? { launchConfig: opts.launchConfig } : {}),
         ...(opts.launchToken ? { launchToken: opts.launchToken } : {}),
@@ -15448,6 +15449,7 @@ export class OrcaRuntimeService {
       afterTabId?: string
       targetGroupId?: string
       command?: string
+      cwd?: string
       env?: Record<string, string>
       startupCommandDelivery?: WorktreeStartupLaunch['startupCommandDelivery']
       agent?: TuiAgent
@@ -15488,6 +15490,7 @@ export class OrcaRuntimeService {
       afterTabId?: string
       targetGroupId?: string
       command?: string
+      cwd?: string
       env?: Record<string, string>
       startupCommandDelivery?: WorktreeStartupLaunch['startupCommandDelivery']
       agent?: TuiAgent
@@ -15500,6 +15503,7 @@ export class OrcaRuntimeService {
     this.assertGraphReady()
     const workspace = await this.resolveTerminalWorkspaceLaunchScope(worktreeSelector)
     const worktreeId = workspace.id
+    const cwd = resolveTerminalStartupCwd(workspace.path, opts.cwd)
     this.hydrateHeadlessMobileSessionTabsFromWorkspaceSession(worktreeId)
     let afterDesktopTabId: string | undefined
     if (opts.afterTabId) {
@@ -15518,13 +15522,15 @@ export class OrcaRuntimeService {
         worktreeId,
         opts.activate !== false,
         opts.afterTabId,
-        startupCommand.command,
-        startupCommand.env,
-        startupCommand.startupCommandDelivery,
-        undefined,
-        startupCommand.launchAgent,
-        opts.targetGroupId,
-        startupCommand.launchConfig
+        {
+          command: startupCommand.command,
+          cwd,
+          env: startupCommand.env,
+          startupCommandDelivery: startupCommand.startupCommandDelivery,
+          launchAgent: startupCommand.launchAgent,
+          targetGroupId: opts.targetGroupId,
+          launchConfig: startupCommand.launchConfig
+        }
       )
     }
     const requestId = randomUUID()
@@ -15556,6 +15562,7 @@ export class OrcaRuntimeService {
         afterTabId: afterDesktopTabId,
         targetGroupId: opts.targetGroupId,
         command: startupCommand.command,
+        cwd,
         ...(startupCommand.env ? { env: startupCommand.env } : {}),
         ...(startupCommand.launchConfig ? { launchConfig: startupCommand.launchConfig } : {}),
         ...(startupCommand.launchAgent ? { launchAgent: startupCommand.launchAgent } : {}),
@@ -15593,13 +15600,16 @@ export class OrcaRuntimeService {
         worktreeId,
         opts.activate !== false,
         opts.afterTabId,
-        startupCommand.command,
-        startupCommand.env,
-        startupCommand.startupCommandDelivery,
-        { tabId: pendingSurface.tab.parentTabId, leafId: pendingSurface.tab.leafId },
-        startupCommand.launchAgent,
-        opts.targetGroupId,
-        startupCommand.launchConfig
+        {
+          command: startupCommand.command,
+          cwd,
+          env: startupCommand.env,
+          startupCommandDelivery: startupCommand.startupCommandDelivery,
+          identity: { tabId: pendingSurface.tab.parentTabId, leafId: pendingSurface.tab.leafId },
+          launchAgent: startupCommand.launchAgent,
+          targetGroupId: opts.targetGroupId,
+          launchConfig: startupCommand.launchConfig
+        }
       )
     } catch (error) {
       // Why: the renderer created the tab but its terminal surface never
@@ -15685,30 +15695,35 @@ export class OrcaRuntimeService {
     worktreeId: string,
     activate: boolean,
     afterTabId?: string,
-    command?: string,
-    env?: Record<string, string>,
-    startupCommandDelivery?: WorktreeStartupLaunch['startupCommandDelivery'],
-    identity?: { tabId: string; leafId: string; sessionId?: string },
-    launchAgent?: TuiAgent,
-    targetGroupId?: string,
-    launchConfig?: SleepingAgentLaunchConfig
+    opts: {
+      command?: string
+      cwd?: string
+      env?: Record<string, string>
+      startupCommandDelivery?: WorktreeStartupLaunch['startupCommandDelivery']
+      identity?: { tabId: string; leafId: string; sessionId?: string }
+      launchAgent?: TuiAgent
+      targetGroupId?: string
+      launchConfig?: SleepingAgentLaunchConfig
+    } = {}
   ): Promise<RuntimeMobileSessionCreateTerminalResult> {
     const workspace = await this.resolveTerminalWorkspaceLaunchScope(`id:${worktreeId}`)
+    const cwd = resolveTerminalStartupCwd(workspace.path, opts.cwd)
     // Why: SshPtyProvider treats sessionId as a relay reattach request. Only
     // synthesize local serve ids; SSH fresh terminals must call pty.spawn.
     const stableSessionId =
-      identity?.sessionId ?? (workspace.connectionId ? undefined : `serve-${randomUUID()}`)
+      opts.identity?.sessionId ?? (workspace.connectionId ? undefined : `serve-${randomUUID()}`)
     const terminal = await this.createTerminal(`id:${worktreeId}`, {
       focus: false,
-      command,
-      env,
-      ...(launchConfig ? { launchConfig } : {}),
-      ...(launchAgent ? { launchAgent } : {}),
-      startupCommandDelivery,
-      ...(identity
+      command: opts.command,
+      cwd,
+      env: opts.env,
+      ...(opts.launchConfig ? { launchConfig: opts.launchConfig } : {}),
+      ...(opts.launchAgent ? { launchAgent: opts.launchAgent } : {}),
+      startupCommandDelivery: opts.startupCommandDelivery,
+      ...(opts.identity
         ? {
-            tabId: identity.tabId,
-            leafId: identity.leafId,
+            tabId: opts.identity.tabId,
+            leafId: opts.identity.leafId,
             ...(stableSessionId ? { sessionId: stableSessionId } : {})
           }
         : stableSessionId
@@ -15745,7 +15760,7 @@ export class OrcaRuntimeService {
       leafId,
       ptyId: livePty.pty.ptyId,
       title: terminal.title ?? livePty.pty.title ?? 'Terminal',
-      ...(launchAgent ? { launchAgent } : {}),
+      ...(opts.launchAgent ? { launchAgent: opts.launchAgent } : {}),
       parentLayout,
       isActive: activate
     }
@@ -15771,8 +15786,8 @@ export class OrcaRuntimeService {
       // Why: activating the new tab also focuses its group, so when "+" targeted
       // a specific split group, make that group active too.
       activeGroupId:
-        activate && targetGroupId
-          ? targetGroupId
+        activate && opts.targetGroupId
+          ? opts.targetGroupId
           : (existing?.activeGroupId ?? this.getHeadlessMobileSessionGroupId(worktreeId)),
       activeTabId: activate ? tab.id : (existing?.activeTabId ?? null),
       activeTabType: activate ? 'terminal' : (existing?.activeTabType ?? null),
@@ -15781,7 +15796,7 @@ export class OrcaRuntimeService {
         tabs,
         activate ? tab : null,
         existing?.tabGroups,
-        targetGroupId ? { tabId: parentTabId, groupId: targetGroupId } : undefined
+        opts.targetGroupId ? { tabId: parentTabId, groupId: opts.targetGroupId } : undefined
       ),
       // Why: keep the group split geometry when a new tab is created, otherwise
       // opening a terminal while split loses the groups' arrangement.

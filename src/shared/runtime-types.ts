@@ -463,6 +463,7 @@ type RuntimeTerminalCreateBaseRequestPayload = {
   afterTabId?: string
   targetGroupId?: string
   command?: string
+  cwd?: string
   env?: Record<string, string>
   launchConfig?: SleepingAgentLaunchConfig
   launchToken?: string

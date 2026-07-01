@@ -3209,6 +3209,7 @@ const api = {
         requestId?: string
         worktreeId: string
         command?: string
+        cwd?: string
         env?: Record<string, string>
         launchConfig?: SleepingAgentLaunchConfig
         launchToken?: string
@@ -3230,6 +3231,7 @@ const api = {
           requestId?: string
           worktreeId: string
           command?: string
+          cwd?: string
           env?: Record<string, string>
           launchConfig?: SleepingAgentLaunchConfig
           launchToken?: string
