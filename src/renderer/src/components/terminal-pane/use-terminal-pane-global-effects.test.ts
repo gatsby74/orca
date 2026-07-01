@@ -368,7 +368,9 @@ describe('useTerminalPaneGlobalEffects', () => {
     expect(mocks.fitAndFocusPanes).not.toHaveBeenCalled()
     expect(mocks.fitPanes).not.toHaveBeenCalled()
     expect(manager.resetWebglTextureAtlases).toHaveBeenCalledTimes(1)
-    expect(manager.refreshAllPanes).toHaveBeenCalledTimes(1)
+    // Why: atlas recovery refreshes once, then light resume explicitly
+    // repaints the now-visible tab even if recovery is already coalesced.
+    expect(manager.refreshAllPanes).toHaveBeenCalledTimes(2)
     expect(mocks.focusActivePane).toHaveBeenCalledWith(manager)
     vi.advanceTimersByTime(500)
   })
@@ -437,7 +439,7 @@ describe('useTerminalPaneGlobalEffects', () => {
     expect(mocks.fitAndFocusPanes).not.toHaveBeenCalled()
     expect(mocks.fitPanes).not.toHaveBeenCalled()
     expect(manager.resetWebglTextureAtlases).toHaveBeenCalledTimes(1)
-    expect(manager.refreshAllPanes).toHaveBeenCalledTimes(1)
+    expect(manager.refreshAllPanes).toHaveBeenCalledTimes(2)
     expect(mocks.focusActivePane).toHaveBeenCalledWith(manager)
     vi.advanceTimersByTime(500)
   })

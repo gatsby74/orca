@@ -63,6 +63,7 @@ export function resumeTerminalVisibility({
       // agent TUIs can suppress hidden bytes until the pane is foregrounded.
       requestLightTabBacklogRecovery(manager)
       scheduleTerminalWebglAtlasRecovery()
+      scheduleLightTabRepaint(manager)
       if (isActive) {
         focusActivePane(manager)
       }
@@ -139,6 +140,20 @@ function requestLightTabBacklogRecovery(manager: PaneManager): void {
   for (const pane of manager.getPanes()) {
     requestTerminalBacklogRecovery(pane.terminal)
   }
+}
+
+function scheduleLightTabRepaint(manager: PaneManager): void {
+  // Why: atlas recovery is globally coalesced. If hidden output already started
+  // a recovery burst, the light-resume recovery call can no-op, so explicitly
+  // repaint when the tab actually becomes visible again.
+  const repaint = (): void => {
+    manager.refreshAllPanes?.()
+  }
+  if (typeof requestAnimationFrame === 'function') {
+    requestAnimationFrame(repaint)
+    return
+  }
+  setTimeout(repaint, 0)
 }
 
 function resumeTerminalVisibilityHeavy(manager: PaneManager, isActive: boolean): void {
