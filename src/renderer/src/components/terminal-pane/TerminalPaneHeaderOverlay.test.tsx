@@ -49,6 +49,7 @@ function renderOverlay({
   showAlwaysOnHeaders = true,
   showSplitButton = true,
   activePaneIsZoomed = false,
+  suppressPaneZoomControl = false,
   onTogglePaneZoom = vi.fn(),
   onClosePane = vi.fn(),
   onRemoveTitle = vi.fn(),
@@ -63,6 +64,7 @@ function renderOverlay({
   showAlwaysOnHeaders?: boolean
   showSplitButton?: boolean
   activePaneIsZoomed?: boolean
+  suppressPaneZoomControl?: boolean
   onTogglePaneZoom?: ReturnType<typeof vi.fn>
   onClosePane?: ReturnType<typeof vi.fn>
   onRemoveTitle?: ReturnType<typeof vi.fn>
@@ -104,6 +106,7 @@ function renderOverlay({
         titleUsesLightSurface={false}
         paneTitleBackground="transparent"
         activePaneIsZoomed={activePaneIsZoomed}
+        suppressPaneZoomControl={suppressPaneZoomControl}
         terminalContentVisible
         hiddenStartupStyle={{}}
         managerRef={{ current: null } as RefObject<PaneManager | null>}
@@ -265,5 +268,16 @@ describe('TerminalPaneHeaderOverlay', () => {
     expect(restorePane?.getAttribute('aria-pressed')).toBe('true')
     expect(container.textContent).toContain('Ctrl')
     expect(container.textContent).toContain('Enter')
+  })
+
+  it('hides pane header zoom when the parent tab group owns zoom chrome', () => {
+    const { container } = renderOverlay({
+      suppressPaneZoomControl: true,
+      paneTitles: { 1: '', 2: '' }
+    })
+
+    expect(container.querySelector('button[aria-label="Zoom pane"]')).toBeNull()
+    expect(container.querySelector('button[aria-label="Split Terminal Right"]')).not.toBeNull()
+    expect(container.querySelector('button[aria-label="Close Pane"]')).not.toBeNull()
   })
 })
