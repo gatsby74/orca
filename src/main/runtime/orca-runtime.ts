@@ -1134,6 +1134,7 @@ type RuntimeNotifier = {
     opts: {
       ptyId: string
       title?: string | null
+      cwd?: string
       launchConfig?: SleepingAgentLaunchConfig
       launchToken?: string
       launchAgent?: TuiAgent
@@ -3251,6 +3252,7 @@ export class OrcaRuntimeService {
       title: string | null
       activate: boolean
       selectIfNoActiveTab?: boolean
+      startupCwd?: string
       split?: { splitFromLeafId: string; direction: 'horizontal' | 'vertical' }
     }
   ): void {
@@ -3289,6 +3291,7 @@ export class OrcaRuntimeService {
       ptyId: pty.ptyId,
       title,
       ...(pty.launchAgent ? { launchAgent: pty.launchAgent } : {}),
+      ...(args.startupCwd ? { startupCwd: args.startupCwd } : {}),
       parentLayout,
       isActive:
         args.activate || (args.selectIfNoActiveTab !== false && existing?.activeTabId == null)
@@ -3394,6 +3397,7 @@ export class OrcaRuntimeService {
             leafId,
             title,
             ...(ptyId ? { ptyId } : {}),
+            ...(tab.startupCwd ? { startupCwd: tab.startupCwd } : {}),
             ...(tab.launchAgent ? { launchAgent: tab.launchAgent } : {}),
             ...(layout ? { parentLayout: this.cloneTerminalLayoutSnapshot(layout) } : {}),
             ...(tab.color != null ? { color: tab.color } : {}),
@@ -3831,6 +3835,7 @@ export class OrcaRuntimeService {
               leafId: tab.leafId,
               sessionId
             },
+            cwd: tab.startupCwd,
             launchAgent: tab.launchAgent,
             targetGroupId
           })
@@ -15310,7 +15315,8 @@ export class OrcaRuntimeService {
           activate: presentation === 'focused',
           // Why: explicit background presentation may carry legacy activate
           // metadata from an already-owned renderer pane; don't select it on mobile.
-          selectIfNoActiveTab: presentation !== 'background'
+          selectIfNoActiveTab: presentation !== 'background',
+          ...(cwd !== workspace.path ? { startupCwd: cwd } : {})
         })
       }
       let surface: RuntimeTerminalCreate['surface'] = 'background'
@@ -15324,6 +15330,7 @@ export class OrcaRuntimeService {
           await this.notifier.revealTerminalSession(workspace.id, {
             ptyId: result.id,
             title: opts.title ?? null,
+            ...(cwd !== workspace.path ? { cwd } : {}),
             ...(effectiveLaunchConfig ? { launchConfig: effectiveLaunchConfig } : {}),
             ...(launchToken ? { launchToken } : {}),
             ...(opts.launchAgent ? { launchAgent: opts.launchAgent } : {}),
@@ -15760,6 +15767,7 @@ export class OrcaRuntimeService {
       leafId,
       ptyId: livePty.pty.ptyId,
       title: terminal.title ?? livePty.pty.title ?? 'Terminal',
+      ...(cwd ? { startupCwd: cwd } : {}),
       ...(opts.launchAgent ? { launchAgent: opts.launchAgent } : {}),
       parentLayout,
       isActive: activate
@@ -18222,6 +18230,7 @@ export class OrcaRuntimeService {
         ...(launchAgent ? { launchAgent } : {}),
         ...(agentStatus ?? this.buildPtyMobileAgentStatus(livePty ?? pty, tab, terminalHandle)),
         ...(tab.parentLayout ? { parentLayout: tab.parentLayout } : {}),
+        ...(tab.startupCwd ? { startupCwd: tab.startupCwd } : {}),
         ...(tab.color != null ? { color: tab.color } : {}),
         ...(tab.isPinned ? { isPinned: true } : {}),
         ...(tab.viewMode ? { viewMode: tab.viewMode } : {}),

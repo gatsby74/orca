@@ -287,6 +287,7 @@ function registerRuntimeWindowLifecycle(
           worktreeId,
           ptyId: opts.ptyId,
           title: opts.title ?? undefined,
+          ...(opts.cwd ? { cwd: opts.cwd } : {}),
           ...(opts.launchConfig ? { launchConfig: opts.launchConfig } : {}),
           ...(opts.launchToken ? { launchToken: opts.launchToken } : {}),
           ...(opts.launchAgent ? { launchAgent: opts.launchAgent } : {}),

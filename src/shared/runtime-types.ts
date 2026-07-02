@@ -135,6 +135,7 @@ export type RuntimeMobileSessionTerminalTab = {
   terminalTheme?: RuntimeMobileTerminalTheme
   agentStatus?: AgentStatusEntry | null
   launchAgent?: TuiAgent
+  startupCwd?: string
   parentLayout?: TerminalLayoutSnapshot
   /** Tab-level color/pin (per parentTabId), host-persisted for remote servers. */
   color?: string | null

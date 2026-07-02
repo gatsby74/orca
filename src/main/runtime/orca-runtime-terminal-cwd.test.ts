@@ -68,4 +68,87 @@ describe('OrcaRuntimeService terminal startup cwd', () => {
     )
     expect(spawn).not.toHaveBeenCalled()
   })
+
+  it('reveals main-spawned terminals with their nested startup cwd', async () => {
+    const runtime = new OrcaRuntimeService()
+    stubLaunchScope(runtime)
+    const spawn = vi.fn().mockResolvedValue({ id: 'pty-1' })
+    const revealTerminalSession = vi.fn().mockResolvedValue({ tabId: 'tab-1' })
+    runtime.setPtyController({
+      spawn,
+      write: () => true,
+      kill: () => true,
+      getForegroundProcess: async () => null
+    })
+    runtime.setNotifier({
+      worktreesChanged: vi.fn(),
+      reposChanged: vi.fn(),
+      activateWorktree: vi.fn(),
+      createTerminal: vi.fn(),
+      revealTerminalSession,
+      splitTerminal: vi.fn(),
+      renameTerminal: vi.fn(),
+      focusTerminal: vi.fn(),
+      closeTerminal: vi.fn(),
+      sleepWorktree: vi.fn(),
+      terminalFitOverrideChanged: vi.fn(),
+      terminalDriverChanged: vi.fn()
+    })
+
+    await runtime.createTerminal('id:wt-1', { cwd: '/repo/app/packages/web' })
+
+    expect(revealTerminalSession).toHaveBeenCalledWith(
+      'wt-1',
+      expect.objectContaining({ cwd: '/repo/app/packages/web' })
+    )
+  })
+
+  it('materializes restored headless mobile tabs in the persisted startup cwd', async () => {
+    const store = {
+      getWorkspaceSession: () => ({
+        activeRepoId: null,
+        activeWorktreeId: 'wt-1',
+        activeTabId: 'tab-1',
+        tabsByWorktree: {
+          'wt-1': [
+            {
+              id: 'tab-1',
+              ptyId: null,
+              worktreeId: 'wt-1',
+              title: 'Terminal 1',
+              defaultTitle: 'Terminal 1',
+              startupCwd: '/repo/app/packages/web',
+              customTitle: null,
+              color: null,
+              sortOrder: 0,
+              createdAt: 0
+            }
+          ]
+        },
+        terminalLayoutsByTabId: {}
+      })
+    }
+    const runtime = new OrcaRuntimeService(store as never)
+    stubLaunchScope(runtime)
+    const spawn = vi.fn().mockResolvedValue({ id: 'pty-1' })
+    runtime.setPtyController({
+      spawn,
+      write: () => true,
+      kill: () => true,
+      getForegroundProcess: async () => null
+    })
+
+    const listed = await runtime.listMobileSessionTabs('id:wt-1')
+    const tab = listed.tabs.find((candidate) => candidate.type === 'terminal')
+    expect(tab).toMatchObject({ startupCwd: '/repo/app/packages/web' })
+
+    await runtime.activateMobileSessionTab('id:wt-1', tab!.id)
+
+    expect(spawn).toHaveBeenCalledWith(
+      expect.objectContaining({
+        cwd: '/repo/app/packages/web',
+        worktreeId: 'wt-1'
+      })
+    )
+  })
 })
