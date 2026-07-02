@@ -11291,6 +11291,16 @@
           "stopping": "Stopping…",
           "confirm": "Stop cleanup"
         },
+        "fileIconTheme": {
+          "search": {
+            "title": "File Icons",
+            "description": "Choose how file type icons appear in the file explorer and editor tabs.",
+            "icons": "file icons",
+            "explorer": "file explorer",
+            "material": "material",
+            "classic": "classic"
+          }
+        },
         "shortcutDefinitionCatalog": {
           "missionControlConflict": "Blocked by Mission Control. Remap here or change it in System Settings."
         }
