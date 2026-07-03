@@ -363,7 +363,7 @@ function SessionWorktreeLine({
   const repo = useRepoById(repoId)
 
   return (
-    <div className="flex min-w-0 items-center gap-1.5 pl-5">
+    <div className="flex min-w-0 max-w-full items-center gap-1.5 overflow-hidden pl-5">
       {shouldShowAiVaultWorktreeStatusBadge(worktreeInfo.status) ? (
         <span className="shrink-0 rounded-sm border border-sidebar-border bg-sidebar-accent/45 px-1.5 py-0.5 text-[10px] leading-none text-muted-foreground">
           {worktreeStatusLabel(worktreeInfo.status)}
@@ -371,7 +371,7 @@ function SessionWorktreeLine({
       ) : null}
       <Badge
         variant="outline"
-        className="h-5 max-w-full gap-1 border-border/70 bg-background px-1.5 py-0 text-[11px] font-medium"
+        className="h-5 min-w-0 max-w-full shrink gap-1 border-border/70 bg-background px-1.5 py-0 text-[11px] font-medium"
         title={worktreeInfo.label}
       >
         <RepoBadgeLabel

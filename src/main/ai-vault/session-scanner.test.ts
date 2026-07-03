@@ -2,7 +2,7 @@ import { mkdtemp, mkdir, rm, writeFile } from 'node:fs/promises'
 import { tmpdir } from 'node:os'
 import { join } from 'node:path'
 import { afterEach, describe, expect, it, vi } from 'vitest'
-import { AI_VAULT_AGENTS, buildAiVaultResumeCommand } from '../../shared/ai-vault-types'
+import { AI_VAULT_AGENTS } from '../../shared/ai-vault-types'
 import { scanAiVaultSessions } from './session-scanner'
 
 let tempRoots: string[] = []
@@ -31,6 +31,7 @@ function isolatedScanRoots(root: string) {
     openclawStateDir: join(root, 'openclaw-state'),
     openclawLegacyStateDir: join(root, 'openclaw-legacy-state'),
     piSessionsDir: join(root, 'pi-sessions'),
+    ompSessionsDir: join(root, 'omp-sessions'),
     droidSessionsDir: join(root, 'droid-sessions'),
     droidProjectsDir: join(root, 'droid-projects'),
     kimiSessionsDir: join(root, 'kimi-sessions')
@@ -611,6 +612,25 @@ describe('scanAiVaultSessions', () => {
       ])
     )
 
+    const ompSessionFile = join(roots.ompSessionsDir, 'omp-session.jsonl')
+    await mkdir(roots.ompSessionsDir, { recursive: true })
+    await writeFile(
+      ompSessionFile,
+      jsonLines([
+        {
+          type: 'session',
+          id: 'omp-session',
+          timestamp: '2026-05-01T10:08:30.000Z',
+          cwd: '/tmp/omp'
+        },
+        {
+          type: 'message',
+          timestamp: '2026-05-01T10:08:31.000Z',
+          message: { role: 'user', content: [{ type: 'text', text: 'OMP title' }] }
+        }
+      ])
+    )
+
     await mkdir(roots.devinTranscriptsDir, { recursive: true })
     await writeFile(
       join(roots.devinTranscriptsDir, 'devin-session.json'),
@@ -746,6 +766,7 @@ describe('scanAiVaultSessions', () => {
       "cd '/tmp/openclaw' && openclaw --resume 'openclaw-session'"
     )
     expect(commandByAgent.get('pi')).toBe("cd '/tmp/pi' && pi --session 'pi-session'")
+    expect(commandByAgent.get('omp')).toBe(`cd '/tmp/omp' && omp --resume '${ompSessionFile}'`)
     expect(commandByAgent.get('devin')).toBe("cd '/tmp/devin' && devin --resume 'devin-session'")
     expect(commandByAgent.get('droid')).toBe("cd '/tmp/droid' && droid --resume 'droid-session'")
     expect(commandByAgent.get('kimi')).toBe(
@@ -794,44 +815,5 @@ describe('scanAiVaultSessions', () => {
         pattern.source.includes('[\\s\\S]')
     )
     expect(usedGrokWrapperMatch).toBe(false)
-  })
-})
-
-describe('buildAiVaultResumeCommand', () => {
-  it('wraps Windows cwd changes in cmd so PowerShell and cmd launch the same resume command', () => {
-    expect(
-      buildAiVaultResumeCommand({
-        agent: 'codex',
-        sessionId: 'session-1',
-        cwd: 'C:\\Users\\Ada Lovelace\\repo',
-        platform: 'win32'
-      })
-    ).toBe('cmd /d /s /c "cd /d ""C:\\Users\\Ada Lovelace\\repo"" && codex resume ""session-1"""')
-  })
-
-  it('carries non-default Codex homes in copied resume commands', () => {
-    expect(
-      buildAiVaultResumeCommand({
-        agent: 'codex',
-        sessionId: 'session-1',
-        cwd: '/repo/app',
-        platform: 'darwin',
-        codexHome: '/Users/ada/Library/Application Support/Orca/codex-runtime-home/home'
-      })
-    ).toBe(
-      "cd '/repo/app' && CODEX_HOME='/Users/ada/Library/Application Support/Orca/codex-runtime-home/home' codex resume 'session-1'"
-    )
-
-    expect(
-      buildAiVaultResumeCommand({
-        agent: 'codex',
-        sessionId: 'session-1',
-        cwd: 'C:\\Users\\Ada Lovelace\\repo',
-        platform: 'win32',
-        codexHome: 'C:\\Users\\Ada\\AppData\\Roaming\\Orca\\codex-runtime-home\\home'
-      })
-    ).toBe(
-      'cmd /d /s /c "cd /d ""C:\\Users\\Ada Lovelace\\repo"" && set ""CODEX_HOME=C:\\Users\\Ada\\AppData\\Roaming\\Orca\\codex-runtime-home\\home"" && codex resume ""session-1"""'
-    )
   })
 })

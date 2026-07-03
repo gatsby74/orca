@@ -11,6 +11,7 @@ export const AI_VAULT_AGENTS = [
   'codex',
   'hermes',
   'pi',
+  'omp',
   'cursor',
   'gemini',
   'rovo',
@@ -33,6 +34,7 @@ export const AI_VAULT_AGENT_LABELS = {
   codex: 'Codex',
   hermes: 'Hermes',
   pi: 'Pi',
+  omp: 'OMP',
   cursor: 'Cursor',
   gemini: 'Gemini',
   rovo: 'Rovo Dev',
@@ -97,10 +99,12 @@ export function buildAiVaultResumeCommand(args: {
   platform: NodeJS.Platform
   commandOverride?: string | null
   codexHome?: string | null
+  resumeFilePath?: string | null
 }): string {
-  const { agent, sessionId, cwd, platform, commandOverride, codexHome } = args
+  const { agent, sessionId, cwd, platform, commandOverride, codexHome, resumeFilePath } = args
   const baseCommand = commandOverride?.trim() || defaultAiVaultResumeCommandBase(agent)
-  const sessionArg = quoteShellArg(sessionId, platform)
+  const resumeTarget = agent === 'omp' && resumeFilePath?.trim() ? resumeFilePath.trim() : sessionId
+  const sessionArg = quoteShellArg(resumeTarget, platform)
   const resumeCommand = buildAgentResumeInvocation(agent, baseCommand, sessionArg)
 
   return buildAiVaultResumeShellCommand({ resumeCommand, cwd, platform, codexHome })
@@ -200,11 +204,15 @@ function buildAgentResumeInvocation(
       return `${baseCommand} resume ${sessionArg}`
     case 'rovo':
       return `${baseCommand} rovodev run --restore ${sessionArg}`
+    // Why: OMP's on-disk records expose an internal session id that is not
+    // accepted by the CLI lookup; resuming by file path is stable.
+    case 'omp':
+      return `${baseCommand} --resume ${sessionArg}`
     case 'opencode':
     case 'pi':
-    // Why: Kimi Code resumes with `kimi --session <id>` (alias `-S`). Sessions
-    // are work-dir-scoped, so the cwd prefix from buildAiVaultResumeCommand is
-    // required — resuming from another directory is rejected by the CLI.
+    // Why: OpenCode-family, Pi, and Kimi CLIs resume with `--session <id>`.
+    // Kimi's alias is `-S`, but the long form keeps generated commands readable.
+    // Sessions are work-dir-scoped, so the cwd prefix is required.
     case 'kimi':
       return `${baseCommand} --session ${sessionArg}`
     case 'copilot':

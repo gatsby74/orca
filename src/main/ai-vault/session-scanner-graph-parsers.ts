@@ -155,7 +155,7 @@ export function rovoPartsText(parts: unknown[], role: 'user' | 'assistant'): str
 }
 
 export async function parseMessageGraphSessionFile(
-  agent: 'openclaw' | 'pi',
+  agent: 'openclaw' | 'pi' | 'omp',
   file: FileWithMtime,
   platform: NodeJS.Platform = process.platform
 ): Promise<AiVaultSession | null> {
