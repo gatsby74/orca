@@ -6,7 +6,7 @@ import { discoverFiles, discoverOpenClawFiles } from './session-scanner-discover
 import { droidDiscoveries, kimiDiscoveries } from './session-scanner-droid-kimi-sources'
 import { opencodeDiscoveries } from './session-scanner-opencode-sources'
 import type { AiVaultScanOptions, SessionFileDiscovery } from './session-scanner-types'
-import { normalizePiSessionsDir } from './session-scanner-values'
+import { normalizeAgentSessionsDir } from './session-scanner-values'
 
 const CLAUDE_PROJECTS_DIR = join(homedir(), '.claude', 'projects')
 export const DEFAULT_CODEX_HOME_DIR = join(homedir(), '.codex')
@@ -25,11 +25,13 @@ const GROK_SESSIONS_DIR = join(
 const HERMES_SESSIONS_DIR = join(homedir(), '.hermes', 'sessions')
 const ROVO_SESSIONS_DIR = join(homedir(), '.rovodev', 'sessions')
 const OPENCLAW_STATE_DIR = process.env.OPENCLAW_STATE_DIR?.trim() || join(homedir(), '.openclaw')
-const PI_SESSIONS_DIR = normalizePiSessionsDir(
-  process.env.PI_CODING_AGENT_DIR?.trim() || join(homedir(), '.pi', 'agent', 'sessions')
+const PI_SESSIONS_DIR = normalizeAgentSessionsDir(
+  process.env.PI_CODING_AGENT_DIR?.trim() || join(homedir(), '.pi', 'agent', 'sessions'),
+  '.pi'
 )
-const OMP_SESSIONS_DIR = normalizePiSessionsDir(
-  process.env.OMP_CODING_AGENT_DIR?.trim() || join(homedir(), '.omp', 'agent', 'sessions')
+const OMP_SESSIONS_DIR = normalizeAgentSessionsDir(
+  process.env.OMP_CODING_AGENT_DIR?.trim() || join(homedir(), '.omp', 'agent', 'sessions'),
+  '.omp'
 )
 // Why: Devin ATIF transcripts are stored under <DEVIN_HOME>/transcripts.
 const DEVIN_TRANSCRIPTS_DIR = join(
