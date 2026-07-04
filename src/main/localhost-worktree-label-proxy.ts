@@ -118,9 +118,8 @@ export class LocalhostWorktreeLabelProxy {
       return
     }
 
-    // Why: favicon paths are answered by Orca with a worktree-colored icon so
-    // labeled tabs are distinguishable at a glance; every other response still
-    // streams through untouched (no HTML rewriting, no header mutation).
+    // Why: favicon paths are intercepted here so tabs show a worktree-colored
+    // icon; every other request still streams through untouched.
     const favicon = localhostWorktreeFaviconForRequest(route.label, request)
     if (favicon) {
       response.writeHead(200, {

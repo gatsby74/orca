@@ -1,35 +1,18 @@
 import { describe, expect, it } from 'vitest'
+import { getLocalhostWorktreeCssColor } from '../shared/localhost-worktree-color'
 import {
-  getLocalhostWorktreeFaviconHue,
   getLocalhostWorktreeFaviconIco,
   getLocalhostWorktreeFaviconSvg
 } from './localhost-worktree-favicon'
 
 describe('localhost worktree favicon', () => {
-  it('derives a stable hue from the label', () => {
-    const first = getLocalhostWorktreeFaviconHue('analytics')
-    const second = getLocalhostWorktreeFaviconHue('analytics')
-
-    expect(first).toBe(second)
-    expect(first).toBeGreaterThanOrEqual(0)
-    expect(first).toBeLessThan(360)
-    expect(first % 30).toBe(0)
-  })
-
-  it('gives different labels different hues', () => {
-    // Deterministic sanity check: these known labels land on distinct wheel slots.
-    expect(getLocalhostWorktreeFaviconHue('analytics')).not.toBe(
-      getLocalhostWorktreeFaviconHue('snapstudio-main')
-    )
-  })
-
   it('renders an svg disc with the uppercased label initial', () => {
     const svg = getLocalhostWorktreeFaviconSvg('analytics')
 
     expect(svg).toContain('<svg xmlns="http://www.w3.org/2000/svg"')
     expect(svg).toContain('<circle')
     expect(svg).toContain('>A</text>')
-    expect(svg).toContain(`hsl(${getLocalhostWorktreeFaviconHue('analytics')} 68% 46%)`)
+    expect(svg).toContain(getLocalhostWorktreeCssColor('analytics'))
   })
 
   it('builds a structurally valid deterministic 32x32 ico', () => {

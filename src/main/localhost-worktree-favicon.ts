@@ -1,5 +1,11 @@
 import type { IncomingMessage } from 'node:http'
 import { URL } from 'node:url'
+import {
+  LOCALHOST_WORKTREE_COLOR_LIGHTNESS,
+  LOCALHOST_WORKTREE_COLOR_SATURATION,
+  getLocalhostWorktreeCssColor,
+  getLocalhostWorktreeHue
+} from '../shared/localhost-worktree-color'
 
 // Why: favicons are the one response the label proxy substitutes. Serving a
 // worktree-specific icon at the HTTP layer keeps tabs visually
@@ -8,12 +14,6 @@ import { URL } from 'node:url'
 const ICON_SIZE = 32
 const CIRCLE_RADIUS = 15
 const SUPERSAMPLE = 4
-// Why: a fixed 12-hue wheel keeps neighboring labels visually distinct;
-// raw hash-derived hues cluster into near-identical muddy colors.
-const HUE_COUNT = 12
-const HUE_STEP = 360 / HUE_COUNT
-const SATURATION = 0.68
-const LIGHTNESS = 0.46
 
 export type LocalhostWorktreeFavicon = {
   contentType: string
@@ -43,14 +43,9 @@ export function localhostWorktreeFaviconForRequest(
   return null
 }
 
-export function getLocalhostWorktreeFaviconHue(label: string): number {
-  return (fnv1aHash(label) % HUE_COUNT) * HUE_STEP
-}
-
 export function getLocalhostWorktreeFaviconSvg(label: string): string {
-  const hue = getLocalhostWorktreeFaviconHue(label)
   const letter = faviconLetter(label)
-  const fill = `hsl(${hue} ${Math.round(SATURATION * 100)}% ${Math.round(LIGHTNESS * 100)}%)`
+  const fill = getLocalhostWorktreeCssColor(label)
   return (
     `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 ${ICON_SIZE} ${ICON_SIZE}">` +
     `<circle cx="16" cy="16" r="${CIRCLE_RADIUS}" fill="${fill}"/>` +
@@ -60,7 +55,11 @@ export function getLocalhostWorktreeFaviconSvg(label: string): string {
 }
 
 export function getLocalhostWorktreeFaviconIco(label: string): Buffer {
-  const [red, green, blue] = hslToRgb(getLocalhostWorktreeFaviconHue(label), SATURATION, LIGHTNESS)
+  const [red, green, blue] = hslToRgb(
+    getLocalhostWorktreeHue(label),
+    LOCALHOST_WORKTREE_COLOR_SATURATION,
+    LOCALHOST_WORKTREE_COLOR_LIGHTNESS
+  )
   const pixelBytes = ICON_SIZE * ICON_SIZE * 4
   const maskBytes = (ICON_SIZE / 8) * ICON_SIZE
   const bitmapBytes = 40 + pixelBytes + maskBytes
@@ -88,7 +87,7 @@ export function getLocalhostWorktreeFaviconIco(label: string): Buffer {
   const pixelStart = bitmapStart + 40
   for (let y = 0; y < ICON_SIZE; y += 1) {
     for (let x = 0; x < ICON_SIZE; x += 1) {
-      const alpha = Math.round(circleCoverage(x, y) * 255)
+      const alpha = DISC_ALPHA[y * ICON_SIZE + x] ?? 0
       // Why: ICO pixel rows are stored bottom-up in BGRA order.
       const offset = pixelStart + ((ICON_SIZE - 1 - y) * ICON_SIZE + x) * 4
       buffer.writeUInt8(blue, offset)
@@ -106,6 +105,20 @@ function faviconLetter(label: string): string {
   return (match?.[0] ?? '?').toUpperCase()
 }
 
+// Why: the disc shape is label-independent, so the alpha grid is computed once
+// instead of on every no-store favicon request.
+const DISC_ALPHA = buildDiscAlphaGrid()
+
+function buildDiscAlphaGrid(): Uint8Array {
+  const grid = new Uint8Array(ICON_SIZE * ICON_SIZE)
+  for (let y = 0; y < ICON_SIZE; y += 1) {
+    for (let x = 0; x < ICON_SIZE; x += 1) {
+      grid[y * ICON_SIZE + x] = Math.round(circleCoverage(x, y) * 255)
+    }
+  }
+  return grid
+}
+
 function circleCoverage(x: number, y: number): number {
   const center = ICON_SIZE / 2
   let covered = 0
@@ -120,15 +133,6 @@ function circleCoverage(x: number, y: number): number {
     }
   }
   return covered / (SUPERSAMPLE * SUPERSAMPLE)
-}
-
-function fnv1aHash(value: string): number {
-  let hash = 0x811c9dc5
-  for (let index = 0; index < value.length; index += 1) {
-    hash ^= value.charCodeAt(index)
-    hash = Math.imul(hash, 0x01000193) >>> 0
-  }
-  return hash
 }
 
 function hslToRgb(hue: number, saturation: number, lightness: number): [number, number, number] {
