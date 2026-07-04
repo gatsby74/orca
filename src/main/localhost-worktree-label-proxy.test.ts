@@ -108,6 +108,77 @@ describe('localhost worktree label proxy', () => {
     expect(result.body).toBe('ok')
   })
 
+  it('serves a generated worktree favicon for /favicon.ico without touching the app', async () => {
+    let upstreamHits = 0
+    const port = await startUpstream((_request, response) => {
+      upstreamHits += 1
+      response.end('app favicon')
+    })
+    const proxy = new LocalhostWorktreeLabelProxy()
+    const { url } = await proxy.registerRoute({
+      targetUrl: `http://localhost:${port}/`,
+      projectName: 'Snap Studio',
+      worktreeName: 'analytics'
+    })
+    const labeled = new URL(url)
+    labeled.pathname = '/favicon.ico'
+    labeled.search = '?v=2'
+
+    const result = await fetchThroughProxy(labeled.toString())
+
+    expect(result.status).toBe(200)
+    expect(result.headers['content-type']).toBe('image/x-icon')
+    expect(result.headers['cache-control']).toBe('no-store')
+    // ICONDIR magic: reserved=0, type=1 little-endian.
+    expect(Buffer.from(result.body, 'utf8').subarray(0, 4)).toEqual(
+      Buffer.from([0, 0, 1, 0])
+    )
+    expect(upstreamHits).toBe(0)
+  })
+
+  it('serves an svg worktree favicon for /favicon.svg', async () => {
+    const port = await startUpstream((_request, response) => {
+      response.end('ok')
+    })
+    const proxy = new LocalhostWorktreeLabelProxy()
+    const { url } = await proxy.registerRoute({
+      targetUrl: `http://localhost:${port}/`,
+      projectName: 'Snap Studio',
+      worktreeName: 'analytics'
+    })
+    const labeled = new URL(url)
+    labeled.pathname = '/favicon.svg'
+
+    const result = await fetchThroughProxy(labeled.toString())
+
+    expect(result.status).toBe(200)
+    expect(result.headers['content-type']).toBe('image/svg+xml; charset=utf-8')
+    expect(result.body).toContain('<svg')
+    expect(result.body).toContain('>A</text>')
+  })
+
+  it('still proxies non-GET favicon requests and non-favicon paths to the app', async () => {
+    const seenPaths: string[] = []
+    const port = await startUpstream((request, response) => {
+      seenPaths.push(`${request.method} ${request.url}`)
+      response.end('from app')
+    })
+    const proxy = new LocalhostWorktreeLabelProxy()
+    const { url } = await proxy.registerRoute({
+      targetUrl: `http://localhost:${port}/`,
+      projectName: 'Snap Studio',
+      worktreeName: 'analytics'
+    })
+    const labeled = new URL(url)
+    labeled.pathname = '/assets/favicon-abc123.png'
+
+    const result = await fetchThroughProxy(labeled.toString())
+
+    expect(result.status).toBe(200)
+    expect(result.body).toBe('from app')
+    expect(seenPaths).toEqual(['GET /assets/favicon-abc123.png'])
+  })
+
   it('returns 404 for unregistered orca.localhost labels', async () => {
     const port = await startUpstream((_request, response) => {
       response.end('ok')
