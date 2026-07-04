@@ -264,9 +264,12 @@ export function computeVisibleWorktreeIds(
   if (!opts.showSleepingWorkspaces) {
     // Why no !hideDefaultBranchWorkspace term: that filter already ran above, so
     // an explicit hide still wins over the exemption.
+    // Keep a slept workspace visible while it has a pending notification, so an
+    // unread agent completion isn't silently hidden by the Hide-sleeping filter.
     all = all.filter(
       (w) =>
         isSleepingSweepExemptWorkspace(w, opts.alwaysShowDefaultBranchWorkspace) ||
+        w.isUnread ||
         !isInactiveWorkspace(
           w.id,
           opts.tabsByWorktree,
