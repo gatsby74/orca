@@ -3,7 +3,7 @@ import type { TerminalTab } from '../../../../shared/terminal-tab-types'
 import type { WorktreeLineage } from '../../../../shared/worktree/lineage-types'
 import type { Worktree } from '../../../../shared/worktree/types'
 import { buildWorktreeComparator, sortWorktreesSmart } from './smart-sort'
-import { getWorktreeIdsWithLiveAgent, isInactiveWorkspace } from '@/lib/worktree-activity-state'
+import { getWorktreeIdsWithLiveAgent, isHiddenBySleepFilter } from '@/lib/worktree-activity-state'
 import { useAppStore } from '@/store'
 import {
   getAllWorktreesFromState,
@@ -269,9 +269,9 @@ export function computeVisibleWorktreeIds(
     all = all.filter(
       (w) =>
         isSleepingSweepExemptWorkspace(w, opts.alwaysShowDefaultBranchWorkspace) ||
-        w.isUnread ||
-        !isInactiveWorkspace(
-          w.id,
+        !isHiddenBySleepFilter(
+          w,
+          opts.showSleepingWorkspaces,
           opts.tabsByWorktree,
           opts.ptyIdsByTabId,
           opts.browserTabsByWorktree,
