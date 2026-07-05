@@ -81,7 +81,7 @@ type StoreState = {
       | { kind: 'windows-host' }
       | { kind: 'wsl'; distro: string }
   }[]
-  sshConnectionStates: Map<string, { status: string }>
+  sshConnectionStates: Map<string, { status: string; remotePlatform?: NodeJS.Platform }>
   cacheTimerByKey: Record<string, number | null>
   settings: {
     theme?: 'system' | 'dark' | 'light'
@@ -3817,11 +3817,23 @@ describe('connectPanePty', () => {
       (args) => (args[0] as { sessionId?: string })?.sessionId === 'lost-pty'
     )
     return call?.[0] as
-      | { command?: string; launchAgent?: string; env?: Record<string, string> }
+      | {
+          command?: string
+          launchAgent?: string
+          launchConfig?: {
+            agentCommand?: string
+            agentArgs?: string
+            agentEnv?: Record<string, string>
+          }
+          env?: Record<string, string>
+        }
       | undefined
   }
 
-  const mountColdRestore = async (transport: ReturnType<typeof createMockTransport>) => {
+  const mountColdRestore = async (
+    transport: ReturnType<typeof createMockTransport>,
+    depsOverrides: Record<string, unknown> = {}
+  ) => {
     const { connectPanePty } = await import('./pty-connection')
     transport.connect.mockImplementation(async ({ sessionId }: { sessionId?: string }) => {
       if (sessionId) {
@@ -3834,7 +3846,8 @@ describe('connectPanePty', () => {
     const manager = createManager(1)
     const deps = createDeps({
       restoredLeafId: LEAF_1,
-      restoredPtyIdByLeafId: { [LEAF_1]: 'lost-pty' }
+      restoredPtyIdByLeafId: { [LEAF_1]: 'lost-pty' },
+      ...depsOverrides
     })
     connectPanePty(pane as never, manager as never, deps as never)
     await flushAsyncTicks(20)
@@ -3872,6 +3885,75 @@ describe('connectPanePty', () => {
     expect(reattach?.command).not.toContain('resume')
     expect(reattach?.launchAgent).toBe('codex')
     expect(reattach?.env?.ORCA_AGENT_LAUNCH_TOKEN).toMatch(new RegExp(`^${UUID_RE}$`))
+  })
+
+  it('cold-restores a fresh agent with the sleeping record launch config when resume is unavailable', async () => {
+    const transport = createMockTransport('fresh-pty')
+    const paneKey = makePaneKey('tab-1', LEAF_1)
+    mockStoreState = {
+      ...mockStoreState,
+      tabsByWorktree: { 'wt-1': [{ id: 'tab-1', ptyId: 'lost-pty' }] },
+      settings: {
+        ...mockStoreState.settings,
+        agentCmdOverrides: { codex: 'current-codex' },
+        agentDefaultArgs: { codex: '--current-args' }
+      },
+      agentStatusByPaneKey: {},
+      sleepingAgentSessionsByPaneKey: {
+        [paneKey]: {
+          paneKey,
+          tabId: 'tab-1',
+          worktreeId: 'wt-1',
+          agent: 'codex',
+          prompt: 'finish the task',
+          state: 'working',
+          capturedAt: 1,
+          updatedAt: 1,
+          launchConfig: {
+            agentCommand: 'sleeping-codex --stored-args',
+            agentArgs: '--stored-args',
+            agentEnv: { CODEX_HOME: '/tmp/orca-stored-codex' }
+          }
+        }
+      }
+    } as StoreState
+
+    await mountColdRestore(transport)
+
+    const reattach = findReattachConnect(transport)
+    expect(reattach?.command).toBe('sleeping-codex --stored-args')
+    expect(reattach?.launchAgent).toBe('codex')
+    expect(reattach?.launchConfig).toMatchObject({
+      agentCommand: 'sleeping-codex --stored-args',
+      agentArgs: '--stored-args',
+      agentEnv: { CODEX_HOME: '/tmp/orca-stored-codex' }
+    })
+    expect(reattach?.env).toMatchObject({
+      CODEX_HOME: '/tmp/orca-stored-codex',
+      ORCA_AGENT_LAUNCH_TOKEN: expect.stringMatching(new RegExp(`^${UUID_RE}$`))
+    })
+  })
+
+  it('uses the known SSH remote platform when fresh-launching an unresumable agent', async () => {
+    const transport = createMockTransport('fresh-pty')
+    mockStoreState = {
+      ...mockStoreState,
+      tabsByWorktree: {
+        'wt-1': [{ id: 'tab-1', ptyId: 'lost-pty', launchAgent: 'claude-agent-teams' }]
+      },
+      repos: [{ id: 'repo1', connectionId: 'ssh-win' }],
+      sshConnectionStates: new Map([['ssh-win', { status: 'connected', remotePlatform: 'win32' }]]),
+      settings: { ...mockStoreState.settings, agentCmdOverrides: {} },
+      agentStatusByPaneKey: {},
+      sleepingAgentSessionsByPaneKey: {}
+    } as StoreState
+
+    await mountColdRestore(transport)
+
+    const reattach = findReattachConnect(transport)
+    expect(reattach?.command).toMatch(/^orca\.cmd claude-teams/)
+    expect(reattach?.command).not.toContain('orca-ide')
+    expect(reattach?.launchAgent).toBe('claude-agent-teams')
   })
 
   it('cold-restores the prior agent from the persisted tab launchAgent after a restart', async () => {
@@ -3913,6 +3995,80 @@ describe('connectPanePty', () => {
     const reattach = findReattachConnect(transport)
     expect(reattach?.command).toMatch(/^codex /)
     expect(reattach?.command).not.toContain('resume')
+    expect(reattach?.launchAgent).toBe('codex')
+  })
+
+  it('does not cold-restore a fresh agent from only a completed live status row', async () => {
+    const transport = createMockTransport('fresh-pty')
+    const paneKey = makePaneKey('tab-1', LEAF_1)
+    mockStoreState = {
+      ...mockStoreState,
+      tabsByWorktree: { 'wt-1': [{ id: 'tab-1', ptyId: 'lost-pty' }] },
+      settings: { ...mockStoreState.settings, agentCmdOverrides: {}, defaultTuiAgent: 'codex' },
+      agentStatusByPaneKey: {
+        [paneKey]: {
+          agentType: 'codex',
+          paneKey,
+          prompt: 'done task',
+          state: 'done',
+          stateHistory: [],
+          stateStartedAt: 1,
+          updatedAt: 1
+        }
+      },
+      sleepingAgentSessionsByPaneKey: {}
+    } as StoreState
+
+    await mountColdRestore(transport)
+
+    const reattach = findReattachConnect(transport)
+    expect(reattach?.command).toBeUndefined()
+    expect(reattach?.launchAgent).toBeUndefined()
+  })
+
+  it('ignores malformed sleeping launch config when a live resumable status exists', async () => {
+    const transport = createMockTransport('fresh-pty')
+    const paneKey = makePaneKey('tab-1', LEAF_1)
+    mockStoreState = {
+      ...mockStoreState,
+      tabsByWorktree: { 'wt-1': [{ id: 'tab-1', ptyId: 'lost-pty' }] },
+      settings: { ...mockStoreState.settings, agentCmdOverrides: {} },
+      agentStatusByPaneKey: {
+        [paneKey]: {
+          agentType: 'codex',
+          paneKey,
+          prompt: 'live task',
+          providerSession: { key: 'session_id', id: 'live-session' },
+          state: 'working',
+          stateHistory: [],
+          stateStartedAt: 1,
+          updatedAt: 1
+        }
+      },
+      sleepingAgentSessionsByPaneKey: {
+        [paneKey]: {
+          paneKey,
+          tabId: 'tab-1',
+          worktreeId: 'wt-1',
+          agent: 'codex',
+          prompt: 'malformed sleeping task',
+          state: 'working',
+          capturedAt: 1,
+          updatedAt: 1,
+          launchConfig: {
+            agentCommand: 'malformed-sleeping-codex',
+            agentArgs: '',
+            agentEnv: {}
+          }
+        }
+      }
+    } as StoreState
+
+    await mountColdRestore(transport)
+
+    const reattach = findReattachConnect(transport)
+    expect(reattach?.command).toContain("'resume' 'live-session'")
+    expect(reattach?.command).not.toBe('malformed-sleeping-codex')
     expect(reattach?.launchAgent).toBe('codex')
   })
 
