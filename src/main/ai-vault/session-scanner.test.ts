@@ -1,9 +1,10 @@
-import { mkdtemp, mkdir, rm, writeFile } from 'fs/promises'
-import { tmpdir } from 'os'
-import { join } from 'path'
+import { mkdtemp, mkdir, rm, writeFile } from 'node:fs/promises'
+import { tmpdir } from 'node:os'
+import { join } from 'node:path'
 import { afterEach, describe, expect, it, vi } from 'vitest'
 import { AI_VAULT_AGENTS, buildAiVaultResumeCommand } from '../../shared/ai-vault-types'
 import { scanAiVaultSessions } from './session-scanner'
+import { isolatedScanRoots, jsonLines } from './session-scanner-test-fixtures'
 
 let tempRoots: string[] = []
 
@@ -12,31 +13,6 @@ afterEach(async () => {
   await Promise.all(tempRoots.map((root) => rm(root, { recursive: true, force: true })))
   tempRoots = []
 })
-
-function isolatedScanRoots(root: string) {
-  return {
-    claudeProjectsDir: join(root, 'claude-projects'),
-    codexSessionsDir: join(root, 'codex-sessions'),
-    geminiSessionsDir: join(root, 'gemini-sessions'),
-    copilotSessionsDir: join(root, 'copilot-sessions'),
-    cursorProjectsDir: join(root, 'cursor-projects'),
-    opencodeStorageDir: join(root, 'opencode-storage'),
-    grokSessionsDir: join(root, 'grok-sessions'),
-    devinTranscriptsDir: join(root, 'devin-transcripts'),
-    hermesSessionsDir: join(root, 'hermes-sessions'),
-    rovoSessionsDir: join(root, 'rovo-sessions'),
-    openclawStateDir: join(root, 'openclaw-state'),
-    openclawLegacyStateDir: join(root, 'openclaw-legacy-state'),
-    piSessionsDir: join(root, 'pi-sessions'),
-    droidSessionsDir: join(root, 'droid-sessions'),
-    droidProjectsDir: join(root, 'droid-projects'),
-    kimiSessionsDir: join(root, 'kimi-sessions')
-  }
-}
-
-function jsonLines(records: unknown[]): string {
-  return records.map((record) => JSON.stringify(record)).join('\n')
-}
 
 describe('scanAiVaultSessions', () => {
   it('indexes Claude and Codex transcripts with resume commands', async () => {
@@ -110,7 +86,7 @@ describe('scanAiVaultSessions', () => {
             type: 'message',
             role: 'user',
             content: [
-              { type: 'text', text: '# AGENTS.md instructions for /repo/app <INSTRUCTIONS>' }
+              { type: 'text', text: '# AGENTS.md instructions\n\n<INSTRUCTIONS>repo policy' }
             ]
           }
         }),
@@ -162,6 +138,15 @@ describe('scanAiVaultSessions', () => {
         })
       ].join('\n')
     )
+    await writeFile(
+      join(root, 'session_index.jsonl'),
+      jsonLines([
+        {
+          id: '019f0000-1111-7222-8333-444444444444',
+          thread_name: 'Indexed Codex resume picker title'
+        }
+      ])
+    )
 
     const result = await scanAiVaultSessions({
       ...roots,
@@ -171,7 +156,7 @@ describe('scanAiVaultSessions', () => {
     expect(result.issues).toEqual([])
     expect(result.sessions).toHaveLength(2)
     expect(result.sessions.map((session) => session.title).sort()).toEqual([
-      'Fix the resume picker filters',
+      'Indexed Codex resume picker title',
       'Vault polish pass'
     ])
 

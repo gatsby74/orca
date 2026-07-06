@@ -1,9 +1,10 @@
-import { homedir } from 'os'
-import { basename, join } from 'path'
+import { homedir } from 'node:os'
+import { basename, join } from 'node:path'
 import type { AiVaultScanIssue } from '../../shared/ai-vault-types'
 import { uniqueCodexSessionsDirs } from './session-scanner-codex-paths'
 import { discoverFiles, discoverOpenClawFiles } from './session-scanner-discovery'
 import { droidDiscoveries, kimiDiscoveries } from './session-scanner-droid-kimi-sources'
+import { opencodeDiscoveries } from './session-scanner-opencode-sources'
 import type { AiVaultScanOptions, SessionFileDiscovery } from './session-scanner-types'
 import { normalizePiSessionsDir } from './session-scanner-values'
 
@@ -17,10 +18,6 @@ const COPILOT_SESSIONS_DIR = join(
   'session-state'
 )
 const CURSOR_PROJECTS_DIR = join(homedir(), '.cursor', 'projects')
-const OPENCODE_STORAGE_DIR = join(
-  process.env.OPENCODE_CONFIG_DIR?.trim() || join(homedir(), '.local', 'share', 'opencode'),
-  'storage'
-)
 const GROK_SESSIONS_DIR = join(
   process.env.GROK_HOME?.trim() || join(homedir(), '.grok'),
   'sessions'
@@ -55,7 +52,11 @@ export async function discoverAiVaultSessionSources(args: {
     ...(options.additionalCodexSessionsDirs ?? [])
   ])
 
-  return Promise.all<SessionFileDiscovery>([
+  return Promise.all([
+    // Why: OpenCode 1.17.x migrated sessions from per-session JSON files to a
+    // SQLite DB. discoverOpenCodeSessions runs both the file scanner (legacy)
+    // and the SQLite scanner (1.17.x); dedup by sessionId happens inside.
+    ...opencodeDiscoveries(options, wslHomeDirs, limitPerAgent, issues),
     ...claudeDiscoveries(options, wslHomeDirs, limitPerAgent, issues),
     ...codexDiscoveries(codexSessionsDirs, limitPerAgent, issues),
     ...standardDiscoveries(options, wslHomeDirs, limitPerAgent, issues),
@@ -75,7 +76,17 @@ function claudeDiscoveries(
     options.claudeProjectsDir ?? CLAUDE_PROJECTS_DIR,
     ...wslHomeDirs.map((homeDir) => join(homeDir, '.claude', 'projects'))
   ].map((rootDir) =>
-    discoverFiles({ rootDir, limit, agent: 'claude', issues, extensions: ['.jsonl'] })
+    discoverFiles({
+      rootDir,
+      limit,
+      agent: 'claude',
+      issues,
+      extensions: ['.jsonl'],
+      // Why: Task subagent transcripts under `<session>/subagents/` share the parent
+      // sessionId and aren't independently resumable, so they'd just duplicate the
+      // parent as untitled rows; prune the subtree instead of indexing it.
+      directoryPredicate: (name) => name !== 'subagents'
+    })
   )
 }
 
@@ -109,7 +120,6 @@ function standardDiscoveries(
       discoverFiles({ rootDir, limit, agent: 'copilot', issues, extensions: ['.jsonl'] })
     ),
     ...cursorDiscoveries(options, wslHomeDirs, limit, issues),
-    ...opencodeDiscoveries(options, wslHomeDirs, limit, issues),
     ...grokDiscoveries(options, wslHomeDirs, limit, issues),
     ...devinDiscoveries(options, wslHomeDirs, limit, issues),
     ...hermesDiscoveries(options, wslHomeDirs, limit, issues),
@@ -136,21 +146,6 @@ function cursorDiscoveries(
       extensions: ['.jsonl'],
       filePredicate: (path) => path.split(/[\\/]/).includes('agent-transcripts')
     })
-  )
-}
-
-function opencodeDiscoveries(
-  options: AiVaultScanOptions,
-  wslHomeDirs: readonly string[],
-  limit: number,
-  issues: AiVaultScanIssue[]
-): Promise<SessionFileDiscovery>[] {
-  return sessionRootDirs(
-    join(options.opencodeStorageDir ?? OPENCODE_STORAGE_DIR, 'session'),
-    wslHomeDirs,
-    ['.local', 'share', 'opencode', 'storage', 'session']
-  ).map((rootDir) =>
-    discoverFiles({ rootDir, limit, agent: 'opencode', issues, extensions: ['.json'] })
   )
 }
 

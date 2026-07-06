@@ -2,10 +2,10 @@
    bash, marker scanning, and env restoration cases in one suite so the
    generated wrapper contract is reviewed as a unit. */
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
-import { spawnSync } from 'child_process'
-import { tmpdir } from 'os'
-import { join, dirname } from 'path'
-import { mkdtempSync, readFileSync, rmSync, writeFileSync, mkdirSync } from 'fs'
+import { spawnSync } from 'node:child_process'
+import { tmpdir } from 'node:os'
+import { join, dirname } from 'node:path'
+import { mkdtempSync, readFileSync, rmSync, writeFileSync, mkdirSync } from 'node:fs'
 import type * as pty from 'node-pty'
 import type * as LocalPtyShellReadyModule from './local-pty-shell-ready'
 import {
@@ -164,6 +164,61 @@ describe('writeStartupCommandWhenShellReady', () => {
     vi.advanceTimersByTime(1)
     await Promise.resolve()
     expect(proc._writes).toEqual(['codex\n'])
+  })
+
+  // Why: regression for the multiline agent-prompt bug. A startup command with
+  // embedded newlines must be wrapped in bracketed paste (ESC[200~ … ESC[201~)
+  // followed by a single submit byte, so bash readline / zsh zle insert the
+  // whole prompt literally instead of reading each LF as Enter and mangling it
+  // into PS2 continuation.
+  it('wraps a multiline startup command in bracketed paste when the shell supports it', async () => {
+    Object.defineProperty(process, 'platform', { value: 'darwin' })
+    const proc = createMockProc()
+    const ready = Promise.resolve()
+    const command = "claude '--dangerously-skip-permissions' 'line one\nline two'"
+    writeStartupCommandWhenShellReady(ready, proc, command, () => {}, {
+      bracketedPasteSafe: true
+    })
+
+    await ready
+    proc._emitData('\r\nuser@host % ')
+    vi.advanceTimersByTime(30)
+    await Promise.resolve()
+
+    expect(proc._writes).toEqual([`\x1b[200~${command}\x1b[201~\n`])
+  })
+
+  it('leaves a single-line command on the raw submit path even when bracketed paste is safe', async () => {
+    Object.defineProperty(process, 'platform', { value: 'darwin' })
+    const proc = createMockProc()
+    const ready = Promise.resolve()
+    writeStartupCommandWhenShellReady(ready, proc, 'claude', () => {}, {
+      bracketedPasteSafe: true
+    })
+
+    await ready
+    proc._emitData('\r\nuser@host % ')
+    vi.advanceTimersByTime(30)
+    await Promise.resolve()
+
+    expect(proc._writes).toEqual(['claude\n'])
+  })
+
+  it('does not bracket-wrap a multiline command when the shell lacks bracketed paste', async () => {
+    Object.defineProperty(process, 'platform', { value: 'darwin' })
+    const proc = createMockProc()
+    const ready = Promise.resolve()
+    const command = 'echo one\necho two'
+    // Default options: bracketedPasteSafe is false, so the raw path is kept to
+    // avoid echoing the ESC[200~ markers on shells without bracketed paste.
+    writeStartupCommandWhenShellReady(ready, proc, command, () => {})
+
+    await ready
+    proc._emitData('\r\nuser@host % ')
+    vi.advanceTimersByTime(30)
+    await Promise.resolve()
+
+    expect(proc._writes).toEqual([`${command}\n`])
   })
 })
 
@@ -437,6 +492,8 @@ describePosix('local PTY shell-ready launch config', () => {
     const bashRc = getBashShellReadyRcfileContent()
     const restoreLine =
       '[[ -n "${ORCA_OPENCODE_CONFIG_DIR:-}" ]] && export OPENCODE_CONFIG_DIR="${ORCA_OPENCODE_CONFIG_DIR}"'
+    const mimoRestoreLine =
+      '[[ -n "${ORCA_MIMOCODE_HOME:-}" ]] && export MIMOCODE_HOME="${ORCA_MIMOCODE_HOME}"'
     const codexRestoreLine =
       '[[ -n "${ORCA_CODEX_HOME:-}" ]] && export CODEX_HOME="${ORCA_CODEX_HOME}"'
     const agentTeamsPathRestoreLine = '[[ -n "${ORCA_AGENT_TEAMS_SHIM_DIR:-}" ]] || return 0'
@@ -444,6 +501,9 @@ describePosix('local PTY shell-ready launch config', () => {
     expect(zshrc).toContain(restoreLine)
     expect(zlogin).toContain(restoreLine)
     expect(bashRc).toContain(restoreLine)
+    expect(zshrc).toContain(mimoRestoreLine)
+    expect(zlogin).toContain(mimoRestoreLine)
+    expect(bashRc).toContain(mimoRestoreLine)
     expect(zshrc).not.toContain('ORCA_PI_CODING_AGENT_DIR')
     expect(zlogin).not.toContain('ORCA_PI_CODING_AGENT_DIR')
     expect(bashRc).not.toContain('ORCA_PI_CODING_AGENT_DIR')
