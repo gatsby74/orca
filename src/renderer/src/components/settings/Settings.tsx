@@ -23,7 +23,11 @@ import { useSystemPrefersDark } from '@/components/terminal-pane/use-system-pref
 import { isMacUserAgent, isWindowsUserAgent } from '@/components/terminal-pane/pane-helpers'
 import { applyDocumentTheme } from '@/lib/document-theme'
 import { useConfirmationDialog } from '@/components/confirmation-dialog'
-import { SCROLLBACK_PRESETS_ROWS, getFallbackTerminalFonts } from './SettingsConstants'
+import {
+  SCROLLBACK_PRESETS_ROWS,
+  getFallbackTerminalFonts,
+  mergeFontSuggestions
+} from './SettingsConstants'
 import { DEFAULT_APP_FONT_FAMILY, getDefaultVoiceSettings } from '../../../../shared/constants'
 import { getRepoExecutionHostId, LOCAL_EXECUTION_HOST_ID } from '../../../../shared/execution-host'
 import { GeneralPane } from './GeneralPane'
@@ -313,7 +317,7 @@ function Settings(): React.JSX.Element {
   const ghostty = useGhosttyImport(updateSettings, settings)
   const warpThemes = useWarpThemeImport(updateSettings, settings)
   const [fontSuggestions, setFontSuggestions] = useState<string[]>(
-    Array.from(new Set([DEFAULT_APP_FONT_FAMILY, ...getFallbackTerminalFonts()]))
+    mergeFontSuggestions([], getFallbackTerminalFonts())
   )
   const terminalFontSuggestions = useMemo(
     () => fontSuggestions.filter((font) => font !== DEFAULT_APP_FONT_FAMILY),
@@ -770,9 +774,7 @@ function Settings(): React.JSX.Element {
           return
         }
         terminalFontsLoadedRef.current = true
-        setFontSuggestions((prev) =>
-          Array.from(new Set([DEFAULT_APP_FONT_FAMILY, ...fonts, ...prev])).slice(0, 320)
-        )
+        setFontSuggestions((prev) => mergeFontSuggestions(fonts, prev))
       } catch {
         // Fall back to curated cross-platform suggestions.
       }

@@ -2,7 +2,9 @@ import { execFile } from 'node:child_process'
 
 let cachedFonts: string[] | null = null
 let fontsPromise: Promise<string[]> | null = null
-const SYSTEM_FONT_LIST_TIMEOUT_MS = 15_000
+// Why: large macOS font catalogs can make system_profiler exceed 15s even
+// when it is healthy; still bound it so Settings never waits forever.
+const SYSTEM_FONT_LIST_TIMEOUT_MS = 45_000
 
 export async function listSystemFontFamilies(): Promise<string[]> {
   if (cachedFonts) {

@@ -136,4 +136,29 @@ describe('FontAutocomplete', () => {
 
     expect(getOptionLabels()).toEqual(['JetBrains Mono'])
   })
+
+  it('searches suggestions past the previous 320 font cutoff', async () => {
+    const suggestions = [
+      ...Array.from({ length: 350 }, (_value, index) => `System Font ${index}`),
+      'Zed Mono'
+    ]
+
+    function Harness(): ReactNode {
+      const [value, setValue] = useState('System Font 0')
+      return <FontAutocomplete value={value} suggestions={suggestions} onChange={setValue} />
+    }
+
+    await act(async () => {
+      root.render(<Harness />)
+    })
+
+    const input = getInput()
+
+    await act(async () => {
+      input.focus()
+    })
+    await typeIntoInput(input, 'Zed')
+
+    expect(getOptionLabels()).toEqual(['Zed Mono'])
+  })
 })
