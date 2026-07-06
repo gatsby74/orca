@@ -17,6 +17,7 @@ import {
   SettingsSwitchRow
 } from './SettingsFormControls'
 import { translate } from '@/i18n/i18n'
+import { RichMarkdownSpellcheckSetting } from './RichMarkdownSpellcheckSetting'
 
 export type AutoSaveDelayDraftState = {
   sourceDelayMs: number
@@ -378,6 +379,8 @@ export function GeneralEditorSettingsSection({
           onChange={() => updateSettings({ editorMinimapEnabled: !settings.editorMinimapEnabled })}
         />
       </SearchableSetting>
+
+      <RichMarkdownSpellcheckSetting settings={settings} updateSettings={updateSettings} />
 
       <GeneralEditorMarkdownReviewSettings settings={settings} updateSettings={updateSettings} />
     </section>
