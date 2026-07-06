@@ -86,7 +86,6 @@ import {
   type SshTarget
 } from '../shared/ssh-types'
 import { isFolderRepo } from '../shared/repo-kind'
-import { getGitUsername } from './git/repo'
 import { getRepoExecutionHostId, parseExecutionHostId } from '../shared/execution-host'
 import {
   getDefaultPersistedState,
@@ -2178,6 +2177,33 @@ function remapAcknowledgedAgentPaneKeys(
   return { acknowledgements: next, changed }
 }
 
+// Why: bounds a corrupt/bloated persisted list — the gate only ever needs the
+// handful of Claude sessions a daemon can realistically keep alive.
+const MAX_CLAUDE_LIVE_PTY_SESSION_IDS = 200
+
+function normalizeClaudeLivePtySessionIds(value: unknown): string[] {
+  if (!Array.isArray(value)) {
+    return []
+  }
+  // Why: scan newest-first so the cap keeps the most recent ids, matching
+  // addClaudeLivePtySessionId's eviction policy while bounding the work done
+  // on an oversized/corrupt list.
+  const ids: string[] = []
+  for (let index = value.length - 1; index >= 0; index -= 1) {
+    const entry = value[index]
+    if (typeof entry !== 'string' || entry.length === 0 || entry.length > 512) {
+      continue
+    }
+    if (!ids.includes(entry)) {
+      ids.push(entry)
+    }
+    if (ids.length >= MAX_CLAUDE_LIVE_PTY_SESSION_IDS) {
+      break
+    }
+  }
+  return ids.toReversed()
+}
+
 function normalizeMigrationUnsupportedPtyEntries(value: unknown): MigrationUnsupportedPtyEntry[] {
   if (!Array.isArray(value)) {
     return []
@@ -2352,6 +2378,7 @@ function createMinimalPersistedTerminalTab(args: {
   tabId: string
   ptyId: string
   existingTabCount: number
+  startupCwd?: string
 }): TerminalTab {
   const ordinal = args.existingTabCount + 1
   const defaultTitle = `Terminal ${ordinal}`
@@ -2365,6 +2392,7 @@ function createMinimalPersistedTerminalTab(args: {
     color: null,
     sortOrder: args.existingTabCount,
     createdAt: Date.now(),
+    ...(args.startupCwd ? { startupCwd: args.startupCwd } : {}),
     pendingActivationSpawn: true
   }
 }
@@ -3314,6 +3342,7 @@ export class Store {
           sshRemotePtyLeases: (parsed.sshRemotePtyLeases ?? [])
             .map(normalizeSshRemotePtyLease)
             .filter((lease): lease is SshRemotePtyLease => lease !== null),
+          claudeLivePtySessionIds: normalizeClaudeLivePtySessionIds(parsed.claudeLivePtySessionIds),
           migrationUnsupportedPtyEntries: normalizeMigrationUnsupportedPtyEntries(
             parsed.migrationUnsupportedPtyEntries
           ),
@@ -3803,9 +3832,8 @@ export class Store {
 
   /**
    * O(1) read of the persisted repo count. Use this when you only need the
-   * count (e.g. cohort-classifier) — `getRepos()` hydrates each repo and
-   * may run a synchronous git subprocess via `getGitUsername()`, which is
-   * wasteful when the caller only reads `.length`.
+   * count (e.g. cohort-classifier) — `getRepos()` hydrates each repo, which
+   * is wasteful when the caller only reads `.length`.
    */
   getRepoCount(): number {
     return this.state.repos.length
@@ -3814,6 +3842,32 @@ export class Store {
   getRepo(id: string): Repo | undefined {
     const repo = this.state.repos.find((r) => r.id === id)
     return repo ? this.hydrateRepo(repo) : undefined
+  }
+
+  /**
+   * Record a background-resolved git username (repo-git-username-enrichment).
+   * Kept out of updateRepo's whitelist so the renderer-facing update surface
+   * cannot write it directly. Returns true when the hydrated value changed.
+   */
+  setResolvedRepoGitUsername(id: string, username: string): boolean {
+    const repo = this.state.repos.find((r) => r.id === id)
+    if (!repo) {
+      return false
+    }
+    const previous = this.gitUsernameCache.get(repo.path) ?? repo.gitUsername ?? ''
+    this.gitUsernameCache.set(repo.path, username)
+    if (previous === username) {
+      return false
+    }
+    if (username) {
+      // Why: persisting the resolved value lets the next launch hydrate repos
+      // with the right branch prefix before enrichment has re-run.
+      repo.gitUsername = username
+    } else {
+      delete repo.gitUsername
+    }
+    this.scheduleSave()
+    return true
   }
 
   getProjectGroups(): ProjectGroup[] {
@@ -4349,14 +4403,15 @@ export class Store {
     const sourceControlAi = normalizeRepoSourceControlAiOverrides(rawSourceControlAi)
     const projectHostSetupMethod = sanitizeRepoProjectHostSetupMethod(rawProjectHostSetupMethod)
     const forkSyncMode = sanitizeForkSyncMode(rawForkSyncMode)
+    // Why: username resolution spawns git/gh subprocesses, so it must never
+    // run inside hydration — the first getRepos() of a launch executes on the
+    // Electron main thread and a stuck probe froze startup for minutes on
+    // Windows (issue #7225). Hydration only reads the enrichment cache or the
+    // value persisted by a previous launch; repo-git-username-enrichment.ts
+    // refreshes both in the background.
     const gitUsername = isFolderRepo(repo)
       ? ''
-      : (this.gitUsernameCache.get(repo.path) ??
-        (() => {
-          const username = getGitUsername(repo.path)
-          this.gitUsernameCache.set(repo.path, username)
-          return username
-        })())
+      : (this.gitUsernameCache.get(repo.path) ?? repo.gitUsername ?? '')
 
     return {
       ...repoWithoutIcon,
@@ -5749,6 +5804,7 @@ export class Store {
     tabId: string
     leafId: string
     ptyId: string
+    startupCwd?: string
   }): void {
     const session = this.state.workspaceSession
     if (!session) {
@@ -5883,6 +5939,37 @@ export class Store {
       return
     }
     this.state.sshTargets = this.state.sshTargets.filter((t) => t.id !== id)
+    this.scheduleSave()
+  }
+
+  // ── Live Claude PTY sessions ───────────────────────────────────────
+
+  getClaudeLivePtySessionIds(): string[] {
+    return [...(this.state.claudeLivePtySessionIds ?? [])]
+  }
+
+  addClaudeLivePtySessionId(sessionId: string): void {
+    if (sessionId.length === 0 || sessionId.length > 512) {
+      return
+    }
+    const ids = this.state.claudeLivePtySessionIds ?? []
+    if (ids.includes(sessionId)) {
+      return
+    }
+    // Why: drop the oldest entry at the cap — stale ids are pruned against the
+    // daemon at startup anyway, so recency is the only thing worth keeping.
+    this.state.claudeLivePtySessionIds = [...ids, sessionId].slice(-MAX_CLAUDE_LIVE_PTY_SESSION_IDS)
+    // Why: flush synchronously — a force-quit right after a Claude spawn must
+    // still seed the live-PTY gate on the next launch.
+    this.flush()
+  }
+
+  removeClaudeLivePtySessionId(sessionId: string): void {
+    const ids = this.state.claudeLivePtySessionIds ?? []
+    if (!ids.includes(sessionId)) {
+      return
+    }
+    this.state.claudeLivePtySessionIds = ids.filter((id) => id !== sessionId)
     this.scheduleSave()
   }
 

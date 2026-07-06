@@ -123,10 +123,6 @@ vi.mock('electron', () => ({
   }
 }))
 
-vi.mock('./git/repo', () => ({
-  getGitUsername: vi.fn().mockReturnValue('testuser')
-}))
-
 vi.mock('./telemetry/client', () => ({
   track: trackMock
 }))
@@ -1004,7 +1000,9 @@ describe('Store', () => {
   // ── 2. Load from existing valid file ─────────────────────────────────
 
   it('reads repos from an existing data file', async () => {
-    const repo = makeRepo()
+    // Why: hydration must serve the persisted username without spawning
+    // git/gh (issue #7225); resolution happens in background enrichment.
+    const repo = makeRepo({ gitUsername: 'testuser' })
     writeDataFile({
       schemaVersion: 1,
       repos: [repo],
@@ -2828,6 +2826,24 @@ describe('Store', () => {
     expect(store.getSettings().terminalUseSeparateLightTheme).toBe(false)
   })
 
+  it('round-trips selected terminal theme names across reload', async () => {
+    const store = await createStore()
+
+    store.updateSettings({
+      terminalThemeDark: 'One Light',
+      terminalThemeLight: 'GitHub Light'
+    })
+    store.flush()
+
+    const persisted = readDataFile() as PersistedState
+    expect(persisted.settings.terminalThemeDark).toBe('One Light')
+    expect(persisted.settings.terminalThemeLight).toBe('GitHub Light')
+
+    const reopened = await createStore()
+    expect(reopened.getSettings().terminalThemeDark).toBe('One Light')
+    expect(reopened.getSettings().terminalThemeLight).toBe('GitHub Light')
+  })
+
   // ── 5. addRepo and getRepo ──────────────────────────────────────────
 
   it('addRepo stores a repo retrievable by getRepo', async () => {
@@ -2837,7 +2853,24 @@ describe('Store', () => {
     const fetched = store.getRepo('r1')
     expect(fetched).toBeDefined()
     expect(fetched!.displayName).toBe('test')
-    expect(fetched!.gitUsername).toBe('testuser')
+    // No username has been resolved yet — hydration must not probe git/gh.
+    expect(fetched!.gitUsername).toBe('')
+  })
+
+  it('setResolvedRepoGitUsername persists the enriched username for hydration', async () => {
+    const store = await createStore()
+    store.addRepo(makeRepo())
+    expect(store.getRepo('r1')!.gitUsername).toBe('')
+
+    expect(store.setResolvedRepoGitUsername('r1', 'testuser')).toBe(true)
+    expect(store.getRepo('r1')!.gitUsername).toBe('testuser')
+    // Unchanged value reports no change so callers can skip renderer notify.
+    expect(store.setResolvedRepoGitUsername('r1', 'testuser')).toBe(false)
+    expect(store.setResolvedRepoGitUsername('missing', 'x')).toBe(false)
+
+    store.flush()
+    const persisted = readDataFile() as PersistedState
+    expect(persisted.repos[0].gitUsername).toBe('testuser')
   })
 
   it('deleteProjectGroup ungroups repos from the deleted group subtree', async () => {
@@ -8411,6 +8444,69 @@ describe('Store', () => {
 
     expect(store.getWorkspaceLineage(folderLineage.childWorkspaceKey)).toBeUndefined()
     expect(store.getWorkspaceLineage(unrelatedLineage.childWorkspaceKey)).toEqual(unrelatedLineage)
+  })
+
+  // ── Live Claude PTY session ids (STA-1246) ─────────────────────────
+
+  describe('claudeLivePtySessionIds', () => {
+    it('persists added ids across reloads and removes them durably', async () => {
+      const store = await createStore()
+
+      store.addClaudeLivePtySessionId('claude-session-1')
+      store.addClaudeLivePtySessionId('claude-session-2')
+      store.addClaudeLivePtySessionId('claude-session-1')
+
+      expect(store.getClaudeLivePtySessionIds()).toEqual(['claude-session-1', 'claude-session-2'])
+
+      const reloaded = await createStore()
+      expect(reloaded.getClaudeLivePtySessionIds()).toEqual([
+        'claude-session-1',
+        'claude-session-2'
+      ])
+
+      reloaded.removeClaudeLivePtySessionId('claude-session-1')
+      reloaded.flush()
+
+      const reloadedAgain = await createStore()
+      expect(reloadedAgain.getClaudeLivePtySessionIds()).toEqual(['claude-session-2'])
+    })
+
+    it('drops malformed persisted entries on load', async () => {
+      writeDataFile({
+        schemaVersion: 1,
+        claudeLivePtySessionIds: ['valid-id', '', 42, null, 'valid-id', 'x'.repeat(513)]
+      })
+
+      const store = await createStore()
+
+      expect(store.getClaudeLivePtySessionIds()).toEqual(['valid-id'])
+    })
+
+    it('keeps the newest ids when an oversized persisted list is loaded', async () => {
+      writeDataFile({
+        schemaVersion: 1,
+        claudeLivePtySessionIds: Array.from({ length: 205 }, (_, index) => `claude-${index}`)
+      })
+
+      const store = await createStore()
+
+      const ids = store.getClaudeLivePtySessionIds()
+      expect(ids).toHaveLength(200)
+      expect(ids[0]).toBe('claude-5')
+      expect(ids[199]).toBe('claude-204')
+    })
+
+    it('caps the persisted id list', async () => {
+      const store = await createStore()
+      for (let index = 0; index < 205; index += 1) {
+        store.addClaudeLivePtySessionId(`claude-session-${index}`)
+      }
+
+      const ids = store.getClaudeLivePtySessionIds()
+      expect(ids).toHaveLength(200)
+      expect(ids[0]).toBe('claude-session-5')
+      expect(ids[199]).toBe('claude-session-204')
+    })
   })
 
   // ── Rolling backups (issue #1158) ──────────────────────────────────
