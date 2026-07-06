@@ -13,6 +13,7 @@ import { fetchClaudeRateLimits, fetchManagedAccountUsage } from './claude-fetche
 import type { InactiveClaudeAccountInfo } from './claude-fetcher'
 import { consumeCodexRateLimitResetCredit, fetchCodexRateLimits } from './codex-fetcher'
 import type { ClaudeRuntimeAuthPreparation } from '../claude-accounts/runtime-auth-service'
+import type { NetworkProxySettings } from '../../shared/network-proxy'
 import {
   normalizeClaudeAccountSelectionTarget,
   type ClaudeAccountSelectionTarget,
@@ -20,6 +21,8 @@ import {
 } from '../claude-accounts/runtime-selection'
 import { fetchGeminiRateLimits } from './gemini-usage-fetcher'
 import { fetchKimiRateLimits } from './kimi-fetcher'
+import { hasMiniMaxSessionCookie } from '../minimax/minimax-cookie-store'
+import { fetchMiniMaxRateLimits } from './minimax-fetcher'
 import { fetchOpenCodeGoRateLimits } from './opencode-go-usage-fetcher'
 import {
   normalizeCodexAccountSelectionTarget,
@@ -40,6 +43,17 @@ type ClaudeAuthPreparationResolver = (
 type OpenCodeGoRateLimitConfig = {
   sessionCookie: string
   workspaceIdOverride: string
+}
+
+type MiniMaxRateLimitConfig = {
+  sessionCookie: string
+  groupId: string
+  models: string
+}
+
+type MiniMaxResolvedConfig = {
+  config: MiniMaxRateLimitConfig
+  error: string | null
 }
 
 type GeminiCliOAuthEnabledResolver = () => boolean
@@ -63,6 +77,7 @@ type InternalRateLimitState = {
   gemini: ProviderRateLimits | null
   opencodeGo: ProviderRateLimits | null
   kimi: ProviderRateLimits | null
+  minimax: ProviderRateLimits | null
 }
 
 function normalizePollingInterval(ms: number): number {
@@ -72,13 +87,30 @@ function normalizePollingInterval(ms: number): number {
   return Math.min(MAX_POLL_MS, Math.max(MIN_POLL_MS, ms))
 }
 
+function isSystemDefaultClaudeAuth(
+  authPreparation: ClaudeRuntimeAuthPreparation | undefined
+): boolean {
+  // Why: fetch cycles classify missing Claude auth as system-default; keep the
+  // PTY fallback gate aligned so background refresh cannot trigger auth flows.
+  if (!authPreparation) {
+    return true
+  }
+  const provenance = authPreparation?.provenance
+  return provenance === 'system' || Boolean(provenance?.endsWith(':system'))
+}
+
+function toErrorMessage(error: unknown): string {
+  return error instanceof Error ? error.message : String(error)
+}
+
 export class RateLimitService {
   private state: InternalRateLimitState = {
     claude: null,
     codex: null,
     gemini: null,
     opencodeGo: null,
-    kimi: null
+    kimi: null,
+    minimax: null
   }
   private pollInterval: number = DEFAULT_POLL_MS
   private timer: ReturnType<typeof setInterval> | null = null
@@ -90,11 +122,14 @@ export class RateLimitService {
   private fullFetchQueued = false
   private codexOnlyFetchQueued = false
   private claudeOnlyFetchQueued = false
+  private activeFetchAbortControllers = new Set<AbortController>()
   private fetchIdleResolvers: (() => void)[] = []
   private codexFetchGeneration = 0
   private claudeFetchGeneration = 0
   private opencodeFetchGeneration = 0
+  private minimaxFetchGeneration = 0
   private lastOpencodeConfigHash = ''
+  private lastMiniMaxConfigHash = ''
   private codexHomePathResolver: CodexHomePathResolver | null = null
   private codexFetchTarget: NormalizedCodexAccountSelectionTarget = {
     runtime: 'host',
@@ -106,9 +141,11 @@ export class RateLimitService {
     wslDistro: null
   }
   private openCodeGoConfigResolver: (() => OpenCodeGoRateLimitConfig) | null = null
+  private miniMaxConfigResolver: (() => MiniMaxRateLimitConfig) | null = null
   private geminiCliOAuthEnabledResolver: GeminiCliOAuthEnabledResolver | null = null
   private inactiveClaudeAccountsResolver: (() => InactiveClaudeAccountInfo[]) | null = null
   private inactiveCodexAccountsResolver: (() => InactiveCodexAccountInfo[]) | null = null
+  private networkProxySettingsResolver: (() => NetworkProxySettings) | null = null
   private inactiveClaudeCache = new Map<string, ProviderRateLimits>()
   private inactiveCodexCache = new Map<string, ProviderRateLimits>()
   private inactiveClaudeFetching = new Set<string>()
@@ -148,8 +185,16 @@ export class RateLimitService {
     this.openCodeGoConfigResolver = resolver
   }
 
+  setMiniMaxConfigResolver(resolver: () => MiniMaxRateLimitConfig): void {
+    this.miniMaxConfigResolver = resolver
+  }
+
   setGeminiCliOAuthEnabledResolver(resolver: GeminiCliOAuthEnabledResolver): void {
     this.geminiCliOAuthEnabledResolver = resolver
+  }
+
+  setNetworkProxySettingsResolver(resolver: () => NetworkProxySettings): void {
+    this.networkProxySettingsResolver = resolver
   }
 
   setInactiveClaudeAccountsResolver(resolver: () => InactiveClaudeAccountInfo[]): void {
@@ -203,6 +248,11 @@ export class RateLimitService {
   }
 
   stop(): void {
+    this.abortActiveFetchCycle()
+    this.clearQueuedFetches()
+    this.inactiveClaudeFetching.clear()
+    this.inactiveCodexFetching.clear()
+    this.resolveAndClearFetchIdleWaiters()
     this.stopTimer()
     this.clearDeferredStartupRefresh()
     this.detachWindowListeners?.()
@@ -215,6 +265,10 @@ export class RateLimitService {
     this.pruneInactiveCodexState()
     return {
       ...this.state,
+      // Why: the cookie lives in the file system, not GlobalSettings. Surface
+      // its presence on the pushed state so the renderer keeps the MiniMax
+      // bar visible across reloads and between snapshot refreshes.
+      minimaxCookieConfigured: hasMiniMaxSessionCookie(),
       claudeTarget: this.claudeFetchTarget,
       codexTarget: this.codexFetchTarget,
       inactiveClaudeAccounts: this.buildInactiveArray(
@@ -235,6 +289,16 @@ export class RateLimitService {
     // though the user is asking for a fresh read right now.
     await this.fetchAll({ force: true })
     return this.getState()
+  }
+
+  invalidateMiniMaxCredentialState(): void {
+    this.minimaxFetchGeneration += 1
+    // Why: saving or forgetting the browser cookie can race an in-flight usage
+    // fetch; clear the visible snapshot before any old-cookie result returns.
+    this.updateState({
+      ...this.state,
+      minimax: this.withFetchingStatus(null, 'minimax')
+    })
   }
 
   async refreshForCodexAccountChange(
@@ -351,27 +415,18 @@ export class RateLimitService {
       return
     }
     const fetchGeneration = this.inactiveClaudeAccountsGeneration
+    const controller = this.beginFetchCycle()
+    const signal = controller.signal
 
     for (const account of accounts) {
       this.inactiveClaudeFetching.add(account.id)
     }
     this.pushToRenderer()
 
-    for (const account of accounts) {
-      if (
-        fetchGeneration !== this.inactiveClaudeAccountsGeneration ||
-        !this.isCurrentInactiveClaudeAccount(account.id)
-      ) {
-        this.inactiveClaudeFetching.delete(account.id)
-        if (!this.isCurrentInactiveClaudeAccount(account.id)) {
-          this.inactiveClaudeCache.delete(account.id)
-        }
-        this.pushToRenderer()
-        continue
-      }
-      try {
-        const fresh = await fetchManagedAccountUsage(account)
+    try {
+      for (const account of accounts) {
         if (
+          signal.aborted ||
           fetchGeneration !== this.inactiveClaudeAccountsGeneration ||
           !this.isCurrentInactiveClaudeAccount(account.id)
         ) {
@@ -382,24 +437,46 @@ export class RateLimitService {
           this.pushToRenderer()
           continue
         }
-        const cached = this.inactiveClaudeCache.get(account.id) ?? null
-        this.inactiveClaudeCache.set(account.id, this.applyStalePolicy(fresh, cached))
-      } catch {
-        // Why: per-account try/catch prevents one Keychain rejection or
-        // network error from aborting the remaining accounts in the batch.
-        if (
-          fetchGeneration !== this.inactiveClaudeAccountsGeneration ||
-          !this.isCurrentInactiveClaudeAccount(account.id)
-        ) {
-          this.inactiveClaudeCache.delete(account.id)
+        try {
+          const fresh = await fetchManagedAccountUsage(account, {
+            allowUsagePanelSupplement: this.shouldAllowClaudeUsagePanelSupplement(),
+            networkProxySettings: this.networkProxySettingsResolver?.(),
+            signal
+          })
+          if (
+            signal.aborted ||
+            fetchGeneration !== this.inactiveClaudeAccountsGeneration ||
+            !this.isCurrentInactiveClaudeAccount(account.id)
+          ) {
+            this.inactiveClaudeFetching.delete(account.id)
+            if (!this.isCurrentInactiveClaudeAccount(account.id)) {
+              this.inactiveClaudeCache.delete(account.id)
+            }
+            this.pushToRenderer()
+            continue
+          }
+          const cached = this.inactiveClaudeCache.get(account.id) ?? null
+          this.inactiveClaudeCache.set(account.id, this.applyStalePolicy(fresh, cached))
+        } catch {
+          // Why: per-account try/catch prevents one Keychain rejection or
+          // network error from aborting the remaining accounts in the batch.
+          if (
+            signal.aborted ||
+            fetchGeneration !== this.inactiveClaudeAccountsGeneration ||
+            !this.isCurrentInactiveClaudeAccount(account.id)
+          ) {
+            this.inactiveClaudeCache.delete(account.id)
+          }
         }
+        this.inactiveClaudeFetching.delete(account.id)
+        this.pushToRenderer()
       }
-      this.inactiveClaudeFetching.delete(account.id)
-      this.pushToRenderer()
-    }
 
-    if (fetchGeneration === this.inactiveClaudeAccountsGeneration) {
-      this.lastInactiveClaudeFetchAt = Date.now()
+      if (!signal.aborted && fetchGeneration === this.inactiveClaudeAccountsGeneration) {
+        this.lastInactiveClaudeFetchAt = Date.now()
+      }
+    } finally {
+      this.finishFetchCycle(controller)
     }
   }
 
@@ -418,36 +495,18 @@ export class RateLimitService {
     // Why: account switching can make a previewed account active while its
     // RPC-only usage fetch is still in flight; stale results must be ignored.
     const fetchGeneration = this.inactiveCodexAccountsGeneration
+    const controller = this.beginFetchCycle()
+    const signal = controller.signal
 
     for (const account of accounts) {
       this.inactiveCodexFetching.add(account.id)
     }
     this.pushToRenderer()
 
-    for (const account of accounts) {
-      if (
-        fetchGeneration !== this.inactiveCodexAccountsGeneration ||
-        !this.isCurrentInactiveCodexAccount(account.id)
-      ) {
-        this.inactiveCodexFetching.delete(account.id)
-        if (!this.isCurrentInactiveCodexAccount(account.id)) {
-          this.inactiveCodexCache.delete(account.id)
-        }
-        this.pushToRenderer()
-        continue
-      }
-      try {
-        // Why: fetchCodexRateLimits already accepts codexHomePath, so we can
-        // point it at the managed account's home directory directly without
-        // materializing credentials into the shared runtime location.
-        // Why: opening the account switcher should never start hidden PTYs for
-        // every inactive account. On Windows that fallback can crash inside
-        // ConPTY; RPC-only is enough for this non-critical preview surface.
-        const fresh = await fetchCodexRateLimits({
-          codexHomePath: account.managedHomePath,
-          allowPtyFallback: false
-        })
+    try {
+      for (const account of accounts) {
         if (
+          signal.aborted ||
           fetchGeneration !== this.inactiveCodexAccountsGeneration ||
           !this.isCurrentInactiveCodexAccount(account.id)
         ) {
@@ -458,23 +517,51 @@ export class RateLimitService {
           this.pushToRenderer()
           continue
         }
-        const cached = this.inactiveCodexCache.get(account.id) ?? null
-        this.inactiveCodexCache.set(account.id, this.applyStalePolicy(fresh, cached))
-      } catch {
-        // Why: per-account try/catch prevents one failure from aborting the batch.
-        if (
-          fetchGeneration !== this.inactiveCodexAccountsGeneration ||
-          !this.isCurrentInactiveCodexAccount(account.id)
-        ) {
-          this.inactiveCodexCache.delete(account.id)
+        try {
+          // Why: fetchCodexRateLimits already accepts codexHomePath, so we can
+          // point it at the managed account's home directory directly without
+          // materializing credentials into the shared runtime location.
+          // Why: opening the account switcher should never start hidden PTYs for
+          // every inactive account. On Windows that fallback can crash inside
+          // ConPTY; RPC-only is enough for this non-critical preview surface.
+          const fresh = await fetchCodexRateLimits({
+            codexHomePath: account.managedHomePath,
+            allowPtyFallback: false,
+            signal
+          })
+          if (
+            signal.aborted ||
+            fetchGeneration !== this.inactiveCodexAccountsGeneration ||
+            !this.isCurrentInactiveCodexAccount(account.id)
+          ) {
+            this.inactiveCodexFetching.delete(account.id)
+            if (!this.isCurrentInactiveCodexAccount(account.id)) {
+              this.inactiveCodexCache.delete(account.id)
+            }
+            this.pushToRenderer()
+            continue
+          }
+          const cached = this.inactiveCodexCache.get(account.id) ?? null
+          this.inactiveCodexCache.set(account.id, this.applyStalePolicy(fresh, cached))
+        } catch {
+          // Why: per-account try/catch prevents one failure from aborting the batch.
+          if (
+            signal.aborted ||
+            fetchGeneration !== this.inactiveCodexAccountsGeneration ||
+            !this.isCurrentInactiveCodexAccount(account.id)
+          ) {
+            this.inactiveCodexCache.delete(account.id)
+          }
         }
+        this.inactiveCodexFetching.delete(account.id)
+        this.pushToRenderer()
       }
-      this.inactiveCodexFetching.delete(account.id)
-      this.pushToRenderer()
-    }
 
-    if (fetchGeneration === this.inactiveCodexAccountsGeneration) {
-      this.lastInactiveCodexFetchAt = Date.now()
+      if (!signal.aborted && fetchGeneration === this.inactiveCodexAccountsGeneration) {
+        this.lastInactiveCodexFetchAt = Date.now()
+      }
+    } finally {
+      this.finishFetchCycle(controller)
     }
   }
 
@@ -623,8 +710,13 @@ export class RateLimitService {
     try {
       let shouldContinue = true
       while (shouldContinue) {
-        await this.runFetchAllCycle()
+        const signal = await this.runWithFetchAbortSignal((fetchSignal) =>
+          this.runFetchAllCycle(fetchSignal)
+        )
         shouldContinue = false
+        if (signal.aborted) {
+          break
+        }
         if (this.fullFetchQueued) {
           this.fullFetchQueued = false
           shouldContinue = true
@@ -632,11 +724,21 @@ export class RateLimitService {
         }
         if (this.codexOnlyFetchQueued) {
           this.codexOnlyFetchQueued = false
-          await this.runFetchCodexOnlyCycle()
+          const codexSignal = await this.runWithFetchAbortSignal((fetchSignal) =>
+            this.runFetchCodexOnlyCycle(fetchSignal)
+          )
+          if (codexSignal.aborted) {
+            break
+          }
         }
         if (this.claudeOnlyFetchQueued) {
           this.claudeOnlyFetchQueued = false
-          await this.runFetchClaudeOnlyCycle()
+          const claudeSignal = await this.runWithFetchAbortSignal((fetchSignal) =>
+            this.runFetchClaudeOnlyCycle(fetchSignal)
+          )
+          if (claudeSignal.aborted) {
+            break
+          }
         }
       }
     } finally {
@@ -658,11 +760,21 @@ export class RateLimitService {
     try {
       let shouldContinue = true
       while (shouldContinue) {
-        await this.runFetchCodexOnlyCycle()
+        const signal = await this.runWithFetchAbortSignal((fetchSignal) =>
+          this.runFetchCodexOnlyCycle(fetchSignal)
+        )
         shouldContinue = false
+        if (signal.aborted) {
+          break
+        }
         if (this.fullFetchQueued) {
           this.fullFetchQueued = false
-          await this.runFetchAllCycle()
+          const fullSignal = await this.runWithFetchAbortSignal((fetchSignal) =>
+            this.runFetchAllCycle(fetchSignal)
+          )
+          if (fullSignal.aborted) {
+            break
+          }
           continue
         }
         if (this.codexOnlyFetchQueued) {
@@ -671,7 +783,12 @@ export class RateLimitService {
         }
         if (this.claudeOnlyFetchQueued) {
           this.claudeOnlyFetchQueued = false
-          await this.runFetchClaudeOnlyCycle()
+          const claudeSignal = await this.runWithFetchAbortSignal((fetchSignal) =>
+            this.runFetchClaudeOnlyCycle(fetchSignal)
+          )
+          if (claudeSignal.aborted) {
+            break
+          }
         }
       }
     } finally {
@@ -693,11 +810,21 @@ export class RateLimitService {
     try {
       let shouldContinue = true
       while (shouldContinue) {
-        await this.runFetchClaudeOnlyCycle()
+        const signal = await this.runWithFetchAbortSignal((fetchSignal) =>
+          this.runFetchClaudeOnlyCycle(fetchSignal)
+        )
         shouldContinue = false
+        if (signal.aborted) {
+          break
+        }
         if (this.fullFetchQueued) {
           this.fullFetchQueued = false
-          await this.runFetchAllCycle()
+          const fullSignal = await this.runWithFetchAbortSignal((fetchSignal) =>
+            this.runFetchAllCycle(fetchSignal)
+          )
+          if (fullSignal.aborted) {
+            break
+          }
           continue
         }
         if (this.claudeOnlyFetchQueued) {
@@ -706,7 +833,12 @@ export class RateLimitService {
         }
         if (this.codexOnlyFetchQueued) {
           this.codexOnlyFetchQueued = false
-          await this.runFetchCodexOnlyCycle()
+          const codexSignal = await this.runWithFetchAbortSignal((fetchSignal) =>
+            this.runFetchCodexOnlyCycle(fetchSignal)
+          )
+          if (codexSignal.aborted) {
+            break
+          }
         }
       }
     } finally {
@@ -741,6 +873,49 @@ export class RateLimitService {
     ) {
       return
     }
+    const resolvers = this.fetchIdleResolvers
+    this.fetchIdleResolvers = []
+    for (const resolve of resolvers) {
+      resolve()
+    }
+  }
+
+  private beginFetchCycle(): AbortController {
+    const controller = new AbortController()
+    this.activeFetchAbortControllers.add(controller)
+    return controller
+  }
+
+  private finishFetchCycle(controller: AbortController): void {
+    this.activeFetchAbortControllers.delete(controller)
+  }
+
+  private async runWithFetchAbortSignal(
+    fn: (signal: AbortSignal) => Promise<void>
+  ): Promise<AbortSignal> {
+    const controller = this.beginFetchCycle()
+    try {
+      await fn(controller.signal)
+      return controller.signal
+    } finally {
+      this.finishFetchCycle(controller)
+    }
+  }
+
+  private abortActiveFetchCycle(): void {
+    for (const controller of this.activeFetchAbortControllers) {
+      controller.abort()
+    }
+    this.activeFetchAbortControllers.clear()
+  }
+
+  private clearQueuedFetches(): void {
+    this.fullFetchQueued = false
+    this.codexOnlyFetchQueued = false
+    this.claudeOnlyFetchQueued = false
+  }
+
+  private resolveAndClearFetchIdleWaiters(): void {
     const resolvers = this.fetchIdleResolvers
     this.fetchIdleResolvers = []
     for (const resolve of resolvers) {
@@ -792,15 +967,65 @@ export class RateLimitService {
     return process.platform !== 'win32'
   }
 
-  private shouldAllowClaudePtyFallback(): boolean {
+  private shouldAllowClaudePtyFallback(
+    authPreparation: ClaudeRuntimeAuthPreparation | undefined
+  ): boolean {
     // Why: automatic recovery uses Claude CLI as the next source, but Windows
     // hidden PTY support remains less reliable than host/WSL shells.
+    if (process.platform === 'win32') {
+      return false
+    }
+    // Why: system-default Claude is not an Orca-managed account. Background
+    // quota refresh may read existing OAuth, but must not launch Claude and
+    // trigger auth/browser flows for users who never configured Claude in Orca.
+    return !isSystemDefaultClaudeAuth(authPreparation)
+  }
+
+  private shouldAllowClaudeUsagePanelSupplement(): boolean {
+    // Why: this supplement runs only after OAuth has already returned usage
+    // data. Keep it off on Windows where hidden PTYs are still less reliable.
     return process.platform !== 'win32'
+  }
+
+  private resolveMiniMaxConfig(): MiniMaxResolvedConfig {
+    try {
+      return {
+        config: this.miniMaxConfigResolver?.() ?? {
+          sessionCookie: '',
+          groupId: '',
+          models: 'general'
+        },
+        error: null
+      }
+    } catch (error) {
+      // Why: one unreadable browser cookie must not abort every provider's
+      // quota refresh; surface it as MiniMax-only state instead.
+      return {
+        config: {
+          sessionCookie: '',
+          groupId: '',
+          models: 'general'
+        },
+        error: toErrorMessage(error)
+      }
+    }
+  }
+
+  private getMiniMaxCredentialError(message: string): ProviderRateLimits {
+    return {
+      provider: 'minimax',
+      session: null,
+      weekly: null,
+      updatedAt: Date.now(),
+      error: message,
+      status: 'error',
+      usageMetadata: { failureKind: 'keychain-unavailable', source: 'web' }
+    }
   }
 
   private withFetchingStatus(
     current: ProviderRateLimits | null,
-    provider: 'claude' | 'codex' | 'gemini' | 'opencode-go' | 'kimi'
+    provider: 'claude' | 'codex' | 'gemini' | 'opencode-go' | 'kimi' | 'minimax'
   ): ProviderRateLimits {
     if (!current) {
       return {
@@ -815,9 +1040,15 @@ export class RateLimitService {
     return { ...current, status: 'fetching' }
   }
 
-  private async runFetchAllCycle(): Promise<void> {
+  private async runFetchAllCycle(signal: AbortSignal): Promise<void> {
+    if (signal.aborted) {
+      return
+    }
     const claudeTarget = this.claudeFetchTarget
     const claudeAuthPreparation = await this.claudeAuthPreparationResolver?.(claudeTarget)
+    if (signal.aborted) {
+      return
+    }
     const claudeProvenance = claudeAuthPreparation?.provenance ?? 'system'
     const claudeGeneration = this.claudeFetchGeneration
     const codexTarget = this.codexFetchTarget
@@ -828,6 +1059,10 @@ export class RateLimitService {
     const openCodeGoConfig = this.openCodeGoConfigResolver?.()
     const cookie = openCodeGoConfig?.sessionCookie ?? ''
     const workspaceIdOverride = openCodeGoConfig?.workspaceIdOverride ?? ''
+    const miniMaxConfigResult = this.resolveMiniMaxConfig()
+    const miniMaxCookie = miniMaxConfigResult.config.sessionCookie
+    const miniMaxGroupId = miniMaxConfigResult.config.groupId
+    const miniMaxModels = miniMaxConfigResult.config.models
     const geminiCliOAuthEnabled = this.geminiCliOAuthEnabledResolver?.() ?? false
 
     // Detect if configuration changed — if it did, we must discard any stale
@@ -840,6 +1075,14 @@ export class RateLimitService {
     }
     const opencodeGeneration = this.opencodeFetchGeneration
 
+    const currentMiniMaxConfigHash = `${miniMaxCookie}|${miniMaxGroupId}|${miniMaxModels}|${miniMaxConfigResult.error ?? ''}`
+    const miniMaxConfigChanged = currentMiniMaxConfigHash !== this.lastMiniMaxConfigHash
+    if (miniMaxConfigChanged) {
+      this.lastMiniMaxConfigHash = currentMiniMaxConfigHash
+      this.minimaxFetchGeneration += 1
+    }
+    const miniMaxGeneration = this.minimaxFetchGeneration
+
     // Mark all providers as fetching while keeping previous data visible.
     // Codex account changes clear Codex separately before this method is
     // called, so ordinary refreshes still preserve the current values.
@@ -851,27 +1094,45 @@ export class RateLimitService {
       opencodeGo: opencodeConfigChanged
         ? this.withFetchingStatus(null, 'opencode-go')
         : this.withFetchingStatus(previousState.opencodeGo, 'opencode-go'),
-      kimi: this.withFetchingStatus(previousState.kimi, 'kimi')
+      kimi: this.withFetchingStatus(previousState.kimi, 'kimi'),
+      minimax: miniMaxConfigChanged
+        ? this.withFetchingStatus(null, 'minimax')
+        : this.withFetchingStatus(previousState.minimax, 'minimax')
     })
 
     const missingWslCodexHome = codexHomePath
       ? null
       : this.getMissingWslCodexHomeResult(codexTarget)
-    const [claudeResult, codexResult, geminiResult, opencodeGoResult, kimiResult] =
+    const [claudeResult, codexResult, geminiResult, opencodeGoResult, kimiResult, miniMaxResult] =
       await Promise.allSettled([
         fetchClaudeRateLimits({
           authPreparation: claudeAuthPreparation,
-          allowPtyFallback: this.shouldAllowClaudePtyFallback()
+          allowPtyFallback: this.shouldAllowClaudePtyFallback(claudeAuthPreparation),
+          allowUsagePanelSupplement: this.shouldAllowClaudeUsagePanelSupplement(),
+          networkProxySettings: this.networkProxySettingsResolver?.(),
+          signal
         }),
         missingWslCodexHome ??
           fetchCodexRateLimits({
             codexHomePath,
-            allowPtyFallback: this.shouldAllowCodexPtyFallback()
+            allowPtyFallback: this.shouldAllowCodexPtyFallback(),
+            signal
           }),
         fetchGeminiRateLimits(geminiCliOAuthEnabled),
         fetchOpenCodeGoRateLimits(cookie, workspaceIdOverride || undefined),
-        fetchKimiRateLimits()
+        fetchKimiRateLimits(),
+        miniMaxConfigResult.error
+          ? Promise.resolve(this.getMiniMaxCredentialError(miniMaxConfigResult.error))
+          : fetchMiniMaxRateLimits({
+              cookie: miniMaxCookie,
+              groupId: miniMaxGroupId,
+              models: miniMaxModels
+            })
       ])
+
+    if (signal.aborted) {
+      return
+    }
 
     const claude =
       claudeResult.status === 'fulfilled'
@@ -940,8 +1201,26 @@ export class RateLimitService {
             status: 'error'
           } satisfies ProviderRateLimits)
 
+    const miniMax =
+      miniMaxResult.status === 'fulfilled'
+        ? miniMaxResult.value
+        : ({
+            provider: 'minimax',
+            session: null,
+            weekly: null,
+            updatedAt: Date.now(),
+            error:
+              miniMaxResult.reason instanceof Error
+                ? miniMaxResult.reason.message
+                : 'Unknown error',
+            status: 'error'
+          } satisfies ProviderRateLimits)
+
     const latestCodexHomePath = this.codexHomePathResolver?.(codexTarget) ?? null
     const latestClaudeAuthPreparation = await this.claudeAuthPreparationResolver?.(claudeTarget)
+    if (signal.aborted) {
+      return
+    }
     const latestClaudeProvenance = latestClaudeAuthPreparation?.provenance ?? 'system'
     const latestCodexProvenance = this.getCodexProvenance(codexTarget, latestCodexHomePath)
     const shouldApplyCodex =
@@ -951,6 +1230,7 @@ export class RateLimitService {
       claudeProvenance === latestClaudeProvenance &&
       this.isSameClaudeTarget(claudeTarget, this.claudeFetchTarget)
     const shouldApplyOpencode = opencodeGeneration === this.opencodeFetchGeneration
+    const shouldApplyMiniMax = miniMaxGeneration === this.minimaxFetchGeneration
 
     // Why: account switches can race in-flight Codex fetches. Only apply a
     // Codex result if both the selected-account provenance and the request
@@ -970,13 +1250,21 @@ export class RateLimitService {
           ? opencodeGo
           : this.applyStalePolicy(opencodeGo, previousState.opencodeGo)
         : this.state.opencodeGo,
-      kimi: this.applyStalePolicy(kimi, previousState.kimi)
+      kimi: this.applyStalePolicy(kimi, previousState.kimi),
+      minimax: shouldApplyMiniMax
+        ? miniMaxConfigChanged
+          ? miniMax
+          : this.applyStalePolicy(miniMax, previousState.minimax)
+        : this.state.minimax
     })
 
     this.lastFetchAt = Date.now()
   }
 
-  private async runFetchCodexOnlyCycle(): Promise<void> {
+  private async runFetchCodexOnlyCycle(signal: AbortSignal): Promise<void> {
+    if (signal.aborted) {
+      return
+    }
     const codexTarget = this.codexFetchTarget
     const codexHomePath = this.codexHomePathResolver?.(codexTarget) ?? null
     const codexProvenance = this.getCodexProvenance(codexTarget, codexHomePath)
@@ -996,7 +1284,8 @@ export class RateLimitService {
         ? Promise.resolve(missingWslCodexHome)
         : fetchCodexRateLimits({
             codexHomePath,
-            allowPtyFallback: this.shouldAllowCodexPtyFallback()
+            allowPtyFallback: this.shouldAllowCodexPtyFallback(),
+            signal
           })
     ).catch(
       (err): ProviderRateLimits => ({
@@ -1008,6 +1297,10 @@ export class RateLimitService {
         status: 'error'
       })
     )
+
+    if (signal.aborted) {
+      return
+    }
 
     const latestCodexHomePath = this.codexHomePathResolver?.(codexTarget) ?? null
     const latestCodexProvenance = this.getCodexProvenance(codexTarget, latestCodexHomePath)
@@ -1022,9 +1315,15 @@ export class RateLimitService {
     this.lastFetchAt = Date.now()
   }
 
-  private async runFetchClaudeOnlyCycle(): Promise<void> {
+  private async runFetchClaudeOnlyCycle(signal: AbortSignal): Promise<void> {
+    if (signal.aborted) {
+      return
+    }
     const claudeTarget = this.claudeFetchTarget
     const claudeAuthPreparation = await this.claudeAuthPreparationResolver?.(claudeTarget)
+    if (signal.aborted) {
+      return
+    }
     const claudeProvenance = claudeAuthPreparation?.provenance ?? 'system'
     const claudeGeneration = this.claudeFetchGeneration
     const previousState = this.state
@@ -1036,7 +1335,10 @@ export class RateLimitService {
 
     const claude = await fetchClaudeRateLimits({
       authPreparation: claudeAuthPreparation,
-      allowPtyFallback: this.shouldAllowClaudePtyFallback()
+      allowPtyFallback: this.shouldAllowClaudePtyFallback(claudeAuthPreparation),
+      allowUsagePanelSupplement: this.shouldAllowClaudeUsagePanelSupplement(),
+      networkProxySettings: this.networkProxySettingsResolver?.(),
+      signal
     }).catch(
       (err): ProviderRateLimits => ({
         provider: 'claude',
@@ -1048,7 +1350,14 @@ export class RateLimitService {
       })
     )
 
+    if (signal.aborted) {
+      return
+    }
+
     const latestClaudeAuthPreparation = await this.claudeAuthPreparationResolver?.(claudeTarget)
+    if (signal.aborted) {
+      return
+    }
     const latestClaudeProvenance = latestClaudeAuthPreparation?.provenance ?? 'system'
     const shouldApplyClaude =
       claudeGeneration === this.claudeFetchGeneration &&
@@ -1090,6 +1399,7 @@ export class RateLimitService {
     const previousHasData = Boolean(
       previous?.session ||
       previous?.weekly ||
+      previous?.fableWeekly ||
       previous?.monthly ||
       (previous?.buckets && previous.buckets.length > 0)
     )

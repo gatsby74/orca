@@ -22,11 +22,33 @@ const NonGitFolderDialog = React.memo(function NonGitFolderDialog() {
   const closeModal = useAppStore((s) => s.closeModal)
   const addNonGitFolder = useAppStore((s) => s.addNonGitFolder)
   const convertNonGitFolderToGit = useAppStore((s) => s.convertNonGitFolderToGit)
+  const runtimeEnvironments = useAppStore((s) => s.runtimeEnvironments)
   const [isConverting, setIsConverting] = useState(false)
 
   const isOpen = activeModal === 'confirm-non-git-folder'
   const folderPath = typeof modalData.folderPath === 'string' ? modalData.folderPath : ''
   const connectionId = typeof modalData.connectionId === 'string' ? modalData.connectionId : ''
+  const runtimeEnvironmentId =
+    typeof modalData.runtimeEnvironmentId === 'string' ? modalData.runtimeEnvironmentId : ''
+  const runtimeEnvironmentName =
+    runtimeEnvironmentId &&
+    (runtimeEnvironments.find((environment) => environment.id === runtimeEnvironmentId)?.name ||
+      runtimeEnvironmentId)
+  const checkedHostDescription = connectionId
+    ? translate(
+        'auto.components.sidebar.NonGitFolderDialog.9a766f33ac',
+        'This path was checked on the SSH host.'
+      )
+    : runtimeEnvironmentName
+      ? translate(
+          'auto.components.sidebar.NonGitFolderDialog.79fd02cf5f',
+          'This path was checked on {{hostName}}.',
+          { hostName: runtimeEnvironmentName }
+        )
+      : translate(
+          'auto.components.sidebar.NonGitFolderDialog.8851b77327',
+          'This path was checked locally.'
+        )
 
   const handleConfirm = useCallback(() => {
     if (connectionId && folderPath) {
@@ -82,10 +104,12 @@ const NonGitFolderDialog = React.memo(function NonGitFolderDialog() {
         }
       })()
     } else if (folderPath) {
-      void addNonGitFolder(folderPath)
+      void addNonGitFolder(folderPath, {
+        runtimeEnvironmentId: runtimeEnvironmentId || null
+      })
     }
     closeModal()
-  }, [addNonGitFolder, closeModal, folderPath, connectionId])
+  }, [addNonGitFolder, closeModal, folderPath, connectionId, runtimeEnvironmentId])
 
   const handleConvert = useCallback(() => {
     if (!folderPath) {
@@ -96,7 +120,8 @@ const NonGitFolderDialog = React.memo(function NonGitFolderDialog() {
       try {
         const repo = await convertNonGitFolderToGit({
           path: folderPath,
-          ...(connectionId ? { connectionId } : {})
+          ...(connectionId ? { connectionId } : {}),
+          ...(runtimeEnvironmentId ? { runtimeEnvironmentId } : {})
         })
         if (repo) {
           closeModal()
@@ -105,7 +130,7 @@ const NonGitFolderDialog = React.memo(function NonGitFolderDialog() {
         setIsConverting(false)
       }
     })()
-  }, [convertNonGitFolderToGit, closeModal, folderPath, connectionId])
+  }, [convertNonGitFolderToGit, closeModal, folderPath, connectionId, runtimeEnvironmentId])
 
   const handleOpenChange = useCallback(
     (open: boolean) => {
@@ -133,6 +158,7 @@ const NonGitFolderDialog = React.memo(function NonGitFolderDialog() {
               'auto.components.sidebar.NonGitFolderDialog.1d9e5c8007',
               'Convert it to a Git repository to use worktrees, source control, and pull requests. Or open it as a plain folder with just the editor, terminal, and search.'
             )}
+            <span className="mt-2 block">{checkedHostDescription}</span>
           </DialogDescription>
         </DialogHeader>
 

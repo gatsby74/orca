@@ -1,7 +1,7 @@
-import { execFileSync } from 'child_process'
-import { existsSync, mkdirSync, mkdtempSync, rmSync, writeFileSync } from 'fs'
-import os from 'os'
-import path from 'path'
+import { execFileSync } from 'node:child_process'
+import { existsSync, mkdirSync, mkdtempSync, realpathSync, rmSync, writeFileSync } from 'node:fs'
+import os from 'node:os'
+import path from 'node:path'
 import { test, expect } from './helpers/orca-app'
 import { waitForSessionReady } from './helpers/store'
 
@@ -53,6 +53,7 @@ test.describe('Convert non-git folder to a Git repository', () => {
   }, testInfo) => {
     await waitForSessionReady(orcaPage)
     const folderPath = createNonGitFolderFixture()
+    const registeredFolderPath = realpathSync(folderPath)
     expect(existsSync(path.join(folderPath, '.git'))).toBe(false)
 
     // Open the non-git dialog directly (the OS folder picker can't be driven in
@@ -85,7 +86,7 @@ test.describe('Convert non-git folder to a Git repository', () => {
           orcaPage.evaluate((p) => {
             const repo = window.__store?.getState().repos.find((r) => r.path === p)
             return repo ? (repo.kind ?? 'git') : null
-          }, folderPath),
+          }, registeredFolderPath),
         { timeout: 30_000, message: 'converted folder did not register as a git project' }
       )
       .toBe('git')
@@ -100,6 +101,7 @@ test.describe('Convert non-git folder to a Git repository', () => {
     // base commit exists so a worktree can be created (the unborn-HEAD bug).
     expect(existsSync(path.join(folderPath, '.git'))).toBe(true)
     expect(existsSync(path.join(folderPath, '.gitignore'))).toBe(true)
+    expect(existsSync(path.join(folderPath, '.env'))).toBe(true)
 
     const tracked = git(folderPath, ['ls-files']).split('\n').filter(Boolean)
     expect(tracked).toContain('index.js')
