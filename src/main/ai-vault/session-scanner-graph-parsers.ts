@@ -30,6 +30,8 @@ type ParserSessionOptions = {
   executionHostPlatform?: NodeJS.Platform | null
 }
 
+type MessageGraphAgent = 'openclaw' | 'pi' | 'omp'
+
 export async function parseRovoSessionFile(
   file: FileWithMtime,
   platform: NodeJS.Platform = process.platform
@@ -159,7 +161,7 @@ export function rovoPartsText(parts: unknown[], role: 'user' | 'assistant'): str
 }
 
 export async function parseMessageGraphSessionFile(
-  agent: 'openclaw' | 'pi' | 'omp',
+  agent: MessageGraphAgent,
   file: FileWithMtime,
   platform: NodeJS.Platform = process.platform
 ): Promise<AiVaultSession | null> {
@@ -171,7 +173,7 @@ export async function parseMessageGraphSessionFile(
 }
 
 export async function parseMessageGraphSessionContent(
-  agent: 'openclaw' | 'pi',
+  agent: MessageGraphAgent,
   file: FileWithMtime,
   content: string,
   platform: NodeJS.Platform = process.platform,
@@ -187,7 +189,7 @@ export async function parseMessageGraphSessionContent(
 }
 
 async function parseMessageGraphSessionLines(args: {
-  agent: 'openclaw' | 'pi'
+  agent: MessageGraphAgent
   file: FileWithMtime
   lines: AsyncIterable<string> | Iterable<string>
   platform: NodeJS.Platform

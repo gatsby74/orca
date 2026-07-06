@@ -2,6 +2,7 @@ import { describe, expect, it, vi } from 'vitest'
 import {
   extractPreviewContentText,
   normalizeAgentSessionsDir,
+  normalizePiSessionsDir,
   normalizePreviewText,
   normalizeTitleText
 } from './session-scanner-values'
@@ -67,5 +68,6 @@ describe('AI Vault session scanner text values', () => {
     expect(normalizeAgentSessionsDir('/agents/.omp/agent/sessions', '.omp')).toBe(
       '/agents/.omp/agent/sessions'
     )
+    expect(normalizePiSessionsDir('/agents/.pi')).toBe('/agents/.pi/agent/sessions')
   })
 })

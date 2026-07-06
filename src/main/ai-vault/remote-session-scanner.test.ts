@@ -201,6 +201,50 @@ describe('scanRemoteAiVaultSessions', () => {
     })
   })
 
+  it('parses remote OMP transcripts and resumes by remote file path', async () => {
+    const provider = new MemoryRemoteProvider()
+    const ompPath = '/home/ada/.omp/agent/sessions/repo/omp-session.jsonl'
+    provider.addFile(
+      ompPath,
+      jsonLines([
+        {
+          type: 'session',
+          id: 'omp-session',
+          timestamp: '2026-07-04T04:30:00.000Z',
+          cwd: '/home/ada/repo'
+        },
+        {
+          type: 'message',
+          timestamp: '2026-07-04T04:30:01.000Z',
+          message: {
+            role: 'user',
+            content: [{ type: 'text', text: 'Remote OMP mission' }]
+          }
+        }
+      ]),
+      45
+    )
+
+    const result = await scanRemoteAiVaultSessions({
+      provider,
+      executionHostId: 'ssh:dev-box',
+      remoteHome: '/home/ada',
+      hostPlatform: getRemoteHostPlatform('linux-x64')
+    })
+
+    expect(result.issues).toEqual([])
+    expect(result.sessions).toHaveLength(1)
+    expect(result.sessions[0]).toMatchObject({
+      executionHostId: 'ssh:dev-box',
+      executionHostPlatform: 'linux',
+      agent: 'omp',
+      sessionId: 'omp-session',
+      title: 'Remote OMP mission',
+      filePath: ompPath,
+      resumeCommand: `cd '/home/ada/repo' && omp --resume '${ompPath}'`
+    })
+  })
+
   it('builds resume commands with the remote host platform', async () => {
     const provider = new MemoryRemoteProvider()
     provider.addFile(

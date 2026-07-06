@@ -15,7 +15,7 @@ import {
   parseHermesSessionContent
 } from './session-scanner-secondary-parsers'
 import type { FileWithMtime } from './session-scanner-types'
-import { normalizePiSessionsDir } from './session-scanner-values'
+import { normalizeAgentSessionsDir } from './session-scanner-values'
 import { remoteCodexIndexTitles } from './remote-session-scanner-codex-index'
 import type {
   RemoteParserOptions,
@@ -82,7 +82,8 @@ export function remoteSessionSources(
       ['.json'],
       parseDevinSessionContent
     ),
-    jsonlSource('pi', remoteHome, hostPlatform, remotePiSessionsSegments(), piParser),
+    jsonlSource('pi', remoteHome, hostPlatform, remoteAgentSessionsSegments('.pi'), piParser),
+    jsonlSource('omp', remoteHome, hostPlatform, remoteAgentSessionsSegments('.omp'), ompParser),
     jsonlSource(
       'droid',
       remoteHome,
@@ -203,6 +204,15 @@ function piParser(
   return parseMessageGraphSessionContent('pi', file, content, platform, options)
 }
 
+function ompParser(
+  file: FileWithMtime,
+  content: string,
+  platform: NodeJS.Platform,
+  options: RemoteParserOptions
+): Promise<AiVaultSession | null> {
+  return parseMessageGraphSessionContent('omp', file, content, platform, options)
+}
+
 function openClawParser(
   file: FileWithMtime,
   content: string,
@@ -216,6 +226,8 @@ function remotePathSegments(path: string): string[] {
   return path.replace(/\\/g, '/').split('/').filter(Boolean)
 }
 
-function remotePiSessionsSegments(): string[] {
-  return normalizePiSessionsDir('/.pi/agent/sessions').split('/').filter(Boolean)
+function remoteAgentSessionsSegments(agentHomeDirName: '.pi' | '.omp'): string[] {
+  return normalizeAgentSessionsDir(`/${agentHomeDirName}/agent/sessions`, agentHomeDirName)
+    .split('/')
+    .filter(Boolean)
 }

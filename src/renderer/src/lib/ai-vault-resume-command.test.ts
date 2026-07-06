@@ -103,6 +103,26 @@ describe('ai vault resume command runtime', () => {
     ).toBe('cmd /d /s /c "cd /d ""C:\\Users\\alice\\repo"" && claude ""--resume"" ""session one"""')
   })
 
+  it('queues local OMP resumes by JSONL path in the default Windows shell', () => {
+    const state = makeState({ worktreePath: 'C:\\Users\\alice\\repo' })
+
+    expect(
+      buildAiVaultResumeCommandForWorktree({
+        state,
+        worktreeId: 'repo-1::worktree-1',
+        session: {
+          agent: 'omp',
+          sessionId: 'internal-session',
+          filePath: 'C:\\Users\\alice\\.omp\\agent\\sessions\\repo\\omp-session.jsonl',
+          cwd: 'C:\\Users\\alice\\repo',
+          codexHome: null
+        }
+      })
+    ).toBe(
+      "Set-Location -LiteralPath 'C:\\Users\\alice\\repo'; omp --resume 'C:\\Users\\alice\\.omp\\agent\\sessions\\repo\\omp-session.jsonl'"
+    )
+  })
+
   it('queues a POSIX command for the Git Bash Windows shell', () => {
     const state = makeState({
       worktreePath: 'C:\\Users\\alice\\repo',
@@ -190,6 +210,29 @@ describe('ai vault resume command runtime', () => {
         }
       })
     ).toBe("cd '/home/alice/repo' && claude '--resume' 'session one'")
+  })
+
+  it('uses POSIX OMP resume commands by JSONL path for Windows projects forced to WSL', () => {
+    const state = makeState({
+      worktreePath: 'C:\\Users\\alice\\repo',
+      localWindowsRuntimePreference: { kind: 'wsl', distro: 'Ubuntu' }
+    })
+
+    expect(
+      buildAiVaultResumeCommandForWorktree({
+        state,
+        worktreeId: 'repo-1::worktree-1',
+        session: {
+          agent: 'omp',
+          sessionId: 'internal-session',
+          filePath: '/home/alice/.omp/agent/sessions/repo/omp-session.jsonl',
+          cwd: '/home/alice/repo',
+          codexHome: null
+        }
+      })
+    ).toBe(
+      "cd '/home/alice/repo' && omp --resume '/home/alice/.omp/agent/sessions/repo/omp-session.jsonl'"
+    )
   })
 
   it('uses POSIX command wrapping for SSH-owned worktrees on Windows clients', () => {

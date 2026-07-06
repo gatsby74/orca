@@ -105,14 +105,18 @@ export function buildAiVaultResumeCommand(args: {
   commandOverride?: string | null
   codexHome?: string | null
   resumeFilePath?: string | null
+  shell?: AgentStartupShell
 }): string {
-  const { agent, sessionId, cwd, platform, commandOverride, codexHome, resumeFilePath } = args
+  const { agent, sessionId, cwd, platform, commandOverride, codexHome, resumeFilePath, shell } =
+    args
   const baseCommand = commandOverride?.trim() || defaultAiVaultResumeCommandBase(agent)
   const resumeTarget = agent === 'omp' && resumeFilePath?.trim() ? resumeFilePath.trim() : sessionId
-  const sessionArg = quoteShellArg(resumeTarget, platform)
+  const sessionArg = shell
+    ? quoteStartupArg(resumeTarget, shell)
+    : quoteShellArg(resumeTarget, platform)
   const resumeCommand = buildAgentResumeInvocation(agent, baseCommand, sessionArg)
 
-  return buildAiVaultResumeShellCommand({ resumeCommand, cwd, platform, codexHome })
+  return buildAiVaultResumeShellCommand({ resumeCommand, cwd, platform, codexHome, shell })
 }
 
 export function buildAiVaultResumeShellCommand(args: {

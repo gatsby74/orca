@@ -26,7 +26,9 @@ type AiVaultResumeCommandSession = Pick<
   AiVaultSession,
   'agent' | 'sessionId' | 'cwd' | 'codexHome'
 > &
-  Partial<Pick<AiVaultSession, 'executionHostId' | 'executionHostPlatform' | 'resumeCommand'>>
+  Partial<
+    Pick<AiVaultSession, 'executionHostId' | 'executionHostPlatform' | 'filePath' | 'resumeCommand'>
+  >
 
 export type AiVaultResumeStartup = {
   command: string
@@ -130,7 +132,9 @@ export function buildAiVaultResumeStartupForWorktree(args: {
       cwd: args.session.cwd,
       platform,
       commandOverride: args.commandOverride,
-      codexHome
+      codexHome,
+      resumeFilePath: args.session.filePath,
+      shell: queuedShell
     })
   }
 }

@@ -148,6 +148,10 @@ export function normalizeAgentSessionsDir(
   return normalized
 }
 
+export function normalizePiSessionsDir(rawValue: string): string {
+  return normalizeAgentSessionsDir(rawValue, '.pi')
+}
+
 export function clampPositiveInteger(value: number | undefined, fallback: number): number {
   return typeof value === 'number' && Number.isInteger(value) && value > 0 ? value : fallback
 }

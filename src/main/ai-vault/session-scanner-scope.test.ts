@@ -30,6 +30,7 @@ function scopedScanOptions(claudeProjectsDir: string, extra: Partial<AiVaultScan
     openclawStateDir: '/nonexistent/openclaw',
     openclawLegacyStateDir: '/nonexistent/openclaw-legacy',
     piSessionsDir: '/nonexistent/pi',
+    ompSessionsDir: '/nonexistent/omp',
     droidSessionsDir: '/nonexistent/droid',
     droidProjectsDir: '/nonexistent/droid-projects',
     kimiSessionsDir: '/nonexistent/kimi',
