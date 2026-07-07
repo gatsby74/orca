@@ -4732,6 +4732,7 @@ export function registerPtyHandlers(
           codexSelectionTarget.runtime === 'wsl' ? expectedWslDistro : null
         )
         promoteAgentTeamsShimPath(env, requestedAgentTeamsPath)
+        applyOmpFreshSessionDirEnv(env, { worktreeId: args.worktreeId, cwd })
       }
 
       const authEnvToDelete = claudeAuth?.stripAuthEnv
@@ -6423,7 +6424,7 @@ export function registerPtyHandlers(
               codexSelectionTarget.runtime === 'wsl' ? expectedWslDistro : null
             )
             promoteAgentTeamsShimPath(env, requestedAgentTeamsPath)
-            applyOmpFreshSessionDirEnv(env, { worktreeId: args.worktreeId, cwd: args.cwd })
+            applyOmpFreshSessionDirEnv(env, { worktreeId: args.worktreeId, cwd })
           } catch (err) {
             // Why: buildPtyHostEnv has fs side-effects (Pi/OMP install); clear per-PTY state on throw, but only minted ids — caller ids may name existing PTYs.
             if (isMintedSessionId) {
