@@ -20,6 +20,7 @@ import { resolveWindowsShellLaunchArgs } from '../providers/windows-shell-args'
 import { resolveEffectiveWindowsPowerShell } from '../providers/windows-powershell'
 import { isPwshAvailable } from '../pwsh'
 import { isHostCodexHomeForWsl, isWslCodexHomeForHost } from '../pty/codex-home-wsl-env'
+import { applyClaudeProjectDirEnv } from '../pty/claude-project-dir-env'
 import { removeInheritedNoColor } from '../pty/terminal-color-env'
 import { parseWslPath } from '../wsl'
 import { addWslEnvKeys } from '../wsl-env'
@@ -461,6 +462,7 @@ export function createPtySubprocess(opts: PtySubprocessOptions): SubprocessHandl
   const requestedCwd = opts.cwd || getDefaultCwd()
   let spawnCwd = requestedCwd
   let validationCwd = spawnCwd
+  let projectCwd = requestedCwd
 
   if (process.platform === 'win32') {
     const normalizedShellFamily = pathWin32.basename(shellPath).toLowerCase()
@@ -506,6 +508,7 @@ export function createPtySubprocess(opts: PtySubprocessOptions): SubprocessHandl
     shellArgs = resolved.shellArgs
     spawnCwd = resolved.effectiveCwd
     validationCwd = resolved.validationCwd
+    projectCwd = resolved.projectCwd
     startupCommandDeliveredInShellArgs = resolved.startupCommandDeliveredInShellArgs === true
     if (isWindowsGitBashShellPath(shellPath)) {
       // Why: Git for Windows login startup files otherwise cd to $HOME,
@@ -538,6 +541,7 @@ export function createPtySubprocess(opts: PtySubprocessOptions): SubprocessHandl
             shellArgs = resolved.shellArgs
             spawnCwd = resolved.effectiveCwd
             validationCwd = resolved.validationCwd
+            projectCwd = resolved.projectCwd
             startupCommandDeliveredInShellArgs =
               resolved.startupCommandDeliveredInShellArgs === true
           }
@@ -604,6 +608,10 @@ export function createPtySubprocess(opts: PtySubprocessOptions): SubprocessHandl
       Object.assign(env, shellLaunch.env)
     }
     shellArgs = shellLaunch?.args ?? ['-l']
+  }
+  applyClaudeProjectDirEnv(env, projectCwd)
+  if (process.platform === 'win32' && pathWin32.basename(shellPath).toLowerCase() === 'wsl.exe') {
+    addWslEnvKeys(env, ['CLAUDE_PROJECT_DIR'])
   }
   promoteAgentTeamsShimPath(env, opts.env?.PATH)
 

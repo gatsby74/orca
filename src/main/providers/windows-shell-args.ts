@@ -37,6 +37,9 @@ export type WindowsShellLaunchArgs = {
    *  every branch except wsl.exe (which validates the Windows cwd even though
    *  the shell itself launches from $HOME). */
   validationCwd: string
+  /** The cwd visible inside the launched shell. For wsl.exe this is the Linux
+   *  path injected through shellArgs rather than node-pty's Windows cwd. */
+  projectCwd: string
 }
 
 export type WindowsShellWslContext = {
@@ -149,7 +152,8 @@ export function resolveWindowsShellLaunchArgs(
       ],
       ...(shellArgStartupCommand ? { startupCommandDeliveredInShellArgs: true } : {}),
       effectiveCwd: nativeCwd,
-      validationCwd: nativeCwd
+      validationCwd: nativeCwd,
+      projectCwd: nativeCwd
     }
   }
 
@@ -163,7 +167,8 @@ export function resolveWindowsShellLaunchArgs(
         ? { startupCommandDeliveredInShellArgs: true }
         : {}),
       effectiveCwd: nativeCwd,
-      validationCwd: nativeCwd
+      validationCwd: nativeCwd,
+      projectCwd: nativeCwd
     }
   }
 
@@ -171,7 +176,8 @@ export function resolveWindowsShellLaunchArgs(
     return {
       shellArgs: ['--login', '-i'],
       effectiveCwd: nativeCwd,
-      validationCwd: nativeCwd
+      validationCwd: nativeCwd,
+      projectCwd: nativeCwd
     }
   }
 
@@ -181,14 +187,16 @@ export function resolveWindowsShellLaunchArgs(
       return {
         shellArgs: buildWslShellArgs(wslInfo.linuxPath, wslInfo.distro),
         effectiveCwd: defaultCwd,
-        validationCwd: cwd
+        validationCwd: cwd,
+        projectCwd: wslInfo.linuxPath
       }
     }
     if (wslContext?.treatPosixCwdAsWsl && cwd.startsWith('/') && !isMsysDriveCwd) {
       return {
         shellArgs: buildWslShellArgs(cwd, wslContext.distro),
         effectiveCwd: defaultCwd,
-        validationCwd: toWindowsWslPath(cwd, wslContext.distro)
+        validationCwd: toWindowsWslPath(cwd, wslContext.distro),
+        projectCwd: cwd
       }
     }
     const driveMatch = nativeCwd.replace(/\\/g, '/').match(/^([A-Za-z]):\/?(.*)$/)
@@ -196,13 +204,15 @@ export function resolveWindowsShellLaunchArgs(
     return {
       shellArgs: buildWslShellArgs(linuxCwd, wslContext?.distro),
       effectiveCwd: defaultCwd,
-      validationCwd: nativeCwd
+      validationCwd: nativeCwd,
+      projectCwd: linuxCwd
     }
   }
 
   return {
     shellArgs: [],
     effectiveCwd: nativeCwd,
-    validationCwd: nativeCwd
+    validationCwd: nativeCwd,
+    projectCwd: nativeCwd
   }
 }

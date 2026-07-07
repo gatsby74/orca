@@ -850,6 +850,22 @@ describe('createPtySubprocess', () => {
     expect(spawnEnv.MY_VAR).toBe('test-value')
   })
 
+  it('sets CLAUDE_PROJECT_DIR to the terminal cwd', () => {
+    const proc = mockPtyProcess()
+    spawnMock.mockReturnValue(proc)
+    const cwd = process.cwd()
+
+    createPtySubprocess({
+      sessionId: 'test',
+      cols: 80,
+      rows: 24,
+      cwd
+    })
+
+    const lastCall = spawnMock.mock.calls.at(-1)!
+    expect(lastCall[2].env.CLAUDE_PROJECT_DIR).toBe(cwd)
+  })
+
   it('uses shell wrapper when attribution shims must survive shell startup', () => {
     const proc = mockPtyProcess()
     spawnMock.mockReturnValue(proc)
@@ -1828,7 +1844,8 @@ describe('createPtySubprocess', () => {
       expect.objectContaining({
         env: expect.objectContaining({
           ORCA_TERMINAL_HANDLE: 'term_wsl',
-          WSLENV: 'FOO/u:ORCA_TERMINAL_HANDLE/u'
+          CLAUDE_PROJECT_DIR: '/home/jin/repo',
+          WSLENV: 'FOO/u:ORCA_TERMINAL_HANDLE/u:CLAUDE_PROJECT_DIR'
         })
       })
     )

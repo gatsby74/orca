@@ -681,6 +681,12 @@ describe('registerPtyHandlers', () => {
       expect(env.FORCE_HYPERLINK).toBe('1')
     })
 
+    it('sets CLAUDE_PROJECT_DIR to the terminal cwd', async () => {
+      const cwd = process.cwd()
+      const [, , options] = await spawnAndGetCall({ cwd })
+      expect(options.env.CLAUDE_PROJECT_DIR).toBe(cwd)
+    })
+
     it('surfaces ORCA_APP_VERSION as TERM_PROGRAM_VERSION for TUI feature gating', async () => {
       const env = await spawnAndGetEnv(undefined, { ORCA_APP_VERSION: '1.2.3-test' })
       expect(env.TERM_PROGRAM_VERSION).toBe('1.2.3-test')
@@ -4447,7 +4453,8 @@ describe('registerPtyHandlers', () => {
     const env = spawnCall[2].env as Record<string, string>
     expect(spawnCall[0]).toBe('wsl.exe')
     expect(env.ORCA_TERMINAL_HANDLE).toBe('term_wsl')
-    expect(env.WSLENV).toBe('ORCA_TERMINAL_HANDLE/u')
+    expect(env.CLAUDE_PROJECT_DIR).toBe('/mnt/c/')
+    expect(env.WSLENV).toBe('ORCA_TERMINAL_HANDLE/u:CLAUDE_PROJECT_DIR')
   })
 
   describe('Windows UTF-8 code page', () => {

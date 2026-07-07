@@ -70,6 +70,7 @@ import {
 import { isRemoteAgentHooksEnabled } from '../../shared/agent-hook-relay'
 import { createTerminalSessionStateSaveFailureMessage } from '../../shared/terminal-session-state-save-failure'
 import { readShellStartupEnvVar } from '../pty/shell-startup-env'
+import { applyClaudeProjectDirEnv } from '../pty/claude-project-dir-env'
 import {
   isTerminalLeafId,
   makePaneKey,
@@ -2341,6 +2342,10 @@ export function registerPtyHandlers(
         }
       }
       const requestedAgentTeamsPath = baseEnv?.ORCA_AGENT_TEAMS_TEAM_ID ? baseEnv.PATH : undefined
+      if (args.cwd) {
+        baseEnv = { ...baseEnv }
+        applyClaudeProjectDirEnv(baseEnv, args.cwd)
+      }
       const agentTeamsEnvToDelete = shouldRefreshAgentTeamsEnv
         ? ['TERM_PROGRAM', 'ORCA_ATTRIBUTION_SHIM_DIR']
         : undefined

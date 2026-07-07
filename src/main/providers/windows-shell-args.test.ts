@@ -198,6 +198,7 @@ describe('resolveWindowsShellLaunchArgs', () => {
     // user's Windows home and we inject the Linux cd into the shellArgs above.
     expect(result.effectiveCwd).toBe('C:\\Users\\alice')
     expect(result.validationCwd).toBe('C:\\Users\\alice\\code')
+    expect(result.projectCwd).toBe('/mnt/c/Users/alice/code')
   })
 
   it('translates MSYS drive cwd to /mnt/<drive>/... for wsl.exe', () => {
@@ -212,6 +213,7 @@ describe('resolveWindowsShellLaunchArgs', () => {
     expect(result.shellArgs).toEqual(expectedWslArgs('/mnt/c/Users/alice/project'))
     expect(result.effectiveCwd).toBe('C:\\Users\\alice')
     expect(result.validationCwd).toBe('C:\\Users\\alice\\project')
+    expect(result.projectCwd).toBe('/mnt/c/Users/alice/project')
   })
 
   it('does not treat MSYS drive cwd as a WSL POSIX cwd', () => {

@@ -33,6 +33,7 @@ import {
 } from './local-pty-shell-ready'
 import type { ShellReadySignal } from './local-pty-shell-ready'
 import { removeInheritedNoColor } from '../pty/terminal-color-env'
+import { applyClaudeProjectDirEnv } from '../pty/claude-project-dir-env'
 import { isHostCodexHomeForWsl, isWslCodexHomeForHost } from '../pty/codex-home-wsl-env'
 import { addWslEnvKeys } from '../wsl-env'
 import {
@@ -345,6 +346,7 @@ export class LocalPtyProvider implements IPtyProvider {
     let shellArgs: string[]
     let effectiveCwd: string
     let validationCwd: string
+    let projectCwd: string
     let startupCommandDeliveredInShellArgs = false
     let shellReadyLaunch: ReturnType<typeof getShellReadyLaunchConfig> | null = null
     let getFallbackShellReadyConfig:
@@ -356,6 +358,7 @@ export class LocalPtyProvider implements IPtyProvider {
       shellArgs = resolved.shellArgs
       effectiveCwd = resolved.effectiveCwd
       validationCwd = resolved.validationCwd
+      projectCwd = resolved.projectCwd
     } else if (process.platform === 'win32') {
       // Why: shellOverride lets a single tab open in a different shell than the
       // persisted default (e.g. "New WSL terminal" from the "+" submenu) without
@@ -411,12 +414,14 @@ export class LocalPtyProvider implements IPtyProvider {
       shellArgs = resolved.shellArgs
       effectiveCwd = resolved.effectiveCwd
       validationCwd = resolved.validationCwd
+      projectCwd = resolved.projectCwd
       startupCommandDeliveredInShellArgs = resolved.startupCommandDeliveredInShellArgs === true
     } else {
       shellPath = args.env?.SHELL || process.env.SHELL || '/bin/zsh'
       shellArgs = ['-l']
       effectiveCwd = cwd
       validationCwd = cwd
+      projectCwd = cwd
     }
 
     ensureNodePtySpawnHelperExecutable()
@@ -508,6 +513,7 @@ export class LocalPtyProvider implements IPtyProvider {
               shellArgs = resolved.shellArgs
               effectiveCwd = resolved.effectiveCwd
               validationCwd = resolved.validationCwd
+              projectCwd = resolved.projectCwd
               startupCommandDeliveredInShellArgs =
                 resolved.startupCommandDeliveredInShellArgs === true
             }
@@ -532,6 +538,10 @@ export class LocalPtyProvider implements IPtyProvider {
         delete finalEnv.CODEX_HOME
         delete finalEnv.ORCA_CODEX_HOME
       }
+    }
+    applyClaudeProjectDirEnv(finalEnv, projectCwd)
+    if (process.platform === 'win32' && pathWin32.basename(shellPath).toLowerCase() === 'wsl.exe') {
+      addWslEnvKeys(finalEnv, ['CLAUDE_PROJECT_DIR'])
     }
     if (!wslInfo && process.platform !== 'win32') {
       // Why: OpenCode/Codex path restoration and OMP's typed-command status
