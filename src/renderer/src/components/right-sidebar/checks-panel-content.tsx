@@ -2837,6 +2837,7 @@ export function PRCommentsList({
           <div className={presentation.audienceTabs}>
             {getPrCommentScopeFilters().map((filter) => {
               const isActive = effectiveScopeFilter === filter.value
+              const isDisabled = filter.value === 'feedback' && scopeCounts.feedback === 0
               return (
                 <button
                   key={filter.value}
@@ -2846,6 +2847,7 @@ export function PRCommentsList({
                     isActive && presentation.audienceTabActive
                   )}
                   aria-pressed={isActive}
+                  disabled={isDisabled}
                   onClick={() => setScopeFilter(filter.value)}
                 >
                   <span>{filter.label}</span>
