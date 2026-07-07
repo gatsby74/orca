@@ -75,7 +75,7 @@ export function SourceControlEntryContextMenu({
   }, [absolutePath, currentWorktreeId, onRevealInExplorer])
 
   const handleOpenInExternal = useCallback(
-    (target: 'file-manager' | 'external-editor', command?: string) => {
+    (target: 'file-manager' | 'external-editor', command: string | undefined, targetId: string) => {
       if (!absolutePath) {
         return
       }
@@ -85,12 +85,10 @@ export function SourceControlEntryContextMenu({
         connectionId,
         command,
         worktreeId: currentWorktreeId,
-        openInTargetId: openInEntries.find(
-          (entry) => entry.target === target && entry.command === command
-        )?.id
+        openInTargetId: targetId
       })
     },
-    [absolutePath, connectionId, currentWorktreeId, openInEntries]
+    [absolutePath, connectionId, currentWorktreeId]
   )
 
   return (
@@ -123,12 +121,13 @@ export function SourceControlEntryContextMenu({
             {translate('auto.components.sidebar.WorktreeOpenInMenu.8009ab69a6', 'Open in')}
           </ContextMenuSubTrigger>
           <ContextMenuSubContent className="w-52">
+<<<<<<< HEAD
             {openInEntries.map((entry) => {
               const availability = getOpenInEntryAvailability(entry, settings, connectionId)
               return (
                 <ContextMenuItem
                   key={entry.id}
-                  onSelect={() => handleOpenInExternal(entry.target, entry.command)}
+                  onSelect={() => handleOpenInExternal(entry.target, entry.command, entry.id)}
                   disabled={!absolutePath || availability.disabled}
                 >
                   {entry.target === 'file-manager' ? (

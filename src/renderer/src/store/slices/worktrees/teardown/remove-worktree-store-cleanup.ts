@@ -1,5 +1,6 @@
 import { worktreeWorkspaceKey } from '../../../../../../shared/workspace-scope'
 import type { WorktreeSliceSet } from '../listing/worktree-slice-types'
+import { pruneLastOpenInTargetsForWorktrees } from './worktree-purge-state'
 
 export function applyRemoveWorktreeSuccessState(
   set: WorktreeSliceSet,
@@ -251,6 +252,7 @@ export function applyRemoveWorktreeSuccessState(
       activeTabType: removedActiveWorktree || activeFileCleared ? 'terminal' : s.activeTabType,
       everActivatedWorktreeIds: nextEverActivatedWorktreeIds,
       lastVisitedAtByWorktreeId: nextLastVisitedAtByWorktreeId,
+      settings: pruneLastOpenInTargetsForWorktrees(s.settings, [worktreeId]),
       sortEpoch: s.sortEpoch + 1
     }
   })
