@@ -497,6 +497,14 @@
               "human": "ユーザーによるコメントはありません。",
               "all": "コメントはまだありません。"
             }
+          },
+          "scope": {
+            "feedback": "Feedback",
+            "all": "All",
+            "empty": {
+              "feedback": "No review feedback.",
+              "all": "No comments yet."
+            }
           }
         },
         "bot": {
