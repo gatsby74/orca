@@ -4455,7 +4455,8 @@
           "automationCreated": "オートメーションによって作成",
           "branchIdentity": "ブランチ",
           "branchFolderPathIdentity": "ブランチまたはフォルダーパス",
-          "ef18787206": "削除待ち"
+          "ef18787206": "削除待ち",
+          "projectFolderLabel": "プロジェクトフォルダー {{value0}}"
         },
         "WorktreeCardAgents": {
           "1b0a156717": "Agent"

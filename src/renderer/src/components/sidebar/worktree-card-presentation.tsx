@@ -19,6 +19,7 @@ export function buildWorktreeCardPresentation(card: WorktreeCardController) {
     inPinnedSection,
     hideRepoBadge,
     hostContextLabel,
+    projectDirectoryName,
     affiliateListMode,
     flushSurface,
     contentIndent,
@@ -76,6 +77,9 @@ export function buildWorktreeCardPresentation(card: WorktreeCardController) {
   const showRepoBadgeInMetaRow =
     !showRepoIdentityInTitle && !!repo && !hideRepoBadge && !showPinnedRepoIcon
   const showHostContextBadge = !compactCards && !!hostContextLabel
+  const normalizedProjectDirectoryName = projectDirectoryName?.trim() ?? ''
+  const showProjectDirectoryBadge =
+    !compactCards && normalizedProjectDirectoryName.length > 0 && !isFolder
   const showDetachedHeadInMetaRow = !compactCards && !isFolder && detachedHeadDisplay !== null
   const showBranch =
     !isFolder &&
@@ -96,6 +100,7 @@ export function buildWorktreeCardPresentation(card: WorktreeCardController) {
   const hasDetailedMetaRowContent = Boolean(
     (showRepoBadgeInMetaRow && repo) ||
     showHostContextBadge ||
+    showProjectDirectoryBadge ||
     folderMetaRowContent ||
     showBranch ||
     showIdentityInNewCard ||
@@ -261,6 +266,8 @@ export function buildWorktreeCardPresentation(card: WorktreeCardController) {
     showInlineRepoBadge,
     showRepoBadgeInMetaRow,
     showHostContextBadge,
+    showProjectDirectoryBadge,
+    normalizedProjectDirectoryName,
     showIdentityInNewCard,
     showDetachedHeadInMetaRow,
     showBranch,
