@@ -1,14 +1,6 @@
-import {
-  cpSync,
-  existsSync,
-  lstatSync,
-  mkdirSync,
-  readFileSync,
-  readdirSync,
-  writeFileSync
-} from 'node:fs'
+import { existsSync, mkdirSync, readFileSync, writeFileSync } from 'node:fs'
 import { homedir } from 'node:os'
-import { dirname, join } from 'node:path'
+import { join } from 'node:path'
 import { app } from 'electron'
 import { createHash } from 'node:crypto'
 import {
@@ -25,6 +17,7 @@ import {
   isSafeDescendCandidate as sharedIsSafeDescendCandidate,
   safeRemoveOverlay
 } from '../pty/overlay-mirror'
+import { migrateLegacyOmpOverlayState } from './legacy-omp-overlay-migration'
 import type { PiAgentKind } from '../../shared/pi-agent-kind'
 
 // Why: the Pi test suite imports `isSafeDescendCandidate` from this module's
@@ -36,13 +29,6 @@ export const isSafeDescendCandidate = sharedIsSafeDescendCandidate
 const PI_AGENT_SUBDIR = 'agent'
 const ORCA_MANAGED_EXTENSION_MARKER = '@orca-managed-pi-extension'
 const OMP_MANAGED_STATUS_EXTENSION_DIR = 'omp-managed-status-extension'
-const LEGACY_PI_OVERLAY_MANIFEST_FILE = '.orca-pi-overlay-manifest.json'
-const PI_AGENT_SETTINGS_FILE = 'settings.json'
-const MANAGED_EXTENSION_FILES = new Set([
-  ORCA_PI_EXTENSION_FILE,
-  ORCA_PI_PREFILL_EXTENSION_FILE,
-  ORCA_PI_AGENT_STATUS_EXTENSION_FILE
-])
 
 type ManagedExtensionWriteResult = 'written' | 'skipped-user-owned' | 'failed'
 
@@ -145,79 +131,6 @@ export class PiTitlebarExtensionService {
     return this.writeManagedExtension(fallbackPath, source) === 'written' ? fallbackPath : undefined
   }
 
-  private shouldSkipLegacyOverlayEntry(pathSegments: string[]): boolean {
-    const name = pathSegments.at(-1)
-    if (!name) {
-      return true
-    }
-    if (pathSegments.length === 1) {
-      return name === LEGACY_PI_OVERLAY_MANIFEST_FILE || name === PI_AGENT_SETTINGS_FILE
-    }
-    return pathSegments[0] === 'extensions' && MANAGED_EXTENSION_FILES.has(name)
-  }
-
-  private copyMissingLegacyOmpOverlayEntries(
-    overlayDir: string,
-    sourceAgentDir: string,
-    pathSegments: string[] = []
-  ): void {
-    for (const entry of readdirSync(overlayDir, { withFileTypes: true })) {
-      const nextSegments = [...pathSegments, entry.name]
-      if (this.shouldSkipLegacyOverlayEntry(nextSegments)) {
-        continue
-      }
-
-      const overlayPath = join(overlayDir, entry.name)
-      const targetPath = join(sourceAgentDir, ...nextSegments)
-      let stats
-      try {
-        stats = lstatSync(overlayPath)
-      } catch {
-        continue
-      }
-      if (stats.isSymbolicLink()) {
-        continue
-      }
-      if (stats.isDirectory()) {
-        if (existsSync(targetPath)) {
-          try {
-            if (!lstatSync(targetPath).isDirectory()) {
-              continue
-            }
-          } catch {
-            continue
-          }
-        } else {
-          mkdirSync(targetPath, { recursive: true })
-        }
-        this.copyMissingLegacyOmpOverlayEntries(overlayPath, sourceAgentDir, nextSegments)
-        continue
-      }
-      if (!stats.isFile()) {
-        continue
-      }
-      if (!existsSync(targetPath)) {
-        mkdirSync(dirname(targetPath), { recursive: true })
-        cpSync(overlayPath, targetPath, { preserveTimestamps: true })
-      }
-    }
-  }
-
-  private migrateLegacyOmpOverlayState(sourceAgentDir: string): void {
-    const overlayDir = this.getSourceOverlayDir(sourceAgentDir, 'omp')
-    if (!existsSync(overlayDir)) {
-      return
-    }
-    try {
-      mkdirSync(sourceAgentDir, { recursive: true })
-      // Why: some pre-managed-extension builds pointed OMP at this overlay, so
-      // first-login auth/session files can exist only there after an update.
-      this.copyMissingLegacyOmpOverlayEntries(overlayDir, sourceAgentDir)
-    } catch (error) {
-      console.warn('[pi-titlebar-extension] failed to migrate legacy OMP overlay state:', error)
-    }
-  }
-
   private installManagedExtensions(
     sourceAgentDir: string,
     kind: PiAgentKind
@@ -268,7 +181,7 @@ export class PiTitlebarExtensionService {
     }
 
     if (kind === 'omp') {
-      this.migrateLegacyOmpOverlayState(sourceAgentDir)
+      migrateLegacyOmpOverlayState(sourceAgentDir, this.getSourceOverlayDir(sourceAgentDir, 'omp'))
     }
 
     const installed = this.installManagedExtensions(sourceAgentDir, kind)
