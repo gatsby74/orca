@@ -417,10 +417,15 @@ function Settings(): React.JSX.Element {
     installedFontsLoadPromiseRef.current = window.api.settings
       .listFonts()
       .then((fonts) => {
-        if (!settingsMountedRef.current || fonts.length === 0) {
+        if (!settingsMountedRef.current) {
           return
         }
+        // Latch after the first successful attempt even when empty, so a font-less
+        // system doesn't reissue listFonts() on every picker interaction.
         installedFontsLoadedRef.current = true
+        if (fonts.length === 0) {
+          return
+        }
         setFontSuggestions((prev) => mergeFontSuggestions(fonts, prev))
       })
       .catch(() => {
