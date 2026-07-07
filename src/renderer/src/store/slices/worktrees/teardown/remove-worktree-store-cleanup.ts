@@ -1,6 +1,9 @@
 import { worktreeWorkspaceKey } from '../../../../../../shared/workspace-scope'
 import type { WorktreeSliceSet } from '../listing/worktree-slice-types'
-import { pruneLastOpenInTargetsForWorktrees } from './worktree-purge-state'
+import {
+  persistPrunedLastOpenInTargetsForWorktrees,
+  pruneLastOpenInTargetsForWorktrees
+} from './worktree-purge-state'
 
 export function applyRemoveWorktreeSuccessState(
   set: WorktreeSliceSet,

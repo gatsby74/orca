@@ -24,6 +24,20 @@ export function pruneLastOpenInTargetsForWorktrees(
   return changed ? { ...settings, lastOpenInTargetIdByWorktree: nextByWorktree } : settings
 }
 
+export function persistPrunedLastOpenInTargetsForWorktrees(
+  getState: () => AppState,
+  settingsBeforePrune: GlobalSettings | null,
+  worktreeIds: Iterable<string>
+): void {
+  const prunedSettings = pruneLastOpenInTargetsForWorktrees(settingsBeforePrune, worktreeIds)
+  if (prunedSettings === settingsBeforePrune) {
+    return
+  }
+  void getState().updateSettings({
+    lastOpenInTargetIdByWorktree: prunedSettings?.lastOpenInTargetIdByWorktree ?? {}
+  })
+}
+
 export function buildWorktreePurgeState(s: AppState, worktreeIds: string[]): Partial<AppState> {
   const worktreeIdSet = new Set(worktreeIds)
   pruneHostedReviewLinkMutationGenerations(worktreeIdSet)
