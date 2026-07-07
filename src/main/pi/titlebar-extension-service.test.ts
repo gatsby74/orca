@@ -1,4 +1,6 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
+import { execFileSync } from 'node:child_process'
+import { createHash } from 'node:crypto'
 import {
   existsSync,
   mkdirSync,
@@ -48,6 +50,12 @@ import { PiTitlebarExtensionService, isSafeDescendCandidate } from './titlebar-e
 function legacyOverlayPath(kind: 'pi' | 'omp', ptyId: string): string {
   const rootDir = kind === 'pi' ? 'pi-agent-overlays' : 'omp-agent-overlays'
   return join(userDataDir, rootDir, ptyId)
+}
+
+function legacySourceOverlayPath(kind: 'pi' | 'omp', sourceAgentDir: string): string {
+  const rootDir = kind === 'pi' ? 'pi-agent-overlays' : 'omp-agent-overlays'
+  const hashed = createHash('sha256').update(`source:${sourceAgentDir}`).digest('hex').slice(0, 32)
+  return join(userDataDir, rootDir, hashed)
 }
 
 describe('PiTitlebarExtensionService', () => {
@@ -184,6 +192,66 @@ describe('PiTitlebarExtensionService', () => {
 
     expect(readFileSync(sourcePath, 'utf-8')).toBe(content)
   })
+
+  it('migrates missing OMP state from the old source overlay without overwriting source files', () => {
+    rmSync(join(piHome, 'sessions'), { recursive: true, force: true })
+    const overlayDir = legacySourceOverlayPath('omp', piHome)
+    mkdirSync(join(overlayDir, 'sessions'), { recursive: true })
+    mkdirSync(join(overlayDir, 'extensions'), { recursive: true })
+    writeFileSync(join(overlayDir, 'agent.db'), 'legacy sqlite credentials')
+    writeFileSync(join(overlayDir, 'agent.db-wal'), 'legacy sqlite wal')
+    writeFileSync(join(overlayDir, 'sessions', 'legacy-session.jsonl'), 'legacy transcript')
+    writeFileSync(join(overlayDir, 'auth.json'), 'legacy token should not overwrite')
+    writeFileSync(join(overlayDir, 'settings.json'), '{"overlayOnly":true}')
+    writeFileSync(join(overlayDir, '.orca-pi-overlay-manifest.json'), '{}')
+    writeFileSync(join(overlayDir, 'extensions', 'orca-agent-status.ts'), 'stale managed extension')
+    writeFileSync(join(overlayDir, 'extensions', 'legacy-user-ext.ts'), 'legacy user extension')
+
+    const svc = new PiTitlebarExtensionService()
+    const env = svc.buildPtyEnv('pty-omp-migrate', piHome, 'omp')
+
+    expect(env.PI_CODING_AGENT_DIR).toBeUndefined()
+    expect(readFileSync(join(piHome, 'agent.db'), 'utf-8')).toBe('legacy sqlite credentials')
+    expect(readFileSync(join(piHome, 'agent.db-wal'), 'utf-8')).toBe('legacy sqlite wal')
+    expect(readFileSync(join(piHome, 'sessions', 'legacy-session.jsonl'), 'utf-8')).toBe(
+      'legacy transcript'
+    )
+    expect(readFileSync(join(piHome, 'auth.json'), 'utf-8')).toBe('secret token')
+    expect(JSON.parse(readFileSync(join(piHome, 'settings.json'), 'utf-8'))).toEqual({
+      defaultProvider: 'amazon-bedrock',
+      hideThinkingBlock: false,
+      packages: ['npm:pi-web-access'],
+      terminal: {
+        showImages: false,
+        clearOnShrink: false
+      }
+    })
+    expect(readFileSync(join(piHome, 'extensions', 'legacy-user-ext.ts'), 'utf-8')).toBe(
+      'legacy user extension'
+    )
+    expect(readFileSync(join(piHome, 'extensions', 'orca-agent-status.ts'), 'utf-8')).toContain(
+      '/hook/omp'
+    )
+  })
+
+  it.skipIf(process.platform === 'win32')(
+    'skips special legacy overlay entries while continuing the OMP migration',
+    () => {
+      rmSync(join(piHome, 'sessions'), { recursive: true, force: true })
+      const overlayDir = legacySourceOverlayPath('omp', piHome)
+      mkdirSync(join(overlayDir, 'sessions'), { recursive: true })
+      execFileSync('mkfifo', [join(overlayDir, 'stray-fifo')])
+      writeFileSync(join(overlayDir, 'sessions', 'legacy-session.jsonl'), 'legacy transcript')
+
+      const svc = new PiTitlebarExtensionService()
+      svc.buildPtyEnv('pty-omp-special-entry', piHome, 'omp')
+
+      expect(existsSync(join(piHome, 'stray-fifo'))).toBe(false)
+      expect(readFileSync(join(piHome, 'sessions', 'legacy-session.jsonl'), 'utf-8')).toBe(
+        'legacy transcript'
+      )
+    }
+  )
 
   it('rebuilding managed extensions for the same ptyId does not corrupt the user Pi dir', () => {
     const svc = new PiTitlebarExtensionService()
