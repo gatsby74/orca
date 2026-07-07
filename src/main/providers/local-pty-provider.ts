@@ -38,7 +38,7 @@ import {
 } from './local-pty-shell-ready'
 import type { ShellReadySignal } from './local-pty-shell-ready'
 import { removeInheritedNoColor } from '../pty/terminal-color-env'
-import { applyClaudeProjectDirEnv } from '../pty/claude-project-dir-env'
+import { CLAUDE_PROJECT_DIR_ENV_KEY, applyClaudeProjectDirEnv } from '../pty/claude-project-dir-env'
 import { removeAppImageRuntimeEnv } from '../pty/appimage-terminal-env'
 import { isHostCodexHomeForWsl, isWslCodexHomeForHost } from '../pty/codex-home-wsl-env'
 import { addWslEnvKeys } from '../wsl-env'
@@ -583,8 +583,12 @@ export class LocalPtyProvider implements IPtyProvider {
     }
     applyClaudeProjectDirEnv(finalEnv, projectCwd)
     seedPowerlevel10kWizardEnv(finalEnv, { envToDelete: args.envToDelete })
-    if (process.platform === 'win32' && pathWin32.basename(shellPath).toLowerCase() === 'wsl.exe') {
-      addWslEnvKeys(finalEnv, ['CLAUDE_PROJECT_DIR'])
+    if (
+      finalEnv[CLAUDE_PROJECT_DIR_ENV_KEY] &&
+      process.platform === 'win32' &&
+      pathWin32.basename(shellPath).toLowerCase() === 'wsl.exe'
+    ) {
+      addWslEnvKeys(finalEnv, [CLAUDE_PROJECT_DIR_ENV_KEY])
     }
     if (
       finalEnv[POWERLEVEL10K_WIZARD_DISABLE_ENV] !== undefined &&

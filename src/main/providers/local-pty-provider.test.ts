@@ -83,6 +83,7 @@ vi.mock('../wsl', () => ({
 
 import { LocalPtyProvider } from './local-pty-provider'
 import { isRootLikePath } from './pty-path-safety'
+import { CLAUDE_PROJECT_DIR_ENV_KEY } from '../pty/claude-project-dir-env'
 import { POWERLEVEL10K_WIZARD_DISABLE_ENV } from '../pty/powerlevel10k-wizard-env'
 
 describe('LocalPtyProvider', () => {
@@ -282,6 +283,13 @@ describe('LocalPtyProvider', () => {
 
       const spawnCall = spawnMock.mock.calls.at(-1)!
       expect(spawnCall[2].env.CUSTOM_VAR).toBe('custom-value')
+    })
+
+    it('sets Claude project dir to the POSIX terminal cwd', async () => {
+      await provider.spawn({ cols: 80, rows: 24, cwd: '/tmp/orca-project' })
+
+      const spawnCall = spawnMock.mock.calls.at(-1)!
+      expect(spawnCall[2].env[CLAUDE_PROJECT_DIR_ENV_KEY]).toBe('/tmp/orca-project')
     })
 
     it('suppresses the first-run Powerlevel10k wizard for spawned terminals', async () => {
@@ -505,6 +513,23 @@ describe('LocalPtyProvider', () => {
       expect(spawnCall[2].env.ORCA_CODEX_HOME).toBeUndefined()
     })
 
+    it('sets Claude project dir to the shell-visible WSL cwd', async () => {
+      Object.defineProperty(process, 'platform', { configurable: true, value: 'win32' })
+
+      await provider.spawn({
+        cols: 80,
+        rows: 24,
+        cwd: '\\\\wsl.localhost\\Ubuntu\\home\\jin\\repo'
+      })
+
+      const spawnCall = spawnMock.mock.calls.at(-1)!
+      expect(spawnCall[0]).toBe('wsl.exe')
+      expect(spawnCall[2].env[CLAUDE_PROJECT_DIR_ENV_KEY]).toBe('/home/jin/repo')
+      expect(spawnCall[2].env.WSLENV?.split(':')).toEqual(
+        expect.arrayContaining([CLAUDE_PROJECT_DIR_ENV_KEY])
+      )
+    })
+
     it('does not pass a WSL managed Codex home into Windows terminals', async () => {
       Object.defineProperty(process, 'platform', { configurable: true, value: 'win32' })
       provider.configure({
@@ -686,8 +711,13 @@ describe('LocalPtyProvider', () => {
       const spawnCall = spawnMock.mock.calls.at(-1)!
       expect(spawnCall[0]).toBe('wsl.exe')
       expect(spawnCall[2].env.ORCA_TERMINAL_HANDLE).toBe('term_wsl')
-      expect(spawnCall[2].env.WSLENV).toBe(
-        'ORCA_TERMINAL_HANDLE/u:POWERLEVEL9K_DISABLE_CONFIGURATION_WIZARD'
+      expect(spawnCall[2].env[CLAUDE_PROJECT_DIR_ENV_KEY]).toBe('/home/jin/repo')
+      expect(spawnCall[2].env.WSLENV?.split(':')).toEqual(
+        expect.arrayContaining([
+          'ORCA_TERMINAL_HANDLE/u',
+          CLAUDE_PROJECT_DIR_ENV_KEY,
+          POWERLEVEL10K_WIZARD_DISABLE_ENV
+        ])
       )
     })
 
