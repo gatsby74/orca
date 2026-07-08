@@ -5,6 +5,7 @@ import { getRepoMapFromState, getWorktreeMapFromState } from '@/store/selectors'
 import { playDesktopNotificationSound } from '@/lib/desktop-notification-sound'
 import { showBlockedNotificationFallbackToast } from '@/lib/blocked-notification-fallback'
 import { buildAgentNotificationId } from '../../../../shared/agent-notification-id'
+import { isFreshNonDoneAgentStatus } from '../../../../shared/agent-status-types'
 import { isSupersededAgentCompletionSnapshot } from './agent-completion-snapshot-staleness'
 import type { AgentCompletionStatusSnapshot } from './agent-completion-coordinator-types'
 import {
@@ -26,6 +27,16 @@ function agentSnapshotMatchesExplicitTitle(
   explicitTitleAgentType: string | null
 ): boolean {
   return !snapshot || !explicitTitleAgentType || snapshot.agentType === explicitTitleAgentType
+}
+
+function hasFreshActiveHookStatus(
+  snapshot: { state?: string; updatedAt?: number; agentType?: string | null } | undefined,
+  explicitTitleAgentType: string | null
+): boolean {
+  return Boolean(
+    isFreshNonDoneAgentStatus(snapshot) &&
+    agentSnapshotMatchesExplicitTitle(snapshot, explicitTitleAgentType)
+  )
 }
 
 export type TerminalNotificationEvent = {
@@ -70,6 +81,15 @@ export function dispatchTerminalNotification(
     agentSnapshotMatchesExplicitTitle(storedAgentStatus, explicitTitleAgentType)
       ? storedAgentStatus
       : undefined
+  if (
+    event.source === 'agent-task-complete' &&
+    !eventAgentStatusSnapshot &&
+    hasFreshActiveHookStatus(storedAgentStatus, explicitTitleAgentType)
+  ) {
+    // Why: a title-only idle signal can race behind a hook-backed active state;
+    // the hook is fresher evidence that the turn is not complete.
+    return
+  }
   const agentStatus =
     event.source === 'agent-task-complete'
       ? (eventAgentStatusSnapshot ?? freshStoredAgentStatus)

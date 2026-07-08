@@ -120,7 +120,7 @@ import { resolveSshPaneConnectGate } from './ssh-pane-connect-gate'
 import { dispatchTerminalCommandFinishedEvent } from '@/hooks/terminal-command-finished-event'
 import { e2eConfig } from '@/lib/e2e-config'
 import {
-  AGENT_STATUS_STALE_AFTER_MS,
+  isFreshNonDoneAgentStatus,
   type AgentStatusEntry,
   type AgentType
 } from '../../../../shared/agent-status-types'
@@ -1297,12 +1297,7 @@ export function connectPanePty(
   const isFreshActivePaneAgentEntry = (
     entry: AgentStatusEntry | undefined
   ): entry is AgentStatusEntry => {
-    return (
-      !!entry &&
-      typeof entry.updatedAt === 'number' &&
-      Date.now() - entry.updatedAt <= AGENT_STATUS_STALE_AFTER_MS &&
-      entry.state !== 'done'
-    )
+    return isFreshNonDoneAgentStatus(entry)
   }
   const hasFreshPaneAgentSurface = (): boolean => {
     const entry = useAppStore.getState().agentStatusByPaneKey[cacheKey]
@@ -2629,6 +2624,12 @@ export function connectPanePty(
       deps.setCacheTimerStartedAt(cacheKey, null)
       return
     }
+    const currentState = useAppStore.getState()
+    if (isFreshNonDoneAgentStatus(currentState.agentStatusByPaneKey[cacheKey])) {
+      // Why: agent CLIs can briefly publish an idle title while hook status
+      // still says the same turn is active (e.g. during tool output). Hooks win.
+      return
+    }
     // Why: only start the prompt-cache countdown for Claude agents — other
     // agents have different (or no) prompt-caching semantics and showing a
     // timer for them would be misleading.
@@ -2639,7 +2640,7 @@ export function connectPanePty(
     // tab silently drops the timer. Writing a timestamp is cheap and the
     // CacheTimer component gates rendering on the enabled flag, so a
     // spurious write when the feature turns out to be disabled is harmless.
-    const settings = useAppStore.getState().settings
+    const settings = currentState.settings
     if (isClaudeAgent(title) && (settings === null || settings.promptCacheTimerEnabled)) {
       deps.setCacheTimerStartedAt(cacheKey, Date.now())
     }
