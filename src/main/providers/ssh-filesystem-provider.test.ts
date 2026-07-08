@@ -201,6 +201,23 @@ describe('SshFilesystemProvider', () => {
       expect(mux.request).not.toHaveBeenCalledWith('fs.writeFile', expect.anything())
     })
 
+    it('writes decoded bytes through raw transfer when provided', async () => {
+      const writeBuffer = vi.fn().mockResolvedValue(undefined)
+      provider = new SshFilesystemProvider('conn-1', mux as never, undefined, { writeBuffer })
+
+      await provider.writeFileBase64('/home/user/logo.png', 'cG5n')
+      await provider.writeFileBase64Chunk('/home/user/logo.png', 'bW9yZQ==', true)
+
+      expect(writeBuffer).toHaveBeenNthCalledWith(1, '/home/user/logo.png', Buffer.from('png'), {
+        append: false,
+        exclusive: true
+      })
+      expect(writeBuffer).toHaveBeenNthCalledWith(2, '/home/user/logo.png', Buffer.from('more'), {
+        append: true,
+        exclusive: false
+      })
+    })
+
     it('can append decoded chunks through SFTP', async () => {
       const writeStream = {
         on: vi.fn((_event: string, _handler: (...args: unknown[]) => void) => writeStream),
@@ -225,6 +242,15 @@ describe('SshFilesystemProvider', () => {
   })
 
   describe('downloadFile', () => {
+    it('downloads raw bytes through raw transfer when provided', async () => {
+      const downloadFile = vi.fn().mockResolvedValue(undefined)
+      provider = new SshFilesystemProvider('conn-1', mux as never, undefined, { downloadFile })
+
+      await provider.downloadFile('/home/user/archive.zip', '/tmp/archive.zip')
+
+      expect(downloadFile).toHaveBeenCalledWith('/home/user/archive.zip', '/tmp/archive.zip')
+    })
+
     it('downloads raw bytes through SFTP and closes the session', async () => {
       const sftp = {
         fastGet: vi.fn(

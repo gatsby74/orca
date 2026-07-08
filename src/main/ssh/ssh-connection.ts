@@ -8,7 +8,9 @@ import {
   getOrcaControlSocketPath,
   spawnSystemSsh,
   spawnSystemSshCommand,
+  downloadFileViaSystemSsh,
   uploadDirectoryViaSystemSsh,
+  writeBufferViaSystemSsh,
   writeFileViaSystemSsh,
   type SystemSshBuildArgsOptions,
   type SystemSshProcess
@@ -347,6 +349,28 @@ export class SshConnection {
     })
   }
 
+  async downloadFile(
+    remotePath: string,
+    localPath: string,
+    options?: SshRemoteFileOptions
+  ): Promise<void> {
+    if (!this.useSystemSshTransport) {
+      const sftp = await this.sftp()
+      try {
+        const { fastGetViaSftp } = await import('../providers/ssh-filesystem-provider-sftp')
+        await fastGetViaSftp(sftp, remotePath, localPath)
+      } finally {
+        sftp.end()
+      }
+      return
+    }
+    await downloadFileViaSystemSsh(this.target, remotePath, localPath, {
+      signal: this.systemOperationAbortController.signal,
+      hostPlatform: options?.hostPlatform,
+      ...this.getSystemSshBuildArgsOptions()
+    })
+  }
+
   async writeFile(
     remotePath: string,
     contents: string,
@@ -397,6 +421,30 @@ export class SshConnection {
     await writeFileViaSystemSsh(this.target, remotePath, contents, {
       signal: this.systemOperationAbortController.signal,
       hostPlatform: options?.hostPlatform,
+      ...this.getSystemSshBuildArgsOptions()
+    })
+  }
+
+  async writeBuffer(
+    remotePath: string,
+    contents: Buffer,
+    options?: SshRemoteFileOptions & { append?: boolean; exclusive?: boolean }
+  ): Promise<void> {
+    if (!this.useSystemSshTransport) {
+      const sftp = await this.sftp()
+      try {
+        const { uploadBuffer } = await import('./sftp-upload')
+        await uploadBuffer(sftp, contents, remotePath, options)
+      } finally {
+        sftp.end()
+      }
+      return
+    }
+    await writeBufferViaSystemSsh(this.target, remotePath, contents, {
+      signal: this.systemOperationAbortController.signal,
+      hostPlatform: options?.hostPlatform,
+      append: options?.append,
+      exclusive: options?.exclusive,
       ...this.getSystemSshBuildArgsOptions()
     })
   }

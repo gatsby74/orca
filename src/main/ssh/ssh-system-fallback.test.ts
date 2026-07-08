@@ -1,4 +1,4 @@
-import { mkdtempSync, rmSync, writeFileSync } from 'node:fs'
+import { mkdtempSync, readFileSync, rmSync, writeFileSync } from 'node:fs'
 import { tmpdir } from 'node:os'
 import { join } from 'node:path'
 import { EventEmitter } from 'node:events'
@@ -25,9 +25,11 @@ vi.mock('child_process', () => ({
 import {
   buildSshArgs,
   findSystemSsh,
+  downloadFileViaSystemSsh,
   spawnSystemSsh,
   spawnSystemSshCommand,
   uploadDirectoryViaSystemSsh,
+  writeBufferViaSystemSsh,
   writeFileViaSystemSsh
 } from './ssh-system-fallback'
 import { spawnSystemSshPortForward } from './system-ssh-forward-process'
@@ -37,6 +39,11 @@ import type { SystemSshResolvedConfig } from './ssh-control-socket'
 
 const SYSTEM_SSH_PATH =
   process.platform === 'win32' ? 'C:\\Windows\\System32\\OpenSSH\\ssh.exe' : '/usr/bin/ssh'
+
+function decodePowerShellCommand(command: string): string {
+  const encoded = command.match(/-EncodedCommand\s+(\S+)/)?.[1]
+  return encoded ? Buffer.from(encoded, 'base64').toString('utf16le') : command
+}
 
 function mockSystemSshExists(): void {
   existsSyncMock.mockImplementation((p: string) => p === SYSTEM_SSH_PATH)
@@ -470,8 +477,62 @@ describe('spawnSystemSsh', () => {
     proc.emit('close', 0, null)
 
     await expect(promise).resolves.toBeUndefined()
-    expect(proc.stdin.end).toHaveBeenCalledWith('contents')
+    expect(proc.stdin.end).toHaveBeenCalledWith(Buffer.from('contents'))
     expect(proc.stderr.listenerCount('data')).toBe(0)
+  })
+
+  it('writes binary buffers to POSIX system SSH targets with exclusive create', async () => {
+    const proc = createEventedProcess()
+    spawnMock.mockReturnValue(proc)
+
+    const promise = writeBufferViaSystemSsh(createTarget(), '/tmp/file', Buffer.from('png'), {
+      exclusive: true
+    })
+    proc.emit('close', 0, null)
+
+    await expect(promise).resolves.toBeUndefined()
+    const args = spawnMock.mock.calls[0][1] as string[]
+    expect(args.at(-1)).toContain('set -C; cat >')
+    expect(args.at(-1)).toContain('/tmp/file')
+    expect(proc.stdin.end).toHaveBeenCalledWith(Buffer.from('png'))
+  })
+
+  it('appends binary buffers to POSIX system SSH targets', async () => {
+    const proc = createEventedProcess()
+    spawnMock.mockReturnValue(proc)
+
+    const promise = writeBufferViaSystemSsh(createTarget(), '/tmp/file', Buffer.from('more'), {
+      append: true
+    })
+    proc.emit('close', 0, null)
+
+    await expect(promise).resolves.toBeUndefined()
+    const args = spawnMock.mock.calls[0][1] as string[]
+    expect(args.at(-1)).toContain('cat >>')
+    expect(args.at(-1)).toContain('/tmp/file')
+    expect(args.at(-1)).not.toContain('set -C')
+  })
+
+  it('downloads files from POSIX system SSH targets', async () => {
+    const proc = createEventedProcess()
+    spawnMock.mockReturnValue(proc)
+    const dir = mkdtempSync(join(tmpdir(), 'orca-system-ssh-download-'))
+    const dest = join(dir, 'payload.bin')
+
+    try {
+      const promise = downloadFileViaSystemSsh(createTarget(), '/remote/payload.bin', dest)
+      proc.stdout.emit('data', Buffer.from('payload'))
+      proc.stdout.emit('end')
+      proc.emit('close', 0, null)
+
+      await expect(promise).resolves.toBeUndefined()
+      expect(readFileSync(dest)).toEqual(Buffer.from('payload'))
+      const args = spawnMock.mock.calls[0][1] as string[]
+      expect(args.at(-1)).toContain('cat')
+      expect(args.at(-1)).toContain('/remote/payload.bin')
+    } finally {
+      rmSync(dir, { recursive: true, force: true })
+    }
   })
 
   it('forces standalone SSH for POSIX file writes when requested', async () => {
@@ -509,6 +570,56 @@ describe('spawnSystemSsh', () => {
     expect(remoteCommand).toContain('powershell.exe')
     expect(remoteCommand).not.toContain('/bin/sh')
     expect(proc.stdin.end).toHaveBeenCalledWith(Buffer.from('0.1.0', 'utf-8'))
+  })
+
+  it('writes binary buffers to Windows system SSH targets with CreateNew mode', async () => {
+    const proc = createEventedProcess()
+    spawnMock.mockReturnValue(proc)
+    const hostPlatform = getRemoteHostPlatform('win32-x64')
+
+    const promise = writeBufferViaSystemSsh(
+      createTarget(),
+      'C:/Users/me/logo.png',
+      Buffer.from('png'),
+      { hostPlatform, exclusive: true }
+    )
+    proc.emit('close', 0, null)
+
+    await expect(promise).resolves.toBeUndefined()
+    const args = spawnMock.mock.calls[0][1] as string[]
+    const remoteCommand = args.at(-1) ?? ''
+    expect(remoteCommand).toContain('powershell.exe')
+    expect(decodePowerShellCommand(remoteCommand)).toContain('CreateNew')
+    expect(remoteCommand).not.toContain('/bin/sh')
+    expect(proc.stdin.end).toHaveBeenCalledWith(Buffer.from('png'))
+  })
+
+  it('downloads files from Windows system SSH targets with PowerShell stdout bytes', async () => {
+    const proc = createEventedProcess()
+    spawnMock.mockReturnValue(proc)
+    const hostPlatform = getRemoteHostPlatform('win32-x64')
+    const dir = mkdtempSync(join(tmpdir(), 'orca-system-ssh-download-'))
+    const dest = join(dir, 'payload.bin')
+
+    try {
+      const promise = downloadFileViaSystemSsh(createTarget(), 'C:/Users/me/payload.bin', dest, {
+        hostPlatform
+      })
+      proc.stdout.emit('data', Buffer.from('payload'))
+      proc.stdout.emit('end')
+      proc.emit('close', 0, null)
+
+      await expect(promise).resolves.toBeUndefined()
+      expect(readFileSync(dest)).toEqual(Buffer.from('payload'))
+      const args = spawnMock.mock.calls[0][1] as string[]
+      const remoteCommand = args.at(-1) ?? ''
+      expect(remoteCommand).toContain('powershell.exe')
+      expect(decodePowerShellCommand(remoteCommand)).toContain('OpenRead')
+      expect(decodePowerShellCommand(remoteCommand)).toContain('CopyTo')
+      expect(remoteCommand).not.toContain('/bin/sh')
+    } finally {
+      rmSync(dir, { recursive: true, force: true })
+    }
   })
 
   it('forces standalone SSH for Windows file writes when requested', async () => {

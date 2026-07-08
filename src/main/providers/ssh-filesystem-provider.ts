@@ -19,6 +19,14 @@ import type { WorkspaceSpaceDirectoryScanResult } from '../../shared/workspace-s
 import type { SFTPWrapper } from 'ssh2'
 
 type SftpFactory = () => Promise<SFTPWrapper>
+type RawTransferOptions = {
+  downloadFile?: (sourcePath: string, destinationPath: string) => Promise<void>
+  writeBuffer?: (
+    remotePath: string,
+    contents: Buffer,
+    options: { append: boolean; exclusive: boolean }
+  ) => Promise<void>
+}
 const WORKSPACE_SPACE_SCAN_TIMEOUT_MS = 130_000
 
 export class SshFilesystemProvider implements IFilesystemProvider {
@@ -33,7 +41,8 @@ export class SshFilesystemProvider implements IFilesystemProvider {
   constructor(
     connectionId: string,
     mux: SshChannelMultiplexer,
-    private readonly createSftp?: SftpFactory
+    private readonly createSftp?: SftpFactory,
+    private readonly rawTransfer?: RawTransferOptions
   ) {
     this.connectionId = connectionId
     this.mux = mux
@@ -120,6 +129,10 @@ export class SshFilesystemProvider implements IFilesystemProvider {
   }
 
   async downloadFile(sourcePath: string, destinationPath: string): Promise<void> {
+    if (this.rawTransfer?.downloadFile) {
+      await this.rawTransfer.downloadFile(sourcePath, destinationPath)
+      return
+    }
     if (!this.createSftp) {
       throw new Error('Remote file download is unavailable. Reconnect the SSH target and retry.')
     }
@@ -186,6 +199,11 @@ export class SshFilesystemProvider implements IFilesystemProvider {
     contentBase64: string,
     append: boolean
   ): Promise<void> {
+    const contents = Buffer.from(contentBase64, 'base64')
+    if (this.rawTransfer?.writeBuffer) {
+      await this.rawTransfer.writeBuffer(filePath, contents, { append, exclusive: !append })
+      return
+    }
     if (!this.createSftp) {
       throw new Error('remote_binary_upload_unavailable')
     }
@@ -193,7 +211,7 @@ export class SshFilesystemProvider implements IFilesystemProvider {
     try {
       // Why: relay fs.writeFile is text-only. SFTP writes the decoded bytes
       // directly so runtime uploads do not corrupt images, PDFs, or archives.
-      await uploadBuffer(sftp, Buffer.from(contentBase64, 'base64'), filePath, {
+      await uploadBuffer(sftp, contents, filePath, {
         append,
         exclusive: !append
       })

@@ -133,7 +133,9 @@ vi.mock('./ssh-system-fallback', () => ({
   getOrcaControlSocketPath: getOrcaControlSocketPathMock,
   spawnSystemSsh: spawnSystemSshMock,
   spawnSystemSshCommand: spawnSystemSshCommandMock,
+  downloadFileViaSystemSsh: vi.fn(),
   uploadDirectoryViaSystemSsh: vi.fn(),
+  writeBufferViaSystemSsh: vi.fn(),
   writeFileViaSystemSsh: vi.fn()
 }))
 
@@ -152,7 +154,12 @@ import {
   type SshConnectionCallbacks
 } from './ssh-connection'
 import { resolveWithSshG, type SshResolvedConfig } from './ssh-config-parser'
-import { uploadDirectoryViaSystemSsh, writeFileViaSystemSsh } from './ssh-system-fallback'
+import {
+  downloadFileViaSystemSsh,
+  uploadDirectoryViaSystemSsh,
+  writeBufferViaSystemSsh,
+  writeFileViaSystemSsh
+} from './ssh-system-fallback'
 import { getRemoteHostPlatform } from './ssh-remote-platform'
 import type { SshTarget } from '../../shared/ssh-types'
 
@@ -273,8 +280,12 @@ describe('SshConnection', () => {
     spawnSystemSshMock.mockImplementation(() => createSystemSshProcess())
     spawnSystemSshCommandMock.mockReset()
     spawnSystemSshCommandMock.mockImplementation(() => createSystemCommandChannel())
+    vi.mocked(downloadFileViaSystemSsh).mockReset()
+    vi.mocked(downloadFileViaSystemSsh).mockResolvedValue(undefined)
     vi.mocked(uploadDirectoryViaSystemSsh).mockReset()
     vi.mocked(uploadDirectoryViaSystemSsh).mockResolvedValue(undefined)
+    vi.mocked(writeBufferViaSystemSsh).mockReset()
+    vi.mocked(writeBufferViaSystemSsh).mockResolvedValue(undefined)
     vi.mocked(writeFileViaSystemSsh).mockReset()
     vi.mocked(writeFileViaSystemSsh).mockResolvedValue(undefined)
     vi.mocked(resolveWithSshG).mockReset()
@@ -1057,6 +1068,13 @@ describe('SshConnection', () => {
     await conn.writeFile('C:/Users/me/.orca-remote/relay/.version', '0.1.0', {
       hostPlatform
     })
+    await conn.writeBuffer('C:/Users/me/.orca-remote/relay/logo.png', Buffer.from('png'), {
+      hostPlatform,
+      exclusive: true
+    })
+    await conn.downloadFile('C:/Users/me/.orca-remote/relay/logo.png', '/tmp/logo.png', {
+      hostPlatform
+    })
 
     expect(uploadDirectoryViaSystemSsh).toHaveBeenCalledWith(
       expect.objectContaining({ configHost: 'fdpass-host' }),
@@ -1071,6 +1089,25 @@ describe('SshConnection', () => {
       expect.objectContaining({ configHost: 'fdpass-host' }),
       'C:/Users/me/.orca-remote/relay/.version',
       '0.1.0',
+      expect.objectContaining({
+        hostPlatform,
+        resolvedConfig: expect.objectContaining({ proxyUseFdpass: true })
+      })
+    )
+    expect(writeBufferViaSystemSsh).toHaveBeenCalledWith(
+      expect.objectContaining({ configHost: 'fdpass-host' }),
+      'C:/Users/me/.orca-remote/relay/logo.png',
+      Buffer.from('png'),
+      expect.objectContaining({
+        hostPlatform,
+        exclusive: true,
+        resolvedConfig: expect.objectContaining({ proxyUseFdpass: true })
+      })
+    )
+    expect(downloadFileViaSystemSsh).toHaveBeenCalledWith(
+      expect.objectContaining({ configHost: 'fdpass-host' }),
+      'C:/Users/me/.orca-remote/relay/logo.png',
+      '/tmp/logo.png',
       expect.objectContaining({
         hostPlatform,
         resolvedConfig: expect.objectContaining({ proxyUseFdpass: true })
