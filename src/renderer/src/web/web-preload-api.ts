@@ -1353,6 +1353,9 @@ function createFileApi(): NonNullable<Partial<PreloadApi>['fs']> {
     downloadFile: async () => {
       throw new Error('Remote file download is unavailable in paired web clients.')
     },
+    downloadFolder: async () => {
+      throw new Error('Remote folder download is unavailable in paired web clients.')
+    },
     saveDownloadedFile: async () => {
       throw new Error('Remote file download is unavailable in paired web clients.')
     },

@@ -1,6 +1,16 @@
 /* eslint-disable max-lines */
 import { BrowserWindow, dialog, ipcMain, shell } from 'electron'
-import { readdir, readFile, writeFile, stat, lstat, open, rename, rm } from 'node:fs/promises'
+import {
+  mkdir,
+  readdir,
+  readFile,
+  writeFile,
+  stat,
+  lstat,
+  open,
+  rename,
+  rm
+} from 'node:fs/promises'
 import type { FileHandle } from 'node:fs/promises'
 import { randomUUID } from 'node:crypto'
 import { dirname, extname, join, resolve } from 'node:path'
@@ -118,8 +128,9 @@ import { listRepoWorktrees } from '../repo-worktrees'
 import { recordCrashBreadcrumb } from '../crash-reporting/crash-breadcrumb-store'
 import { buildReadDirErrorBreadcrumb, type ReadDirThrowSite } from './readdir-error-diagnostics'
 import { splitWorktreeId } from '../../shared/worktree-id'
-import { getRuntimePathBasename } from '../../shared/cross-platform-path'
+import { getRuntimePathBasename, resolveRuntimePath } from '../../shared/cross-platform-path'
 import type { LocalProjectWorktreeGitOptions } from '../project-runtime-git-options'
+import type { IFilesystemProvider } from '../providers/types'
 
 // Why: Monaco has large-file optimizations like VS Code; blocking at 5MB makes
 // ordinary JSON/log files inaccessible before the editor can degrade features.
@@ -149,6 +160,7 @@ const WINDOWS_RESERVED_LOCAL_BASENAME = /^(?:con|prn|aux|nul|com[1-9]|lpt[1-9])(
 const LOCAL_FILENAME_REPLACEMENT_CHARS = new Set(['<', '>', ':', '"', '/', '\\', '|', '?', '*'])
 
 type DownloadFileResult = { canceled: true } | { canceled: false; destinationPath: string }
+type DownloadFolderResult = DownloadFileResult
 
 function validateRequiredString(value: unknown, label: string): string {
   if (typeof value !== 'string' || value.trim() === '') {
@@ -213,6 +225,18 @@ async function inspectDownloadDestination(destinationPath: string): Promise<{ ex
   }
 }
 
+async function assertDownloadFolderDestinationAvailable(destinationPath: string): Promise<void> {
+  try {
+    await stat(destinationPath)
+  } catch (error) {
+    if (isENOENT(error)) {
+      return
+    }
+    throw error
+  }
+  throw new Error('Destination folder already exists')
+}
+
 async function assertDestinationStillUnclaimed(destinationPath: string): Promise<void> {
   try {
     await stat(destinationPath)
@@ -223,6 +247,11 @@ async function assertDestinationStillUnclaimed(destinationPath: string): Promise
     throw error
   }
   throw new Error('Destination file appeared before download completed')
+}
+
+async function promoteDownloadedFolder(tempPath: string, destinationPath: string): Promise<void> {
+  await assertDownloadFolderDestinationAvailable(destinationPath)
+  await rename(tempPath, destinationPath)
 }
 
 async function promoteDownloadedFile(
@@ -248,6 +277,33 @@ async function promoteDownloadedFile(
       await rename(backupPath, destinationPath).catch(() => {})
     }
     throw error
+  }
+}
+
+async function downloadRemoteDirectoryTree(
+  provider: {
+    readDir: IFilesystemProvider['readDir']
+    downloadFile?: IFilesystemProvider['downloadFile']
+  },
+  sourceDir: string,
+  destinationDir: string
+): Promise<void> {
+  if (!provider.downloadFile) {
+    throw new Error('Remote folder download is unavailable. Reconnect the SSH target and retry.')
+  }
+  await mkdir(destinationDir, { recursive: false })
+  const entries = await provider.readDir(sourceDir)
+  for (const entry of entries) {
+    const localName = sanitizeSaveDialogFilename(entry.name)
+    const sourcePath = resolveRuntimePath(sourceDir, entry.name)
+    const destinationPath = join(destinationDir, localName)
+    // Why: readDir reports symlinked directories as directories; treating symlinks
+    // as files avoids recursive loops while still letting SFTP follow file links.
+    if (entry.isDirectory && !entry.isSymlink) {
+      await downloadRemoteDirectoryTree(provider, sourcePath, destinationPath)
+      continue
+    }
+    await provider.downloadFile(sourcePath, destinationPath)
   }
 }
 
@@ -618,6 +674,60 @@ export function registerFilesystemHandlers(
       } finally {
         if (!promoted) {
           await cleanupLocalTransferPath(tempPath)
+        }
+      }
+    }
+  )
+
+  ipcMain.handle(
+    'fs:downloadFolder',
+    async (
+      event,
+      args: { dirPath?: string; connectionId?: string }
+    ): Promise<DownloadFolderResult> => {
+      const dirPath = validateRequiredString(args?.dirPath, 'dirPath')
+      const connectionId = validateRequiredString(args?.connectionId, 'connectionId')
+      const remoteBasename = getRuntimePathBasename(dirPath)
+      const destinationBasename = sanitizeSaveDialogFilename(remoteBasename)
+      const parentWindow = BrowserWindow.fromWebContents(event.sender) ?? undefined
+      // Why: open the native picker before SSH validation so remote latency does
+      // not make the click feel unresponsive.
+      const dialogOptions: Electron.OpenDialogOptions = {
+        properties: ['openDirectory', 'createDirectory'],
+        buttonLabel: 'Download Here'
+      }
+      const dialogResult = parentWindow
+        ? await dialog.showOpenDialog(parentWindow, dialogOptions)
+        : await dialog.showOpenDialog(dialogOptions)
+      const destinationParent = dialogResult.filePaths?.[0]
+      if (dialogResult.canceled || !destinationParent) {
+        return { canceled: true }
+      }
+
+      const destinationPath = join(destinationParent, destinationBasename)
+      await assertDownloadFolderDestinationAvailable(destinationPath)
+
+      const provider = requireSshFilesystemProvider(connectionId)
+      const remoteStat = await provider.stat(dirPath)
+      if (remoteStat.type !== 'directory') {
+        throw new Error('Cannot download a file as a folder')
+      }
+      if (!provider.downloadFile) {
+        throw new Error(
+          'Remote folder download is unavailable. Reconnect the SSH target and retry.'
+        )
+      }
+
+      const tempPath = createSiblingTransferPath(destinationPath, 'download')
+      let promoted = false
+      try {
+        await downloadRemoteDirectoryTree(provider, dirPath, tempPath)
+        await promoteDownloadedFolder(tempPath, destinationPath)
+        promoted = true
+        return { canceled: false, destinationPath }
+      } finally {
+        if (!promoted) {
+          await rm(tempPath, { recursive: true, force: true }).catch(() => {})
         }
       }
     }

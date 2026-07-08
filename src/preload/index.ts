@@ -2583,6 +2583,11 @@ const api = {
       connectionId: string
     }): Promise<{ canceled: true } | { canceled: false; destinationPath: string }> =>
       ipcRenderer.invoke('fs:downloadFile', args),
+    downloadFolder: (args: {
+      dirPath: string
+      connectionId: string
+    }): Promise<{ canceled: true } | { canceled: false; destinationPath: string }> =>
+      ipcRenderer.invoke('fs:downloadFolder', args),
     saveDownloadedFile: (args: {
       suggestedName: string
       content: string
