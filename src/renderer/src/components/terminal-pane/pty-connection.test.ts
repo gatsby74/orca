@@ -15661,6 +15661,62 @@ describe('connectPanePty', () => {
     )
   })
 
+  it('delivers confirmed process exit and resets native Windows modes despite fresh working hook state', async () => {
+    const restoreUserAgent = temporarilySetNavigatorUserAgent(
+      'Mozilla/5.0 (Windows NT 10.0; Win64; x64)'
+    )
+    const { connectPanePty } = await import('./pty-connection')
+    const transport = createMockTransport('pty-crashed-codex')
+    transportFactoryQueue.push(transport)
+    vi.useFakeTimers()
+
+    try {
+      const paneKey = makePaneKey('tab-1', LEAF_1)
+      mockStoreState.agentStatusByPaneKey[paneKey] = {
+        state: 'working',
+        prompt: 'crash before done hook',
+        updatedAt: Date.now(),
+        stateStartedAt: Date.now(),
+        agentType: 'codex',
+        paneKey,
+        stateHistory: []
+      }
+      const getForegroundProcess = vi.mocked(window.api.pty.getForegroundProcess)
+      getForegroundProcess.mockResolvedValue('codex')
+      const pane = createPane(1)
+      const manager = createManager(1)
+      const deps = createDeps()
+
+      connectPanePty(pane as never, manager as never, deps as never)
+      await flushAsyncTicks()
+      const titleHandler = createdTransportOptions[0]?.onTitleChange as
+        | ((title: string, rawTitle: string) => void)
+        | undefined
+      if (!titleHandler) {
+        throw new Error('Expected onTitleChange to be registered')
+      }
+
+      titleHandler('Codex working', 'Codex working')
+      await vi.advanceTimersByTimeAsync(2_500)
+      getForegroundProcess.mockResolvedValue(null)
+      await vi.advanceTimersByTimeAsync(3_000)
+      await vi.advanceTimersByTimeAsync(AGENT_TASK_COMPLETE_NOTIFICATION_MAX_WAIT_MS)
+
+      expect(deps.dispatchNotification).toHaveBeenCalledWith({
+        source: 'agent-task-complete',
+        terminalTitle: 'codex',
+        paneKey,
+        agentCompletionSource: 'process-exit'
+      })
+      expect(pane.terminal.write).toHaveBeenCalledWith(
+        `${RESET_TERMINAL_CURSOR_STYLE}${RESET_KITTY_KEYBOARD_PROTOCOL}`,
+        expect.any(Function)
+      )
+    } finally {
+      restoreUserAgent()
+    }
+  })
+
   it('resets renderer cursor style when an agent becomes idle', async () => {
     const { connectPanePty } = await import('./pty-connection')
     const transport = createMockTransport()

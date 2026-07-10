@@ -140,7 +140,10 @@ import {
   shouldSuppressCodexAutoApprovalSyntheticTitle,
   shouldSuppressCodexAutoApprovalStatus
 } from './codex-auto-approval-notification-suppression'
-import type { AgentCompletionStatusSnapshot } from './agent-completion-coordinator-types'
+import type {
+  AgentCompletionDispatchMeta,
+  AgentCompletionStatusSnapshot
+} from './agent-completion-coordinator-types'
 import {
   markTerminalBracketedPasteInterrupted,
   observeTerminalBracketedPasteModeOutput
@@ -1951,11 +1954,18 @@ export function connectPanePty(
     getPtyId: () => transport.getPtyId(),
     getSettings: () => useAppStore.getState().settings,
     inspectProcess: inspectRuntimeTerminalProcess,
-    dispatchCompletion: (title, meta) =>
+    dispatchCompletion: (title, meta) => {
+      if (meta?.terminalIdleConfirmed === true) {
+        // Why: an agent can crash before its done hook; confirmed process death
+        // must still restore cursor and native Windows Kitty keyboard modes.
+        queueAgentIdleTerminalModeReset()
+      }
       scheduleAgentTaskCompleteNotification(title, {
         allowDoneDetailAfterGrace: meta?.quietedHookDone,
+        ...(meta?.source === 'process-exit' ? { agentCompletionSource: meta.source } : {}),
         ...(meta?.agentStatus ? { agentStatusSnapshot: meta.agentStatus } : {})
-      }),
+      })
+    },
     dispatchAttention: (title, meta) =>
       scheduleAgentTaskCompleteNotification(title, {
         agentStatusSnapshot: meta.agentStatus
@@ -2565,6 +2575,7 @@ export function connectPanePty(
     options: {
       allowDoneDetailAfterGrace?: boolean
       agentStatusSnapshot?: AgentCompletionStatusSnapshot
+      agentCompletionSource?: AgentCompletionDispatchMeta['source']
     } = {}
   ): void => {
     if (!syncAgentTaskCompleteTrackingEnabled()) {
@@ -2595,6 +2606,9 @@ export function connectPanePty(
         source: 'agent-task-complete',
         terminalTitle: title,
         paneKey: cacheKey,
+        ...(options.agentCompletionSource
+          ? { agentCompletionSource: options.agentCompletionSource }
+          : {}),
         ...(shouldDispatchOsNotification ? {} : { suppressOsNotification: true }),
         ...(options.agentStatusSnapshot ? { agentStatusSnapshot: options.agentStatusSnapshot } : {})
       })

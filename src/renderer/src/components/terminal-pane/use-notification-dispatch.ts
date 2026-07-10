@@ -11,7 +11,10 @@ import {
   type AgentStatusEntry
 } from '../../../../shared/agent-status-types'
 import { isSupersededAgentCompletionSnapshot } from './agent-completion-snapshot-staleness'
-import type { AgentCompletionStatusSnapshot } from './agent-completion-coordinator-types'
+import type {
+  AgentCompletionDispatchMeta,
+  AgentCompletionStatusSnapshot
+} from './agent-completion-coordinator-types'
 import {
   countReposNeedingNotificationDisambiguation,
   getPaneKeyTabId,
@@ -54,6 +57,7 @@ export type TerminalNotificationEvent = {
   terminalTitle?: string
   paneKey?: string
   agentStatusSnapshot?: AgentCompletionStatusSnapshot
+  agentCompletionSource?: AgentCompletionDispatchMeta['source']
   suppressOsNotification?: boolean
 }
 
@@ -93,16 +97,22 @@ export function dispatchTerminalNotification(
       : undefined
   if (
     event.source === 'agent-task-complete' &&
+    event.agentCompletionSource !== 'process-exit' &&
     !eventAgentStatusSnapshot &&
     hasFreshActiveHookStatus(storedAgentStatus, explicitTitleAgentType)
   ) {
-    // Why: a title-only idle signal can race behind a hook-backed active state;
-    // the hook is fresher evidence that the turn is not complete.
+    // Why: a title-only idle signal can race behind active hook state; a
+    // confirmed process exit is independent authority that the turn ended.
     return
   }
+  // Why: a process can die before its hook emits done; do not label the
+  // resulting completion notification with that stale active state or prompt.
   const agentStatus =
     event.source === 'agent-task-complete'
-      ? (eventAgentStatusSnapshot ?? freshStoredAgentStatus)
+      ? (eventAgentStatusSnapshot ??
+        (event.agentCompletionSource === 'process-exit' && freshStoredAgentStatus?.state !== 'done'
+          ? undefined
+          : freshStoredAgentStatus))
       : undefined
   if (
     event.source === 'agent-task-complete' &&

@@ -277,6 +277,7 @@ export function createAgentCompletionCoordinator(
     title: string,
     optionsOverride: {
       quietedHookDone?: boolean
+      terminalIdleConfirmed?: boolean
       agentStatus?: AgentCompletionStatusSnapshot
       completionIdentity?: LastCompletionIdentity | null
     } = {}
@@ -306,10 +307,13 @@ export function createAgentCompletionCoordinator(
     if (optionsOverride.completionIdentity) {
       lastCompletionIdentityByPaneKey.set(options.paneKey, optionsOverride.completionIdentity)
     }
-    if (optionsOverride.quietedHookDone === true) {
+    if (optionsOverride.quietedHookDone === true || source === 'process-exit') {
+      // Why: confirmed process death is independent completion evidence; keep
+      // its provenance so stale hook rows cannot veto the notification later.
       options.dispatchCompletion(title, {
         source,
-        quietedHookDone: true,
+        quietedHookDone: optionsOverride.quietedHookDone === true,
+        ...(optionsOverride.terminalIdleConfirmed === true ? { terminalIdleConfirmed: true } : {}),
         ...(optionsOverride.agentStatus ? { agentStatus: optionsOverride.agentStatus } : {})
       })
     } else {
@@ -487,6 +491,7 @@ export function createAgentCompletionCoordinator(
       const exited = lastForegroundAgent
       pendingProcessExitAgent = null
       dispatchCompletion('process-exit', exited.processName, {
+        terminalIdleConfirmed: true,
         completionIdentity: {
           source: 'process-exit',
           identity: `${exited.agent}:${exited.processName}`,

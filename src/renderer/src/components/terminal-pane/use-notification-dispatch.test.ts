@@ -580,6 +580,38 @@ describe('dispatchTerminalNotification', () => {
     expect(mockState.markTerminalPaneUnread).not.toHaveBeenCalled()
   })
 
+  it('allows confirmed process-exit completion while fresh hook state is still active', () => {
+    mockState.agentStatusByPaneKey[paneKey] = makeAgentStatus(paneKey, {
+      state: 'working',
+      prompt: 'agent crashed before its done hook',
+      updatedAt: Date.now() - 60_000,
+      stateStartedAt: Date.now() - 60_000,
+      lastAssistantMessage: undefined
+    })
+
+    dispatchTerminalNotification('wt-primary', {
+      source: 'agent-task-complete',
+      terminalTitle: 'codex',
+      paneKey,
+      agentCompletionSource: 'process-exit'
+    })
+
+    expect(window.api.notifications.dispatch).toHaveBeenCalledWith(
+      expect.objectContaining({
+        source: 'agent-task-complete',
+        worktreeId: 'wt-primary',
+        paneKey,
+        terminalTitle: 'codex'
+      })
+    )
+    expect(mockState.markWorktreeUnread).toHaveBeenCalledWith('wt-primary')
+    expect(mockState.markTerminalTabUnread).toHaveBeenCalledWith('tab-1')
+    expect(mockState.markTerminalPaneUnread).toHaveBeenCalledWith(paneKey)
+    const dispatchArgs = getLastNotificationDispatchArg()
+    expect(dispatchArgs?.agentState).toBeUndefined()
+    expect(dispatchArgs?.agentPrompt).toBeUndefined()
+  })
+
   it.each([undefined, 'unknown'] as const)(
     'drops an explicitly named title completion when fresh hook identity is %s',
     (agentType) => {

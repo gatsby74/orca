@@ -9,6 +9,7 @@ export type AgentCompletionStatusSnapshot = ParsedAgentStatusPayload & {
 export type AgentCompletionDispatchMeta = {
   source: 'hook' | 'title' | 'process-exit'
   quietedHookDone: boolean
+  terminalIdleConfirmed?: boolean
   agentStatus?: AgentCompletionStatusSnapshot
 }
 
