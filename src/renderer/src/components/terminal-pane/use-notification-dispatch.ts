@@ -5,7 +5,11 @@ import { getRepoMapFromState, getWorktreeMapFromState } from '@/store/selectors'
 import { playDesktopNotificationSound } from '@/lib/desktop-notification-sound'
 import { showBlockedNotificationFallbackToast } from '@/lib/blocked-notification-fallback'
 import { buildAgentNotificationId } from '../../../../shared/agent-notification-id'
-import { isFreshNonDoneAgentStatus } from '../../../../shared/agent-status-types'
+import { resolveCompatibleAgentTypeForOwner } from '../../../../shared/agent-title-owner'
+import {
+  isFreshNonDoneAgentStatus,
+  type AgentStatusEntry
+} from '../../../../shared/agent-status-types'
 import { isSupersededAgentCompletionSnapshot } from './agent-completion-snapshot-staleness'
 import type { AgentCompletionStatusSnapshot } from './agent-completion-coordinator-types'
 import {
@@ -30,13 +34,19 @@ function agentSnapshotMatchesExplicitTitle(
 }
 
 function hasFreshActiveHookStatus(
-  snapshot: { state?: string; updatedAt?: number; agentType?: string | null } | undefined,
+  snapshot: Pick<AgentStatusEntry, 'state' | 'updatedAt' | 'agentType'> | undefined,
   explicitTitleAgentType: string | null
 ): boolean {
-  return Boolean(
-    isFreshNonDoneAgentStatus(snapshot) &&
-    agentSnapshotMatchesExplicitTitle(snapshot, explicitTitleAgentType)
+  const activeHookAgentForTitle = resolveCompatibleAgentTypeForOwner(
+    snapshot?.agentType,
+    explicitTitleAgentType
   )
+  const titleNamesDifferentKnownAgent =
+    explicitTitleAgentType &&
+    snapshot?.agentType &&
+    snapshot.agentType !== 'unknown' &&
+    activeHookAgentForTitle !== explicitTitleAgentType
+  return Boolean(isFreshNonDoneAgentStatus(snapshot) && !titleNamesDifferentKnownAgent)
 }
 
 export type TerminalNotificationEvent = {

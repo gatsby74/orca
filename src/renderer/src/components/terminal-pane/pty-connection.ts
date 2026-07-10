@@ -1299,6 +1299,28 @@ export function connectPanePty(
   ): entry is AgentStatusEntry => {
     return isFreshNonDoneAgentStatus(entry)
   }
+  const shouldSuppressTitleCompletionForFreshHook = (
+    title: string,
+    activeHookStatus: AgentStatusEntry | undefined
+  ): boolean => {
+    if (
+      detectAgentStatusFromTitle(title) === 'working' ||
+      !isFreshNonDoneAgentStatus(activeHookStatus)
+    ) {
+      return false
+    }
+    const explicitTitleAgentType = resolveCommittedTitleAgentType(title)
+    const activeHookAgentForTitle = resolveCompatibleAgentTypeForOwner(
+      activeHookStatus?.agentType,
+      explicitTitleAgentType
+    )
+    const titleNamesDifferentKnownAgent =
+      explicitTitleAgentType &&
+      activeHookStatus?.agentType &&
+      activeHookStatus.agentType !== 'unknown' &&
+      activeHookAgentForTitle !== explicitTitleAgentType
+    return !titleNamesDifferentKnownAgent
+  }
   const hasFreshPaneAgentSurface = (): boolean => {
     const entry = useAppStore.getState().agentStatusByPaneKey[cacheKey]
     if (isFreshActivePaneAgentEntry(entry)) {
@@ -2249,7 +2271,12 @@ export function connectPanePty(
     // feed completion tracking — observeTitle would classify the cleared
     // title as idle and mint a task-complete for a merely-paused agent.
     if (!meta?.staleWorkingTitleClear && syncAgentTaskCompleteTrackingEnabled()) {
-      agentCompletionCoordinator.observeTitle(decision.rawTitle)
+      const activeHookStatus = useAppStore.getState().agentStatusByPaneKey[cacheKey]
+      if (!shouldSuppressTitleCompletionForFreshHook(decision.rawTitle, activeHookStatus)) {
+        // Why: display titles still update while hooks are active, but a stale
+        // idle frame must not complete the coordinator turn before hook `done`.
+        agentCompletionCoordinator.observeTitle(decision.rawTitle)
+      }
     }
     // Why: only the focused pane should drive the tab title — otherwise two
     // agents in split panes cause rapid title flickering as each emits OSC
@@ -2625,9 +2652,10 @@ export function connectPanePty(
       return
     }
     const currentState = useAppStore.getState()
-    if (isFreshNonDoneAgentStatus(currentState.agentStatusByPaneKey[cacheKey])) {
+    const activeHookStatus = currentState.agentStatusByPaneKey[cacheKey]
+    if (shouldSuppressTitleCompletionForFreshHook(title, activeHookStatus)) {
       // Why: agent CLIs can briefly publish an idle title while hook status
-      // still says the same turn is active (e.g. during tool output). Hooks win.
+      // still says the same agent turn is active (e.g. during tool output).
       return
     }
     // Why: only start the prompt-cache countdown for Claude agents — other

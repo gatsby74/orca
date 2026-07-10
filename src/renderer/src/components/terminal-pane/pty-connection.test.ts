@@ -15474,6 +15474,193 @@ describe('connectPanePty', () => {
     )
   })
 
+  it('allows an explicit idle title from a different agent than fresh hook status', async () => {
+    const { connectPanePty } = await import('./pty-connection')
+    const transport = createMockTransport()
+    transportFactoryQueue.push(transport)
+    vi.useFakeTimers()
+    const paneKey = makePaneKey('tab-1', LEAF_1)
+    mockStoreState.agentStatusByPaneKey[paneKey] = {
+      state: 'working',
+      prompt: 'previous agent state',
+      updatedAt: Date.now() - 60_000,
+      stateStartedAt: Date.now() - 60_000,
+      agentType: 'pi',
+      paneKey,
+      stateHistory: []
+    }
+
+    const pane = createPane(1)
+    const manager = createManager(1)
+    const deps = createDeps()
+
+    connectPanePty(pane as never, manager as never, deps as never)
+
+    const idleHandler = createdTransportOptions[0]?.onAgentBecameIdle as
+      | ((title: string) => void)
+      | undefined
+    if (!idleHandler) {
+      throw new Error('Expected onAgentBecameIdle to be registered')
+    }
+
+    idleHandler('* Claude cross-agent done')
+    vi.advanceTimersByTime(AGENT_TASK_COMPLETE_NOTIFICATION_MAX_WAIT_MS)
+
+    expect(deps.dispatchNotification).toHaveBeenCalledWith({
+      source: 'agent-task-complete',
+      terminalTitle: '* Claude cross-agent done',
+      paneKey
+    })
+    expect(pane.terminal.write).toHaveBeenCalledWith(
+      RESET_TERMINAL_CURSOR_STYLE,
+      expect.any(Function)
+    )
+  })
+
+  it('ignores an explicit idle title while fresh hook identity is unknown', async () => {
+    const { connectPanePty } = await import('./pty-connection')
+    const transport = createMockTransport()
+    transportFactoryQueue.push(transport)
+    const paneKey = makePaneKey('tab-1', LEAF_1)
+    mockStoreState.agentStatusByPaneKey[paneKey] = {
+      state: 'working',
+      prompt: 'still working without a known agent identity',
+      updatedAt: Date.now() - 60_000,
+      stateStartedAt: Date.now() - 60_000,
+      agentType: 'unknown',
+      paneKey,
+      stateHistory: []
+    }
+
+    const pane = createPane(1)
+    const manager = createManager(1)
+    const deps = createDeps()
+
+    connectPanePty(pane as never, manager as never, deps as never)
+
+    const idleHandler = createdTransportOptions[0]?.onAgentBecameIdle as
+      | ((title: string) => void)
+      | undefined
+    if (!idleHandler) {
+      throw new Error('Expected onAgentBecameIdle to be registered')
+    }
+
+    idleHandler('Claude Code done')
+
+    expect(deps.dispatchNotification).not.toHaveBeenCalled()
+    expect(deps.setCacheTimerStartedAt).not.toHaveBeenCalled()
+    expect(pane.terminal.write).not.toHaveBeenCalledWith(
+      RESET_TERMINAL_CURSOR_STYLE,
+      expect.any(Function)
+    )
+  })
+
+  it('ignores a Pi idle title while compatible OMP hook status is active', async () => {
+    const { connectPanePty } = await import('./pty-connection')
+    const transport = createMockTransport()
+    transportFactoryQueue.push(transport)
+    const paneKey = makePaneKey('tab-1', LEAF_1)
+    mockStoreState.agentStatusByPaneKey[paneKey] = {
+      state: 'working',
+      prompt: 'OMP is still working',
+      updatedAt: Date.now() - 60_000,
+      stateStartedAt: Date.now() - 60_000,
+      agentType: 'omp',
+      paneKey,
+      stateHistory: []
+    }
+
+    const pane = createPane(1)
+    const manager = createManager(1)
+    const deps = createDeps()
+
+    connectPanePty(pane as never, manager as never, deps as never)
+
+    const idleHandler = createdTransportOptions[0]?.onAgentBecameIdle as
+      | ((title: string) => void)
+      | undefined
+    if (!idleHandler) {
+      throw new Error('Expected onAgentBecameIdle to be registered')
+    }
+
+    idleHandler('Pi ready')
+
+    expect(deps.dispatchNotification).not.toHaveBeenCalled()
+    expect(pane.terminal.write).not.toHaveBeenCalledWith(
+      RESET_TERMINAL_CURSOR_STYLE,
+      expect.any(Function)
+    )
+  })
+
+  it('preserves a genuine hook completion after suppressing an earlier idle title', async () => {
+    const { connectPanePty } = await import('./pty-connection')
+    const transport = createMockTransport('pty-hook')
+    transportFactoryQueue.push(transport)
+    enableActiveRuntimeEnvironment()
+    vi.useFakeTimers()
+    const paneKey = makePaneKey('tab-1', LEAF_1)
+    mockStoreState.agentStatusByPaneKey[paneKey] = {
+      state: 'working',
+      prompt: 'still working',
+      updatedAt: Date.now(),
+      stateStartedAt: Date.now(),
+      agentType: 'claude',
+      paneKey,
+      stateHistory: []
+    }
+
+    const pane = createPane(1)
+    const manager = createManager(1)
+    const deps = createDeps()
+
+    connectPanePty(pane as never, manager as never, deps as never)
+
+    const titleHandler = createdTransportOptions[0]?.onTitleChange as
+      | ((title: string, rawTitle: string) => void)
+      | undefined
+    const idleHandler = createdTransportOptions[0]?.onAgentBecameIdle as
+      | ((title: string) => void)
+      | undefined
+    const statusHandler = createdTransportOptions[0]?.onAgentStatus as
+      | ((payload: {
+          state: 'done'
+          prompt: string
+          agentType: 'claude'
+          lastAssistantMessage: string
+        }) => void)
+      | undefined
+    if (!titleHandler || !idleHandler || !statusHandler) {
+      throw new Error('Expected title, idle, and hook status handlers to be registered')
+    }
+
+    titleHandler('Claude working', 'Claude working')
+    titleHandler('Claude done', 'Claude done')
+    idleHandler('Claude done')
+    vi.advanceTimersByTime(AGENT_TASK_COMPLETE_NOTIFICATION_MAX_WAIT_MS)
+
+    expect(deps.dispatchNotification).not.toHaveBeenCalled()
+
+    statusHandler({
+      state: 'done',
+      prompt: 'finish the implementation',
+      agentType: 'claude',
+      lastAssistantMessage: 'Done.'
+    })
+    vi.advanceTimersByTime(AGENT_TASK_COMPLETE_NOTIFICATION_MAX_WAIT_MS * 2)
+
+    expect(deps.dispatchNotification).toHaveBeenCalledWith(
+      expect.objectContaining({
+        source: 'agent-task-complete',
+        paneKey,
+        agentStatusSnapshot: expect.objectContaining({
+          state: 'done',
+          agentType: 'claude',
+          lastAssistantMessage: 'Done.'
+        })
+      })
+    )
+  })
+
   it('resets renderer cursor style when an agent becomes idle', async () => {
     const { connectPanePty } = await import('./pty-connection')
     const transport = createMockTransport()
