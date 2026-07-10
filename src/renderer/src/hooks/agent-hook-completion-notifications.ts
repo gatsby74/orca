@@ -9,6 +9,7 @@ import type { RuntimeTerminalProcessInspection } from '@/runtime/runtime-termina
 import { dispatchTerminalNotification } from '@/components/terminal-pane/use-notification-dispatch'
 import { collectLeafIdsInOrder } from '@/components/terminal-pane/layout-serialization'
 import { createCodexAutoApprovalHookCompletionSuppressor } from '@/components/terminal-pane/codex-auto-approval-notification-suppression'
+import { dispatchAgentHookTerminalLifecycle } from '@/components/terminal-pane/agent-hook-terminal-lifecycle'
 
 type CoordinatorEntry = {
   worktreeId: string
@@ -84,11 +85,10 @@ function isAgentTaskCompleteTrackingEnabled(): boolean {
 export function syncAgentHookCompletionNotificationSettings(): boolean {
   pruneClosedPaneCoordinators()
   const enabled = isAgentTaskCompleteTrackingEnabled()
-  if (!enabled || (!wasAgentTaskCompleteTrackingEnabled && enabled)) {
+  if (enabled !== wasAgentTaskCompleteTrackingEnabled) {
     requireFreshWorkingForNewTrackingCoordinators = true
-    for (const [paneKey, entry] of coordinatorsByPaneKey) {
+    for (const paneKey of coordinatorsByPaneKey.keys()) {
       paneKeysRequiringFreshWorking.add(paneKey)
-      entry.coordinator.resetCompletionState({ requireFreshWorking: true })
     }
   }
   wasAgentTaskCompleteTrackingEnabled = enabled
@@ -195,7 +195,11 @@ function createCoordinator(paneKey: string, worktreeId: string): AgentCompletion
       foregroundProcess: null,
       hasChildProcesses: false
     }),
+    dispatchHookLifecycle: (payload) => dispatchAgentHookTerminalLifecycle(paneKey, payload),
     dispatchCompletion: (title, meta) => {
+      if (!isAgentTaskCompleteTrackingEnabled() || paneKeysRequiringFreshWorking.has(paneKey)) {
+        return
+      }
       dispatchTerminalNotification(worktreeId, {
         source: 'agent-task-complete',
         terminalTitle: title,
@@ -205,6 +209,9 @@ function createCoordinator(paneKey: string, worktreeId: string): AgentCompletion
       })
     },
     dispatchAttention: (title, meta) => {
+      if (!isAgentTaskCompleteTrackingEnabled() || paneKeysRequiringFreshWorking.has(paneKey)) {
+        return
+      }
       // Why: native notification settings still label this channel as "agent
       // task complete"; the snapshot state makes the banner read "needs input".
       dispatchTerminalNotification(worktreeId, {
@@ -234,13 +241,7 @@ export function observeAgentHookCompletionForNotification({
     return
   }
 
-  if (!syncAgentHookCompletionNotificationSettings()) {
-    paneKeysRequiringFreshWorking.add(paneKey)
-    coordinatorsByPaneKey
-      .get(paneKey)
-      ?.coordinator.resetCompletionState({ requireFreshWorking: true })
-    return
-  }
+  const trackingEnabled = syncAgentHookCompletionNotificationSettings()
 
   let entry = coordinatorsByPaneKey.get(paneKey)
   if (!entry || entry.worktreeId !== worktreeId) {
@@ -254,14 +255,12 @@ export function observeAgentHookCompletionForNotification({
       paneKeysRequiringFreshWorking.add(paneKey)
     }
   }
-  if (paneKeysRequiringFreshWorking.has(paneKey)) {
-    entry.coordinator.resetCompletionState({ requireFreshWorking: true })
-  }
-
-  entry.coordinator.observeHookStatus(payload)
-  if (payload.state === 'working') {
+  // Why: notification preferences may suppress alerts, but accepted hooks must
+  // still release pane-owned cursor/cache effects after the quiet window.
+  if (payload.state === 'working' && trackingEnabled) {
     paneKeysRequiringFreshWorking.delete(paneKey)
   }
+  entry.coordinator.observeHookStatus(payload)
 }
 
 export function resetAgentHookCompletionNotificationCoordinators(): void {

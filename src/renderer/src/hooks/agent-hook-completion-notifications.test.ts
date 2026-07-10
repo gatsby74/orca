@@ -4,6 +4,7 @@ import { YOLO_TUI_AGENT_ARGS } from '../../../shared/tui-agent-permissions'
 import { createHookListenerState, normalizeHookPayload } from '../../../shared/agent-hook-listener'
 
 const dispatchTerminalNotification = vi.fn()
+const dispatchAgentHookTerminalLifecycle = vi.fn()
 
 type MockStoreState = {
   settings: {
@@ -66,6 +67,10 @@ vi.mock('@/components/terminal-pane/use-notification-dispatch', () => ({
   dispatchTerminalNotification
 }))
 
+vi.mock('@/components/terminal-pane/agent-hook-terminal-lifecycle', () => ({
+  dispatchAgentHookTerminalLifecycle
+}))
+
 function hookStatus(state: ParsedAgentStatusPayload['state']): ParsedAgentStatusPayload {
   return {
     state,
@@ -105,6 +110,7 @@ describe('agent hook completion notifications', () => {
     vi.resetModules()
     vi.useFakeTimers()
     dispatchTerminalNotification.mockClear()
+    dispatchAgentHookTerminalLifecycle.mockClear()
     mockStoreState = {
       settings: {
         experimentalTerminalAttention: false,
@@ -182,6 +188,39 @@ describe('agent hook completion notifications', () => {
       })
     )
   }, 15_000)
+
+  it('accepts hook lifecycle while every completion alert consumer is disabled', async () => {
+    mockStoreState.settings.notifications.agentTaskComplete = false
+    mockStoreState.settings.experimentalTerminalAttention = false
+    const {
+      observeAgentHookCompletionForNotification,
+      syncAgentHookCompletionNotificationSettings
+    } = await import('./agent-hook-completion-notifications')
+
+    observeAgentHookCompletionForNotification({
+      paneKey,
+      worktreeId: 'wt-1',
+      payload: hookStatus('working')
+    })
+    observeAgentHookCompletionForNotification({
+      paneKey,
+      worktreeId: 'wt-1',
+      payload: hookStatus('done')
+    })
+    vi.advanceTimersByTime(HOOK_DONE_QUIET_MS)
+
+    expect(dispatchAgentHookTerminalLifecycle).toHaveBeenCalledWith(
+      paneKey,
+      expect.objectContaining({ state: 'done', agentType: 'codex' })
+    )
+    expect(dispatchTerminalNotification).not.toHaveBeenCalled()
+
+    mockStoreState.settings.notifications.agentTaskComplete = true
+    syncAgentHookCompletionNotificationSettings()
+    vi.advanceTimersByTime(HOOK_DONE_QUIET_MS)
+
+    expect(dispatchTerminalNotification).not.toHaveBeenCalled()
+  })
 
   it('tracks hook completion for terminal attention when OS completion notifications are disabled', async () => {
     mockStoreState.settings.experimentalTerminalAttention = true
@@ -695,6 +734,11 @@ describe('agent hook completion notifications', () => {
     })
     vi.advanceTimersByTime(HOOK_DONE_QUIET_MS - 1)
     expect(dispatchTerminalNotification).not.toHaveBeenCalled()
+    expect(
+      dispatchAgentHookTerminalLifecycle.mock.calls.filter(
+        ([, payload]) => payload.state === 'done'
+      )
+    ).toHaveLength(0)
 
     observeAgentHookCompletionForNotification({
       paneKey,
@@ -703,6 +747,11 @@ describe('agent hook completion notifications', () => {
     })
     vi.advanceTimersByTime(HOOK_DONE_QUIET_MS)
     expect(dispatchTerminalNotification).not.toHaveBeenCalled()
+    expect(
+      dispatchAgentHookTerminalLifecycle.mock.calls.filter(
+        ([, payload]) => payload.state === 'done'
+      )
+    ).toHaveLength(0)
 
     observeAgentHookCompletionForNotification({
       paneKey,
@@ -712,6 +761,10 @@ describe('agent hook completion notifications', () => {
     vi.advanceTimersByTime(HOOK_DONE_QUIET_MS)
 
     expect(dispatchTerminalNotification).toHaveBeenCalledTimes(1)
+    expect(dispatchAgentHookTerminalLifecycle).toHaveBeenCalledWith(
+      paneKey,
+      expect.objectContaining({ state: 'done', agentType: 'codex' })
+    )
     expect(dispatchTerminalNotification).toHaveBeenCalledWith(
       'wt-1',
       expect.objectContaining({

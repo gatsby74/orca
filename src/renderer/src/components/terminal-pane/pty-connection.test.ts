@@ -15467,7 +15467,7 @@ describe('connectPanePty', () => {
     idleHandler('/var/folders/false-idle-title')
 
     expect(deps.dispatchNotification).not.toHaveBeenCalled()
-    expect(deps.setCacheTimerStartedAt).not.toHaveBeenCalled()
+    expect(deps.setCacheTimerStartedAt).not.toHaveBeenCalledWith(paneKey, expect.any(Number))
     expect(pane.terminal.write).not.toHaveBeenCalledWith(
       RESET_TERMINAL_CURSOR_STYLE,
       expect.any(Function)
@@ -15592,6 +15592,60 @@ describe('connectPanePty', () => {
     )
   })
 
+  it('preserves permission-title cursor and cache side effects through authoritative hook done', async () => {
+    const { connectPanePty } = await import('./pty-connection')
+    const transport = createMockTransport('pty-hook')
+    transportFactoryQueue.push(transport)
+    enableActiveRuntimeEnvironment()
+    const paneKey = makePaneKey('tab-1', LEAF_1)
+    mockStoreState.agentStatusByPaneKey[paneKey] = {
+      state: 'waiting',
+      prompt: 'approve the tool call',
+      updatedAt: Date.now(),
+      stateStartedAt: Date.now(),
+      agentType: 'claude',
+      paneKey,
+      stateHistory: []
+    }
+    const pane = createPane(1)
+    const manager = createManager(1)
+    const deps = createDeps()
+
+    connectPanePty(pane as never, manager as never, deps as never)
+    const idleHandler = createdTransportOptions[0]?.onAgentBecameIdle as
+      | ((title: string) => void)
+      | undefined
+    const statusHandler = createdTransportOptions[0]?.onAgentStatus as
+      | ((payload: {
+          state: 'done'
+          prompt: string
+          agentType: 'claude'
+          lastAssistantMessage: string
+        }) => void)
+      | undefined
+    if (!idleHandler || !statusHandler) {
+      throw new Error('Expected idle and hook status handlers to be registered')
+    }
+
+    idleHandler('Claude Code permission')
+
+    expect(deps.dispatchNotification).not.toHaveBeenCalled()
+    expect(deps.setCacheTimerStartedAt).not.toHaveBeenCalled()
+    expect(pane.terminal.write).toHaveBeenCalledWith(
+      RESET_TERMINAL_CURSOR_STYLE,
+      expect.any(Function)
+    )
+
+    statusHandler({
+      state: 'done',
+      prompt: 'approve the tool call',
+      agentType: 'claude',
+      lastAssistantMessage: 'Done.'
+    })
+
+    expect(deps.setCacheTimerStartedAt).toHaveBeenCalledWith(paneKey, expect.any(Number))
+  })
+
   it('preserves a genuine hook completion after suppressing an earlier idle title', async () => {
     const { connectPanePty } = await import('./pty-connection')
     const transport = createMockTransport('pty-hook')
@@ -15646,6 +15700,8 @@ describe('connectPanePty', () => {
       agentType: 'claude',
       lastAssistantMessage: 'Done.'
     })
+    notifyStoreSubscribers()
+    expect(deps.setCacheTimerStartedAt).not.toHaveBeenCalledWith(paneKey, expect.any(Number))
     vi.advanceTimersByTime(AGENT_TASK_COMPLETE_NOTIFICATION_MAX_WAIT_MS * 2)
 
     expect(deps.dispatchNotification).toHaveBeenCalledWith(
@@ -15659,9 +15715,100 @@ describe('connectPanePty', () => {
         })
       })
     )
+    expect(deps.setCacheTimerStartedAt).toHaveBeenCalledWith(paneKey, expect.any(Number))
+    expect(pane.terminal.write).toHaveBeenCalledWith(
+      RESET_TERMINAL_CURSOR_STYLE,
+      expect.any(Function)
+    )
+    expect(storeSubscribers).toHaveLength(1)
   })
 
-  it('delivers confirmed process exit and resets native Windows modes despite fresh working hook state', async () => {
+  it('applies accepted hook side effects when every completion alert consumer is disabled', async () => {
+    const { connectPanePty } = await import('./pty-connection')
+    const transport = createMockTransport('pty-hook')
+    transportFactoryQueue.push(transport)
+    enableActiveRuntimeEnvironment()
+    vi.useFakeTimers()
+    mockStoreState.settings = {
+      ...mockStoreState.settings,
+      experimentalTerminalAttention: false,
+      notifications: {
+        enabled: true,
+        agentTaskComplete: false,
+        terminalBell: true,
+        suppressWhenFocused: false,
+        customSoundPath: null
+      }
+    }
+    const paneKey = makePaneKey('tab-1', LEAF_1)
+    const pane = createPane(1)
+    const manager = createManager(1)
+    const deps = createDeps()
+
+    connectPanePty(pane as never, manager as never, deps as never)
+
+    const idleHandler = createdTransportOptions[0]?.onAgentBecameIdle as
+      | ((title: string) => void)
+      | undefined
+    const statusHandler = createdTransportOptions[0]?.onAgentStatus as
+      | ((payload: {
+          state: 'working' | 'done'
+          prompt: string
+          agentType: 'claude'
+          lastAssistantMessage?: string
+        }) => void)
+      | undefined
+    if (!idleHandler || !statusHandler) {
+      throw new Error('Expected idle and hook status handlers to be registered')
+    }
+
+    statusHandler({
+      state: 'working',
+      prompt: 'finish the implementation',
+      agentType: 'claude'
+    })
+    idleHandler('Claude done')
+
+    expect(deps.setCacheTimerStartedAt).not.toHaveBeenCalledWith(paneKey, expect.any(Number))
+    expect(pane.terminal.write).not.toHaveBeenCalledWith(
+      RESET_TERMINAL_CURSOR_STYLE,
+      expect.any(Function)
+    )
+
+    statusHandler({
+      state: 'done',
+      prompt: 'finish the implementation',
+      agentType: 'claude',
+      lastAssistantMessage: 'Done.'
+    })
+    vi.advanceTimersByTime(AGENT_TASK_COMPLETE_NOTIFICATION_MAX_WAIT_MS)
+
+    expect(deps.dispatchNotification).not.toHaveBeenCalled()
+    expect(deps.setCacheTimerStartedAt).toHaveBeenCalledWith(paneKey, expect.any(Number))
+    expect(pane.terminal.write).toHaveBeenCalledWith(
+      RESET_TERMINAL_CURSOR_STYLE,
+      expect.any(Function)
+    )
+  })
+
+  it.each([
+    {
+      name: 'delivers confirmed process exit despite the same stale working hook row',
+      hookUpdateBeforeDispatch: 'none'
+    },
+    {
+      name: 'delivers confirmed process exit after a same-turn working hook refresh',
+      hookUpdateBeforeDispatch: 'same-turn'
+    },
+    {
+      name: 'delivers confirmed process exit after same-turn hook identity becomes known',
+      hookUpdateBeforeDispatch: 'same-turn-known-agent'
+    },
+    {
+      name: 'cancels confirmed process exit delivery when a newer working hook row arrives',
+      hookUpdateBeforeDispatch: 'new-turn'
+    }
+  ] as const)('$name', async ({ hookUpdateBeforeDispatch }) => {
     const restoreUserAgent = temporarilySetNavigatorUserAgent(
       'Mozilla/5.0 (Windows NT 10.0; Win64; x64)'
     )
@@ -15672,12 +15819,15 @@ describe('connectPanePty', () => {
 
     try {
       const paneKey = makePaneKey('tab-1', LEAF_1)
+      const crashedTurnStartedAt = Date.now()
+      const initialAgentType =
+        hookUpdateBeforeDispatch === 'same-turn-known-agent' ? 'unknown' : 'codex'
       mockStoreState.agentStatusByPaneKey[paneKey] = {
         state: 'working',
         prompt: 'crash before done hook',
-        updatedAt: Date.now(),
-        stateStartedAt: Date.now(),
-        agentType: 'codex',
+        updatedAt: crashedTurnStartedAt,
+        stateStartedAt: crashedTurnStartedAt,
+        agentType: initialAgentType,
         paneKey,
         stateHistory: []
       }
@@ -15699,15 +15849,36 @@ describe('connectPanePty', () => {
       titleHandler('Codex working', 'Codex working')
       await vi.advanceTimersByTimeAsync(2_500)
       getForegroundProcess.mockResolvedValue(null)
-      await vi.advanceTimersByTimeAsync(3_000)
+      await vi.advanceTimersByTimeAsync(1_800)
+      if (hookUpdateBeforeDispatch !== 'none') {
+        mockStoreState.agentStatusByPaneKey[paneKey] = {
+          state: 'working',
+          prompt:
+            hookUpdateBeforeDispatch === 'new-turn'
+              ? 'new turn after the prior process exited'
+              : 'same turn hook detail refresh',
+          updatedAt: Date.now(),
+          stateStartedAt:
+            hookUpdateBeforeDispatch === 'new-turn' ? Date.now() : crashedTurnStartedAt,
+          agentType: 'codex',
+          paneKey,
+          stateHistory: []
+        }
+        notifyStoreSubscribers()
+      }
       await vi.advanceTimersByTimeAsync(AGENT_TASK_COMPLETE_NOTIFICATION_MAX_WAIT_MS)
 
-      expect(deps.dispatchNotification).toHaveBeenCalledWith({
+      const expectedNotification = {
         source: 'agent-task-complete',
         terminalTitle: 'codex',
         paneKey,
         agentCompletionSource: 'process-exit'
-      })
+      }
+      if (hookUpdateBeforeDispatch === 'new-turn') {
+        expect(deps.dispatchNotification).not.toHaveBeenCalledWith(expectedNotification)
+      } else {
+        expect(deps.dispatchNotification).toHaveBeenCalledWith(expectedNotification)
+      }
       expect(pane.terminal.write).toHaveBeenCalledWith(
         `${RESET_TERMINAL_CURSOR_STYLE}${RESET_KITTY_KEYBOARD_PROTOCOL}`,
         expect.any(Function)
@@ -15715,6 +15886,176 @@ describe('connectPanePty', () => {
     } finally {
       restoreUserAgent()
     }
+  })
+
+  it('drops an exited agent completion when a replacement agent hook row is active', async () => {
+    const { connectPanePty } = await import('./pty-connection')
+    const transport = createMockTransport('pty-replaced-codex')
+    transportFactoryQueue.push(transport)
+    vi.useFakeTimers()
+    const getForegroundProcess = vi.mocked(window.api.pty.getForegroundProcess)
+    getForegroundProcess.mockResolvedValue('codex')
+    const paneKey = makePaneKey('tab-1', LEAF_1)
+    const pane = createPane(1)
+    const manager = createManager(1)
+    const deps = createDeps()
+
+    connectPanePty(pane as never, manager as never, deps as never)
+    await flushAsyncTicks()
+    const titleHandler = createdTransportOptions[0]?.onTitleChange as
+      | ((title: string, rawTitle: string) => void)
+      | undefined
+    if (!titleHandler) {
+      throw new Error('Expected onTitleChange to be registered')
+    }
+
+    titleHandler('Codex working', 'Codex working')
+    await vi.advanceTimersByTimeAsync(2_500)
+    mockStoreState.agentStatusByPaneKey[paneKey] = {
+      state: 'working',
+      prompt: 'replacement agent turn',
+      updatedAt: Date.now(),
+      stateStartedAt: Date.now(),
+      agentType: 'claude',
+      paneKey,
+      stateHistory: []
+    }
+    getForegroundProcess.mockResolvedValue('claude')
+    await vi.advanceTimersByTimeAsync(1_000)
+    await vi.advanceTimersByTimeAsync(AGENT_TASK_COMPLETE_NOTIFICATION_MAX_WAIT_MS)
+
+    expect(deps.dispatchNotification).not.toHaveBeenCalledWith(
+      expect.objectContaining({ source: 'agent-task-complete' })
+    )
+    expect(pane.terminal.write).not.toHaveBeenCalledWith(
+      RESET_TERMINAL_CURSOR_STYLE,
+      expect.any(Function)
+    )
+
+    mockStoreState.agentStatusByPaneKey[paneKey] = {
+      state: 'done',
+      prompt: 'replacement agent turn',
+      updatedAt: Date.now(),
+      stateStartedAt: Date.now(),
+      agentType: 'claude',
+      paneKey,
+      stateHistory: []
+    }
+    titleHandler('Claude done', 'Claude done')
+    await vi.advanceTimersByTimeAsync(AGENT_TASK_COMPLETE_NOTIFICATION_MAX_WAIT_MS)
+
+    expect(deps.dispatchNotification).toHaveBeenCalledWith(
+      expect.objectContaining({
+        source: 'agent-task-complete',
+        terminalTitle: 'Claude done',
+        paneKey
+      })
+    )
+  })
+
+  it('drops confirmed idle exit when a different hook owner appears between null samples', async () => {
+    const { connectPanePty } = await import('./pty-connection')
+    const transport = createMockTransport('pty-replaced-codex')
+    transportFactoryQueue.push(transport)
+    vi.useFakeTimers()
+    const getForegroundProcess = vi.mocked(window.api.pty.getForegroundProcess)
+    getForegroundProcess.mockResolvedValue('codex')
+    const paneKey = makePaneKey('tab-1', LEAF_1)
+    const pane = createPane(1)
+    const manager = createManager(1)
+    const deps = createDeps()
+
+    connectPanePty(pane as never, manager as never, deps as never)
+    await flushAsyncTicks()
+    const titleHandler = createdTransportOptions[0]?.onTitleChange as
+      | ((title: string, rawTitle: string) => void)
+      | undefined
+    const idleHandler = createdTransportOptions[0]?.onAgentBecameIdle as
+      | ((title: string) => void)
+      | undefined
+    if (!titleHandler || !idleHandler) {
+      throw new Error('Expected title and idle handlers to be registered')
+    }
+
+    titleHandler('Codex working', 'Codex working')
+    await vi.advanceTimersByTimeAsync(2_500)
+    getForegroundProcess.mockResolvedValue(null)
+    await vi.advanceTimersByTimeAsync(800)
+
+    mockStoreState.agentStatusByPaneKey[paneKey] = {
+      state: 'working',
+      prompt: 'replacement agent turn',
+      updatedAt: Date.now(),
+      stateStartedAt: Date.now(),
+      agentType: 'claude',
+      paneKey,
+      stateHistory: []
+    }
+    idleHandler('Claude done')
+    await vi.advanceTimersByTimeAsync(800)
+    await vi.advanceTimersByTimeAsync(AGENT_TASK_COMPLETE_NOTIFICATION_MAX_WAIT_MS)
+
+    expect(deps.dispatchNotification).not.toHaveBeenCalledWith(
+      expect.objectContaining({ source: 'agent-task-complete' })
+    )
+    expect(pane.terminal.write).not.toHaveBeenCalledWith(
+      RESET_TERMINAL_CURSOR_STYLE,
+      expect.any(Function)
+    )
+  })
+
+  it('preserves replacement-agent title side effects through the process replacement veto', async () => {
+    const { dispatchAgentHookTerminalLifecycle } = await import('./agent-hook-terminal-lifecycle')
+    const { connectPanePty } = await import('./pty-connection')
+    const transport = createMockTransport('pty-replaced-codex')
+    transportFactoryQueue.push(transport)
+    vi.useFakeTimers()
+    const getForegroundProcess = vi.mocked(window.api.pty.getForegroundProcess)
+    getForegroundProcess.mockResolvedValue('codex')
+    const paneKey = makePaneKey('tab-1', LEAF_1)
+    const pane = createPane(1)
+    const manager = createManager(1)
+    const deps = createDeps()
+
+    connectPanePty(pane as never, manager as never, deps as never)
+    await flushAsyncTicks()
+    const titleHandler = createdTransportOptions[0]?.onTitleChange as
+      | ((title: string, rawTitle: string) => void)
+      | undefined
+    const idleHandler = createdTransportOptions[0]?.onAgentBecameIdle as
+      | ((title: string) => void)
+      | undefined
+    if (!titleHandler || !idleHandler) {
+      throw new Error('Expected title and idle handlers to be registered')
+    }
+
+    titleHandler('Codex working', 'Codex working')
+    await vi.advanceTimersByTimeAsync(2_500)
+    mockStoreState.agentStatusByPaneKey[paneKey] = {
+      state: 'working',
+      prompt: 'replacement agent turn',
+      updatedAt: Date.now(),
+      stateStartedAt: Date.now(),
+      agentType: 'claude',
+      paneKey,
+      stateHistory: []
+    }
+    idleHandler('Claude done')
+    getForegroundProcess.mockResolvedValue('claude')
+    await vi.advanceTimersByTimeAsync(1_000)
+
+    dispatchAgentHookTerminalLifecycle(paneKey, {
+      state: 'done',
+      prompt: 'replacement agent turn',
+      agentType: 'claude',
+      lastAssistantMessage: 'Done.'
+    })
+
+    expect(deps.setCacheTimerStartedAt).toHaveBeenCalledWith(paneKey, expect.any(Number))
+    expect(pane.terminal.write).toHaveBeenCalledWith(
+      RESET_TERMINAL_CURSOR_STYLE,
+      expect.any(Function)
+    )
   })
 
   it('resets renderer cursor style when an agent becomes idle', async () => {
