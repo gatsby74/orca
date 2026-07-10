@@ -19,14 +19,18 @@ type CoordinatorEntry = {
 type StoreSnapshot = ReturnType<typeof useAppStore.getState>
 type WorktreeTab = NonNullable<StoreSnapshot['tabsByWorktree']>[string][number]
 // Why: a paneKey resolves to a tab by id. Prebuilding this index once per prune
-// pass avoids re-flattening tabsByWorktree per coordinator (O(coordinators x
-// tabs)) — the prune runs on every store notify, including every OSC title frame.
+// pass avoids re-flattening tabsByWorktree per coordinator (O(coordinators x tabs)).
 type TabIndex = ReadonlyMap<string, WorktreeTab>
+type PaneCoordinatorLivenessSnapshot = Pick<
+  StoreSnapshot,
+  'tabsByWorktree' | 'ptyIdsByTabId' | 'terminalLayoutsByTabId' | 'suppressedPtyExitIds'
+>
 
 const coordinatorsByPaneKey = new Map<string, CoordinatorEntry>()
 const paneKeysRequiringFreshWorking = new Set<string>()
 let wasAgentTaskCompleteTrackingEnabled = isAgentTaskCompleteTrackingEnabled()
 let requireFreshWorkingForNewTrackingCoordinators = !wasAgentTaskCompleteTrackingEnabled
+let lastPrunedLivenessSnapshot: PaneCoordinatorLivenessSnapshot | null = null
 
 function disposeCoordinatorForPaneKey(paneKey: string): void {
   coordinatorsByPaneKey.get(paneKey)?.coordinator.dispose()
@@ -34,9 +38,9 @@ function disposeCoordinatorForPaneKey(paneKey: string): void {
   paneKeysRequiringFreshWorking.delete(paneKey)
 }
 
-function buildTabIndex(state: StoreSnapshot): TabIndex {
+function buildTabIndex(tabsByWorktree: StoreSnapshot['tabsByWorktree']): TabIndex {
   const index = new Map<string, WorktreeTab>()
-  for (const tabs of Object.values(state.tabsByWorktree ?? {})) {
+  for (const tabs of Object.values(tabsByWorktree ?? {})) {
     for (const tab of tabs) {
       // Why: first-wins to match the previous Array.flat().find() semantics
       // exactly, even in the degenerate case of a tab id shared across worktrees.
@@ -52,11 +56,28 @@ function pruneClosedPaneCoordinators(): void {
   // Why: hook-completion coordinators are module-scoped and may outlive a pane
   // unless liveness changes from close/sleep paths evict them here.
   if (coordinatorsByPaneKey.size === 0 && paneKeysRequiringFreshWorking.size === 0) {
+    lastPrunedLivenessSnapshot = null
     return
   }
+  const state = useAppStore.getState()
+  const livenessSnapshot: PaneCoordinatorLivenessSnapshot = {
+    tabsByWorktree: state.tabsByWorktree,
+    ptyIdsByTabId: state.ptyIdsByTabId,
+    terminalLayoutsByTabId: state.terminalLayoutsByTabId,
+    suppressedPtyExitIds: state.suppressedPtyExitIds
+  }
+  if (
+    lastPrunedLivenessSnapshot?.tabsByWorktree === livenessSnapshot.tabsByWorktree &&
+    lastPrunedLivenessSnapshot.ptyIdsByTabId === livenessSnapshot.ptyIdsByTabId &&
+    lastPrunedLivenessSnapshot.terminalLayoutsByTabId === livenessSnapshot.terminalLayoutsByTabId &&
+    lastPrunedLivenessSnapshot.suppressedPtyExitIds === livenessSnapshot.suppressedPtyExitIds
+  ) {
+    return
+  }
+  lastPrunedLivenessSnapshot = livenessSnapshot
   // Why: build the paneKey->tab index once for the whole pass instead of
   // re-flattening tabsByWorktree inside paneCanReceiveHookCompletion per entry.
-  const tabIndex = buildTabIndex(useAppStore.getState())
+  const tabIndex = buildTabIndex(livenessSnapshot.tabsByWorktree)
   for (const paneKey of coordinatorsByPaneKey.keys()) {
     if (!paneCanReceiveHookCompletion(paneKey, tabIndex)) {
       disposeCoordinatorForPaneKey(paneKey)
@@ -66,6 +87,9 @@ function pruneClosedPaneCoordinators(): void {
     if (!paneCanReceiveHookCompletion(paneKey, tabIndex)) {
       paneKeysRequiringFreshWorking.delete(paneKey)
     }
+  }
+  if (coordinatorsByPaneKey.size === 0 && paneKeysRequiringFreshWorking.size === 0) {
+    lastPrunedLivenessSnapshot = null
   }
 }
 
@@ -269,6 +293,7 @@ export function resetAgentHookCompletionNotificationCoordinators(): void {
   }
   coordinatorsByPaneKey.clear()
   paneKeysRequiringFreshWorking.clear()
+  lastPrunedLivenessSnapshot = null
   wasAgentTaskCompleteTrackingEnabled = isAgentTaskCompleteTrackingEnabled()
   requireFreshWorkingForNewTrackingCoordinators = !wasAgentTaskCompleteTrackingEnabled
 }

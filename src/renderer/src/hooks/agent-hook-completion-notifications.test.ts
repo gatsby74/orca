@@ -824,7 +824,7 @@ describe('agent hook completion notifications', () => {
     expect(_getAgentHookCompletionNotificationCoordinatorCountForTest()).toBe(3)
   })
 
-  it('reads tabsByWorktree once per prune pass regardless of coordinator count', async () => {
+  it('skips tab scans until a pane-liveness slice changes', async () => {
     seedManyLivePanes()
     const {
       observeAgentHookCompletionForNotification,
@@ -839,21 +839,27 @@ describe('agent hook completion notifications', () => {
       })
     }
 
-    // Count tabsByWorktree reads during a single prune pass. Pre-fix this was
-    // O(coordinators) because each pane re-flattened tabsByWorktree; the index
-    // makes it exactly one read for the whole pass.
+    // Count full tab-map enumerations rather than cheap reference reads.
     const realTabs = mockStoreState.tabsByWorktree
-    let tabsReadCount = 0
-    Object.defineProperty(mockStoreState, 'tabsByWorktree', {
-      configurable: true,
-      get() {
-        tabsReadCount += 1
-        return realTabs
+    let tabEnumerationCount = 0
+    mockStoreState.tabsByWorktree = new Proxy(realTabs, {
+      ownKeys(target) {
+        tabEnumerationCount += 1
+        return Reflect.ownKeys(target)
       }
     })
 
     syncAgentHookCompletionNotificationSettings()
 
-    expect(tabsReadCount).toBe(1)
+    expect(tabEnumerationCount).toBe(1)
+
+    syncAgentHookCompletionNotificationSettings()
+
+    expect(tabEnumerationCount).toBe(1)
+
+    mockStoreState.ptyIdsByTabId = { ...mockStoreState.ptyIdsByTabId }
+    syncAgentHookCompletionNotificationSettings()
+
+    expect(tabEnumerationCount).toBe(2)
   })
 })
