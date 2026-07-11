@@ -34,6 +34,7 @@ import {
   resolveHookSource,
   preparePendingGrokResultDiscovery,
   seedClaudeSubagentRosterFromSnapshots,
+  seedCodexCollaborationRosterFromSnapshots,
   warnOnHookEnvOrVersionMismatch,
   writeEndpointFile,
   type AgentHookEventPayload,
@@ -1580,11 +1581,15 @@ export class AgentHookServer {
       const entry = sanitizeHydratedEntry(resolvedPaneKey, rawResolvedEntry)
       if (entry && entry.receivedAt >= ttlCutoff) {
         this.state.lastStatusByPaneKey.set(resolvedPaneKey, entry)
-        // Why: the in-memory subagent roster died with the previous process.
-        // Reseed it from the persisted snapshot so the next teammate-bearing
-        // Stop (whose task ids never match lifecycle ids) doesn't silently
-        // drop the replayed child rows.
-        if (entry.payload.subagents) {
+        // Why: in-memory provider rosters die with the process. Reseed the
+        // matching tracker so the next hook does not drop replayed child rows.
+        if (entry.payload.subagents && entry.payload.agentType === 'codex') {
+          seedCodexCollaborationRosterFromSnapshots(
+            this.state,
+            resolvedPaneKey,
+            entry.payload.subagents
+          )
+        } else if (entry.payload.subagents) {
           seedClaudeSubagentRosterFromSnapshots(
             this.state,
             resolvedPaneKey,
