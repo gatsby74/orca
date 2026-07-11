@@ -66,20 +66,6 @@ export function markAllCodexCollaborationTasksIdle(roster: CodexCollaborationRos
   }
 }
 
-export function codexCollaborationRosterHasWorkingTask(
-  roster: CodexCollaborationRoster | undefined
-): boolean {
-  if (!roster) {
-    return false
-  }
-  for (const task of roster.values()) {
-    if (task.state === 'working') {
-      return true
-    }
-  }
-  return false
-}
-
 export function codexCollaborationRosterToSnapshots(
   roster: CodexCollaborationRoster | undefined
 ): AgentSubagentSnapshot[] | undefined {

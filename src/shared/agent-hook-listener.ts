@@ -46,7 +46,6 @@ import {
   type ClaudeSubagentRoster
 } from './claude-subagent-roster'
 import {
-  codexCollaborationRosterHasWorkingTask,
   codexCollaborationRosterToSnapshots,
   markAllCodexCollaborationTasksIdle,
   markCodexCollaborationTaskIdle,
@@ -3126,15 +3125,10 @@ function normalizeCodexEvent(
     { resetOnNewTurn: isNewTurnEvent('codex', eventName) }
   )
   const subagents = updateCodexCollaborationRoster(state, eventName, paneKey, hookPayload)
-  const resolvedState =
-    stateName === 'done' &&
-    codexCollaborationRosterHasWorkingTask(state.codexCollaborationRosterByPaneKey.get(paneKey))
-      ? 'working'
-      : stateName
 
   return parseAgentStatusPayload(
     JSON.stringify({
-      state: resolvedState,
+      state: stateName,
       prompt: resolvePrompt(state, paneKey, promptText, {
         resetOnNewTurn: isNewTurnEvent('codex', eventName)
       }),
@@ -3200,7 +3194,9 @@ export function seedCodexCollaborationRosterFromSnapshots(
   }
   const roster = getOrCreateCodexCollaborationRoster(state, paneKey)
   for (const snapshot of snapshots) {
-    roster.set(snapshot.id, { ...snapshot })
+    // Why: Codex has no child completion replay after an Orca restart. A
+    // persisted working state is not authoritative, so only new hooks revive it.
+    roster.set(snapshot.id, { ...snapshot, state: 'idle' })
   }
 }
 

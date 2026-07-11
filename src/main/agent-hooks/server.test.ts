@@ -6046,7 +6046,7 @@ describe('Last-status persistence', () => {
     }
   })
 
-  it('reseeds Codex collaboration rows before the next hook after restart', async () => {
+  it('hydrates Codex collaboration rows as idle and keeps them idle until a new spawn', async () => {
     mkdirSync(join(userDataPath, 'agent-hooks'), { recursive: true })
     const receivedAt = recentTs()
     writeFileSync(
@@ -6083,6 +6083,10 @@ describe('Last-status persistence', () => {
     const server = new AgentHookServer()
     await server.start({ env: 'production', userDataPath })
     try {
+      expect(server.getStatusSnapshot()[0]).toMatchObject({
+        state: 'working',
+        subagents: [expect.objectContaining({ id: 'repo_map', state: 'idle' })]
+      })
       const response = await postHookEvent(
         server,
         buildBody({
@@ -6095,7 +6099,7 @@ describe('Last-status persistence', () => {
       expect(response.status).toBe(204)
       expect(server.getStatusSnapshot()[0]).toMatchObject({
         state: 'working',
-        subagents: [expect.objectContaining({ id: 'repo_map', state: 'working' })]
+        subagents: [expect.objectContaining({ id: 'repo_map', state: 'idle' })]
       })
     } finally {
       server.stop()
