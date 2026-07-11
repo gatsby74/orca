@@ -61,6 +61,7 @@ function recordStatusBarToggleInteraction(
   }
 }
 
+/** Keep related appearance controls together so search can reveal the correct subsection. */
 export function AppearanceWindowSidebarSection({
   settings,
   updateSettings,
