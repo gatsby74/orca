@@ -3,6 +3,7 @@ import { AgentIcon } from '@/lib/agent-catalog'
 import { ClaudeIcon, GeminiIcon, MiniMaxIcon, OpenAIIcon, OpenCodeGoIcon } from './icons'
 import { translate } from '@/i18n/i18n'
 import { formatResetCountdown, formatResetDuration } from '@/lib/reset-countdown'
+import { useResetCountdownNow } from '@/hooks/useResetCountdownClock'
 import {
   getProviderDisplayName,
   getProviderUsageErrorMessage,
@@ -35,12 +36,13 @@ export function formatTimeAgo(ts: number): string {
 
 export function formatResetCreditExpiry(
   expiresAt: number | null | undefined,
-  count: number
+  count: number,
+  now: number = Date.now()
 ): string | null {
   if (!expiresAt) {
     return null
   }
-  const duration = formatResetDuration(expiresAt - Date.now())
+  const duration = formatResetDuration(expiresAt - now)
   if (duration === 'now') {
     return count > 1
       ? translate('auto.components.status.bar.tooltip.7ec6e030a0', 'Next expires now')
@@ -199,6 +201,12 @@ export function ProviderPanel({
   className?: string
   showResetCredits?: boolean
 }): React.JSX.Element {
+  // Why: share the status-bar countdown clock so the open panel's reset labels
+  // tick live and always match the collapsed badge's `now` (issue #5399).
+  const now = useResetCountdownNow(
+    ...(p ? getWindowSections(p).map((s) => s.window?.resetsAt) : []),
+    p?.rateLimitResetCredits?.nextExpiresAt
+  )
   const textClass = inverted ? 'text-background' : 'text-foreground'
   const mutedClass = inverted ? 'text-background/60' : 'text-muted-foreground'
   const faintClass = inverted ? 'text-background/50' : 'text-muted-foreground/80'
@@ -254,7 +262,7 @@ export function ProviderPanel({
       : null
   const resetCreditExpiry =
     resetCreditCount != null
-      ? formatResetCreditExpiry(p.rateLimitResetCredits?.nextExpiresAt, resetCreditCount)
+      ? formatResetCreditExpiry(p.rateLimitResetCredits?.nextExpiresAt, resetCreditCount, now)
       : null
 
   const PanelWindowSection = ({
@@ -270,7 +278,7 @@ export function ProviderPanel({
     // Why: show % used (consumption), not remaining — matches Claude/Codex
     // harness meters and avoids the "full green bar = exhausted" misread (#7551).
     const usedPct = clampUsedPercent(w.usedPercent)
-    const resetLabel = w.resetsAt ? formatResetCountdown(w.resetsAt - Date.now()) : null
+    const resetLabel = w.resetsAt ? formatResetCountdown(w.resetsAt - now) : null
 
     return (
       <div className="space-y-1">

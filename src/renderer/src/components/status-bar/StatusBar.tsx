@@ -58,6 +58,7 @@ import {
 import { ClaudeIcon, GeminiIcon, MiniMaxIcon, OpenAIIcon, OpenCodeGoIcon } from './icons'
 import { AgentIcon } from '@/lib/agent-catalog'
 import { formatResetDuration } from '@/lib/reset-countdown'
+import { useResetCountdownNow } from '@/hooks/useResetCountdownClock'
 import { formatWindowLabel } from '@/lib/window-label-formatter'
 import { markLiveCodexSessionsForRestart } from '@/lib/codex-session-restart'
 import { UpdateStatusSegment } from './UpdateStatusSegment'
@@ -1095,17 +1096,6 @@ function WindowLabel({ w, label }: { w: RateLimitWindow; label: string }): React
   )
 }
 
-// Why: rate-limit data only refetches every ~15min, so a reset countdown
-// computed once would freeze; tick locally to keep the collapsed badge current.
-function useNow(intervalMs: number): number {
-  const [now, setNow] = useState(() => Date.now())
-  useEffect(() => {
-    const id = window.setInterval(() => setNow(Date.now()), intervalMs)
-    return () => window.clearInterval(id)
-  }, [intervalMs])
-  return now
-}
-
 // ---------------------------------------------------------------------------
 // Provider segment
 // ---------------------------------------------------------------------------
@@ -1123,7 +1113,9 @@ function ProviderSegment({
 }): React.JSX.Element {
   const provider = p?.provider ?? 'claude'
   const statusLabel = p ? getProviderUsageStatusLabel(p) : ''
-  const now = useNow(30_000)
+  // Why: rate-limit data only refetches every ~15min, so read a shared clock
+  // that ticks at the session's next label boundary to keep the badge current.
+  const now = useResetCountdownNow(p?.session?.resetsAt)
 
   // Why: show the live time-until-reset for the session window instead of the
   // fixed window length (issue #5399) so users see it without opening the panel.

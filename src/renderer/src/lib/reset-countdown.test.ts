@@ -1,5 +1,9 @@
 import { describe, expect, it } from 'vitest'
-import { formatResetCountdown, formatResetDuration } from './reset-countdown'
+import {
+  formatResetCountdown,
+  formatResetDuration,
+  nextResetLabelBoundary
+} from './reset-countdown'
 
 const HOUR = 60 * 60_000
 const MINUTE = 60_000
@@ -55,5 +59,28 @@ describe('formatResetCountdown', () => {
   it('reads "Resets now" once elapsed', () => {
     expect(formatResetCountdown(0)).toBe('Resets now')
     expect(formatResetCountdown(-1)).toBe('Resets now')
+  })
+})
+
+describe('nextResetLabelBoundary', () => {
+  const NOW = 1_000_000
+
+  it('returns null once the window has already reset (stable label)', () => {
+    expect(nextResetLabelBoundary(NOW, NOW)).toBeNull()
+    expect(nextResetLabelBoundary(NOW - 1, NOW)).toBeNull()
+  })
+
+  it('wakes at the sub-minute remainder so the label ticks on the minute', () => {
+    // 1m30s left ("1m") next changes to "<1m" when it crosses 60s → in 30s.
+    expect(nextResetLabelBoundary(NOW + 90_000, NOW)).toBe(NOW + 30_000)
+    // 45s left ("<1m") next changes to "now" when it reaches 0 → in 45s.
+    expect(nextResetLabelBoundary(NOW + 45_000, NOW)).toBe(NOW + 45_000)
+    // 3h31m15s next ticks 15s later, not a full minute later.
+    expect(nextResetLabelBoundary(NOW + 3 * HOUR + 31 * MINUTE + 15_000, NOW)).toBe(NOW + 15_000)
+  })
+
+  it('waits a full minute when exactly on a minute boundary', () => {
+    expect(nextResetLabelBoundary(NOW + 60_000, NOW)).toBe(NOW + 60_000)
+    expect(nextResetLabelBoundary(NOW + 2 * MINUTE, NOW)).toBe(NOW + 60_000)
   })
 })
