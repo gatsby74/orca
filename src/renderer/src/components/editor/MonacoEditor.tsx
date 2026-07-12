@@ -52,6 +52,7 @@ import {
 } from './monaco-markdown-selection-annotation'
 import { translate } from '@/i18n/i18n'
 import { handleMonacoLargeTextPaste } from './monaco-large-text-paste'
+import { buildFileEditorWordWrapOptions } from './file-editor-word-wrap-options'
 import {
   clampMonacoAutoHeight,
   getMonacoAutoHeightForContent,
@@ -712,7 +713,8 @@ export default function MonacoEditor({
     }
     editorRef.current.updateOptions({
       fontSize: editorFontSize,
-      fontFamily: settings.terminalFontFamily || 'monospace'
+      fontFamily: settings.terminalFontFamily || 'monospace',
+      ...buildFileEditorWordWrapOptions(settings.editorWordWrap)
     })
   }, [editorFontSize, settings])
 
@@ -833,7 +835,7 @@ export default function MonacoEditor({
           // setting into DiffViewer/DiffSectionItem would have no effect.
           minimap: { enabled: settings?.editorMinimapEnabled ?? false },
           scrollBeyondLastLine: false,
-          wordWrap: 'on',
+          ...buildFileEditorWordWrapOptions(settings?.editorWordWrap),
           fontSize: editorFontSize,
           fontFamily: settings?.terminalFontFamily || 'monospace',
           lineNumbers: 'on',
