@@ -779,6 +779,8 @@ export class AgentHookServer {
     return Object.freeze({ paneKey, source: 'current_hook' })
   }
 
+  /** Resume a fresh Codex permission wait when terminal activity proves the
+   * approved command started before Codex can emit its completion hook. */
   resumeCodexPermissionWaitFromTerminalTitle(paneKey: string): boolean {
     const resolvedPaneKey = this.resolvePaneKeyAlias(paneKey)
     const existing = this.state.lastStatusByPaneKey.get(resolvedPaneKey) as

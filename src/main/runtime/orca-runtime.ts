@@ -3464,6 +3464,7 @@ export class OrcaRuntimeService {
       }) => AgentHookAuthorityAttestation | null
       retireAgentHookCompatibilityAuthority?: (paneKey: string) => void
       canRecoverPersistentLocalPtys?: () => boolean
+      /** Clear the hook-owned Codex wait once a working title proves approval. */
       resumeCodexPermissionWait?: (paneKey: string) => boolean
       // Why: codex-home paths for the Agent Session History scan must be sourced
       // here, not via the window-only registerCoreHandlers path — that path never
@@ -10674,11 +10675,13 @@ export class OrcaRuntimeService {
     const identityOnlyTitle = this.isLiveCursorNativeTitle(rawTitle, meta)
     const recordedTitle = identityOnlyTitle ? null : normalizedTitle
     const agentStatus = identityOnlyTitle ? null : detectAgentStatusFromTitle(rawTitle)
-    if (agentStatus === 'working') {
+    const pty = this.ptysById.get(ptyId)
+    const previousAgentStatus =
+      pty?.lastAgentStatus ?? this.getLeavesForPty(ptyId)[0]?.lastAgentStatus ?? null
+    if (agentStatus === 'working' && previousAgentStatus !== 'working') {
       this.resumeCodexPermissionWaitForPty(ptyId)
     }
     let ptyRecordChanged = false
-    const pty = this.ptysById.get(ptyId)
     if (pty) {
       const prevStatus = pty.lastAgentStatus
       const prevTitle = pty.lastOscTitle
@@ -10773,6 +10776,8 @@ export class OrcaRuntimeService {
     return ptyRecordChanged
   }
 
+  /** Route a Codex permission resume through stable mounted-pane identity,
+   * falling back to the spawn-time pane key for parked terminals. */
   private resumeCodexPermissionWaitForPty(ptyId: string): void {
     if (!this.resumeCodexPermissionWaitFn) {
       return
