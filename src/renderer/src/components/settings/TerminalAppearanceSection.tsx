@@ -237,7 +237,7 @@ export function TerminalAppearanceSection({
 
             <SearchableSetting
               title={translate(
-                'auto.components.settings.TerminalAppearanceSection.fallbackFonts',
+                'auto.components.settings.TerminalAppearanceSection.13b09da243',
                 'Fallback Fonts'
               )}
               description={terminalTypographyEntries[2]?.description}
@@ -254,7 +254,7 @@ export function TerminalAppearanceSection({
               <SettingsRow
                 alignTop
                 label={translate(
-                  'auto.components.settings.TerminalAppearanceSection.fallbackFonts',
+                  'auto.components.settings.TerminalAppearanceSection.13b09da243',
                   'Fallback Fonts'
                 )}
                 control={
