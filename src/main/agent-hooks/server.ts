@@ -475,6 +475,11 @@ function shouldKeepClaudePermissionVisible(
     previous?.payload.agentType !== 'claude' ||
     previous.payload.state !== 'waiting' ||
     previous.hookEventName !== 'PermissionRequest' ||
+    // Why: AskUserQuestion is auto-allowed but still emits a PermissionRequest
+    // (carrying no tool_use_id) right after its PreToolUse, so its wait can't be
+    // cleared by a resuming-tool id match. It's an interactive question, not an
+    // Allow/Deny gate — clear it on the answer's 'working' hook, never pin it.
+    isAskUserQuestionTool(previous.payload.toolName) ||
     next.payload.agentType !== 'claude' ||
     next.payload.state !== 'working'
   ) {
