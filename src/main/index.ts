@@ -2540,6 +2540,8 @@ void app.whenReady().then(async () => {
       agentHookServer.getStatusSnapshotForPane(paneKey),
     attestAgentHookCompatibilityAuthority: (candidate) =>
       agentHookServer.attestCompatibilityAuthority(candidate),
+    resumeCodexPermissionWait: (paneKey) =>
+      agentHookServer.resumeCodexPermissionWaitFromTerminalTitle(paneKey),
     retireAgentHookCompatibilityAuthority: (paneKey) =>
       agentHookServer.retirePaneAuthority(paneKey),
     canRecoverPersistentLocalPtys: () => getDaemonProvider() !== null,

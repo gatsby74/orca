@@ -1,6 +1,7 @@
 // ─── Explicit agent status (reported via native agent hooks → IPC) ──────────
 // Why: status comes from hooks (Claude, Codex, etc.) — never inferred from terminal titles;
-// a narrow interrupt fallback synthesizes a final `done` when an agent misses its cancellation hook.
+// interrupt and Codex permission-resume fallbacks may synthesize a transition when the
+// provider omits its corresponding lifecycle hook.
 
 import type { AgentProviderSessionMetadata } from './agent-session-resume'
 import {

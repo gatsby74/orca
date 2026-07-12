@@ -3389,6 +3389,7 @@ export class OrcaRuntimeService {
     | null
   private readonly retireAgentHookCompatibilityAuthorityFn: ((paneKey: string) => void) | null
   private readonly canRecoverPersistentLocalPtysFn: () => boolean
+  private readonly resumeCodexPermissionWaitFn: ((paneKey: string) => boolean) | null
   private readonly buildAgentHookPtyEnv: (() => Record<string, string>) | null
   private readonly getDesktopWindowStatusFn: () => RuntimeDesktopWindowStatus
   private readonly prepareAiVaultSessionResumeFn:
@@ -3463,6 +3464,7 @@ export class OrcaRuntimeService {
       }) => AgentHookAuthorityAttestation | null
       retireAgentHookCompatibilityAuthority?: (paneKey: string) => void
       canRecoverPersistentLocalPtys?: () => boolean
+      resumeCodexPermissionWait?: (paneKey: string) => boolean
       // Why: codex-home paths for the Agent Session History scan must be sourced
       // here, not via the window-only registerCoreHandlers path — that path never
       // runs under `orca serve`, so remote/SSH hosts would silently drop
@@ -3500,6 +3502,7 @@ export class OrcaRuntimeService {
     this.retireAgentHookCompatibilityAuthorityFn =
       deps?.retireAgentHookCompatibilityAuthority ?? null
     this.canRecoverPersistentLocalPtysFn = deps?.canRecoverPersistentLocalPtys ?? (() => true)
+    this.resumeCodexPermissionWaitFn = deps?.resumeCodexPermissionWait ?? null
     // Why: configure the shared AiVault scan cache from a serve-mode-reachable
     // seam so the aiVault.listSessions RPC includes managed-Codex + WSL sessions
     // even on headless `orca serve` hosts where registerCoreHandlers never runs.
@@ -10671,6 +10674,9 @@ export class OrcaRuntimeService {
     const identityOnlyTitle = this.isLiveCursorNativeTitle(rawTitle, meta)
     const recordedTitle = identityOnlyTitle ? null : normalizedTitle
     const agentStatus = identityOnlyTitle ? null : detectAgentStatusFromTitle(rawTitle)
+    if (agentStatus === 'working') {
+      this.resumeCodexPermissionWaitForPty(ptyId)
+    }
     let ptyRecordChanged = false
     const pty = this.ptysById.get(ptyId)
     if (pty) {
@@ -10765,6 +10771,24 @@ export class OrcaRuntimeService {
       }
     }
     return ptyRecordChanged
+  }
+
+  private resumeCodexPermissionWaitForPty(ptyId: string): void {
+    if (!this.resumeCodexPermissionWaitFn) {
+      return
+    }
+    const paneKeys = new Set(
+      this.getLeavesForPty(ptyId).map((leaf) => this.makeRuntimePaneKey(leaf))
+    )
+    if (paneKeys.size === 0) {
+      const paneKey = this.ptysById.get(ptyId)?.paneKey
+      if (paneKey) {
+        paneKeys.add(paneKey)
+      }
+    }
+    for (const paneKey of paneKeys) {
+      this.resumeCodexPermissionWaitFn(paneKey)
+    }
   }
 
   /** Cancel the per-PTY title tracker (stale-title timer included) on PTY
