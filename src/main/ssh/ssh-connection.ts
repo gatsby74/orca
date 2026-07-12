@@ -10,6 +10,7 @@ import {
   spawnSystemSshCommand,
   downloadFileViaSystemSsh,
   uploadDirectoryViaSystemSsh,
+  uploadFileViaSystemSsh,
   writeBufferViaSystemSsh,
   writeFileViaSystemSsh,
   type SystemSshBuildArgsOptions,
@@ -37,6 +38,7 @@ import {
   type SshConnectionCallbacks
 } from './ssh-connection-utils'
 import type { RemoteHostPlatform } from './ssh-remote-platform'
+import type { FileUploadSession } from '../providers/types'
 import { isSshSessionLimitError } from './ssh-session-limit-error'
 export type { SshConnectionCallbacks } from './ssh-connection-utils'
 
@@ -369,6 +371,32 @@ export class SshConnection {
       hostPlatform: options?.hostPlatform,
       ...this.getSystemSshBuildArgsOptions()
     })
+  }
+
+  async openFileUploadSession(options?: SshRemoteFileOptions): Promise<FileUploadSession> {
+    if (!this.useSystemSshTransport) {
+      const sftp = await this.sftp()
+      const { uploadFile } = await import('./sftp-upload')
+      return {
+        uploadFile: (localPath, remotePath, uploadOptions) =>
+          uploadFile(sftp, localPath, remotePath, uploadOptions),
+        close: () => sftp.end()
+      }
+    }
+    // Why: disconnect replaces the connection controller; an existing import
+    // session must stay bound to the signal and SSH config it opened with.
+    const signal = this.systemOperationAbortController.signal
+    const buildArgsOptions = this.getSystemSshBuildArgsOptions()
+    return {
+      uploadFile: (localPath, remotePath, uploadOptions) =>
+        uploadFileViaSystemSsh(this.target, localPath, remotePath, {
+          signal,
+          hostPlatform: options?.hostPlatform,
+          exclusive: uploadOptions?.exclusive,
+          ...buildArgsOptions
+        }),
+      close: () => {}
+    }
   }
 
   async writeFile(

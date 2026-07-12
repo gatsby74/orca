@@ -29,6 +29,7 @@ import {
   spawnSystemSsh,
   spawnSystemSshCommand,
   uploadDirectoryViaSystemSsh,
+  uploadFileViaSystemSsh,
   writeBufferViaSystemSsh,
   writeFileViaSystemSsh
 } from './ssh-system-fallback'
@@ -469,6 +470,23 @@ describe('spawnSystemSsh', () => {
     expect(proc.listenerCount('error')).toBe(0)
   })
 
+  it('pauses command stdout under backpressure and resumes when the channel reads', async () => {
+    const proc = createMockChildProcess()
+    const pause = vi.spyOn(proc.stdout, 'pause')
+    const resume = vi.spyOn(proc.stdout, 'resume')
+    spawnMock.mockReturnValue(proc)
+
+    const channel = spawnSystemSshCommand(createTarget(), 'cat /tmp/large-file')
+    resume.mockClear()
+    proc.stdout.write(Buffer.alloc(128 * 1024))
+
+    expect(pause).toHaveBeenCalled()
+    resume.mockClear()
+    channel.read()
+    await new Promise<void>((resolve) => setImmediate(resolve))
+    expect(resume).toHaveBeenCalled()
+  })
+
   it('removes write command wait listeners after close', async () => {
     const proc = createEventedProcess()
     spawnMock.mockReturnValue(proc)
@@ -495,6 +513,32 @@ describe('spawnSystemSsh', () => {
     expect(args.at(-1)).toContain('set -C; cat >')
     expect(args.at(-1)).toContain('/tmp/file')
     expect(proc.stdin.end).toHaveBeenCalledWith(Buffer.from('png'))
+  })
+
+  it('streams a local file through one POSIX system SSH command', async () => {
+    const proc = createMockChildProcess()
+    const received: Buffer[] = []
+    proc.stdin.on('data', (chunk: Buffer) => received.push(chunk))
+    spawnMock.mockReturnValue(proc)
+    const dir = mkdtempSync(join(tmpdir(), 'orca-system-ssh-upload-'))
+    const source = join(dir, 'payload.bin')
+    writeFileSync(source, Buffer.from('payload'))
+
+    try {
+      const promise = uploadFileViaSystemSsh(createTarget(), source, '/remote/payload.bin', {
+        exclusive: true
+      })
+      await new Promise<void>((resolve) => proc.stdin.once('finish', resolve))
+      proc.emit('close', 0, null)
+
+      await expect(promise).resolves.toBeUndefined()
+      expect(Buffer.concat(received)).toEqual(Buffer.from('payload'))
+      expect(spawnMock).toHaveBeenCalledTimes(1)
+      const args = spawnMock.mock.calls[0][1] as string[]
+      expect(args.at(-1)).toContain('set -C; cat >')
+    } finally {
+      rmSync(dir, { recursive: true, force: true })
+    }
   })
 
   it('appends binary buffers to POSIX system SSH targets', async () => {

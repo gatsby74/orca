@@ -1,13 +1,10 @@
-import { constants } from 'node:fs'
-import { lstat, open, readdir, realpath } from 'node:fs/promises'
+import { lstat, readdir, realpath } from 'node:fs/promises'
 import { basename, join, posix, resolve } from 'node:path'
 import { authorizeExternalPath, isENOENT } from './filesystem-auth'
 import { getSshConnectionManager } from './ssh'
 import { requireSshFilesystemProvider } from '../providers/ssh-filesystem-dispatch'
-import type { IFilesystemProvider } from '../providers/types'
+import type { FileUploadSession, IFilesystemProvider } from '../providers/types'
 import type { ImportItemResult } from './filesystem-mutations'
-
-const UPLOAD_CHUNK_SIZE = 512 * 1024
 
 // Why: the SSH import path uses SshFilesystemProvider instead of direct SFTP so
 // system-SSH transports (ProxyCommand/ProxyJump/FIDO2) get the same workflows.
@@ -46,16 +43,29 @@ export async function importExternalPathsSsh(
 
   const results: ImportItemResult[] = []
   const reservedNames = new Set<string>()
-
-  for (const sourcePath of sourcePaths) {
-    const result = await importOneSourceSsh(provider, sourcePath, destDir, reservedNames)
-    results.push(result)
-    if (result.status === 'imported') {
-      // Why: destPath is a remote POSIX path (e.g. /home/user/foo/bar.txt).
-      // Node's basename() uses the OS separator, which on Windows would
-      // return the entire string instead of just the filename.
-      reservedNames.add(posix.basename(result.destPath))
+  if (!provider.openFileUploadSession) {
+    throw new Error('Remote file upload is unavailable. Reconnect the SSH target and retry.')
+  }
+  const uploadSession = await provider.openFileUploadSession()
+  try {
+    for (const sourcePath of sourcePaths) {
+      const result = await importOneSourceSsh(
+        provider,
+        uploadSession,
+        sourcePath,
+        destDir,
+        reservedNames
+      )
+      results.push(result)
+      if (result.status === 'imported') {
+        // Why: destPath is a remote POSIX path (e.g. /home/user/foo/bar.txt).
+        // Node's basename() uses the OS separator, which on Windows would
+        // return the entire string instead of just the filename.
+        reservedNames.add(posix.basename(result.destPath))
+      }
     }
+  } finally {
+    uploadSession.close()
   }
 
   return { results }
@@ -63,6 +73,7 @@ export async function importExternalPathsSsh(
 
 async function importOneSourceSsh(
   provider: IFilesystemProvider,
+  uploadSession: FileUploadSession,
   sourcePath: string,
   destDir: string,
   reservedNames: Set<string>
@@ -113,7 +124,6 @@ async function importOneSourceSsh(
   const originalName = basename(resolvedSource)
 
   let createdDestDir: string | null = null
-  let createdDestFile: string | null = null
   try {
     const finalName = await deconflictName(provider, destDir, originalName, reservedNames)
     const destPath = `${destDir}/${finalName}`
@@ -124,13 +134,13 @@ async function importOneSourceSsh(
       createdDestDir = destPath
       await uploadDirectoryViaProvider(
         provider,
+        uploadSession,
         resolvedSource,
         destPath,
         await realpath(resolvedSource)
       )
     } else {
-      createdDestFile = destPath
-      await uploadFileViaProvider(provider, resolvedSource, destPath)
+      await uploadSession.uploadFile(resolvedSource, destPath, { exclusive: true })
     }
 
     return {
@@ -145,10 +155,6 @@ async function importOneSourceSsh(
       // Why: local directory imports roll back partial output; SSH imports
       // should not leave the no-clobber root after a nested upload failure.
       await provider.deletePath(createdDestDir, true).catch(() => {})
-    }
-    if (createdDestFile) {
-      // Why: failed chunked uploads can leave a truncated remote file behind.
-      await provider.deletePath(createdDestFile).catch(() => {})
     }
     return {
       sourcePath,
@@ -213,6 +219,7 @@ async function ensureDropStagingDir(provider: IFilesystemProvider, destDir: stri
 
 async function uploadDirectoryViaProvider(
   provider: IFilesystemProvider,
+  uploadSession: FileUploadSession,
   localDir: string,
   remoteDir: string,
   rootRealPath: string
@@ -233,53 +240,10 @@ async function uploadDirectoryViaProvider(
 
     if (statResult.isDirectory()) {
       await provider.createDirNoClobber(remotePath)
-      await uploadDirectoryViaProvider(provider, localPath, remotePath, rootRealPath)
+      await uploadDirectoryViaProvider(provider, uploadSession, localPath, remotePath, rootRealPath)
       continue
     }
-    await uploadFileViaProvider(provider, localPath, remotePath)
-  }
-}
-
-async function uploadFileViaProvider(
-  provider: IFilesystemProvider,
-  localPath: string,
-  remotePath: string
-): Promise<void> {
-  const statResult = await lstat(localPath)
-  if (statResult.isSymbolicLink() || !statResult.isFile()) {
-    throw new Error(`Unsupported upload source: ${localPath}`)
-  }
-
-  const handle = await open(localPath, constants.O_RDONLY | (constants.O_NOFOLLOW ?? 0))
-  try {
-    const openedStat = await handle.stat()
-    if (
-      !openedStat.isFile() ||
-      openedStat.size !== statResult.size ||
-      (statResult.ino !== 0 && openedStat.ino !== 0 && openedStat.ino !== statResult.ino) ||
-      (statResult.dev !== 0 && openedStat.dev !== 0 && openedStat.dev !== statResult.dev)
-    ) {
-      throw new Error(`File changed during upload: ${localPath}`)
-    }
-
-    if (openedStat.size === 0) {
-      await provider.writeFileBase64Chunk(remotePath, '', false)
-      return
-    }
-
-    const stream = handle.createReadStream({ highWaterMark: UPLOAD_CHUNK_SIZE })
-    let append = false
-    try {
-      for await (const chunk of stream) {
-        const buffer = Buffer.isBuffer(chunk) ? chunk : Buffer.from(chunk)
-        await provider.writeFileBase64Chunk(remotePath, buffer.toString('base64'), append)
-        append = true
-      }
-    } finally {
-      stream.destroy()
-    }
-  } finally {
-    await handle.close()
+    await uploadSession.uploadFile(localPath, remotePath, { exclusive: true })
   }
 }
 
@@ -303,7 +267,12 @@ function isRemoteMissingError(error: unknown): boolean {
     return false
   }
   const code = (error as NodeJS.ErrnoException).code
-  return code === 'ENOENT' || /ENOENT|no such file|not found/i.test(error.message)
+  return (
+    code === 'ENOENT' ||
+    /\b(ENOENT|ENOTDIR)\b|no such file or directory|cannot find (?:the )?(?:file|path)|(?:file|path) not found/i.test(
+      error.message
+    )
+  )
 }
 
 async function preScanForSymlinks(dirPath: string): Promise<boolean> {

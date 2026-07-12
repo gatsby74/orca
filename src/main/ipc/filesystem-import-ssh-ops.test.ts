@@ -1,7 +1,6 @@
 import path from 'node:path'
-import { Readable } from 'node:stream'
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
-import type { IFilesystemProvider } from '../providers/types'
+import type { FileUploadSession, IFilesystemProvider } from '../providers/types'
 
 const handlers = new Map<string, (_event: unknown, args: unknown) => Promise<unknown>>()
 const {
@@ -11,7 +10,6 @@ const {
   realpathMock,
   copyFileMock,
   readdirMock,
-  openMock,
   getConnMgrMock
 } = vi.hoisted(() => ({
   handleMock: vi.fn(),
@@ -20,7 +18,6 @@ const {
   realpathMock: vi.fn(),
   copyFileMock: vi.fn(),
   readdirMock: vi.fn(),
-  openMock: vi.fn(),
   getConnMgrMock: vi.fn()
 }))
 
@@ -32,8 +29,7 @@ vi.mock('fs/promises', () => ({
   writeFile: vi.fn(),
   realpath: realpathMock,
   copyFile: copyFileMock,
-  readdir: readdirMock,
-  open: openMock
+  readdir: readdirMock
 }))
 vi.mock('./ssh', () => ({ getSshConnectionManager: getConnMgrMock }))
 
@@ -57,11 +53,12 @@ const store = {
 }
 const enoent = (): Error => Object.assign(new Error('ENOENT'), { code: 'ENOENT' })
 
-function createProvider(): IFilesystemProvider {
+function createProvider(uploadSession: FileUploadSession): IFilesystemProvider {
   return {
     readDir: vi.fn(),
     readFile: vi.fn(),
     downloadFile: vi.fn(),
+    openFileUploadSession: vi.fn().mockResolvedValue(uploadSession),
     writeFile: vi.fn().mockResolvedValue(undefined),
     writeFileBase64: vi.fn(),
     writeFileBase64Chunk: vi.fn().mockResolvedValue(undefined),
@@ -84,6 +81,7 @@ describe('fs:importExternalPaths — SSH operations', () => {
   const destDir = '/home/user/project/src'
   const connId = 'ssh-conn-1'
   let provider: IFilesystemProvider
+  let uploadSession: FileUploadSession
   const makeConn = () => ({
     getState: () => ({ status: 'connected' }),
     sftp: vi.fn()
@@ -97,12 +95,12 @@ describe('fs:importExternalPaths — SSH operations', () => {
       throw enoent()
     })
   }
-  const mockFile = (p: string, content = 'file-content'): void => {
+  const mockFile = (p: string): void => {
     const rp = path.resolve(p)
     lstatMock.mockImplementation(async (x: string) => {
       if (x === rp) {
         return {
-          size: content.length,
+          size: 12,
           ino: 1,
           dev: 1,
           isFile: () => true,
@@ -111,16 +109,6 @@ describe('fs:importExternalPaths — SSH operations', () => {
         }
       }
       throw enoent()
-    })
-    openMock.mockResolvedValue({
-      stat: vi.fn().mockResolvedValue({
-        size: content.length,
-        ino: 1,
-        dev: 1,
-        isFile: () => true
-      }),
-      createReadStream: () => Readable.from([Buffer.from(content)]),
-      close: vi.fn().mockResolvedValue(undefined)
     })
   }
   const invoke = (args: Record<string, unknown>) =>
@@ -137,7 +125,6 @@ describe('fs:importExternalPaths — SSH operations', () => {
       realpathMock,
       copyFileMock,
       readdirMock,
-      openMock,
       getConnMgrMock
     ].forEach((m) => m.mockReset())
     handleMock.mockImplementation((ch: string, h: never) => {
@@ -147,7 +134,11 @@ describe('fs:importExternalPaths — SSH operations', () => {
     lstatMock.mockRejectedValue(enoent())
     readdirMock.mockResolvedValue([])
     getConnMgrMock.mockReturnValue({ getConnection: () => makeConn() })
-    provider = createProvider()
+    uploadSession = {
+      uploadFile: vi.fn().mockResolvedValue(undefined),
+      close: vi.fn()
+    }
+    provider = createProvider(uploadSession)
     registerSshFilesystemProvider(connId, provider)
     registerFilesystemMutationHandlers(store as never)
   })
@@ -208,12 +199,7 @@ describe('fs:importExternalPaths — SSH operations', () => {
       }
       throw enoent()
     })
-    openMock.mockImplementation(async (p: string) => ({
-      stat: vi.fn().mockResolvedValue({ size: 12, ino: 1, dev: 1, isFile: () => true }),
-      createReadStream: () => Readable.from([Buffer.from(path.basename(p))]),
-      close: vi.fn().mockResolvedValue(undefined)
-    }))
-    vi.mocked(provider.writeFileBase64Chunk).mockImplementation(async (remotePath: string) => {
+    vi.mocked(uploadSession.uploadFile).mockImplementation(async (_localPath, remotePath) => {
       if (remotePath.endsWith('/bad.txt')) {
         throw new Error('permission denied')
       }
@@ -224,7 +210,27 @@ describe('fs:importExternalPaths — SSH operations', () => {
     expect(results[0]).toMatchObject({ status: 'imported' })
     expect(results[1]).toMatchObject({ status: 'failed', reason: 'permission denied' })
     expect(results[2]).toMatchObject({ status: 'imported' })
-    expect(provider.deletePath).toHaveBeenCalledWith(`${destDir}/bad.txt`)
+    expect(provider.deletePath).not.toHaveBeenCalled()
+  })
+
+  it('does not delete a file another client created during an exclusive-upload race', async () => {
+    mockFile('/tmp/dropped/report.txt')
+    vi.mocked(uploadSession.uploadFile).mockRejectedValue(
+      Object.assign(new Error('EEXIST: destination already exists'), { code: 'EEXIST' })
+    )
+
+    const { results } = await invoke({
+      sourcePaths: ['/tmp/dropped/report.txt'],
+      destDir,
+      connectionId: connId
+    })
+
+    expect(results[0]).toMatchObject({
+      status: 'failed',
+      reason: 'EEXIST: destination already exists'
+    })
+    // Why: a failed exclusive create does not prove Orca owns the destination.
+    expect(provider.deletePath).not.toHaveBeenCalled()
   })
 
   it('uploads directories via provider createDirNoClobber and binary writes', async () => {
@@ -258,12 +264,6 @@ describe('fs:importExternalPaths — SSH operations', () => {
           ]
         : []
     )
-    openMock.mockResolvedValue({
-      stat: vi.fn().mockResolvedValue({ size: 3, ino: 1, dev: 1, isFile: () => true }),
-      createReadStream: () => Readable.from([Buffer.from('png')]),
-      close: vi.fn().mockResolvedValue(undefined)
-    })
-
     const { results } = await invoke({
       sourcePaths: ['/tmp/dropped/assets'],
       destDir,
@@ -272,22 +272,20 @@ describe('fs:importExternalPaths — SSH operations', () => {
 
     expect(results[0]).toMatchObject({ status: 'imported', kind: 'directory' })
     expect(provider.createDirNoClobber).toHaveBeenCalledWith(`${destDir}/assets`)
-    expect(provider.writeFileBase64Chunk).toHaveBeenCalledWith(
-      `${destDir}/assets/logo.png`,
-      Buffer.from('png').toString('base64'),
-      false
-    )
+    expect(uploadSession.uploadFile).toHaveBeenCalledWith(child, `${destDir}/assets/logo.png`, {
+      exclusive: true
+    })
   })
 
   it('reports per-item failure when deconfliction throws', async () => {
     mockFile('/tmp/dropped/file.txt')
-    vi.mocked(provider.stat).mockRejectedValue(new Error('remote stat failed'))
+    vi.mocked(provider.stat).mockRejectedValue(new Error('Remote connection not found'))
     const { results } = await invoke({
       sourcePaths: ['/tmp/dropped/file.txt'],
       destDir,
       connectionId: connId
     })
-    expect(results[0]).toMatchObject({ status: 'failed', reason: 'remote stat failed' })
+    expect(results[0]).toMatchObject({ status: 'failed', reason: 'Remote connection not found' })
   })
 
   it('reports failure when creating a directory rejects', async () => {
@@ -332,12 +330,7 @@ describe('fs:importExternalPaths — SSH operations', () => {
           ]
         : []
     )
-    openMock.mockResolvedValue({
-      stat: vi.fn().mockResolvedValue({ size: 3, ino: 1, dev: 1, isFile: () => true }),
-      createReadStream: () => Readable.from([Buffer.from('png')]),
-      close: vi.fn().mockResolvedValue(undefined)
-    })
-    vi.mocked(provider.writeFileBase64Chunk).mockRejectedValue(new Error('disk full'))
+    vi.mocked(uploadSession.uploadFile).mockRejectedValue(new Error('disk full'))
 
     const { results } = await invoke({
       sourcePaths: ['/tmp/dropped/assets'],
@@ -392,7 +385,7 @@ describe('fs:importExternalPaths — SSH operations', () => {
       connectionId: connId
     })
     expect(results[0]).toMatchObject({ status: 'skipped', reason: 'symlink' })
-    expect(provider.writeFileBase64Chunk).not.toHaveBeenCalled()
+    expect(uploadSession.uploadFile).not.toHaveBeenCalled()
   })
 
   it('reports skipped when source lstat returns EACCES', async () => {

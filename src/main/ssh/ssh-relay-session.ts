@@ -614,6 +614,10 @@ export class SshRelaySession {
           this.requireReadyConnection().downloadFile(sourcePath, destinationPath, {
             hostPlatform: this.remoteCliBridgeEnv?.hostPlatform
           }),
+        openFileUploadSession: () =>
+          this.requireReadyConnection().openFileUploadSession({
+            hostPlatform: this.remoteCliBridgeEnv?.hostPlatform
+          }),
         writeBuffer: (remotePath, contents, options) =>
           this.requireReadyConnection().writeBuffer(remotePath, contents, {
             hostPlatform: this.remoteCliBridgeEnv?.hostPlatform,

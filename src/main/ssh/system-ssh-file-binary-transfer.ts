@@ -1,4 +1,6 @@
-import { createWriteStream } from 'node:fs'
+import { constants, createWriteStream } from 'node:fs'
+import { lstat, open } from 'node:fs/promises'
+import type { Writable } from 'node:stream'
 import { pipeline } from 'node:stream/promises'
 import type { SshTarget } from '../../shared/ssh-types'
 import { shellEscape } from './ssh-connection-utils'
@@ -22,6 +24,10 @@ type SystemSshOperationOptions = SystemSshBuildArgsOptions & {
 
 type SystemSshWriteBufferOptions = SystemSshOperationOptions & {
   append?: boolean
+  exclusive?: boolean
+}
+
+type SystemSshUploadFileOptions = SystemSshOperationOptions & {
   exclusive?: boolean
 }
 
@@ -72,11 +78,9 @@ export async function writeBufferViaSystemSsh(
     return
   }
 
-  const redirection = options?.append ? '>>' : '>'
-  const noclobber = !options?.append && options?.exclusive ? 'set -C; ' : ''
   const channel = spawnSystemSshCommand(
     target,
-    `${noclobber}cat ${redirection} ${shellEscape(remotePath)}`,
+    makePosixWriteFileCommand(remotePath, options),
     getSystemSshBuildArgsFromOperationOptions(options)
   )
   const closePromise = awaitWithSystemSshAbort(
@@ -88,6 +92,65 @@ export async function writeBufferViaSystemSsh(
     channel.stdin.end(contents)
   }
   await closePromise
+}
+
+export async function uploadFileViaSystemSsh(
+  target: SshTarget,
+  localPath: string,
+  remotePath: string,
+  options?: SystemSshUploadFileOptions
+): Promise<void> {
+  throwIfAborted(options?.signal)
+  const sourceStat = await lstat(localPath)
+  if (sourceStat.isSymbolicLink() || !sourceStat.isFile()) {
+    throw new Error(`Unsupported upload source: ${localPath}`)
+  }
+
+  const handle = await open(localPath, constants.O_RDONLY | (constants.O_NOFOLLOW ?? 0))
+  try {
+    const openedStat = await handle.stat()
+    if (
+      !openedStat.isFile() ||
+      openedStat.size !== sourceStat.size ||
+      (sourceStat.ino !== 0 && openedStat.ino !== 0 && openedStat.ino !== sourceStat.ino) ||
+      (sourceStat.dev !== 0 && openedStat.dev !== 0 && openedStat.dev !== sourceStat.dev)
+    ) {
+      throw new Error(`File changed during upload: ${localPath}`)
+    }
+    throwIfAborted(options?.signal)
+
+    const isWindows = options?.hostPlatform && isWindowsRemoteHost(options.hostPlatform)
+    const channel = spawnSystemSshCommand(
+      target,
+      isWindows
+        ? makeWindowsWriteFileCommand(remotePath, options)
+        : makePosixWriteFileCommand(remotePath, options),
+      {
+        wrapCommand: !isWindows,
+        ...getSystemSshBuildArgsFromOperationOptions(options)
+      }
+    )
+    const input = handle.createReadStream({ autoClose: false })
+    try {
+      await awaitWithSystemSshAbort(
+        options?.signal,
+        () => {
+          input.destroy()
+          channel.close()
+        },
+        Promise.all([
+          waitForChannelClose(channel, `upload ${remotePath}`),
+          pipeline(input, channel.stdin as Writable)
+        ])
+      )
+    } catch (error) {
+      input.destroy()
+      channel.close()
+      throw error
+    }
+  } finally {
+    await handle.close()
+  }
 }
 
 async function writeBufferViaSystemSshWindows(
@@ -128,6 +191,15 @@ function makeWindowsWriteFileCommand(
       'try { $inputStream.CopyTo($outputStream) } finally { $outputStream.Dispose() }'
     ].join('; ')
   )
+}
+
+function makePosixWriteFileCommand(
+  remotePath: string,
+  options?: { append?: boolean; exclusive?: boolean }
+): string {
+  const redirection = options?.append ? '>>' : '>'
+  const noclobber = !options?.append && options?.exclusive ? 'set -C; ' : ''
+  return `${noclobber}cat ${redirection} ${shellEscape(remotePath)}`
 }
 
 function makeWindowsReadFileCommand(remotePath: string): string {

@@ -3,6 +3,11 @@ import { isMethodNotFoundError, readFileViaStream } from '../ssh/ssh-filesystem-
 import { uploadBuffer } from '../ssh/sftp-upload'
 import { fastGetViaSftp, lstatViaSftp } from './ssh-filesystem-provider-sftp'
 import {
+  openSshFileUploadSession,
+  type SftpFactory,
+  type SshRawTransferOptions
+} from './ssh-filesystem-file-upload'
+import {
   notifySshFilesystemUnwatch,
   registerSshFilesystemWatch,
   type WatchRegistration
@@ -11,22 +16,12 @@ import type {
   IFilesystemProvider,
   FileStat,
   FileReadResult,
+  FileUploadSession,
   TerminalArtifactAccessOptions
 } from './types'
 import type { DirEntry, FsChangeEvent, SearchOptions, SearchResult } from '../../shared/types'
 import { isPathInsideOrEqual } from '../../shared/cross-platform-path'
 import type { WorkspaceSpaceDirectoryScanResult } from '../../shared/workspace-space-types'
-import type { SFTPWrapper } from 'ssh2'
-
-type SftpFactory = () => Promise<SFTPWrapper>
-type RawTransferOptions = {
-  downloadFile?: (sourcePath: string, destinationPath: string) => Promise<void>
-  writeBuffer?: (
-    remotePath: string,
-    contents: Buffer,
-    options: { append: boolean; exclusive: boolean }
-  ) => Promise<void>
-}
 const WORKSPACE_SPACE_SCAN_TIMEOUT_MS = 130_000
 
 export class SshFilesystemProvider implements IFilesystemProvider {
@@ -42,7 +37,7 @@ export class SshFilesystemProvider implements IFilesystemProvider {
     connectionId: string,
     mux: SshChannelMultiplexer,
     private readonly createSftp?: SftpFactory,
-    private readonly rawTransfer?: RawTransferOptions
+    private readonly rawTransfer?: SshRawTransferOptions
   ) {
     this.connectionId = connectionId
     this.mux = mux
@@ -142,6 +137,10 @@ export class SshFilesystemProvider implements IFilesystemProvider {
     } finally {
       sftp.end()
     }
+  }
+
+  async openFileUploadSession(): Promise<FileUploadSession> {
+    return openSshFileUploadSession(this.createSftp, this.rawTransfer)
   }
 
   async getTempDir(): Promise<string> {

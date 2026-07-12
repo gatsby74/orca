@@ -135,6 +135,7 @@ vi.mock('./ssh-system-fallback', () => ({
   spawnSystemSshCommand: spawnSystemSshCommandMock,
   downloadFileViaSystemSsh: vi.fn(),
   uploadDirectoryViaSystemSsh: vi.fn(),
+  uploadFileViaSystemSsh: vi.fn(),
   writeBufferViaSystemSsh: vi.fn(),
   writeFileViaSystemSsh: vi.fn()
 }))
@@ -157,6 +158,7 @@ import { resolveWithSshG, type SshResolvedConfig } from './ssh-config-parser'
 import {
   downloadFileViaSystemSsh,
   uploadDirectoryViaSystemSsh,
+  uploadFileViaSystemSsh,
   writeBufferViaSystemSsh,
   writeFileViaSystemSsh
 } from './ssh-system-fallback'
@@ -284,6 +286,8 @@ describe('SshConnection', () => {
     vi.mocked(downloadFileViaSystemSsh).mockResolvedValue(undefined)
     vi.mocked(uploadDirectoryViaSystemSsh).mockReset()
     vi.mocked(uploadDirectoryViaSystemSsh).mockResolvedValue(undefined)
+    vi.mocked(uploadFileViaSystemSsh).mockReset()
+    vi.mocked(uploadFileViaSystemSsh).mockResolvedValue(undefined)
     vi.mocked(writeBufferViaSystemSsh).mockReset()
     vi.mocked(writeBufferViaSystemSsh).mockResolvedValue(undefined)
     vi.mocked(writeFileViaSystemSsh).mockReset()
@@ -1075,6 +1079,11 @@ describe('SshConnection', () => {
     await conn.downloadFile('C:/Users/me/.orca-remote/relay/logo.png', '/tmp/logo.png', {
       hostPlatform
     })
+    const uploadSession = await conn.openFileUploadSession({ hostPlatform })
+    await uploadSession.uploadFile('/tmp/logo.png', 'C:/Users/me/project/logo.png', {
+      exclusive: true
+    })
+    uploadSession.close()
 
     expect(uploadDirectoryViaSystemSsh).toHaveBeenCalledWith(
       expect.objectContaining({ configHost: 'fdpass-host' }),
@@ -1112,6 +1121,46 @@ describe('SshConnection', () => {
         hostPlatform,
         resolvedConfig: expect.objectContaining({ proxyUseFdpass: true })
       })
+    )
+    expect(uploadFileViaSystemSsh).toHaveBeenCalledWith(
+      expect.objectContaining({ configHost: 'fdpass-host' }),
+      '/tmp/logo.png',
+      'C:/Users/me/project/logo.png',
+      expect.objectContaining({
+        hostPlatform,
+        exclusive: true,
+        resolvedConfig: expect.objectContaining({ proxyUseFdpass: true })
+      })
+    )
+  })
+
+  it('keeps an upload session cancelled after the connection disconnects', async () => {
+    const conn = new SshConnection(
+      createTarget({ proxyCommand: 'ssh -W %h:%p bastion.example.com' }),
+      createCallbacks()
+    )
+    vi.mocked(uploadFileViaSystemSsh).mockImplementation(
+      async (_target, _localPath, _remotePath, options) => {
+        if (options?.signal?.aborted) {
+          const error = new Error('System SSH operation was cancelled')
+          error.name = 'AbortError'
+          throw error
+        }
+      }
+    )
+
+    await conn.connect()
+    const uploadSession = await conn.openFileUploadSession()
+    await conn.disconnect()
+
+    await expect(
+      uploadSession.uploadFile('/tmp/late.txt', '/remote/late.txt')
+    ).rejects.toMatchObject({ name: 'AbortError' })
+    expect(uploadFileViaSystemSsh).toHaveBeenCalledWith(
+      expect.anything(),
+      '/tmp/late.txt',
+      '/remote/late.txt',
+      expect.objectContaining({ signal: expect.objectContaining({ aborted: true }) })
     )
   })
 

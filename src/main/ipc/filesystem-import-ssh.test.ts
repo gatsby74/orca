@@ -2,7 +2,7 @@ import path from 'node:path'
 import { constants } from 'node:fs'
 import { Readable, Writable } from 'node:stream'
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
-import type { IFilesystemProvider } from '../providers/types'
+import type { FileUploadSession, IFilesystemProvider } from '../providers/types'
 
 const handlers = new Map<string, (_event: unknown, args: unknown) => Promise<unknown>>()
 const {
@@ -62,11 +62,12 @@ const store = {
 }
 const enoent = (): Error => Object.assign(new Error('ENOENT'), { code: 'ENOENT' })
 
-function createProvider(): IFilesystemProvider {
+function createProvider(uploadSession: FileUploadSession): IFilesystemProvider {
   return {
     readDir: vi.fn(),
     readFile: vi.fn(),
     downloadFile: vi.fn(),
+    openFileUploadSession: vi.fn().mockResolvedValue(uploadSession),
     writeFile: vi.fn().mockResolvedValue(undefined),
     writeFileBase64: vi.fn(),
     writeFileBase64Chunk: vi.fn().mockResolvedValue(undefined),
@@ -89,6 +90,7 @@ describe('fs:importExternalPaths — SSH routing & connection', () => {
   const destDir = '/home/user/project/src'
   const connId = 'ssh-conn-1'
   let provider: IFilesystemProvider
+  let uploadSession: FileUploadSession
 
   const makeConn = (status = 'connected') => ({
     getState: () => ({ status }),
@@ -157,7 +159,11 @@ describe('fs:importExternalPaths — SSH routing & connection', () => {
       }
     })
     unlinkMock.mockResolvedValue(undefined)
-    provider = createProvider()
+    uploadSession = {
+      uploadFile: vi.fn().mockResolvedValue(undefined),
+      close: vi.fn()
+    }
+    provider = createProvider(uploadSession)
     registerSshFilesystemProvider(connId, provider)
     registerFilesystemMutationHandlers(store as never)
   })
@@ -177,11 +183,12 @@ describe('fs:importExternalPaths — SSH routing & connection', () => {
     })
 
     expect(results[0]).toMatchObject({ status: 'imported', kind: 'file' })
-    expect(provider.writeFileBase64Chunk).toHaveBeenCalledWith(
+    expect(uploadSession.uploadFile).toHaveBeenCalledWith(
+      path.resolve('/tmp/dropped/file.txt'),
       `${destDir}/file.txt`,
-      Buffer.from('file-content').toString('base64'),
-      false
+      { exclusive: true }
     )
+    expect(uploadSession.close).toHaveBeenCalledOnce()
     expect(copyFileMock).not.toHaveBeenCalled()
   })
 
