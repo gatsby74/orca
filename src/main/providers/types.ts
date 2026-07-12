@@ -250,6 +250,11 @@ export type IFilesystemProvider = {
     options: TerminalArtifactAccessOptions
   ): Promise<FileReadResult>
   downloadFile?(sourcePath: string, destinationPath: string): Promise<void>
+  downloadFolder?(
+    sourcePath: string,
+    destinationPath: string,
+    options?: { signal?: AbortSignal }
+  ): Promise<void>
   getTempDir?(): Promise<string>
   writeFile(filePath: string, content: string): Promise<void>
   writeTerminalArtifact?(

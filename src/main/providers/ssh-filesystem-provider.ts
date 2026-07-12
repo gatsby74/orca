@@ -1,7 +1,12 @@
 import type { SshChannelMultiplexer } from '../ssh/ssh-channel-multiplexer'
 import { isMethodNotFoundError, readFileViaStream } from '../ssh/ssh-filesystem-stream-reader'
 import { uploadBuffer } from '../ssh/sftp-upload'
-import { fastGetViaSftp, lstatViaSftp } from './ssh-filesystem-provider-sftp'
+import { lstatViaSftp } from './ssh-filesystem-provider-sftp'
+import {
+  downloadFileViaSftp,
+  downloadFolderViaSftp,
+  type SftpFactory
+} from './ssh-filesystem-download'
 import {
   notifySshFilesystemUnwatch,
   registerSshFilesystemWatch,
@@ -16,9 +21,7 @@ import type {
 import type { DirEntry, FsChangeEvent, SearchOptions, SearchResult } from '../../shared/types'
 import { isPathInsideOrEqual } from '../../shared/cross-platform-path'
 import type { WorkspaceSpaceDirectoryScanResult } from '../../shared/workspace-space-types'
-import type { SFTPWrapper } from 'ssh2'
 
-type SftpFactory = () => Promise<SFTPWrapper>
 const WORKSPACE_SPACE_SCAN_TIMEOUT_MS = 130_000
 
 export class SshFilesystemProvider implements IFilesystemProvider {
@@ -120,15 +123,15 @@ export class SshFilesystemProvider implements IFilesystemProvider {
   }
 
   async downloadFile(sourcePath: string, destinationPath: string): Promise<void> {
-    if (!this.createSftp) {
-      throw new Error('Remote file download is unavailable. Reconnect the SSH target and retry.')
-    }
-    const sftp = await this.createSftp()
-    try {
-      await fastGetViaSftp(sftp, sourcePath, destinationPath)
-    } finally {
-      sftp.end()
-    }
+    await downloadFileViaSftp(this.createSftp, sourcePath, destinationPath)
+  }
+
+  async downloadFolder(
+    sourcePath: string,
+    destinationPath: string,
+    options?: { signal?: AbortSignal }
+  ): Promise<void> {
+    await downloadFolderViaSftp(this.createSftp, sourcePath, destinationPath, options)
   }
 
   async getTempDir(): Promise<string> {

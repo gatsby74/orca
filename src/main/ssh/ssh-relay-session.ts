@@ -674,8 +674,8 @@ export class SshRelaySession {
     const ptyProvider = new SshPtyProvider(this.targetId, mux, this.remoteCliBridgeEnv ?? undefined)
     registerSshPtyProvider(this.targetId, ptyProvider)
 
-    const fsProvider = new SshFilesystemProvider(this.targetId, mux, () =>
-      this.requireReadyConnection().sftp()
+    const fsProvider = new SshFilesystemProvider(this.targetId, mux, (options) =>
+      this.requireReadyConnection().sftp(options)
     )
     registerSshFilesystemProvider(this.targetId, fsProvider)
 

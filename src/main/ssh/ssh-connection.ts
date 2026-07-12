@@ -157,7 +157,10 @@ export class SshConnection {
     )
   }
 
-  async sftp(): Promise<SFTPWrapper> {
+  async sftp(options?: { signal?: AbortSignal }): Promise<SFTPWrapper> {
+    if (options?.signal?.aborted) {
+      throw createSshOperationAbortError()
+    }
     if (this.useSystemSshTransport) {
       throw new Error('SFTP is not available when using system SSH transport')
     }
@@ -165,12 +168,15 @@ export class SshConnection {
       throw new Error('Not connected')
     }
     const client = this.client
-    return this.openSessionChannelWithRetry(() =>
-      this.waitForSshCallback(
-        'SSH SFTP channel timed out',
-        (callback) => client.sftp(callback),
-        (sftp) => sftp.end()
-      )
+    return this.openSessionChannelWithRetry(
+      () =>
+        this.waitForSshCallback(
+          'SSH SFTP channel timed out',
+          (callback) => client.sftp(callback),
+          (sftp) => sftp.end(),
+          options?.signal
+        ),
+      options?.signal
     )
   }
 
@@ -256,6 +262,7 @@ export class SshConnection {
           }
           finished = true
           clearTimeout(closeGraceTimer)
+          emitter.removeListener?.('close', done)
           reject(abortError)
         }
         // Why: bounded — a remote that never confirms the close must not hang
