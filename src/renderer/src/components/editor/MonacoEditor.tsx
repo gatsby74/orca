@@ -147,6 +147,8 @@ export default function MonacoEditor({
     settings?.terminalFontSize ?? 13,
     editorFontZoomLevel
   )
+  const editorFontFamily = settings?.terminalFontFamily || 'monospace'
+  const editorWordWrap = settings?.editorWordWrap
   const estimatedAutoHeight = useMemo(() => {
     if (!autoHeight) {
       return null
@@ -708,15 +710,15 @@ export default function MonacoEditor({
 
   // Update editor options when settings change
   useEffect(() => {
-    if (!editorRef.current || !settings) {
+    if (!editorRef.current) {
       return
     }
     editorRef.current.updateOptions({
       fontSize: editorFontSize,
-      fontFamily: settings.terminalFontFamily || 'monospace',
-      ...buildFileEditorWordWrapOptions(settings.editorWordWrap)
+      fontFamily: editorFontFamily,
+      ...buildFileEditorWordWrapOptions(editorWordWrap)
     })
-  }, [editorFontSize, settings])
+  }, [editorFontFamily, editorFontSize, editorWordWrap])
 
   useEffect(() => {
     markdownDocLinkDecorationsRef.current?.refresh()
@@ -835,9 +837,9 @@ export default function MonacoEditor({
           // setting into DiffViewer/DiffSectionItem would have no effect.
           minimap: { enabled: settings?.editorMinimapEnabled ?? false },
           scrollBeyondLastLine: false,
-          ...buildFileEditorWordWrapOptions(settings?.editorWordWrap),
+          ...buildFileEditorWordWrapOptions(editorWordWrap),
           fontSize: editorFontSize,
-          fontFamily: settings?.terminalFontFamily || 'monospace',
+          fontFamily: editorFontFamily,
           lineNumbers: 'on',
           renderLineHighlight: 'line',
           automaticLayout: true,

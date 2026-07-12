@@ -5387,8 +5387,8 @@
           "3f6892f307": "オン",
           "b82f86d7d2": "Rich Markdown Spellcheck",
           "5195f0b9ef": "Show browser spelling underlines and suggestions while editing rich Markdown.",
-          "7ddd66fede": "Editor Word Wrap",
-          "9b18de6eea": "Wrap long lines in file editors instead of requiring horizontal scrolling."
+          "7ddd66fede": "エディターのワードラップ",
+          "9b18de6eea": "水平スクロールを使わずに、ファイルエディターで長い行を折り返します。"
         },
         "AdvancedNetworkSettingsSection": {
           "3e431564b5": "ローカルホスト、127.0.0.1、*.internal",
@@ -7704,8 +7704,8 @@
             "defaultProjectRuntimeDescription": "Choose the runtime inherited by local Windows projects.",
             "d2d2d929c0": "Rich Markdown Spellcheck",
             "4497e2e2bb": "Show browser spelling underlines and suggestions while editing rich Markdown.",
-            "e61157e926": "Editor Word Wrap",
-            "005be5c699": "Wrap long lines in file editors instead of requiring horizontal scrolling."
+            "e61157e926": "エディターのワードラップ",
+            "005be5c699": "水平スクロールを使わずに、ファイルエディターで長い行を折り返します。"
           }
         },
         "git": {

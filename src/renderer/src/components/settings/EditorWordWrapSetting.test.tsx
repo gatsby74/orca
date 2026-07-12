@@ -50,6 +50,15 @@ describe('EditorWordWrapSetting', () => {
     expect(on?.getAttribute('aria-checked')).toBe('true')
   })
 
+  it('shows wrapping as off when the preference is disabled', () => {
+    const { container } = renderSetting(false)
+    const off = [...container.querySelectorAll('[role="radio"]')].find(
+      (button) => button.textContent === 'Off'
+    )
+
+    expect(off?.getAttribute('aria-checked')).toBe('true')
+  })
+
   it('persists the off choice for horizontal scrolling', () => {
     const updateSettings = vi.fn()
     const { container } = renderSetting(true, updateSettings)
@@ -60,5 +69,17 @@ describe('EditorWordWrapSetting', () => {
     act(() => off?.click())
 
     expect(updateSettings).toHaveBeenCalledWith({ editorWordWrap: false })
+  })
+
+  it('persists the on choice without changing the diff preference', () => {
+    const updateSettings = vi.fn()
+    const { container } = renderSetting(false, updateSettings)
+    const on = [...container.querySelectorAll<HTMLButtonElement>('[role="radio"]')].find(
+      (button) => button.textContent === 'On'
+    )
+
+    act(() => on?.click())
+
+    expect(updateSettings).toHaveBeenCalledWith({ editorWordWrap: true })
   })
 })
