@@ -1,5 +1,6 @@
 // @vitest-environment happy-dom
 
+import { join } from 'node:path'
 import { act } from 'react'
 import { createRoot, type Root } from 'react-dom/client'
 import { afterEach, describe, expect, it, vi } from 'vitest'
@@ -31,7 +32,7 @@ function renderSetting(editorWordWrap: boolean | undefined, updateSettings = vi.
   act(() => {
     root?.render(
       <EditorWordWrapSetting
-        settings={{ ...getDefaultSettings('/tmp'), editorWordWrap }}
+        settings={{ ...getDefaultSettings(join('test', 'home')), editorWordWrap }}
         updateSettings={updateSettings}
       />
     )
