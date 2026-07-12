@@ -3,7 +3,7 @@
 import { act, useState, type ReactNode } from 'react'
 import { createRoot, type Root } from 'react-dom/client'
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
-import { FontAutocomplete } from './SettingsFormControls'
+import { FontAutocomplete } from './FontAutocomplete'
 import { FONT_SUGGESTION_RENDER_LIMIT } from './settings-form-option-filter'
 
 vi.mock('@/i18n/i18n', () => ({
