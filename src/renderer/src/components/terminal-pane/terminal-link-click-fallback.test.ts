@@ -274,6 +274,40 @@ describe('createFilePathLinkProvider range bounds', () => {
     expect(openFileMock).not.toHaveBeenCalled()
   })
 
+  it('retries a direct file click when a cached missing path expires', async () => {
+    setPlatform('Macintosh')
+    const now = vi.spyOn(Date, 'now').mockReturnValue(10_999)
+    const pathExistsCache = new Map([
+      ['active\0/tmp/eventually-created.ts', { exists: false, checkedAt: 1_000 }]
+    ])
+    const openAtCurrentTime = (): boolean =>
+      openFilePathLinkAtBufferPosition(
+        makeBuffer([makeBufferLine('eventually-created.ts')]),
+        { x: 4, y: 1 },
+        80,
+        {
+          startupCwd: '/tmp',
+          worktreeId: 'wt-1',
+          worktreePath: '/tmp',
+          runtimeEnvironmentId: null,
+          pathExistsCache
+        }
+      )
+
+    expect(openAtCurrentTime()).toBe(false)
+    expect(openFileMock).not.toHaveBeenCalled()
+
+    now.mockReturnValue(11_000)
+    expect(openAtCurrentTime()).toBe(true)
+    await flushAsyncWork()
+
+    expect(openFileMock).toHaveBeenCalledWith(
+      expect.objectContaining({ filePath: '/tmp/eventually-created.ts' }),
+      { forceContentReload: true }
+    )
+    now.mockRestore()
+  })
+
   it('retries a wrapped file click even when xterm already marked the link active', async () => {
     setPlatform('Macintosh')
     const rows = [
