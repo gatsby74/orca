@@ -7,6 +7,7 @@ import {
   isClaudeManagementTitle,
   isCursorAgentTitle,
   isGeminiTerminalTitle,
+  isOpenCodeNativeTitle,
   isPiAgentTitle,
   titleHasAgentName
 } from './agent-title-core'
@@ -87,7 +88,7 @@ export function getAgentLabel(title: string): string | null {
   if (titleHasAgentName(title, 'antigravity') || AGY_AGENT_NAME_RE.test(title)) {
     return 'Antigravity'
   }
-  if (titleHasAgentName(title, 'opencode')) {
+  if (titleHasAgentName(title, 'opencode') || isOpenCodeNativeTitle(title)) {
     return 'OpenCode'
   }
   if (titleHasAgentName(title, 'mimo')) {

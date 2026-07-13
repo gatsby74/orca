@@ -4,7 +4,7 @@ import {
   HERMES_AGENT_NAME_RE,
   titleHasAgentName
 } from './agent-name-token-match'
-import { isCursorAgentTitle } from './agent-title-core'
+import { isCursorAgentTitle, isOpenCodeNativeTitle } from './agent-title-core'
 import {
   getPiCompatibleSyntheticAgentLabel,
   isLegacyPiCompatibleTitle
@@ -171,7 +171,7 @@ export function getAgentLabel(title: string): string | null {
   if (titleHasAgentName(title, 'antigravity') || AGY_AGENT_NAME_RE.test(title)) {
     return 'Antigravity'
   }
-  if (titleHasAgentName(title, 'opencode')) {
+  if (titleHasAgentName(title, 'opencode') || isOpenCodeNativeTitle(title)) {
     return 'OpenCode'
   }
   if (titleHasAgentName(title, 'mimo')) {

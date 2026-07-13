@@ -51,6 +51,14 @@ describe('resolveExplicitTerminalTitleAgentType', () => {
     expect(resolveExplicitTerminalTitleAgentType('* Review Codex behavior')).toBeNull()
   })
 
+  it('resolves OpenCode native abbreviated session titles', () => {
+    expect(resolveExplicitTerminalTitleAgentType('OC | Understand about the plugin')).toBe(
+      'opencode'
+    )
+    expect(resolveExplicitTerminalTitleAgentType('tmux | OC | ses_123')).toBe('opencode')
+    expect(resolveExplicitTerminalTitleAgentType('oc | Understand about the plugin')).toBeNull()
+  })
+
   it('still resolves Claude when the title explicitly names Claude', () => {
     expect(resolveExplicitTerminalTitleAgentType('. Claude Code compare Opencode')).toBe('claude')
   })
