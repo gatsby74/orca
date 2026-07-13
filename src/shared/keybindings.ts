@@ -426,7 +426,9 @@ export const KEYBINDING_DEFINITIONS: readonly KeybindingDefinition[] = [
     group: 'Global',
     scope: 'global',
     searchKeywords: ['shortcut', 'sidebar', 'worktree', 'focus'],
-    defaultBindings: platformBindings(['Mod+0'])
+    // Why: Mod+0 belongs to conventional zoom reset, and no replacement chord
+    // is consistently safe across Orca's desktop platforms and native menus.
+    defaultBindings: platformBindings([])
   },
   {
     id: 'floatingTerminal.toggle',

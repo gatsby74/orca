@@ -645,6 +645,15 @@ describe('keybindings', () => {
     )
   })
 
+  it('reserves Mod+0 for zoom reset instead of advertising an unreachable worktree-list shortcut', () => {
+    const platforms: readonly KeybindingPlatform[] = ['darwin', 'linux', 'win32']
+
+    for (const platform of platforms) {
+      expect(getEffectiveKeybindingsForAction('sidebar.focusWorktreeList', platform)).toEqual([])
+      expect(getEffectiveKeybindingsForAction('zoom.reset', platform)).toEqual(['Mod+0'])
+    }
+  })
+
   it('defines floating workspace panel action metadata', () => {
     const actionIds = [
       'floatingWorkspace.maximize' as KeybindingActionId,
