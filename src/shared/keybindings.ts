@@ -567,8 +567,10 @@ export const KEYBINDING_DEFINITIONS: readonly KeybindingDefinition[] = [
     group: 'Tabs',
     scope: 'tabs',
     searchKeywords: ['shortcut', 'tab', 'simulator', 'emulator', 'mobile', 'ios', 'new'],
+    // Why: Option keeps the macOS-only simulator action distinct from the
+    // cross-platform Explorer shortcut on Cmd/Ctrl+Shift+E.
     defaultBindings: {
-      darwin: ['Mod+Shift+E'],
+      darwin: ['Mod+Alt+Shift+E'],
       linux: [],
       win32: []
     }

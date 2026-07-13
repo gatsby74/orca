@@ -717,6 +717,17 @@ describe('keybindings', () => {
     ).toBe(true)
   })
 
+  it('keeps the macOS simulator shortcut distinct from the Explorer shortcut', () => {
+    expect(getEffectiveKeybindingsForAction('sidebar.explorer.toggle', 'darwin')).toEqual([
+      'Mod+Shift+E'
+    ])
+    expect(getEffectiveKeybindingsForAction('tab.newSimulator', 'darwin')).toEqual([
+      'Mod+Alt+Shift+E'
+    ])
+    expect(getEffectiveKeybindingsForAction('tab.newSimulator', 'linux')).toEqual([])
+    expect(getEffectiveKeybindingsForAction('tab.newSimulator', 'win32')).toEqual([])
+  })
+
   it('defines an unassigned per-agent tab action for every TUI agent', () => {
     for (const agent of ALL_TUI_AGENTS) {
       const actionId = agentTabActionId(agent)
