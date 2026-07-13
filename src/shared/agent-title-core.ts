@@ -112,7 +112,7 @@ export function isCursorNativeAgentTitle(title: string): boolean {
 // Why: OpenCode abbreviates its native session titles as `OC | …`, which has
 // no agent-name token and otherwise lets stale pane identity paint the tab.
 export function isOpenCodeNativeTitle(title: string): boolean {
-  return /(?:^| \| )OC \| \S/.test(title.trim())
+  return /^(?:[^|\s]+ \| )?OC \| \S/.test(title.trim())
 }
 
 // Why: `cursor` is also an ordinary editor noun that other agents type into their own
