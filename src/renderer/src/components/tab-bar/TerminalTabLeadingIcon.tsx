@@ -1,14 +1,14 @@
-import { AgentStateDot } from '@/components/AgentStateDot'
+import { AgentStateDot, type AgentDotState } from '@/components/AgentStateDot'
 import { AgentIcon } from '@/lib/agent-catalog'
 import { cn } from '@/lib/utils'
 import type { TerminalTab, TuiAgent } from '../../../../shared/types'
 import { FilledBellIcon } from '../sidebar/WorktreeCardHelpers'
 import { ShellIcon } from './shell-icons'
-import type { TerminalTabAgentActivityState } from './terminal-tab-agent-activity'
+import type { TerminalTabActivityStatus } from './terminal-tab-activity-status'
 
 type TerminalTabLeadingIconProps = {
   agent: TuiAgent | null
-  agentActivityState: TerminalTabAgentActivityState | null
+  activityStatus: TerminalTabActivityStatus
   shell: TerminalTab['shellOverride']
   showUnreadActivity: boolean
   isActive: boolean
@@ -18,6 +18,26 @@ type TerminalTabAgentIdentityIconProps = {
   agent: TuiAgent
   isActive: boolean
   className?: string
+}
+
+/**
+ * Map the container status to the shared state-dot vocabulary. `active` and
+ * `inactive` carry no activity glyph — the tab falls through to its agent or
+ * shell identity icon instead. Uses the same WorktreeStatus vocabulary as the
+ * sidebar so live states read identically (tabs intentionally omit the card's
+ * retained-done promotion, so a stale green check can differ after cleanup).
+ */
+function activityDotState(status: TerminalTabActivityStatus): AgentDotState | null {
+  switch (status) {
+    case 'working':
+      return 'working'
+    case 'permission':
+      return 'permission'
+    case 'done':
+      return 'done'
+    default:
+      return null
+  }
 }
 
 /** Keep the provider glyph treatment identical across every terminal-tab state. */
@@ -40,7 +60,7 @@ function TerminalTabAgentIdentityIcon({
 /** Render a terminal tab's current state without hiding its agent or shell identity. */
 export function TerminalTabLeadingIcon({
   agent,
-  agentActivityState,
+  activityStatus,
   shell,
   showUnreadActivity,
   isActive
@@ -58,20 +78,15 @@ export function TerminalTabLeadingIcon({
     )
   }
 
-  if (agentActivityState) {
-    // Why: terminal tabs mirror the worktree status vocabulary, where blocked
-    // and waiting both use the amber "needs attention" dot.
-    const indicatorState =
-      agentActivityState === 'blocked' || agentActivityState === 'waiting'
-        ? 'permission'
-        : agentActivityState
+  const dotState = activityDotState(activityStatus)
+  if (dotState) {
     return (
       <span
         data-testid="tab-agent-activity-indicator"
-        data-agent-activity-state={agentActivityState}
+        data-agent-activity-status={activityStatus}
         className="mr-1 inline-flex shrink-0 items-center gap-1"
       >
-        <AgentStateDot state={indicatorState} size="md" />
+        <AgentStateDot state={dotState} size="md" />
         {/* Why: status and identity answer different questions. Keep the agent
             logo beside the state glyph so parallel tabs remain scannable. */}
         {agent ? <TerminalTabAgentIdentityIcon agent={agent} isActive={isActive} /> : null}

@@ -26,9 +26,9 @@ import { useTabStripPointerActivation } from './tab-strip-pointer-activation'
 import { TerminalTabLeadingIcon } from './TerminalTabLeadingIcon'
 import {
   hasUnreadAgentCompletionForTerminalTab,
-  isTerminalTabAgentActive,
-  resolveTerminalTabAgentActivityState
-} from './terminal-tab-agent-activity'
+  isTerminalTabActivityLive,
+  resolveTerminalTabActivityStatus
+} from './terminal-tab-activity-status'
 
 type SortableTabProps = {
   tab: TerminalTab
@@ -93,12 +93,12 @@ export default function SortableTab({
       s.unreadTerminalTabs[tab.id] === true ||
       hasUnreadAgentCompletionForTerminalTab(s.unreadAgentCompletionPanes, tab.id)
   )
-  // Why: returning a primitive lets unrelated agent updates avoid repainting
-  // this tab even though the resolver reads the shared pane-status maps.
-  const agentActivityState = useAppStore((s) =>
-    resolveTerminalTabAgentActivityState({
-      tabId: tab.id,
-      tabTitle: tab.title,
+  // Why: the resolver returns a WorktreeStatus primitive, so unrelated agent
+  // updates can't repaint this tab. The per-tab pane bucketing it reads is
+  // memoized once per store snapshot, so this stays O(1) per tab per write.
+  const activityStatus = useAppStore((s) =>
+    resolveTerminalTabActivityStatus({
+      tab,
       agentStatusByPaneKey: s.agentStatusByPaneKey,
       runtimePaneTitlesByTabId: s.runtimePaneTitlesByTabId,
       ptyIdsByTabId: s.ptyIdsByTabId,
@@ -136,11 +136,11 @@ export default function SortableTab({
   const [menuOpen, setMenuOpen] = useState(false)
   const [menuPoint, setMenuPoint] = useState({ x: 0, y: 0 })
   const [isEditing, setIsEditing] = useState(false)
-  // Why: a live working/waiting state is newer and more specific than an
+  // Why: a live working/needs-input state is newer and more specific than an
   // unread event from the prior turn. It owns the icon until the turn ends;
   // the unread completion bell then returns if the tab is still unvisited.
   const showUnreadActivity =
-    hasUnreadActivity && !isEditing && !isTerminalTabAgentActive(agentActivityState)
+    hasUnreadActivity && !isEditing && !isTerminalTabActivityLive(activityStatus)
   const [renameValue, setRenameValue] = useState('')
   const renameFocusFrameRef = useRef<number | null>(null)
   // Why: React's synthetic onBlur fires during the Input's unmount when isEditing flips
@@ -254,7 +254,7 @@ export default function SortableTab({
       // pass even if the tab-bar render path had silently broken (the same
       // tautology that let PR #1186's render crash ship past E2E in #1193).
       data-active={isActive ? 'true' : 'false'}
-      data-agent-activity-state={agentActivityState ?? undefined}
+      data-agent-activity-status={activityStatus}
       {...attributes}
       {...dragListeners}
       // Why: on unread activity, tint the whole tab with a subtle amber
@@ -310,7 +310,7 @@ export default function SortableTab({
       )}
       <TerminalTabLeadingIcon
         agent={tabAgent}
-        agentActivityState={agentActivityState}
+        activityStatus={activityStatus}
         shell={shellForIcon}
         showUnreadActivity={showUnreadActivity}
         isActive={isActive}
