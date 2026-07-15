@@ -200,8 +200,8 @@ export function getWindowSections(
 // `text-background` for primary text and `text-background/50` for secondary
 // to stay readable inside the inverted tooltip container.
 
-// Why: color-coded by consumption so users can quickly gauge urgency.
-// Matches common harness usage meters (Claude/Codex): bars fill with % used.
+// Why: color always tracks % used so urgency reads correctly even when the meter
+// fills with % remaining (#8560) — low remaining still turns red, not green.
 // Green = comfortable (<60% used), yellow = caution (60-80%), red = critical (≥80%).
 export function barColor(usedPct: number): string {
   if (usedPct < 60) {
