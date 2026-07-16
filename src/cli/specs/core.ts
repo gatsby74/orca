@@ -116,6 +116,7 @@ export const CORE_COMMAND_SPECS: CommandSpec[] = [
       '--no-parent only affects Orca lineage; omit --base-branch to use the repo default base, or pass the default base ref explicitly for independent top-level work.',
       'By default this creates the worktree and its first terminal without switching the active Orca view.',
       'Pass --agent to launch an agent in the first terminal; --prompt sends initial work to that agent.',
+      'With --agent --json, read the new agent handle from result.agentTerminalHandle; older runtimes return only result.startupTerminal.handle, and may return neither for folder-based repos.',
       'Repo-defined setup hooks follow the repository setup policy; pass --setup run to force them.',
       'Pass --activate when the CLI caller intentionally wants to reveal the new worktree in the app.',
       'Passing --run-hooks is kept as a legacy alias for --setup run and reveals the worktree.'
@@ -253,10 +254,16 @@ export const CORE_COMMAND_SPECS: CommandSpec[] = [
   },
   {
     path: ['terminal', 'close'],
-    summary: 'Close a terminal tab (kills PTY if running)',
-    usage: 'orca terminal close [--terminal <handle>] [--json]',
-    allowedFlags: [...GLOBAL_FLAGS, 'terminal'],
-    examples: ['orca terminal close --terminal term_abc123']
+    summary: 'Close a terminal pane/session, or its whole tab with --tab',
+    usage: 'orca terminal close [--terminal <handle>] [--tab] [--json]',
+    allowedFlags: [...GLOBAL_FLAGS, 'terminal', 'tab'],
+    notes: [
+      'Without --tab, preserves the existing pane/session close behavior. With --tab, waits until the whole tab is durably removed.'
+    ],
+    examples: [
+      'orca terminal close --terminal term_abc123',
+      'orca terminal close --terminal term_abc123 --tab --json'
+    ]
   },
   {
     path: ['terminal', 'rename'],
