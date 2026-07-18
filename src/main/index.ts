@@ -49,6 +49,7 @@ import { closeAllWatchers } from './ipc/filesystem-watcher'
 import { disposeWorktreeBaseDirectoryWatchers } from './ipc/worktree-base-directory-watcher'
 import { stopFolderRepoGitUpgradeWatch } from './ipc/folder-repo-git-upgrade'
 import { registerCoreHandlers } from './ipc/register-core-handlers'
+import { broadcastKeybindingsChanged } from './ipc/keybindings'
 import { initObservability, shutdownObservability } from './observability'
 import { registerMobileHandlers } from './ipc/mobile'
 import { initTelemetry, shutdownTelemetry, trackAppOpenedOnce, track } from './telemetry/client'
@@ -339,6 +340,7 @@ import {
 } from '../shared/runtime-types'
 import { LocalPtyProvider } from './providers/local-pty-provider'
 import { KeybindingService } from './keybindings/keybinding-service'
+import { createPortableSettingsRuntimeService } from './portable-settings-service'
 import { applyElectronProxySettings } from './network/proxy-settings'
 import { preserveAgentAuthBeforeRestart } from './agent-auth-restart-preservation'
 import { CliInstaller } from './cli/cli-installer'
@@ -2555,7 +2557,10 @@ void app.whenReady().then(async () => {
       }),
     buildAgentHookPtyEnv: () =>
       isAgentStatusHooksEnabled(store?.getSettings()) ? agentHookServer.buildPtyEnv() : {},
-    orchestrationEnvironmentTransport
+    orchestrationEnvironmentTransport,
+    portableSettings: createPortableSettingsRuntimeService(store, keybindings, {
+      onKeybindingsChanged: broadcastKeybindingsChanged
+    })
   })
   runtime = runtimeService
   runtimeService.prepareLegacyWorkerTerminalRecovery()

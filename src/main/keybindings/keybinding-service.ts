@@ -9,6 +9,7 @@ import {
   getUserKeybindingsPath,
   migrateLegacyKeybindings,
   readKeybindingFile,
+  replaceKeybindingOverrides,
   seedLegacyTabSwitchBindings,
   writeKeybindingOverride
 } from './keybinding-file'
@@ -79,6 +80,11 @@ export class KeybindingService {
   ensureFile(): KeybindingFileSnapshot {
     ensureKeybindingFile(this.configPath)
     return this.reload()
+  }
+
+  replaceOverrides(overrides: KeybindingOverrides): KeybindingFileSnapshot {
+    this.snapshot = replaceKeybindingOverrides(this.configPath, this.platform, overrides)
+    return this.snapshot
   }
 
   setActionBindings(

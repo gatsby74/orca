@@ -5,6 +5,7 @@ import {
   AlertTriangle,
   ChevronDown,
   Loader2,
+  Upload,
   Plus,
   RefreshCw,
   Server,
@@ -28,6 +29,7 @@ import {
 } from '../../../../shared/protocol-compat'
 import {
   MIN_COMPATIBLE_RUNTIME_SERVER_VERSION,
+  PORTABLE_SETTINGS_RUNTIME_CAPABILITY,
   PROJECT_HOST_SETUP_RUNTIME_CAPABILITY,
   RUNTIME_PROTOCOL_VERSION,
   TASK_SOURCE_CONTEXT_RUNTIME_CAPABILITY,
@@ -48,6 +50,7 @@ import {
 import { RuntimePairingUrlGenerator } from './RuntimePairingUrlGenerator'
 import { EphemeralVmRuntimesSection } from './EphemeralVmRuntimesSection'
 import { CloudVmSetupGuide } from './CloudVmSetupGuide'
+import { RuntimeSettingsImportDialog } from './RuntimeSettingsImportDialog'
 import {
   getRuntimeEnvironmentsSearchEntry,
   getWebRuntimeEnvironmentsSearchEntry
@@ -277,6 +280,8 @@ export function RuntimeEnvironmentsPane({
   const [disconnectingId, setDisconnectingId] = useState<string | null>(null)
   const [pendingSwitchValue, setPendingSwitchValue] = useState<string | null>(null)
   const [pendingRemove, setPendingRemove] = useState<PublicKnownRuntimeEnvironment | null>(null)
+  const [pendingSettingsImport, setPendingSettingsImport] =
+    useState<PublicKnownRuntimeEnvironment | null>(null)
   const [addServerFormOpen, setAddServerFormOpen] = useState(false)
   const [shareServerFormOpen, setShareServerFormOpen] = useState(true)
   const [advancedOpen, setAdvancedOpen] = useState(false)
@@ -956,6 +961,10 @@ export function RuntimeEnvironmentsPane({
                     const remoteUpdate = remoteServerUpdates.get(environment.id)
                     // A connected host exposes Disconnect; otherwise Connect.
                     const isReachable = connectionState === 'connected'
+                    const supportsPortableSettings =
+                      details?.runtimeStatus?.capabilities?.some(
+                        (capability) => capability === PORTABLE_SETTINGS_RUNTIME_CAPABILITY
+                      ) === true
                     const actionBusy =
                       connectingId === environment.id ||
                       switchingValue === environment.id ||
@@ -1046,6 +1055,22 @@ export function RuntimeEnvironmentsPane({
                               {translate(
                                 'auto.components.settings.RuntimeEnvironmentsPane.updateServer',
                                 'Update'
+                              )}
+                            </Button>
+                          ) : null}
+                          {isReachable && supportsPortableSettings ? (
+                            <Button
+                              type="button"
+                              variant="ghost"
+                              size="xs"
+                              className="gap-1.5"
+                              onClick={() => setPendingSettingsImport(environment)}
+                              disabled={actionBusy}
+                            >
+                              <Upload className="size-3" />
+                              {translate(
+                                'auto.components.settings.RuntimeEnvironmentsPane.importSettings',
+                                'Import local settings'
                               )}
                             </Button>
                           ) : null}
@@ -1410,6 +1435,14 @@ export function RuntimeEnvironmentsPane({
             </div>
           </div>
         </details>
+      ) : null}
+      {pendingSettingsImport ? (
+        <RuntimeSettingsImportDialog
+          environmentId={pendingSettingsImport.id}
+          environmentName={pendingSettingsImport.name}
+          settings={settings}
+          onClose={() => setPendingSettingsImport(null)}
+        />
       ) : null}
 
       <Dialog

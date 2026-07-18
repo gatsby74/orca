@@ -7224,7 +7224,8 @@
           "troubleshootStepRegenerate": "Generate a new access link and use only the newest link here.",
           "troubleshootTunnel": "Using an SSH local forward? Return to Connect to a host, paste the loopback link, then enable “I am using an SSH tunnel” under Advanced.",
           "cloudVmWorkflow": "Cloud VM",
-          "cloudVmWorkflowHelp": "Manage recipe-created cloud machines"
+          "cloudVmWorkflowHelp": "Manage recipe-created cloud machines",
+          "importSettings": "Import local settings"
         },
         "RuntimePairingGeneratedUrlRows": {
           "0495f68959": "Copy {{value0}}"
@@ -10733,6 +10734,27 @@
           "cancel": "Keep cleaning",
           "stopping": "Stopping…",
           "confirm": "Stop cleanup"
+        },
+        "RuntimeSettingsImportDialog": {
+          "loadFailed": "Could not compare settings with this server.",
+          "success": "Imported settings to {{value0}}.",
+          "applyFailed": "Could not import settings to this server.",
+          "title": "Import settings to {{value0}}",
+          "description": "Preview portable preferences from this machine, then choose what the linked server should adopt.",
+          "security": "Accounts, credentials, secrets, machine paths, histories, and integration sessions are never included.",
+          "comparing": "Comparing settings…",
+          "retry": "Try again",
+          "matches": "Matches",
+          "change": "1 change",
+          "changes": "{{value0}} changes",
+          "cancel": "Cancel",
+          "import": "Import selected",
+          "appearance": "Appearance",
+          "appearanceHelp": "Theme, fonts, terminal visuals, diff layout, and sidebar presentation.",
+          "input": "Input and shortcuts",
+          "inputHelp": "Keyboard shortcuts, editor behavior, terminal scrolling, mouse, and paste preferences.",
+          "workflow": "Agents and workflow",
+          "workflowHelp": "Agent defaults, Git behavior, task views, prompt cache, and tab preferences."
         }
       },
       "right": {

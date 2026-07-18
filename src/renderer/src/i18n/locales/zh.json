@@ -6802,7 +6802,8 @@
           "troubleshootStepRegenerate": "生成新的访问链接，并仅在此处使用最新的链接。",
           "troubleshootTunnel": "正在使用 SSH 本地转发？返回“连接到主机”，粘贴环回链接，然后在“高级”下启用“我正在使用 SSH 隧道”。",
           "cloudVmWorkflow": "云虚拟机",
-          "cloudVmWorkflowHelp": "管理由配方创建的云端机器"
+          "cloudVmWorkflowHelp": "管理由配方创建的云端机器",
+          "importSettings": "Import local settings"
         },
         "RuntimePairingGeneratedUrlRows": {
           "0495f68959": "复制 {{value0}}"
@@ -10160,6 +10161,27 @@
           "saveFailed": "无法保存可见性默认设置。",
           "updateServer": "请更新此服务器以配置来源默认设置。",
           "updateServerDefaults": "请更新此服务器以配置可见性默认设置。"
+        },
+        "RuntimeSettingsImportDialog": {
+          "loadFailed": "Could not compare settings with this server.",
+          "success": "Imported settings to {{value0}}.",
+          "applyFailed": "Could not import settings to this server.",
+          "title": "Import settings to {{value0}}",
+          "description": "Preview portable preferences from this machine, then choose what the linked server should adopt.",
+          "security": "Accounts, credentials, secrets, machine paths, histories, and integration sessions are never included.",
+          "comparing": "Comparing settings…",
+          "retry": "Try again",
+          "matches": "Matches",
+          "change": "1 change",
+          "changes": "{{value0}} changes",
+          "cancel": "Cancel",
+          "import": "Import selected",
+          "appearance": "Appearance",
+          "appearanceHelp": "Theme, fonts, terminal visuals, diff layout, and sidebar presentation.",
+          "input": "Input and shortcuts",
+          "inputHelp": "Keyboard shortcuts, editor behavior, terminal scrolling, mouse, and paste preferences.",
+          "workflow": "Agents and workflow",
+          "workflowHelp": "Agent defaults, Git behavior, task views, prompt cache, and tab preferences."
         }
       },
       "right": {

@@ -386,7 +386,8 @@ function writeActivePlatformSection(
   path: string,
   platform: NodeJS.Platform,
   fallbackCommonOverrides: KeybindingOverrides,
-  mutateActivePlatform: (activePlatform: JsonObject) => void
+  mutateActivePlatform: (activePlatform: JsonObject) => void,
+  options: { replaceCommonOverrides?: KeybindingOverrides } = {}
 ): KeybindingFileSnapshot {
   const keybindingPlatform = getKeybindingPlatform(platform)
   const readResult = readJsonDocument(path)
@@ -396,9 +397,11 @@ function writeActivePlatformSection(
     throw new Error(readResult.error ?? 'Could not read keybindings file.')
   }
   const document = { ...readResult.document }
-  const common = isJsonObject(document.keybindings)
-    ? { ...document.keybindings }
-    : { ...fallbackCommonOverrides }
+  const common = options.replaceCommonOverrides
+    ? { ...options.replaceCommonOverrides }
+    : isJsonObject(document.keybindings)
+      ? { ...document.keybindings }
+      : { ...fallbackCommonOverrides }
   for (const rootKey of Object.keys(document)) {
     if (isKeybindingActionId(rootKey)) {
       delete document[rootKey]
@@ -421,6 +424,50 @@ function writeActivePlatformSection(
   }
   writeJsonDocument(path, document)
   return readKeybindingFile(path, platform)
+}
+
+export function replaceKeybindingOverrides(
+  path: string,
+  platform: NodeJS.Platform,
+  overrides: KeybindingOverrides
+): KeybindingFileSnapshot {
+  const keybindingPlatform = getKeybindingPlatform(platform)
+  const normalizedOverrides: KeybindingOverrides = {}
+  for (const [actionId, bindings] of Object.entries(overrides)) {
+    if (!isKeybindingActionId(actionId)) {
+      throw new Error(`Unknown keybinding action "${actionId}".`)
+    }
+    const normalized = normalizeWriteBindingValue(actionId, bindings)
+    if (normalized !== null) {
+      normalizedOverrides[actionId] = normalized
+    }
+  }
+  const conflicts = findKeybindingConflicts(keybindingPlatform, normalizedOverrides)
+  if (conflicts.length > 0) {
+    throw new Error(
+      `Imported shortcuts conflict: ${formatKeybindingList(
+        conflicts.map((conflict) => conflict.binding),
+        keybindingPlatform
+      )}.`
+    )
+  }
+  const current = readKeybindingFile(path, platform)
+  return writeActivePlatformSection(
+    path,
+    platform,
+    current.commonOverrides,
+    (activePlatform) => {
+      for (const actionId of Object.keys(activePlatform)) {
+        if (isKeybindingActionId(actionId)) {
+          delete activePlatform[actionId]
+        }
+      }
+      Object.assign(activePlatform, normalizedOverrides)
+    },
+    // Why: the imported snapshot already represents effective source overrides;
+    // stale common bindings would otherwise leak into the target platform.
+    { replaceCommonOverrides: {} }
+  )
 }
 
 export function writeKeybindingOverride(
