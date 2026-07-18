@@ -4,20 +4,48 @@ import { describe, expect, it } from 'vitest'
 
 const SOURCE_PATH = resolve(__dirname, 'ResourceUsageStatusSegment.tsx')
 
-describe('ResourceUsageStatusSegment session polling', () => {
+describe('ResourceUsageStatusSegment session inventory', () => {
   it('does not poll global terminal sessions while the popover is closed', () => {
     const source = readFileSync(SOURCE_PATH, 'utf8')
 
     expect(source).not.toContain('installWindowVisibilityInterval')
     expect(source).not.toContain('SESSIONS_POLL_MS')
+    // Why: listSessions lives in one helper; mount seed, open, kill, and
+    // unknown-live-pty re-seed all call that helper — never a closed interval.
     expect(source.match(/window\.api\.pty\.listSessions\(\)/g) ?? []).toHaveLength(1)
 
     const openEffectIndex = source.indexOf('if (!open)')
     const refreshIndex = source.indexOf('void refreshSessions()', openEffectIndex)
 
     // Why: pty.listSessions() is a global daemon inventory and can pause input
-    // with large preserved-session sets. Keep it on explicit Resource Manager use.
+    // with large preserved-session sets. Keep continuous use off the closed path.
     expect(openEffectIndex).toBeGreaterThanOrEqual(0)
     expect(refreshIndex).toBeGreaterThan(openEffectIndex)
+  })
+
+  it('seeds the closed badge from daemon inventory instead of wake-hint bound PTYs', () => {
+    const source = readFileSync(SOURCE_PATH, 'utf8')
+
+    expect(source).toContain('inventoryFromSessions')
+    expect(source).toContain('sessionInventory.count')
+    expect(source).toContain('inventoryHasUnknownLivePty')
+    expect(source).toContain('window.api.pty.onExit')
+    expect(source).not.toContain('createClosedResourceSessionCountSelector')
+    expect(source).not.toContain('boundPtyIds.size')
+    expect(source).not.toContain('closedSessionCount')
+  })
+
+  it('seeds memory snapshot for the closed badge without requiring a click', () => {
+    const source = readFileSync(SOURCE_PATH, 'utf8')
+
+    // Why: the ready-seed effect must call fetchSnapshot so RAM is not "—"
+    // until the user opens Resource Manager.
+    const readySeedBlock = source.slice(
+      source.indexOf('// Why: seed the closed badge once session restore is ready'),
+      source.indexOf('// Poll memory only while the popover is open')
+    )
+    expect(readySeedBlock).toContain('void fetchSnapshot()')
+    expect(readySeedBlock).toContain('void refreshSessions()')
+    expect(readySeedBlock).toContain('workspaceSessionReady')
   })
 })
