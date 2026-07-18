@@ -6235,7 +6235,11 @@ export class Store {
     this.state.settings = structuredClone(snapshot)
     this.scheduleSave()
     const restoredUpdates = {} as Partial<GlobalSettings> & Record<string, unknown>
-    for (const key of Object.keys(snapshot) as (keyof GlobalSettings)[]) {
+    const restoredKeys = new Set<keyof GlobalSettings>([
+      ...(Object.keys(snapshot) as (keyof GlobalSettings)[]),
+      ...(Object.keys(previousSettings) as (keyof GlobalSettings)[])
+    ])
+    for (const key of restoredKeys) {
       if (!isDeepStrictEqual(previousSettings[key], this.state.settings[key])) {
         restoredUpdates[String(key)] = this.state.settings[key]
       }
