@@ -898,6 +898,8 @@ export function ResourceUsageStatusSegment({
   // Why: read inventory via ref so live-PTY create detection re-runs only when
   // the mounted PTY map changes — not after every listSessions result (which
   // could loop if a live id is temporarily absent from the daemon list).
+  // Why: keep the ref write in an effect so discarded/replayed renders cannot
+  // leak a mutated ref from uncommitted UI (React Doctor).
   const sessionInventoryRef = useRef(sessionInventory)
   useEffect(() => {
     sessionInventoryRef.current = sessionInventory
