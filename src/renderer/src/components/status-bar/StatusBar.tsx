@@ -63,6 +63,7 @@ import { ClaudeIcon, GeminiIcon, MiniMaxIcon, OpenAIIcon, OpenCodeGoIcon } from 
 import { AgentIcon } from '@/lib/agent-catalog'
 import { UsageRosterPanel, getTightestUsageSection } from './UsageRosterPanel'
 import { getUsageProviderAccountsSectionId } from './usage-provider-settings-target'
+import { getPinnedUsageProviders, getUsageRosterProviders } from './usage-roster-provider-selection'
 import { formatRateLimitWindowChipLabel } from '@/lib/window-label-formatter'
 import { useResetCountdownClock } from '@/hooks/useResetCountdownClock'
 import {
@@ -74,7 +75,7 @@ import { SkillUpdateStatusSegment } from './SkillUpdateStatusSegment'
 import { CaffeinateStatusSegment } from './CaffeinateStatusSegment'
 import { RemoteServerUpdateStatusSegment } from './RemoteServerUpdateStatusSegment'
 import { isStatusBarItemAvailable } from './status-bar-agent-gating'
-import { getVisibleUsageProvider, isUsageEmptyState } from './status-bar-provider-visibility'
+import { isUsageEmptyState } from './status-bar-provider-visibility'
 import { StatusBarUsageEmptyCta } from './StatusBarUsageEmptyCta'
 import { UsagePercentageDisplayChangeNotice } from './UsagePercentageDisplayChangeNotice'
 import {
@@ -1325,7 +1326,12 @@ export function ProviderSegment({
           showLabel={!compact}
         />
       ) : null}
-      {isStale && <AlertTriangle size={11} className="text-muted-foreground/80" />}
+      {isStale ? (
+        <>
+          <span className="sr-only">{statusLabel}</span>
+          <AlertTriangle aria-hidden size={11} className="text-muted-foreground/80" />
+        </>
+      ) : null}
     </span>
   )
 }
@@ -2121,57 +2127,33 @@ function StatusBarInner({ floatingTerminalOpen }: StatusBarProps): React.JSX.Ele
     minimaxCookieConfigured: rateLimits.minimaxCookieConfigured,
     grokAuthConfigured: rateLimits.grokAuthConfigured
   }
-  const visibleClaude = getVisibleUsageProvider('claude', claude, usageSettings)
-  const visibleCodex = getVisibleUsageProvider('codex', codex, usageSettings)
-  const visibleGemini = getVisibleUsageProvider('gemini', gemini, usageSettings)
-  const visibleKimi = getVisibleUsageProvider('kimi', kimi, usageSettings)
-  const visibleAntigravity = getVisibleUsageProvider('antigravity', antigravity, usageSettings)
-  const visibleMiniMax = getVisibleUsageProvider('minimax', minimax, usageSettings)
-  const visibleGrok = getVisibleUsageProvider('grok', grok, usageSettings)
-  const showClaude =
-    visibleClaude !== null &&
-    statusBarItems.includes('claude') &&
-    isStatusBarItemAvailable('claude', detectedAgentIds)
-  const showCodex =
-    visibleCodex !== null &&
-    statusBarItems.includes('codex') &&
-    isStatusBarItemAvailable('codex', detectedAgentIds)
-  const showGemini =
-    visibleGemini !== null &&
-    statusBarItems.includes('gemini') &&
-    isStatusBarItemAvailable('gemini', detectedAgentIds)
-  const showKimi =
-    visibleKimi !== null &&
-    statusBarItems.includes('kimi') &&
-    isStatusBarItemAvailable('kimi', detectedAgentIds)
-  const showAntigravity =
-    visibleAntigravity !== null &&
-    statusBarItems.includes('antigravity') &&
-    isStatusBarItemAvailable('antigravity', detectedAgentIds)
-  // Why: MiniMax is cookie-auth, not a CLI on PATH, so detection-gating doesn't apply.
-  const showMiniMax = visibleMiniMax !== null && statusBarItems.includes('minimax')
-  const showGrok =
-    visibleGrok !== null &&
-    statusBarItems.includes('grok') &&
-    isStatusBarItemAvailable('grok', detectedAgentIds)
-  // Why: OpenCode Go is web/cookie-auth, not a CLI on PATH, so detection-gating doesn't apply.
-  const visibleOpencodeGo = getVisibleUsageProvider('opencode-go', opencodeGo, usageSettings)
-  const showOpencodeGo = visibleOpencodeGo !== null && statusBarItems.includes('opencode-go')
+  // Why: pinning controls footer density, not whether configured providers are
+  // available in the on-demand roster.
+  const rosterProviders = getUsageRosterProviders({
+    snapshots: {
+      claude,
+      codex,
+      gemini,
+      antigravity,
+      'opencode-go': opencodeGo,
+      kimi,
+      minimax,
+      grok
+    },
+    settings: usageSettings
+  })
+  const pinnedUsageProviders = getPinnedUsageProviders({
+    rosterProviders,
+    statusBarItems,
+    detectedAgentIds
+  })
   const showSsh = statusBarItems.includes('ssh')
   const showResourceUsage = statusBarItems.includes('resource-usage')
   const showPorts = statusBarItems.includes('ports')
   const showFloatingTerminalToggle =
     floatingTerminalEnabled && floatingTerminalTriggerLocation === 'status-bar'
   // Why: meter-only children (excludes resource-usage) so the % display callout anchors to a real meter cluster.
-  const hasVisibleUsageMeters =
-    showClaude ||
-    showCodex ||
-    showGemini ||
-    showOpencodeGo ||
-    showKimi ||
-    showAntigravity ||
-    showMiniMax ||
-    showGrok
+  const hasVisibleUsageMeters = pinnedUsageProviders.length > 0
   const anyVisible = hasVisibleUsageMeters || showResourceUsage
   // Why: include Settings so durable managed accounts count — a configured user isn't shown the empty state while snapshots hydrate.
   const isEmptyUsageState = isUsageEmptyState(
@@ -2196,19 +2178,6 @@ function StatusBarInner({ floatingTerminalOpen }: StatusBarProps): React.JSX.Ele
     ? 'Minimize Floating Workspace'
     : 'Show Floating Workspace'
   const showFloatingWorkspaceAttentionDot = !floatingTerminalOpen && hasFloatingUnread
-
-  // Why: the roster must contain only status items the user left visible;
-  // otherwise an empty trigger would bypass those visibility controls.
-  const rosterProviders = [
-    showClaude ? visibleClaude : null,
-    showCodex ? visibleCodex : null,
-    showGemini ? visibleGemini : null,
-    showAntigravity ? visibleAntigravity : null,
-    showOpencodeGo ? visibleOpencodeGo : null,
-    showKimi ? visibleKimi : null,
-    showMiniMax ? visibleMiniMax : null,
-    showGrok ? visibleGrok : null
-  ].filter((p): p is ProviderRateLimits => p !== null)
 
   const handleManageAccounts = (): void => {
     setUsageMenuOpen(false)
@@ -2258,8 +2227,8 @@ function StatusBarInner({ floatingTerminalOpen }: StatusBarProps): React.JSX.Ele
           showEmptyUsageCta ? (
             <StatusBarUsageEmptyCta />
           ) : null
-        ) : hasVisibleUsageMeters ? (
-          // Consolidated roster pill → opens the all-agents Usage popover (mock parity).
+        ) : rosterProviders.length > 0 ? (
+          // Consolidated roster pill → opens configured providers, including unpinned ones.
           <UsagePercentageDisplayChangeNotice hasVisibleUsageMeters={hasVisibleUsageMeters}>
             <DropdownMenu
               open={usageMenuOpen}
@@ -2275,7 +2244,12 @@ function StatusBarInner({ floatingTerminalOpen }: StatusBarProps): React.JSX.Ele
                     'Usage'
                   )}
                 >
-                  {rosterProviders.map((p) =>
+                  {pinnedUsageProviders.length === 0 ? (
+                    <span className="text-muted-foreground">
+                      {translate('auto.components.status.bar.UsageRosterPanel.title', 'Usage')}
+                    </span>
+                  ) : null}
+                  {pinnedUsageProviders.map((p) =>
                     iconOnly ? (
                       // Narrow status bar: fall back to main's compact letter badge.
                       <span key={p.provider} title={getProviderDisplayName(p.provider)}>
