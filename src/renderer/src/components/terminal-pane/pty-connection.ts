@@ -162,6 +162,7 @@ import {
   isCtrlCKeyEvent,
   isPlainEscapeKeyEvent
 } from './agent-interrupt-inference'
+import { createAgentQuestionAnsweredInference } from './agent-question-answered-inference'
 import {
   AGENT_INTERRUPT_SETTLE_MS,
   type AgentInterruptInputIntent
@@ -229,6 +230,7 @@ import {
   resolveTuiAgentLaunchEnv
 } from '../../../../shared/tui-agent-launch-defaults'
 import {
+  agentProviderSessionsEqual,
   isResumableTuiAgent,
   normalizeAgentProviderSession,
   type ResumableTuiAgent,
@@ -1098,14 +1100,7 @@ export function connectPanePty(
       return legacy?.numericPaneId === String(pane.id)
     })
     const providerSessionKeys = new Set(
-      legacyMatches.map(([, record]) =>
-        [
-          record.worktreeId,
-          record.agent,
-          record.providerSession.key,
-          record.providerSession.id
-        ].join('\0')
-      )
+      legacyMatches.map(([, record]) => getProviderSessionClaimKey(record))
     )
     const oldestLegacyMatch = legacyMatches
       .slice()
@@ -1135,8 +1130,11 @@ export function connectPanePty(
         paneKey !== consumed.paneKey &&
         record.worktreeId === consumed.record.worktreeId &&
         record.agent === consumed.record.agent &&
-        record.providerSession.key === consumed.record.providerSession.key &&
-        record.providerSession.id === consumed.record.providerSession.id
+        agentProviderSessionsEqual(
+          record.agent,
+          record.providerSession,
+          consumed.record.providerSession
+        )
       ) {
         // Why: legacy pane aliases can leave multiple sleeping rows for one
         // provider session; once this pane resumes it, every alias is stale.
@@ -1771,6 +1769,15 @@ export function connectPanePty(
         })
     }
   })
+  const questionAnsweredInference = createAgentQuestionAnsweredInference({
+    paneKey: cacheKey,
+    getStatusEntry: () => useAppStore.getState().agentStatusByPaneKey[cacheKey],
+    inferQuestionAnswered: (request) =>
+      window.api.agentStatus.inferQuestionAnswered(request).catch((err) => {
+        console.warn('[agent-question] inferQuestionAnswered failed:', err)
+        return false
+      })
+  })
   const dropCommandFinishedStatusIfSameTurn = (
     entry: AgentStatusEntry | undefined,
     options?: { allowInferredInterrupt?: boolean }
@@ -1856,6 +1863,10 @@ export function connectPanePty(
     if (intent === 'ctrl-c' || data === '\x03') {
       markTerminalBracketedPasteInterrupted(pane.terminal)
     }
+    // Why: every delivered-input path funnels through here, so this is where a
+    // submit keystroke into a waiting AskUserQuestion pane becomes the
+    // "question answered" signal no hook will ever deliver.
+    questionAnsweredInference.observeSentTerminalInput(data)
   }
   let pendingTerminalInputWrite: Promise<void> | null = null
   const setPendingTerminalInputWrite = (promise: Promise<void>): void => {
@@ -4377,8 +4388,7 @@ export function connectPanePty(
         sleepingRecord?.launchConfig &&
         (!useLiveEntry ||
           (sleepingRecord.agent === agent &&
-            sleepingRecord.providerSession.key === providerSession.key &&
-            sleepingRecord.providerSession.id === providerSession.id))
+            agentProviderSessionsEqual(agent, sleepingRecord.providerSession, providerSession)))
           ? sleepingRecord.launchConfig
           : undefined
       const launchConfig =
