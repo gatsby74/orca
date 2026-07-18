@@ -11,6 +11,32 @@ export type RateLimitWindow = {
 
 export type ProviderRateLimitStatus = 'idle' | 'fetching' | 'ok' | 'error' | 'unavailable'
 
+/**
+ * Pay-as-you-go / overage balance that a plan spends into once its included
+ * usage windows are exhausted (Claude "usage credits", OpenCode Go "Zen
+ * balance"). Two shapes share these fields: a capped balance with a monthly
+ * spend limit (Claude — `spendLimit`/`spentPercent` set) and an uncapped raw
+ * balance (OpenCode Go — only `balance` set).
+ */
+export type ExtraUsageBalance = {
+  /** Current spendable credit balance in major currency units. */
+  balance: number
+  /** ISO 4217 currency code, e.g. "USD" or "EUR". */
+  currencyCode: string
+  /** Whether the provider can currently spend into this balance. */
+  enabled: boolean
+  /** Machine-readable reason spending is unavailable (e.g. "out_of_credits"), or null. */
+  disabledReason: string | null
+  /** Amount spent against the monthly cap this period (major units); null when uncapped. */
+  spent: number | null
+  /** Monthly spend cap in major units; null when uncapped (raw balance only). */
+  spendLimit: number | null
+  /** Percent of the monthly cap spent (0–100); null when uncapped. */
+  spentPercent: number | null
+  /** Unix ms timestamp when the cap resets, if known. */
+  resetsAt: number | null
+}
+
 export type RateLimitBucket = RateLimitWindow & {
   name: string
 }
@@ -63,6 +89,12 @@ export type ProviderRateLimits = {
   fableWeekly?: RateLimitWindow | null
   /** 30-day monthly window (OpenCode Go, Grok unified billing), null if not available. */
   monthly?: RateLimitWindow | null
+  /**
+   * Overage / pay-as-you-go balance the plan spends into once its windows are
+   * capped (Claude "extra usage" cap, OpenCode Go "Zen balance"), null when the
+   * provider reports none or extra usage is disabled.
+   */
+  extraUsage?: ExtraUsageBalance | null
   /** Named per-model buckets (Gemini only). */
   buckets?: RateLimitBucket[]
   /** Available earned Codex rate-limit reset credits, if reported. */

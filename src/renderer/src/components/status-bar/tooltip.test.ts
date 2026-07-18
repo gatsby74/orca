@@ -27,6 +27,7 @@ import {
   formatResetCreditExpiry,
   formatResetCountdown,
   getProviderUsageErrorMessage,
+  getExtraUsageLabel,
   getProviderUsageStatusLabel,
   getWindowSections,
   ProviderIcon,
@@ -444,6 +445,100 @@ describe('getWindowSections', () => {
     expect(sections[0].label).toBe('Pro')
     expect(sections[0].window!.resetsAt).toBe(18000000)
     expect(sections[0].window!.resetDescription).toBe('5:00 PM')
+  })
+})
+
+describe('getExtraUsageLabel', () => {
+  it('names the balance per provider', () => {
+    expect(getExtraUsageLabel('claude')).toBe('Usage credits')
+    expect(getExtraUsageLabel('opencode-go')).toBe('Zen balance')
+    expect(getExtraUsageLabel('codex')).toBe('Balance')
+  })
+})
+
+describe('ProviderPanel extra-usage rendering', () => {
+  it('renders the Claude usage-credits cap as a spent/limit meter plus balance', () => {
+    const p = provider({
+      status: 'ok',
+      session: { usedPercent: 100, windowMinutes: 300, resetsAt: null, resetDescription: null },
+      extraUsage: {
+        balance: 10,
+        currencyCode: 'EUR',
+        enabled: true,
+        disabledReason: null,
+        spent: 50,
+        spendLimit: 2000,
+        spentPercent: 2.5,
+        resetsAt: null
+      }
+    })
+
+    const markup = renderToStaticMarkup(ProviderPanel({ p }))
+
+    expect(markup).toContain('Usage credits')
+    expect(markup).toContain('€2,000.00')
+    expect(markup).toContain('€50.00')
+    expect(markup).toContain('% used')
+    expect(markup).toContain('Balance €10.00')
+  })
+
+  it('renders a disabled, out-of-credits cap with a zero balance', () => {
+    const p = provider({
+      status: 'ok',
+      session: { usedPercent: 100, windowMinutes: 300, resetsAt: null, resetDescription: null },
+      extraUsage: {
+        balance: 0,
+        currencyCode: 'EUR',
+        enabled: false,
+        disabledReason: 'out_of_credits',
+        spent: 0,
+        spendLimit: 2000,
+        spentPercent: 0,
+        resetsAt: null
+      }
+    })
+
+    const markup = renderToStaticMarkup(ProviderPanel({ p }))
+
+    expect(markup).toContain('Usage credits')
+    expect(markup).toContain('€0.00 / €2,000.00')
+    expect(markup).toContain('Balance €0.00')
+  })
+
+  it('renders an uncapped OpenCode Go balance as a plain available amount', () => {
+    const p = provider({
+      provider: 'opencode-go',
+      status: 'ok',
+      session: { usedPercent: 20, windowMinutes: 300, resetsAt: null, resetDescription: null },
+      extraUsage: {
+        balance: 12.4,
+        currencyCode: 'USD',
+        enabled: true,
+        disabledReason: null,
+        spent: null,
+        spendLimit: null,
+        spentPercent: null,
+        resetsAt: null
+      }
+    })
+
+    const markup = renderToStaticMarkup(ProviderPanel({ p }))
+
+    expect(markup).toContain('Zen balance')
+    expect(markup).toContain('$12.40')
+    expect(markup).toContain('available')
+  })
+
+  it('omits the balance row when no extra usage is reported', () => {
+    const p = provider({
+      status: 'ok',
+      session: { usedPercent: 40, windowMinutes: 300, resetsAt: null, resetDescription: null }
+    })
+
+    const markup = renderToStaticMarkup(ProviderPanel({ p }))
+
+    expect(markup).not.toContain('Usage credits')
+    expect(markup).not.toContain('Zen balance')
   })
 })
 

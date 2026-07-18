@@ -124,6 +124,99 @@ type ParsedSubscription = {
   monthlyResetInSec: number | null
 }
 
+// The billing server serializes the Zen (pay-as-you-go) balance in units of
+// 1e-8 USD (e.g. 2_375_000_000 → $23.75), so scale it back to dollars.
+const ZEN_BILLING_SCALE = 100_000_000
+
+// Explicit balance fields the page may expose already in whole USD (not scaled).
+// More specific keys are listed first so `\b` boundaries never mis-match a
+// longer name (e.g. `currentBalance` inside `currentBalanceUsd`).
+const EXPLICIT_ZEN_BALANCE_KEYS = [
+  'zenCurrentBalance',
+  'zenBalance',
+  'currentBalanceUsd',
+  'currentBalanceUSD',
+  'currentBalance',
+  'balanceUsd',
+  'balanceUSD',
+  'usdBalance'
+]
+
+/**
+ * Extract the Zen pay-as-you-go balance (in USD) from the opencode.ai workspace
+ * page. The page embeds billing context in the same React Flight payload as the
+ * usage data, so this reuses the already-fetched text — no extra request.
+ * Returns null when no balance is present (billing disabled or not on the page).
+ */
+export function parseZenBalanceUsd(text: string): number | null {
+  if (!text || text.length > 10_000_000) {
+    return null
+  }
+  // 1. Billing object: {customerID:"cus_...",balance:$R[N]=NNNN,...}, scaled 1e8.
+  const scaled = parseScaledBillingBalance(text)
+  if (scaled !== null) {
+    return scaled
+  }
+  // 2. Explicit USD balance keys (already major units, may be quoted with commas).
+  const explicit = parseExplicitZenBalance(text)
+  if (explicit !== null) {
+    return explicit
+  }
+  // 3. Human-readable "current balance $X" copy as a last resort.
+  return parseDollarBalanceText(text)
+}
+
+function parseScaledBillingBalance(text: string): number | null {
+  // Require a real customerID so `customerID:null` / billing-disabled payloads
+  // (which still carry a `balance:0`) don't register as a live balance.
+  const customerRegex = /(?:"customerID"|customerID)\s*:\s*(?:\$R\[\d+\]\s*=\s*)?"[^"]+"/
+  if (!customerRegex.test(text)) {
+    return null
+  }
+  const balanceRegex = /(?:"balance"|balance)\s*:\s*(?:\$R\[\d+\]\s*=\s*)?(-?[0-9]+(?:\.[0-9]+)?)/
+  const match = balanceRegex.exec(text)
+  if (!match) {
+    return null
+  }
+  const raw = Number.parseFloat(match[1])
+  return Number.isFinite(raw) ? raw / ZEN_BILLING_SCALE : null
+}
+
+function parseExplicitZenBalance(text: string): number | null {
+  for (const key of EXPLICIT_ZEN_BALANCE_KEYS) {
+    // Key may be quoted (JSON) or bare (JS object); value may be a bare number
+    // or a quoted string with thousands separators.
+    const regex = new RegExp(
+      `(?:"${key}"|\\b${key}\\b)\\s*:\\s*(?:\\$R\\[\\d+\\]\\s*=\\s*)?"?([0-9][0-9,]*(?:\\.[0-9]+)?)"?`
+    )
+    const match = regex.exec(text)
+    if (match) {
+      const value = Number.parseFloat(match[1].replace(/,/g, ''))
+      if (Number.isFinite(value)) {
+        return value
+      }
+    }
+  }
+  return null
+}
+
+function parseDollarBalanceText(text: string): number | null {
+  const patterns = [
+    /(?:current\s+balance|zen\s+balance|現在の残高)[^$]{0,80}\$\s*([0-9][0-9,]*(?:\.[0-9]+)?)/i,
+    /(?:balance|残高)[\s\S]{0,120}?\$\s*([0-9][0-9,]*(?:\.[0-9]+)?)/i
+  ]
+  for (const pattern of patterns) {
+    const match = pattern.exec(text)
+    if (match) {
+      const value = Number.parseFloat(match[1].replace(/,/g, ''))
+      if (Number.isFinite(value)) {
+        return value
+      }
+    }
+  }
+  return null
+}
+
 export function parseSubscriptionFromPageText(text: string): ParsedSubscription | null {
   // Why: OpenCode usage is scraped from HTML-embedded JS (React Flight wire
   // format). Defensive size check prevents runaway parsing on unexpected payloads.

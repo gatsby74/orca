@@ -59,6 +59,7 @@ import {
   getProviderDisplayName,
   getProviderUsageStatusLabel
 } from './tooltip'
+import { formatCurrencyAmount } from '../../../../shared/currency-format'
 import { ClaudeIcon, GeminiIcon, MiniMaxIcon, OpenAIIcon, OpenCodeGoIcon } from './icons'
 import { AgentIcon } from '@/lib/agent-catalog'
 import { UsageRosterPanel, getTightestUsageSection } from './UsageRosterPanel'
@@ -1247,6 +1248,23 @@ function VerboseProviderUsage({
   )
 }
 
+// A plan spends into its overage balance only once an included window is
+// exhausted. Treat ~100% as capped to tolerate provider rounding.
+const CAP_THRESHOLD_PERCENT = 99.5
+
+// Why: the overage balance stays hidden in the compact bar until the plan is
+// actually spending it — the balance must be spendable (enabled) and a
+// session/weekly/monthly window must be capped — so it appears (and visibly
+// counts down) exactly when it matters.
+function isExtraUsageActive(p: ProviderRateLimits): boolean {
+  if (!p.extraUsage || !p.extraUsage.enabled) {
+    return false
+  }
+  return [p.session, p.weekly, p.monthly, p.fableWeekly].some(
+    (w) => w != null && clampUsedPercent(w.usedPercent) >= CAP_THRESHOLD_PERCENT
+  )
+}
+
 export function ProviderSegment({
   p,
   compact,
@@ -1305,6 +1323,7 @@ export function ProviderSegment({
 
   // Has data (ok, fetching with stale data, or error with stale data)
   const isStale = p.status === 'error'
+  const showBalance = isExtraUsageActive(p)
 
   return (
     <span className="inline-flex items-center gap-1.5">
@@ -1323,6 +1342,15 @@ export function ProviderSegment({
           display={display}
           showLabel={!compact}
         />
+      ) : null}
+      {showBalance && p.extraUsage ? (
+        <>
+          <span className="text-muted-foreground">·</span>
+          <span className="tabular-nums">
+            {formatCurrencyAmount(p.extraUsage.balance, p.extraUsage.currencyCode)}{' '}
+            {translate('auto.components.status.bar.StatusBar.4fba7dc1e7', 'bal')}
+          </span>
+        </>
       ) : null}
       {isStale && <AlertTriangle size={11} className="text-muted-foreground/80" />}
     </span>

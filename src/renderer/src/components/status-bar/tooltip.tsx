@@ -1,8 +1,13 @@
-import type { ProviderRateLimits, RateLimitWindow } from '../../../../shared/rate-limit-types'
+import type {
+  ExtraUsageBalance,
+  ProviderRateLimits,
+  RateLimitWindow
+} from '../../../../shared/rate-limit-types'
 import {
   formatResetCountdown,
   formatResetDuration
 } from '../../../../shared/rate-limit-reset-format'
+import { formatCurrencyAmount } from '../../../../shared/currency-format'
 import { AgentIcon } from '@/lib/agent-catalog'
 import { ClaudeIcon, GeminiIcon, MiniMaxIcon, OpenAIIcon, OpenCodeGoIcon } from './icons'
 import { translate } from '@/i18n/i18n'
@@ -176,6 +181,19 @@ export function getWindowSections(
   return sections
 }
 
+// Why: the overage balance is named per provider (Claude calls it "Usage
+// credits"; OpenCode Go exposes a pay-as-you-go "Zen balance"), so the copy is
+// chosen in the renderer — the shared data model stays provider-agnostic.
+export function getExtraUsageLabel(provider: ProviderRateLimits['provider']): string {
+  if (provider === 'claude') {
+    return translate('auto.components.status.bar.tooltip.7404abbece', 'Usage credits')
+  }
+  if (provider === 'opencode-go') {
+    return translate('auto.components.status.bar.tooltip.fbc80d8be2', 'Zen balance')
+  }
+  return translate('auto.components.status.bar.tooltip.c03c61f53f', 'Balance')
+}
+
 // ---------------------------------------------------------------------------
 // Tooltip — progress bar section for a single window
 // ---------------------------------------------------------------------------
@@ -308,6 +326,57 @@ export function ProviderPanel({
       ? formatResetCreditExpiry(p.rateLimitResetCredits?.nextExpiresAt, resetCreditCount)
       : null
 
+  const PanelBalanceSection = ({
+    balance,
+    label
+  }: {
+    balance: ExtraUsageBalance
+    label: string
+  }): React.JSX.Element => {
+    // Capped balances (Claude usage credits) render a spent/limit meter plus the
+    // current balance; uncapped balances (OpenCode Go Zen credit) render a plain
+    // available amount.
+    const capped = balance.spendLimit !== null && balance.spentPercent !== null
+    const balanceText = formatCurrencyAmount(balance.balance, balance.currencyCode)
+
+    if (!capped) {
+      return (
+        <div className="space-y-1">
+          <div className={`font-medium ${textClass}`}>{label}</div>
+          <div className={mutedClass}>
+            {translate('auto.components.status.bar.tooltip.f6a27a3c0a', '{{value0}} available', {
+              value0: balanceText
+            })}
+          </div>
+        </div>
+      )
+    }
+
+    const spentPct = clampUsedPercent(balance.spentPercent ?? 0)
+    const spent = formatCurrencyAmount(balance.spent ?? 0, balance.currencyCode)
+    const limit = formatCurrencyAmount(balance.spendLimit ?? 0, balance.currencyCode)
+    return (
+      <div className="space-y-1">
+        <div className={`font-medium ${textClass}`}>{label}</div>
+        <div className={`h-[6px] w-full overflow-hidden rounded-full ${emptyBarClass}`}>
+          <div
+            className={`h-full rounded-full ${barColor(spentPct)} transition-all duration-300`}
+            style={{ width: `${spentPct}%` }}
+          />
+        </div>
+        <div className={`flex justify-between ${mutedClass}`}>
+          <span>{`${spent} / ${limit}`}</span>
+          <span>{formatUsagePercentageLabel(spentPct, usagePercentageDisplay)}</span>
+        </div>
+        <div className={faintClass}>
+          {translate('auto.components.status.bar.tooltip.473d45cd0f', 'Balance {{value0}}', {
+            value0: balanceText
+          })}
+        </div>
+      </div>
+    )
+  }
+
   return (
     <div className={`${className ?? 'w-full'} space-y-3 text-xs`}>
       <div>
@@ -346,6 +415,10 @@ export function ProviderPanel({
           usagePercentageDisplay={usagePercentageDisplay}
         />
       ))}
+
+      {p.extraUsage ? (
+        <PanelBalanceSection balance={p.extraUsage} label={getExtraUsageLabel(p.provider)} />
+      ) : null}
 
       {p.error ? (
         <ErrorMessage
