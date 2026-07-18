@@ -387,6 +387,7 @@ let pluginKillListService: PluginKillListService | null = null
 let pluginMarketplaceService: PluginMarketplaceService | null = null
 let pluginMarketplaceInstaller: PluginMarketplaceInstaller | null = null
 let keybindings: KeybindingService | null = null
+let portableSettingsSync: PortableSettingsSyncService | null = null
 
 function emitPluginWorktreeLifecycle(event: RuntimeWorktreeLifecycleEvent): void {
   pluginService?.emitEvent(
@@ -1458,7 +1459,13 @@ function openMainWindow(options: { revealOnDidFinishLoad?: boolean } = {}): Brow
         await preserveAgentAuthBeforeRestart({ codexRuntimeHome, claudeRuntimeAuth, store })
       },
       onOrcaProfileAuthMutation: () => desktopRelayService?.authMutated(),
-      onBeforeOrcaProfileSignOut: () => desktopRelayService?.fenceAndCloseNow()
+      onBeforeOrcaProfileSignOut: () => desktopRelayService?.fenceAndCloseNow(),
+      onRuntimeEnvironmentReachable: (environmentId) => {
+        const sync = portableSettingsSync
+        if (sync?.getState(environmentId)?.enabled) {
+          void sync.syncNow(environmentId).catch(() => undefined)
+        }
+      }
     },
     pluginService ?? undefined,
     pluginMarketplaceService && pluginMarketplaceInstaller
@@ -2463,7 +2470,7 @@ void app.whenReady().then(async () => {
       }
     }
   })
-  const portableSettingsSync = new PortableSettingsSyncService({
+  const settingsSyncService = new PortableSettingsSyncService({
     configPath: join(activeOrcaProfile.profileDirectory, 'portable-settings-sync.json'),
     store,
     keybindings,
@@ -2474,8 +2481,9 @@ void app.whenReady().then(async () => {
         (environment) => environment.id === environmentId
       )
   })
-  portableSettingsSync.start()
-  registerPortableSettingsSyncHandlers(portableSettingsSync)
+  portableSettingsSync = settingsSyncService
+  settingsSyncService.start()
+  registerPortableSettingsSyncHandlers(settingsSyncService)
   browserManager.setSettingsResolver(() => ({ keybindings: keybindings?.getOverrides() }))
   rateLimits.setInactiveClaudeAccountsResolver(() => {
     const settings = store!.getSettings()
@@ -2577,7 +2585,7 @@ void app.whenReady().then(async () => {
     orchestrationEnvironmentTransport,
     portableSettings: createPortableSettingsRuntimeService(store, keybindings, {
       onKeybindingsChanged: broadcastKeybindingsChanged,
-      runWithoutOutboundSync: (operation) => portableSettingsSync.runWithoutOutboundSync(operation)
+      runWithoutOutboundSync: (operation) => settingsSyncService.runWithoutOutboundSync(operation)
     })
   })
   runtime = runtimeService
