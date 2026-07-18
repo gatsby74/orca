@@ -62,7 +62,15 @@ describe('portable settings runtime service', () => {
     const originalSettings = getDefaultSettings('/home/test')
     let settings = originalSettings
     const updateSettings = vi.fn((updates) => {
-      settings = { ...settings, ...updates }
+      settings = {
+        ...settings,
+        ...updates,
+        agentDefaultArgs: { ...settings.agentDefaultArgs, claude: '--side-effect' }
+      }
+      return settings
+    })
+    const restoreSettingsSnapshot = vi.fn((snapshot) => {
+      settings = structuredClone(snapshot)
       return settings
     })
     const keybindings = {
@@ -81,7 +89,7 @@ describe('portable settings runtime service', () => {
       })
     }
     const service = createPortableSettingsRuntimeService(
-      { getSettings: () => settings, updateSettings } as never,
+      { getSettings: () => settings, updateSettings, restoreSettingsSnapshot } as never,
       keybindings as never
     )
     const source = createPortableSettingsBundle(
@@ -94,8 +102,9 @@ describe('portable settings runtime service', () => {
     expect(keybindings.validateOverrides.mock.invocationCallOrder[0]).toBeLessThan(
       keybindings.replaceOverrides.mock.invocationCallOrder[0]
     )
-    expect(updateSettings).toHaveBeenCalledTimes(2)
-    expect(settings.editorAutoSave).toBe(originalSettings.editorAutoSave)
+    expect(updateSettings).toHaveBeenCalledOnce()
+    expect(restoreSettingsSnapshot).toHaveBeenCalledOnce()
+    expect(settings).toEqual(originalSettings)
   })
 
   it('does not persist shortcuts when the settings write fails', () => {

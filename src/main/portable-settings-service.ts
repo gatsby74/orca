@@ -25,7 +25,7 @@ export type PortableSettingsRuntimeService = {
 }
 
 export function createPortableSettingsRuntimeService(
-  store: Pick<Store, 'getSettings' | 'updateSettings'>,
+  store: Pick<Store, 'getSettings' | 'updateSettings' | 'restoreSettingsSnapshot'>,
   keybindings: Pick<KeybindingService, 'getSnapshot' | 'replaceOverrides' | 'validateOverrides'>,
   options: {
     onKeybindingsChanged?: (snapshot: ReturnType<KeybindingService['getSnapshot']>) => void
@@ -70,7 +70,7 @@ export function createPortableSettingsRuntimeService(
       const validatedOverrides = importedOverrides
         ? keybindings.validateOverrides(importedOverrides)
         : null
-      const previousSettings = pickPreviousSettings(store.getSettings(), updates)
+      const previousSettings = structuredClone(store.getSettings())
       let settingsApplied = false
       let keybindingSnapshot: KeybindingFileSnapshot | null = null
 
@@ -94,7 +94,7 @@ export function createPortableSettingsRuntimeService(
       } catch (error) {
         if (settingsApplied) {
           try {
-            store.updateSettings(previousSettings, { notifyListeners: true })
+            store.restoreSettingsSnapshot(previousSettings, { notifyListeners: true })
           } catch (rollbackError) {
             if (!settingsContainUpdates(store.getSettings(), previousSettings)) {
               throw new AggregateError(
@@ -128,13 +128,4 @@ function settingsContainUpdates(
   return (Object.keys(updates) as (keyof GlobalSettings)[]).every((key) =>
     isDeepStrictEqual(settings[key], updates[key])
   )
-}
-
-function pickPreviousSettings(
-  settings: GlobalSettings,
-  updates: Partial<GlobalSettings>
-): Partial<GlobalSettings> {
-  return Object.fromEntries(
-    (Object.keys(updates) as (keyof GlobalSettings)[]).map((key) => [key, settings[key]])
-  ) as Partial<GlobalSettings>
 }
