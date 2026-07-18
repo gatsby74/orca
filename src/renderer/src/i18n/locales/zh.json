@@ -4184,7 +4184,9 @@
           "51001182e3": "空目录",
           "971d85cc84": "作为远程项目打开 · {{value0}}",
           "00c4235c10": "没有匹配“{{value0}}”",
-          "largeInputNoMatches": "没有匹配此长输入的结果"
+          "largeInputNoMatches": "没有匹配此长输入的结果",
+          "createInsideFooter": "New repository folder will be created inside · {{value0}}",
+          "selectParentFolder": "Select parent folder"
         },
         "RemoveFolderDialog": {
           "4dc5b5065b": "移除",
@@ -6647,7 +6649,13 @@
           "show": "显示",
           "hide": "隐藏",
           "externalWorktreesGlobal": "全局默认值：{{value0}}",
-          "useGlobal": "使用全局设置"
+          "useGlobal": "使用全局设置",
+          "browseHostFilesystem": "Browse host filesystem",
+          "cloneParentBrowseHelp": "Choose the directory where Orca should create the repository folder.",
+          "cloneSourceLabel": "Repository URL",
+          "cloneParentLabel": "Parent folder",
+          "cloneParentHelp": "Orca creates the repository folder inside this directory.",
+          "clonePathPreview": "Creates {{path}}"
         },
         "RepositorySourceControlAiActionRows": {
           "548a6e1281": "提示词模板",

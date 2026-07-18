@@ -4172,7 +4172,9 @@
           "51001182e3": "空のディレクトリ",
           "971d85cc84": "このホスト上のプロジェクトとして開きます · {{value0}}",
           "00c4235c10": "「{{value0}}」に一致するものはありません",
-          "largeInputNoMatches": "この長い入力に一致するものはありません"
+          "largeInputNoMatches": "この長い入力に一致するものはありません",
+          "createInsideFooter": "New repository folder will be created inside · {{value0}}",
+          "selectParentFolder": "Select parent folder"
         },
         "RemoveFolderDialog": {
           "4dc5b5065b": "削除",
@@ -6658,11 +6660,11 @@
           "cloneFromUrlHelp": "このリポジトリを選択したホストにクローンします。",
           "addPlannedHost": "ホストプレースホルダーを追加",
           "addPlannedHostHelp": "このホストを記憶し、後でプロジェクトの追加を完了します。",
-          "existingFolder": "既存のフォルダー",
-          "addPlannedHostToHost": "{{host}} を追加",
-          "addPlannedHostConfirm": "このホストでプロジェクトを利用可能にすることを記録するだけです。フォルダーの追加やクローンは、後から行えます。",
-          "projectRuntime": "プロジェクトのランタイム",
-          "projectRuntimeDescription": "このプロジェクトを Windows と WSL のどちらで実行するかを選択します。",
+          "existingFolder": "Existing folder",
+          "addPlannedHostToHost": "Add {{host}}",
+          "addPlannedHostConfirm": "This only records that the project should be available on this host. You can add the folder or clone later.",
+          "projectRuntime": "Project Runtime",
+          "projectRuntimeDescription": "Choose whether this project runs on Windows or WSL.",
           "hostStateDisconnected": "切断済み",
           "hostStateUnknown": "不明",
           "nestedHostLabel": "{{value1}} 経由の {{value0}}",
@@ -6672,7 +6674,13 @@
           "show": "表示",
           "hide": "非表示",
           "externalWorktreesGlobal": "グローバルデフォルト: {{value0}}",
-          "useGlobal": "グローバル設定を使用"
+          "useGlobal": "グローバル設定を使用",
+          "browseHostFilesystem": "Browse host filesystem",
+          "cloneParentBrowseHelp": "Choose the directory where Orca should create the repository folder.",
+          "cloneSourceLabel": "Repository URL",
+          "cloneParentLabel": "Parent folder",
+          "cloneParentHelp": "Orca creates the repository folder inside this directory.",
+          "clonePathPreview": "Creates {{path}}"
         },
         "RepositorySourceControlAiActionRows": {
           "548a6e1281": "コマンドテンプレート",

@@ -12,14 +12,15 @@ import { Label } from '../ui/label'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '../ui/select'
 import type { SetupHostOption } from './repository-host-setup-options'
 import {
-  HostSetupCloneStep,
   HostSetupExistingFolderStep,
   HostSetupPlannedStep,
   HostSetupStartActions
 } from './repository-host-add-project-steps'
+import { RepositoryHostCloneStep } from './RepositoryHostCloneStep'
 
 type RepositoryHostSetupActionsProps = {
   repoDisplayName: string
+  cloneSourceUrl?: string
   selectedProjectHostSetup: ProjectHostSetup
   setupHostOptions: SetupHostOption[]
   setupProjectExistingFolder: (args: {
@@ -50,6 +51,7 @@ type SetupStep = 'choose' | 'existing' | 'clone' | 'planned'
 
 export function RepositoryHostSetupActions({
   repoDisplayName,
+  cloneSourceUrl = '',
   selectedProjectHostSetup,
   setupHostOptions,
   setupProjectExistingFolder,
@@ -62,7 +64,7 @@ export function RepositoryHostSetupActions({
   const [selectedSetupHostId, setSelectedSetupHostId] = useState<ExecutionHostId | null>(null)
   const [setupPath, setSetupPath] = useState('')
   const [setupKind, setSetupKind] = useState<'git' | 'folder'>('git')
-  const [cloneUrl, setCloneUrl] = useState('')
+  const [cloneUrl, setCloneUrl] = useState(cloneSourceUrl)
   const [cloneDestination, setCloneDestination] = useState('')
   const [isSettingUp, setIsSettingUp] = useState(false)
   const [isCloning, setIsCloning] = useState(false)
@@ -88,7 +90,7 @@ export function RepositoryHostSetupActions({
     setStep('choose')
     setSelectedSetupHostId(null)
     setSetupPath('')
-    setCloneUrl('')
+    setCloneUrl(cloneSourceUrl)
     setCloneDestination('')
   }
 
@@ -174,7 +176,15 @@ export function RepositoryHostSetupActions({
             )}
           </p>
         </div>
-        <Button type="button" variant="outline" size="sm" onClick={() => setIsOpen(true)}>
+        <Button
+          type="button"
+          variant="outline"
+          size="sm"
+          onClick={() => {
+            setCloneUrl(cloneSourceUrl)
+            setIsOpen(true)
+          }}
+        >
           <Plus className="size-4" />
           {translate(
             'auto.components.settings.RepositoryPane.addToAnotherHost',
@@ -265,8 +275,9 @@ export function RepositoryHostSetupActions({
           onSubmit={handleExistingFolder}
         />
       ) : null}
-      {step === 'clone' ? (
-        <HostSetupCloneStep
+      {step === 'clone' && setupTargetHostId ? (
+        <RepositoryHostCloneStep
+          hostId={setupTargetHostId}
           cloneUrl={cloneUrl}
           cloneDestination={cloneDestination}
           disabled={!canUsePathActions}

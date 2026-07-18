@@ -379,6 +379,7 @@ export function RepositoryHostSetupsSection({
       {selectedProjectHostSetup ? (
         <RepositoryHostSetupActions
           repoDisplayName={repo.displayName}
+          cloneSourceUrl={repo.gitRemoteIdentity?.remoteUrl}
           selectedProjectHostSetup={selectedProjectHostSetup}
           setupHostOptions={setupHostOptions}
           setupProjectExistingFolder={setupProjectExistingFolder}

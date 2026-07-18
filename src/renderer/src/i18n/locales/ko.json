@@ -4172,7 +4172,9 @@
           "51001182e3": "빈 디렉터리",
           "971d85cc84": "이 호스트에서 프로젝트로 열립니다 · {{value0}}",
           "00c4235c10": "'{{value0}}'과(와) 일치하는 항목이 없습니다.",
-          "largeInputNoMatches": "이 긴 입력과 일치하는 항목 없음"
+          "largeInputNoMatches": "이 긴 입력과 일치하는 항목 없음",
+          "createInsideFooter": "New repository folder will be created inside · {{value0}}",
+          "selectParentFolder": "Select parent folder"
         },
         "RemoveFolderDialog": {
           "4dc5b5065b": "제거",
@@ -6635,7 +6637,13 @@
           "show": "표시",
           "hide": "숨기기",
           "externalWorktreesGlobal": "전역 기본값: {{value0}}",
-          "useGlobal": "전역 설정 사용"
+          "useGlobal": "전역 설정 사용",
+          "browseHostFilesystem": "Browse host filesystem",
+          "cloneParentBrowseHelp": "Choose the directory where Orca should create the repository folder.",
+          "cloneSourceLabel": "Repository URL",
+          "cloneParentLabel": "Parent folder",
+          "cloneParentHelp": "Orca creates the repository folder inside this directory.",
+          "clonePathPreview": "Creates {{path}}"
         },
         "RepositorySourceControlAiActionRows": {
           "548a6e1281": "명령 템플릿",
