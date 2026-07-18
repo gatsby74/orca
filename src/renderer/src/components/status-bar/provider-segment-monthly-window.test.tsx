@@ -43,6 +43,19 @@ function grokMonthlyLimits(status: ProviderRateLimits['status']): ProviderRateLi
   }
 }
 
+// Typical Grok credit plan: weekly only (no session window).
+function grokWeeklyLimits(): ProviderRateLimits {
+  return {
+    provider: 'grok',
+    session: null,
+    weekly: windowOf(27, 10_080),
+    monthly: null,
+    updatedAt: Date.now(),
+    error: null,
+    status: 'ok'
+  }
+}
+
 describe('ProviderSegment monthly window', () => {
   it('renders a monthly-only snapshot in the chip instead of a bare icon', async () => {
     const { ProviderSegment } = await import('./StatusBar')
@@ -52,6 +65,30 @@ describe('ProviderSegment monthly window', () => {
     )
 
     expect(markup).toContain('25% used 30d')
+    // Why: monthly-only Grok still needs the compact meter next to the icon.
+    expect(markup).toContain('width:25%')
+  })
+
+  it('renders the compact meter for weekly-only Grok (no session window)', async () => {
+    const { ProviderSegment } = await import('./StatusBar')
+
+    const markup = renderToStaticMarkup(
+      <ProviderSegment p={grokWeeklyLimits()} compact={false} display="used" />
+    )
+
+    expect(markup).toContain('27% used')
+    expect(markup).toContain('width:27%')
+  })
+
+  it('hides the compact meter in compact layout even when weekly data exists', async () => {
+    const { ProviderSegment } = await import('./StatusBar')
+
+    const markup = renderToStaticMarkup(
+      <ProviderSegment p={grokWeeklyLimits()} compact={true} display="used" />
+    )
+
+    expect(markup).toContain('27% used')
+    expect(markup).not.toContain('width:27%')
   })
 
   it('shows monthly data while fetching instead of the loading placeholder', async () => {

@@ -86,6 +86,7 @@ import {
   type UsagePercentageDisplay
 } from '../../../../shared/usage-percentage-display'
 import { formatUsagePercentageLabel } from './usage-percentage-label'
+import { getPrimaryUsageMeterWindow } from './status-bar-primary-meter-window'
 
 type StatusBarProps = {
   floatingTerminalOpen: boolean
@@ -1234,11 +1235,16 @@ export function ProviderSegment({
       : null
   ].filter((w): w is { key: string; window: RateLimitWindow; label: string } => w !== null)
 
+  // Why: MiniBar used to require session only, so weekly-only providers (Grok)
+  // showed percent text without the compact meter even though the details panel
+  // already draws bars for weekly credits.
+  const primaryMeter = getPrimaryUsageMeterWindow(p)
+
   return (
     <span className="inline-flex items-center gap-1.5">
       <ProviderIcon provider={provider} />
-      {p.session && !compact && (
-        <MiniBar usedPct={clampUsedPercent(p.session.usedPercent)} display={display} />
+      {primaryMeter && !compact && (
+        <MiniBar usedPct={clampUsedPercent(primaryMeter.usedPercent)} display={display} />
       )}
       {visibleWindows.map((window, index) => (
         <React.Fragment key={window.key}>
