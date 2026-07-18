@@ -6658,7 +6658,8 @@
           "cloneSourceLabel": "Repository URL",
           "cloneParentLabel": "Parent folder",
           "cloneParentHelp": "Orca creates the repository folder inside this directory.",
-          "clonePathPreview": "Creates {{path}}"
+          "clonePathPreview": "Creates {{path}}",
+          "chooseFolder": "Choose folder"
         },
         "RepositorySourceControlAiActionRows": {
           "548a6e1281": "Plantilla de comando",
@@ -10148,6 +10149,13 @@
           "saveFailed": "No se pudieron guardar los valores predeterminados de visibilidad.",
           "updateServer": "Actualiza este servidor para configurar los valores predeterminados de las fuentes.",
           "updateServerDefaults": "Actualiza este servidor para configurar los valores predeterminados de visibilidad."
+        },
+        "GitHubRepositoryPicker": {
+          "chooseFromGitHub": "Choose from GitHub",
+          "searchRepositories": "Search repositories…",
+          "loadingRepositories": "Loading GitHub repositories…",
+          "retry": "Retry",
+          "noRepositories": "No repositories found."
         }
       },
       "right": {

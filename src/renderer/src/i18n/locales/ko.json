@@ -6643,7 +6643,8 @@
           "cloneSourceLabel": "Repository URL",
           "cloneParentLabel": "Parent folder",
           "cloneParentHelp": "Orca creates the repository folder inside this directory.",
-          "clonePathPreview": "Creates {{path}}"
+          "clonePathPreview": "Creates {{path}}",
+          "chooseFolder": "Choose folder"
         },
         "RepositorySourceControlAiActionRows": {
           "548a6e1281": "명령 템플릿",
@@ -10148,6 +10149,13 @@
           "saveFailed": "가시성 기본값을 저장할 수 없습니다.",
           "updateServer": "소스 기본값을 구성하려면 이 서버를 업데이트하세요.",
           "updateServerDefaults": "표시 기본값을 구성하려면 이 서버를 업데이트하세요."
+        },
+        "GitHubRepositoryPicker": {
+          "chooseFromGitHub": "Choose from GitHub",
+          "searchRepositories": "Search repositories…",
+          "loadingRepositories": "Loading GitHub repositories…",
+          "retry": "Retry",
+          "noRepositories": "No repositories found."
         }
       },
       "right": {

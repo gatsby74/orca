@@ -11,6 +11,7 @@ import {
   getCloneFolderNamePreview,
   getClonePathPreview
 } from './repository-host-clone-path-preview'
+import { GitHubRepositoryPicker } from './GitHubRepositoryPicker'
 
 type RepositoryHostCloneStepProps = {
   hostId: ExecutionHostId
@@ -37,13 +38,13 @@ export function RepositoryHostCloneStep({
 }: RepositoryHostCloneStepProps): React.JSX.Element {
   const [browsingDestination, setBrowsingDestination] = useState(false)
   const parsedHost = parseExecutionHostId(hostId)
-  const canBrowseHost = parsedHost?.kind === 'ssh' || parsedHost?.kind === 'runtime'
+  const canBrowseRemoteHost = parsedHost?.kind === 'ssh' || parsedHost?.kind === 'runtime'
   const clonePathPreview = getClonePathPreview(
     cloneDestination,
     getCloneFolderNamePreview(cloneUrl)
   )
 
-  if (browsingDestination && canBrowseHost) {
+  if (browsingDestination && canBrowseRemoteHost) {
     const browserProps =
       parsedHost.kind === 'ssh'
         ? { targetId: parsedHost.targetId }
@@ -78,6 +79,23 @@ export function RepositoryHostCloneStep({
     )
   }
 
+  const browseDestination = async (): Promise<void> => {
+    if (canBrowseRemoteHost) {
+      setBrowsingDestination(true)
+      return
+    }
+    const path = await window.api.repos.pickDirectory()
+    if (path) {
+      onCloneDestinationChange(path)
+    }
+  }
+  const browseLabel = canBrowseRemoteHost
+    ? translate(
+        'auto.components.settings.RepositoryPane.browseHostFilesystem',
+        'Browse host filesystem'
+      )
+    : translate('auto.components.settings.RepositoryPane.chooseFolder', 'Choose folder')
+
   return (
     <div className="space-y-3 rounded-md border border-border bg-muted/20 p-3">
       <CloneStepBackButton
@@ -85,9 +103,19 @@ export function RepositoryHostCloneStep({
         label={translate('auto.components.settings.RepositoryPane.cloneFromUrl', 'Clone from URL')}
       />
       <div className="space-y-1.5">
-        <Label className="text-xs">
-          {translate('auto.components.settings.RepositoryPane.cloneSourceLabel', 'Repository URL')}
-        </Label>
+        <div className="flex items-center justify-between gap-3">
+          <Label className="text-xs">
+            {translate(
+              'auto.components.settings.RepositoryPane.cloneSourceLabel',
+              'Repository URL'
+            )}
+          </Label>
+          <GitHubRepositoryPicker
+            currentUrl={cloneUrl}
+            disabled={disabled || isCloning}
+            onSelect={onCloneUrlChange}
+          />
+        </div>
         <Input
           value={cloneUrl}
           onChange={(event) => onCloneUrlChange(event.target.value)}
@@ -116,32 +144,24 @@ export function RepositoryHostCloneStep({
             disabled={isCloning}
             spellCheck={false}
           />
-          {canBrowseHost ? (
-            <Tooltip>
-              <TooltipTrigger asChild>
-                <Button
-                  type="button"
-                  variant="outline"
-                  size="icon-sm"
-                  className="size-9 shrink-0"
-                  disabled={disabled || isCloning}
-                  onClick={() => setBrowsingDestination(true)}
-                  aria-label={translate(
-                    'auto.components.settings.RepositoryPane.browseHostFilesystem',
-                    'Browse host filesystem'
-                  )}
-                >
-                  <FolderOpen className="size-4" />
-                </Button>
-              </TooltipTrigger>
-              <TooltipContent side="top" sideOffset={4}>
-                {translate(
-                  'auto.components.settings.RepositoryPane.browseHostFilesystem',
-                  'Browse host filesystem'
-                )}
-              </TooltipContent>
-            </Tooltip>
-          ) : null}
+          <Tooltip>
+            <TooltipTrigger asChild>
+              <Button
+                type="button"
+                variant="outline"
+                size="icon-sm"
+                className="size-9 shrink-0"
+                disabled={disabled || isCloning}
+                onClick={() => void browseDestination()}
+                aria-label={browseLabel}
+              >
+                <FolderOpen className="size-4" />
+              </Button>
+            </TooltipTrigger>
+            <TooltipContent side="top" sideOffset={4}>
+              {browseLabel}
+            </TooltipContent>
+          </Tooltip>
         </div>
         <p className="text-[11px] text-muted-foreground">
           {clonePathPreview

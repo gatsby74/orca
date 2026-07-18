@@ -7077,7 +7077,8 @@
           "cloneSourceLabel": "Repository URL",
           "cloneParentLabel": "Parent folder",
           "cloneParentHelp": "Orca creates the repository folder inside this directory.",
-          "clonePathPreview": "Creates {{path}}"
+          "clonePathPreview": "Creates {{path}}",
+          "chooseFolder": "Choose folder"
         },
         "RepositorySourceControlAiActionRows": {
           "548a6e1281": "Command template",
@@ -10741,6 +10742,13 @@
           "cancel": "Keep cleaning",
           "stopping": "Stopping…",
           "confirm": "Stop cleanup"
+        },
+        "GitHubRepositoryPicker": {
+          "chooseFromGitHub": "Choose from GitHub",
+          "searchRepositories": "Search repositories…",
+          "loadingRepositories": "Loading GitHub repositories…",
+          "retry": "Retry",
+          "noRepositories": "No repositories found."
         }
       },
       "right": {

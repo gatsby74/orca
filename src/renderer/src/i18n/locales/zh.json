@@ -6655,7 +6655,8 @@
           "cloneSourceLabel": "Repository URL",
           "cloneParentLabel": "Parent folder",
           "cloneParentHelp": "Orca creates the repository folder inside this directory.",
-          "clonePathPreview": "Creates {{path}}"
+          "clonePathPreview": "Creates {{path}}",
+          "chooseFolder": "Choose folder"
         },
         "RepositorySourceControlAiActionRows": {
           "548a6e1281": "提示词模板",
@@ -10168,6 +10169,13 @@
           "saveFailed": "无法保存可见性默认设置。",
           "updateServer": "请更新此服务器以配置来源默认设置。",
           "updateServerDefaults": "请更新此服务器以配置可见性默认设置。"
+        },
+        "GitHubRepositoryPicker": {
+          "chooseFromGitHub": "Choose from GitHub",
+          "searchRepositories": "Search repositories…",
+          "loadingRepositories": "Loading GitHub repositories…",
+          "retry": "Retry",
+          "noRepositories": "No repositories found."
         }
       },
       "right": {
