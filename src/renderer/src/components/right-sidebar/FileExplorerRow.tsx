@@ -273,6 +273,7 @@ type FileExplorerRowProps = {
   deleteShortcutLabel: string
   connectionId?: string | null
   runtimeDownloadContext?: RuntimeFileOperationArgs | null
+  supportsFolderDownload?: boolean
   canCollapseFolderSubtree: boolean
   targetDir: string
   targetDepth: number
@@ -318,12 +319,16 @@ export function shouldShowViewFileAction(node: TreeNode): boolean {
 export function shouldShowRemoteDownloadAction(
   node: TreeNode,
   connectionId?: string | null,
-  runtimeDownloadContext?: RuntimeFileOperationArgs | null
+  runtimeDownloadContext?: RuntimeFileOperationArgs | null,
+  supportsFolderDownload = true
 ): boolean {
   // Why: Desktop-only because download depends on Electron's native save/folder dialogs;
-  // runtime folder download has no recursive transfer contract yet.
+  // runtime and system-SSH folders have no recursive transfer contract.
+  const hasDownloadCapability = node.isDirectory
+    ? Boolean(connectionId && supportsFolderDownload)
+    : Boolean(connectionId || runtimeDownloadContext)
   return (
-    Boolean(connectionId || (!node.isDirectory && runtimeDownloadContext)) &&
+    hasDownloadCapability &&
     (globalThis as { __ORCA_WEB_CLIENT__?: boolean }).__ORCA_WEB_CLIENT__ !== true
   )
 }
@@ -437,6 +442,7 @@ export function FileExplorerRow({
   deleteShortcutLabel,
   connectionId,
   runtimeDownloadContext,
+  supportsFolderDownload = true,
   canCollapseFolderSubtree,
   targetDir,
   targetDepth,
@@ -472,7 +478,8 @@ export function FileExplorerRow({
   const showRemoteDownloadAction = shouldShowRemoteDownloadAction(
     node,
     connectionId,
-    runtimeDownloadContext
+    runtimeDownloadContext,
+    supportsFolderDownload
   )
   const showCopyFileAction = shouldShowCopyFileAction(node, connectionId, selectionSize)
   const { setRowDragNode, handleDragOver, handleDragEnter, handleDragLeave, handleDrop } =

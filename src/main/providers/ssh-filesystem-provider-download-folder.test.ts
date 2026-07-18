@@ -52,6 +52,15 @@ describe('SshFilesystemProvider downloadFolder', () => {
     )
   })
 
+  it('omits folder capability without SFTP while retaining raw file download', async () => {
+    const downloadFile = vi.fn().mockResolvedValue(undefined)
+    provider = new SshFilesystemProvider('conn-1', mux as never, undefined, { downloadFile })
+
+    expect(provider.downloadFolder).toBeUndefined()
+    await provider.downloadFile('/remote/report.pdf', '/downloads/report.pdf')
+    expect(downloadFile).toHaveBeenCalledWith('/remote/report.pdf', '/downloads/report.pdf')
+  })
+
   it('downloads a recursive tree through one SFTP session', async () => {
     const root = await mkdtemp(join(tmpdir(), 'orca-ssh-folder-download-'))
     localDownloadRoots.push(root)
@@ -65,11 +74,7 @@ describe('SshFilesystemProvider downloadFolder', () => {
           callback(
             undefined,
             remotePath === '/remote/src'
-              ? [
-                  sftpEntry('index.ts', 'file'),
-                  sftpEntry('lib', 'directory'),
-                  sftpEntry('linked-file', 'symlink')
-                ]
+              ? [sftpEntry('index.ts', 'file'), sftpEntry('lib', 'directory')]
               : [sftpEntry('a.ts', 'file')]
           )
       ),
@@ -82,13 +87,12 @@ describe('SshFilesystemProvider downloadFolder', () => {
     provider = new SshFilesystemProvider('conn-1', mux as never, createSftp)
     const destination = join(root, 'src')
 
-    await provider.downloadFolder('/remote/src', destination)
+    await provider.downloadFolder!('/remote/src', destination)
 
     expect(createSftp).toHaveBeenCalledTimes(1)
     expect(sftp.fastGet.mock.calls.map(([source, local]) => [source, local])).toEqual([
       ['/remote/src/index.ts', join(destination, 'index.ts')],
-      ['/remote/src/lib/a.ts', join(destination, 'lib', 'a.ts')],
-      ['/remote/src/linked-file', join(destination, 'linked-file')]
+      ['/remote/src/lib/a.ts', join(destination, 'lib', 'a.ts')]
     ])
     await expect(stat(join(destination, 'lib'))).resolves.toMatchObject({})
     expect(sftp.end).toHaveBeenCalledTimes(1)
@@ -111,8 +115,8 @@ describe('SshFilesystemProvider downloadFolder', () => {
     }
     provider = new SshFilesystemProvider('conn-1', mux as never, async () => sftp as never)
 
-    await expect(provider.downloadFolder('/remote/src', join(root, 'src'))).rejects.toThrow(
-      "Cannot download symbolic-link directory 'linked-dir'"
+    await expect(provider.downloadFolder!('/remote/src', join(root, 'src'))).rejects.toThrow(
+      "Cannot download symbolic link 'linked-dir'"
     )
 
     expect(sftp.fastGet).not.toHaveBeenCalled()
@@ -134,7 +138,7 @@ describe('SshFilesystemProvider downloadFolder', () => {
     }
     provider = new SshFilesystemProvider('conn-1', mux as never, async () => sftp as never)
 
-    await expect(provider.downloadFolder('/remote/src', join(root, 'src'))).rejects.toThrow(
+    await expect(provider.downloadFolder!('/remote/src', join(root, 'src'))).rejects.toThrow(
       "Remote entries map to the same local name 'a_b.txt'"
     )
 
@@ -156,7 +160,7 @@ describe('SshFilesystemProvider downloadFolder', () => {
     provider = new SshFilesystemProvider('conn-1', mux as never, createSftp)
     const controller = new AbortController()
 
-    const result = provider.downloadFolder('/remote/src', join(root, 'src'), {
+    const result = provider.downloadFolder!('/remote/src', join(root, 'src'), {
       signal: controller.signal
     })
     await vi.waitFor(() => expect(createSftp).toHaveBeenCalledTimes(1))

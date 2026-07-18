@@ -88,6 +88,29 @@ describe('downloadFolderViaSftp', () => {
     expect(sftp.fastGet).not.toHaveBeenCalled()
   })
 
+  it('rejects a file symlink that could escape the selected remote tree', async () => {
+    const destination = await createDestination()
+    const sftp = {
+      stat: vi.fn(
+        (remotePath: string, callback: (err: Error | undefined, value: unknown) => void) =>
+          callback(undefined, sftpStats(remotePath === '/remote/src' ? 'directory' : 'file'))
+      ),
+      readdir: vi.fn((_path: string, callback: (err: Error | undefined, value: unknown) => void) =>
+        callback(undefined, [sftpEntry('creds', 'symlink')])
+      ),
+      fastGet: vi.fn(),
+      end: vi.fn()
+    }
+
+    await expect(
+      downloadFolderViaSftp(async () => sftp as never, '/remote/src', destination)
+    ).rejects.toThrow("Cannot download symbolic link 'creds'")
+    // The link target could be /etc/passwd; rejecting from directory-entry
+    // metadata means it is never followed with stat or opened by fastGet.
+    expect(sftp.stat).toHaveBeenCalledTimes(1)
+    expect(sftp.fastGet).not.toHaveBeenCalled()
+  })
+
   it('sanitizes extended Windows device names in nested entries', async () => {
     const destination = await createDestination()
     const sftp = {

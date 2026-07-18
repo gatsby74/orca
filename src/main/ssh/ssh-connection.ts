@@ -96,7 +96,8 @@ export class SshConnection {
       targetId: target.id,
       status: 'disconnected',
       error: null,
-      reconnectAttempt: 0
+      reconnectAttempt: 0,
+      supportsFolderDownload: false
     }
   }
 
@@ -1367,7 +1368,12 @@ export class SshConnection {
   }
 
   private setState(status: SshConnectionStatus, error?: string): void {
-    this.state = { ...this.state, status, error: error ?? null }
+    this.state = {
+      ...this.state,
+      status,
+      error: error ?? null,
+      supportsFolderDownload: status === 'connected' && !this.useSystemSshTransport
+    }
     this.callbacks.onStateChange(this.target.id, { ...this.state })
   }
 }

@@ -47,29 +47,17 @@ function joinSftpChildPath(sourceDir: string, childName: string): string {
   return `${normalizedSource.replace(/\/+$/g, '')}/${childName}`
 }
 
-async function classifySftpEntry(
-  sftp: SFTPWrapper,
-  sourceDir: string,
-  entry: FileEntryWithStats,
-  signal?: AbortSignal
-): Promise<'directory' | 'file'> {
+function classifySftpEntry(entry: FileEntryWithStats): 'directory' | 'file' {
+  if (entry.attrs.isSymbolicLink()) {
+    // Why: following either file or directory links can escape the selected tree;
+    // local symlink creation is also not portable across Orca's supported hosts.
+    throw new Error(`Cannot download symbolic link '${entry.filename}'`)
+  }
   if (entry.attrs.isDirectory()) {
     return 'directory'
   }
   if (entry.attrs.isFile()) {
     return 'file'
-  }
-  if (entry.attrs.isSymbolicLink()) {
-    const remotePath = joinSftpChildPath(sourceDir, entry.filename)
-    const targetStats = await statViaSftp(sftp, remotePath, { signal })
-    if (targetStats.isDirectory()) {
-      // Why: following directory links can escape the selected tree or recurse forever;
-      // local symlink creation is also not portable across Orca's supported hosts.
-      throw new Error(`Cannot download symbolic-link directory '${entry.filename}'`)
-    }
-    if (targetStats.isFile()) {
-      return 'file'
-    }
   }
   throw new Error(`Cannot download unsupported remote entry '${entry.filename}'`)
 }
@@ -99,7 +87,7 @@ async function downloadDirectoryTree(
     usedLocalNames.add(localName)
     plannedEntries.push({
       entry,
-      kind: await classifySftpEntry(sftp, sourceDir, entry, signal),
+      kind: classifySftpEntry(entry),
       localName
     })
   }

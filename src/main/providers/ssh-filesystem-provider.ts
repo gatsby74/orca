@@ -34,6 +34,7 @@ export class SshFilesystemProvider implements IFilesystemProvider {
   private tempDirPromise: Promise<string> | null = null
   private disposed = false
   private loggedStreamFallback = false
+  readonly downloadFolder?: IFilesystemProvider['downloadFolder']
 
   constructor(
     connectionId: string,
@@ -43,6 +44,13 @@ export class SshFilesystemProvider implements IFilesystemProvider {
   ) {
     this.connectionId = connectionId
     this.mux = mux
+
+    if (createSftp) {
+      // Why: system SSH has raw single-file transfer but no ssh2 SFTP channel;
+      // omitting this method makes folder capability truthful at the provider boundary.
+      this.downloadFolder = (sourcePath, destinationPath, options) =>
+        downloadFolderViaSftp(createSftp, sourcePath, destinationPath, options)
+    }
 
     this.unsubscribeNotifications = mux.onNotification((method, params) =>
       routeSshFilesystemWatchNotification(this.watchListeners, method, params)
@@ -122,14 +130,6 @@ export class SshFilesystemProvider implements IFilesystemProvider {
       return
     }
     await downloadFileViaSftp(this.createSftp, sourcePath, destinationPath)
-  }
-
-  async downloadFolder(
-    sourcePath: string,
-    destinationPath: string,
-    options?: { signal?: AbortSignal }
-  ): Promise<void> {
-    await downloadFolderViaSftp(this.createSftp, sourcePath, destinationPath, options)
   }
 
   async openFileUploadSession(): Promise<FileUploadSession> {

@@ -599,6 +599,8 @@ describe('FileExplorerRow collapse folder action', () => {
     expect(shouldShowRemoteDownloadAction(fileNode, null, runtimeContext)).toBe(true)
     expect(shouldShowRemoteDownloadAction(fileNode, null)).toBe(false)
     expect(shouldShowRemoteDownloadAction(directoryNode, 'ssh-1')).toBe(true)
+    expect(shouldShowRemoteDownloadAction(directoryNode, 'ssh-1', null, false)).toBe(false)
+    expect(shouldShowRemoteDownloadAction(fileNode, 'ssh-1', null, false)).toBe(true)
     expect(shouldShowRemoteDownloadAction(directoryNode, null, runtimeContext)).toBe(false)
 
     ;(globalThis as { __ORCA_WEB_CLIENT__?: boolean }).__ORCA_WEB_CLIENT__ = true

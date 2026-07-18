@@ -210,6 +210,8 @@ type DownloadSession = {
 const DOWNLOAD_SESSION_TTL_MS = 30 * 60 * 1000
 
 function createSiblingTransferPath(destinationPath: string, suffix: string): string {
+  // Why: promotion uses rename/no-clobber operations that must stay on the
+  // destination volume, so transfer paths intentionally remain siblings.
   return join(dirname(destinationPath), `.${randomUUID()}.${suffix}`)
 }
 
@@ -218,6 +220,16 @@ async function cleanupLocalTransferPath(filePath: string | null): Promise<void> 
     return
   }
   await rm(filePath, { force: true }).catch(() => {})
+}
+
+async function cleanupLocalTransferDirectory(dirPath: string): Promise<void> {
+  try {
+    await rm(dirPath, { recursive: true, force: true })
+  } catch (error) {
+    // Why: cleanup must not mask the transfer error, but a leaked recursive
+    // download tree needs enough visibility to diagnose and remove it.
+    console.warn(`[filesystem] Failed to remove temporary folder download '${dirPath}'`, error)
+  }
 }
 
 async function inspectDownloadDestination(destinationPath: string): Promise<{ existed: boolean }> {
@@ -674,6 +686,12 @@ export function registerFilesystemHandlers(
     ): Promise<DownloadFileResult> => {
       const dirPath = validateRequiredString(args?.dirPath, 'dirPath')
       const connectionId = validateRequiredString(args?.connectionId, 'connectionId')
+      const provider = requireSshFilesystemProvider(connectionId)
+      if (!provider.downloadFolder) {
+        throw new Error(
+          'Remote folder download is unavailable. Reconnect the SSH target and retry.'
+        )
+      }
       const abortController = new AbortController()
       const abortOnSenderDestroyed = (): void => {
         abortController.abort(new Error('Folder download canceled because the window closed'))
@@ -683,11 +701,12 @@ export function registerFilesystemHandlers(
         abortOnSenderDestroyed()
       }
       try {
+        abortController.signal.throwIfAborted()
         const remoteBasename = getRuntimePathBasename(dirPath)
         const destinationBasename = sanitizeLocalDownloadFilename(remoteBasename)
         const parentWindow = BrowserWindow.fromWebContents(event.sender) ?? undefined
-        // Why: open the native picker before SSH validation so remote latency does
-        // not make the click feel unresponsive.
+        // Why: after the local capability/abort checks, open the picker before
+        // remote tree validation so SSH latency does not delay click feedback.
         const dialogOptions: Electron.OpenDialogOptions = {
           properties: ['openDirectory', 'createDirectory']
         }
@@ -703,13 +722,6 @@ export function registerFilesystemHandlers(
         const destinationPath = join(destinationParent, destinationBasename)
         await assertDownloadFolderDestinationAvailable(destinationPath)
 
-        const provider = requireSshFilesystemProvider(connectionId)
-        if (!provider.downloadFolder) {
-          throw new Error(
-            'Remote folder download is unavailable. Reconnect the SSH target and retry.'
-          )
-        }
-
         const tempPath = createSiblingTransferPath(destinationPath, 'download')
         try {
           await provider.downloadFolder(dirPath, tempPath, { signal: abortController.signal })
@@ -717,7 +729,7 @@ export function registerFilesystemHandlers(
           await promoteLocalDownloadedFolder(tempPath, destinationPath, abortController.signal)
           return { canceled: false, destinationPath }
         } finally {
-          await rm(tempPath, { recursive: true, force: true }).catch(() => {})
+          await cleanupLocalTransferDirectory(tempPath)
         }
       } finally {
         event.sender.removeListener('destroyed', abortOnSenderDestroyed)
