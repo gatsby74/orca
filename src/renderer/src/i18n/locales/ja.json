@@ -6828,7 +6828,13 @@
           "troubleshootTunnel": "SSH ローカルフォワードを使う場合は、「ホストに接続」に戻ってループバックリンクを貼り付け、「詳細」で「SSH トンネルを使用しています」を有効にします。",
           "cloudVmWorkflow": "クラウド VM",
           "cloudVmWorkflowHelp": "レシピで作成したクラウドマシンを管理",
-          "importSettings": "Import local settings"
+          "importSettings": "Import local settings",
+          "syncSettings": "Sync settings",
+          "settingsSyncPaused": "Settings sync paused",
+          "settingsSyncPending": "Settings waiting to sync",
+          "settingsSyncing": "Syncing settings…",
+          "settingsSynced": "Settings synced",
+          "settingsSyncFailed": "Settings sync failed"
         },
         "RuntimePairingGeneratedUrlRows": {
           "0495f68959": "{{value0}}をコピー"
@@ -10162,6 +10168,33 @@
           "inputHelp": "Keyboard shortcuts, editor behavior, terminal scrolling, mouse, and paste preferences.",
           "workflow": "Agents and workflow",
           "workflowHelp": "Agent defaults, Git behavior, task views, prompt cache, and tab preferences."
+        },
+        "RuntimeSettingsSyncDialog": {
+          "loadFailed": "Could not compare settings with this server.",
+          "success": "Synced settings to {{value0}}.",
+          "syncStarted": "Settings will stay synced to {{value0}}.",
+          "applyFailed": "Could not sync settings to this server.",
+          "title": "Sync settings to {{value0}}",
+          "description": "Choose which preferences this Orca should send to the linked server.",
+          "security": "Accounts, credentials, secrets, machine paths, histories, and integration sessions are never included.",
+          "comparing": "Comparing settings…",
+          "retry": "Try again",
+          "matches": "Matches",
+          "change": "1 change",
+          "changes": "{{value0}} changes",
+          "cancel": "Cancel",
+          "startSyncing": "Start syncing",
+          "syncNow": "Sync now",
+          "keepInSync": "Keep these settings in sync",
+          "keepInSyncHelp": "This Orca becomes the source of truth. Changes sync after a short delay and whenever the server reconnects.",
+          "stopSyncing": "Stop syncing",
+          "appearance": "Appearance",
+          "appearanceHelp": "Theme, fonts, terminal visuals, diff layout, and sidebar presentation.",
+          "input": "Input and shortcuts",
+          "inputHelp": "Keyboard shortcuts, editor behavior, terminal scrolling, mouse, and paste preferences.",
+          "workflow": "Agents and workflow",
+          "workflowHelp": "Agent defaults, Git behavior, task views, prompt cache, and tab preferences.",
+          "syncStopped": "Stopped settings sync to {{value0}}."
         }
       },
       "right": {

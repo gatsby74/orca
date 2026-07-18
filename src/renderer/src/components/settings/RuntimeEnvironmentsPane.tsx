@@ -5,7 +5,6 @@ import {
   AlertTriangle,
   ChevronDown,
   Loader2,
-  Upload,
   Plus,
   RefreshCw,
   Server,
@@ -22,6 +21,7 @@ import {
   type PublicKnownRuntimeEnvironment
 } from '../../../../shared/runtime-environments'
 import type { RuntimeStatus } from '../../../../shared/runtime-types'
+import type { PortableSettingsSyncState } from '../../../../shared/portable-settings-sync'
 import {
   describeRuntimeCompatBlock,
   evaluateRuntimeCompat,
@@ -50,7 +50,7 @@ import {
 import { RuntimePairingUrlGenerator } from './RuntimePairingUrlGenerator'
 import { EphemeralVmRuntimesSection } from './EphemeralVmRuntimesSection'
 import { CloudVmSetupGuide } from './CloudVmSetupGuide'
-import { RuntimeSettingsImportDialog } from './RuntimeSettingsImportDialog'
+import { RuntimeSettingsSyncDialog } from './RuntimeSettingsSyncDialog'
 import {
   getRuntimeEnvironmentsSearchEntry,
   getWebRuntimeEnvironmentsSearchEntry
@@ -250,6 +250,36 @@ function getRuntimeServerConnectionLabel(state: RuntimeServerConnectionState): s
   }
 }
 
+function getPortableSettingsSyncLabel(state: PortableSettingsSyncState): string {
+  switch (state.phase) {
+    case 'paused':
+      return translate(
+        'auto.components.settings.RuntimeEnvironmentsPane.settingsSyncPaused',
+        'Settings sync paused'
+      )
+    case 'pending':
+      return translate(
+        'auto.components.settings.RuntimeEnvironmentsPane.settingsSyncPending',
+        'Settings waiting to sync'
+      )
+    case 'syncing':
+      return translate(
+        'auto.components.settings.RuntimeEnvironmentsPane.settingsSyncing',
+        'Syncing settings…'
+      )
+    case 'synced':
+      return translate(
+        'auto.components.settings.RuntimeEnvironmentsPane.settingsSynced',
+        'Settings synced'
+      )
+    case 'error':
+      return translate(
+        'auto.components.settings.RuntimeEnvironmentsPane.settingsSyncFailed',
+        'Settings sync failed'
+      )
+  }
+}
+
 function getRuntimeServerDotClass(state: RuntimeServerConnectionState): string {
   switch (state) {
     case 'connected':
@@ -274,13 +304,16 @@ export function RuntimeEnvironmentsPane({
   const [detailsByEnvironmentId, setDetailsByEnvironmentId] = useState<
     Record<string, RuntimeHostDetails>
   >({})
+  const [settingsSyncByEnvironmentId, setSettingsSyncByEnvironmentId] = useState<
+    Record<string, PortableSettingsSyncState>
+  >({})
   const [connectingId, setConnectingId] = useState<string | null>(null)
   const [switchingValue, setSwitchingValue] = useState<string | null>(null)
   const [removingId, setRemovingId] = useState<string | null>(null)
   const [disconnectingId, setDisconnectingId] = useState<string | null>(null)
   const [pendingSwitchValue, setPendingSwitchValue] = useState<string | null>(null)
   const [pendingRemove, setPendingRemove] = useState<PublicKnownRuntimeEnvironment | null>(null)
-  const [pendingSettingsImport, setPendingSettingsImport] =
+  const [pendingSettingsSync, setPendingSettingsSync] =
     useState<PublicKnownRuntimeEnvironment | null>(null)
   const [addServerFormOpen, setAddServerFormOpen] = useState(false)
   const [shareServerFormOpen, setShareServerFormOpen] = useState(true)
@@ -447,6 +480,18 @@ export function RuntimeEnvironmentsPane({
     // the server list.
     setAddServerFormOpen(true)
   }, [addServerIntentSignal])
+  useEffect(() => {
+    const applyStates = (states: PortableSettingsSyncState[]): void => {
+      if (!mountedRef.current) {
+        return
+      }
+      setSettingsSyncByEnvironmentId(
+        Object.fromEntries(states.map((state) => [state.environmentId, state]))
+      )
+    }
+    void window.api.portableSettingsSync.list().then(applyStates)
+    return window.api.portableSettingsSync.onChanged(applyStates)
+  }, [mountedRef])
 
   const closeAddServerForm = (): void => {
     if (isSaving) {
@@ -560,6 +605,9 @@ export function RuntimeEnvironmentsPane({
           )
         }
         return false
+      }
+      if (settingsSyncByEnvironmentId[environment.id]) {
+        await window.api.portableSettingsSync.stop({ environmentId: environment.id })
       }
       await window.api.runtimeEnvironments.remove({ selector: environment.id })
       await loadEnvironments()
@@ -965,6 +1013,7 @@ export function RuntimeEnvironmentsPane({
                       details?.runtimeStatus?.capabilities?.some(
                         (capability) => capability === PORTABLE_SETTINGS_RUNTIME_CAPABILITY
                       ) === true
+                    const settingsSync = settingsSyncByEnvironmentId[environment.id] ?? null
                     const actionBusy =
                       connectingId === environment.id ||
                       switchingValue === environment.id ||
@@ -1004,6 +1053,25 @@ export function RuntimeEnvironmentsPane({
                                   )
                                 : getHostDetailsSummary(details)}
                           </p>
+                          {settingsSync ? (
+                            <p
+                              className={cn(
+                                'mt-0.5 flex items-center gap-1 text-xs',
+                                settingsSync.phase === 'error'
+                                  ? 'text-destructive'
+                                  : 'text-muted-foreground'
+                              )}
+                              title={settingsSync.lastError ?? undefined}
+                            >
+                              <RefreshCw
+                                className={cn(
+                                  'size-3',
+                                  settingsSync.phase === 'syncing' && 'animate-spin'
+                                )}
+                              />
+                              {getPortableSettingsSyncLabel(settingsSync)}
+                            </p>
+                          ) : null}
                           {detailsDescription ? (
                             <p
                               className={cn(
@@ -1064,13 +1132,13 @@ export function RuntimeEnvironmentsPane({
                               variant="ghost"
                               size="xs"
                               className="gap-1.5"
-                              onClick={() => setPendingSettingsImport(environment)}
+                              onClick={() => setPendingSettingsSync(environment)}
                               disabled={actionBusy}
                             >
-                              <Upload className="size-3" />
+                              <RefreshCw className="size-3" />
                               {translate(
-                                'auto.components.settings.RuntimeEnvironmentsPane.importSettings',
-                                'Import local settings'
+                                'auto.components.settings.RuntimeEnvironmentsPane.syncSettings',
+                                'Sync settings'
                               )}
                             </Button>
                           ) : null}
@@ -1436,12 +1504,14 @@ export function RuntimeEnvironmentsPane({
           </div>
         </details>
       ) : null}
-      {pendingSettingsImport ? (
-        <RuntimeSettingsImportDialog
-          environmentId={pendingSettingsImport.id}
-          environmentName={pendingSettingsImport.name}
+      {pendingSettingsSync ? (
+        <RuntimeSettingsSyncDialog
+          environmentId={pendingSettingsSync.id}
+          environmentName={pendingSettingsSync.name}
           settings={settings}
-          onClose={() => setPendingSettingsImport(null)}
+          syncState={settingsSyncByEnvironmentId[pendingSettingsSync.id] ?? null}
+          allowContinuousSync={canGeneratePairingUrl}
+          onClose={() => setPendingSettingsSync(null)}
         />
       ) : null}
 

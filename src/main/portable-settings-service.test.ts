@@ -28,10 +28,15 @@ describe('portable settings runtime service', () => {
       })
     }
     const onKeybindingsChanged = vi.fn()
+    const runWithoutOutboundSyncSpy = vi.fn()
+    const runWithoutOutboundSync = <T>(operation: () => T): T => {
+      runWithoutOutboundSyncSpy()
+      return operation()
+    }
     const service = createPortableSettingsRuntimeService(
       { getSettings: () => settings, updateSettings } as never,
       keybindings,
-      { onKeybindingsChanged }
+      { onKeybindingsChanged, runWithoutOutboundSync }
     )
     const source = createPortableSettingsBundle(
       {
@@ -55,6 +60,7 @@ describe('portable settings runtime service', () => {
       updateSettings.mock.invocationCallOrder[0]
     )
     expect(onKeybindingsChanged).toHaveBeenCalledOnce()
+    expect(runWithoutOutboundSyncSpy).toHaveBeenCalledOnce()
     expect(result.appliedCategories).toEqual(['appearance', 'input'])
   })
 

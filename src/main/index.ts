@@ -341,6 +341,10 @@ import {
 import { LocalPtyProvider } from './providers/local-pty-provider'
 import { KeybindingService } from './keybindings/keybinding-service'
 import { createPortableSettingsRuntimeService } from './portable-settings-service'
+import { PortableSettingsSyncService } from './portable-settings-sync-service'
+import { registerPortableSettingsSyncHandlers } from './ipc/portable-settings-sync'
+import { callRuntimeEnvironment } from './ipc/runtime-environment-transport-routing'
+import { listEnvironments } from '../shared/runtime-environment-store'
 import { applyElectronProxySettings } from './network/proxy-settings'
 import { preserveAgentAuthBeforeRestart } from './agent-auth-restart-preservation'
 import { CliInstaller } from './cli/cli-installer'
@@ -2459,6 +2463,19 @@ void app.whenReady().then(async () => {
       }
     }
   })
+  const portableSettingsSync = new PortableSettingsSyncService({
+    configPath: join(activeOrcaProfile.profileDirectory, 'portable-settings-sync.json'),
+    store,
+    keybindings,
+    callEnvironment: (environmentId, method, params, timeoutMs) =>
+      callRuntimeEnvironment(app.getPath('userData'), environmentId, method, params, timeoutMs),
+    environmentExists: (environmentId) =>
+      listEnvironments(app.getPath('userData')).some(
+        (environment) => environment.id === environmentId
+      )
+  })
+  portableSettingsSync.start()
+  registerPortableSettingsSyncHandlers(portableSettingsSync)
   browserManager.setSettingsResolver(() => ({ keybindings: keybindings?.getOverrides() }))
   rateLimits.setInactiveClaudeAccountsResolver(() => {
     const settings = store!.getSettings()
@@ -2559,7 +2576,8 @@ void app.whenReady().then(async () => {
       isAgentStatusHooksEnabled(store?.getSettings()) ? agentHookServer.buildPtyEnv() : {},
     orchestrationEnvironmentTransport,
     portableSettings: createPortableSettingsRuntimeService(store, keybindings, {
-      onKeybindingsChanged: broadcastKeybindingsChanged
+      onKeybindingsChanged: broadcastKeybindingsChanged,
+      runWithoutOutboundSync: (operation) => portableSettingsSync.runWithoutOutboundSync(operation)
     })
   })
   runtime = runtimeService

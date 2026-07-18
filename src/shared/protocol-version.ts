@@ -96,7 +96,7 @@ export const WORKTREE_VISIBILITY_DEFAULTS_RUNTIME_CAPABILITY =
   'worktree.visibility-defaults.v1' as const
 export const WORKTREE_VISIBILITY_SOURCE_DEFAULTS_RUNTIME_CAPABILITY =
   'worktree.visibility-source-defaults.v1' as const
-export const PORTABLE_SETTINGS_RUNTIME_CAPABILITY = 'settings.portable-import.v1' as const
+export const PORTABLE_SETTINGS_RUNTIME_CAPABILITY = 'settings.portable-sync.v1' as const
 
 export const RUNTIME_CAPABILITIES = [
   'runtime.status.compat.v1',

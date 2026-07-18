@@ -32,6 +32,7 @@ export class KeybindingService {
   private readonly configPath: string
   private readonly platform: NodeJS.Platform
   private snapshot: KeybindingFileSnapshot | null = null
+  private readonly changeListeners = new Set<(snapshot: KeybindingFileSnapshot) => void>()
 
   constructor(options: KeybindingServiceOptions) {
     this.configPath = getUserKeybindingsPath(options.homePath)
@@ -71,6 +72,7 @@ export class KeybindingService {
 
   reload(): KeybindingFileSnapshot {
     this.snapshot = readKeybindingFile(this.configPath, this.platform)
+    this.notifyChanged()
     return this.snapshot
   }
 
@@ -87,8 +89,14 @@ export class KeybindingService {
     return validateKeybindingOverrides(this.platform, overrides)
   }
 
+  onChanged(listener: (snapshot: KeybindingFileSnapshot) => void): () => void {
+    this.changeListeners.add(listener)
+    return () => this.changeListeners.delete(listener)
+  }
+
   replaceOverrides(overrides: KeybindingOverrides): KeybindingFileSnapshot {
     this.snapshot = replaceKeybindingOverrides(this.configPath, this.platform, overrides)
+    this.notifyChanged()
     return this.snapshot
   }
 
@@ -97,6 +105,16 @@ export class KeybindingService {
     bindings: string[] | null
   ): KeybindingFileSnapshot {
     this.snapshot = writeKeybindingOverride(this.configPath, this.platform, actionId, bindings)
+    this.notifyChanged()
     return this.snapshot
+  }
+
+  private notifyChanged(): void {
+    if (!this.snapshot) {
+      return
+    }
+    for (const listener of this.changeListeners) {
+      listener(this.snapshot)
+    }
   }
 }
