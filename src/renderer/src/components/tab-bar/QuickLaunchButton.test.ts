@@ -3,26 +3,32 @@ import { renderToStaticMarkup } from 'react-dom/server'
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 import { QuickLaunchAgentMenuItems, shouldShowLaunchWatchdogTimeout } from './QuickLaunchButton'
 
-const { shortcutLabelMock, storeState, openSettingsPageMock, openSettingsTargetMock } = vi.hoisted(
-  () => ({
-    shortcutLabelMock: vi.fn<() => string | null>(),
-    storeState: {
-      settings: {
-        defaultTuiAgent: 'codex' as 'claude' | 'codex' | 'gemini' | 'blank' | null,
-        disabledTuiAgents: [] as string[]
-      },
-      worktreesByRepo: {},
-      repos: [],
-      openSettingsPage: vi.fn(),
-      openSettingsTarget: vi.fn()
+const {
+  shortcutLabelMock,
+  storeState,
+  openSettingsPageMock,
+  openSettingsTargetMock,
+  useDetectedAgentsMock
+} = vi.hoisted(() => ({
+  shortcutLabelMock: vi.fn<() => string | null>(),
+  storeState: {
+    settings: {
+      defaultTuiAgent: 'codex' as 'claude' | 'codex' | 'gemini' | 'blank' | null,
+      disabledTuiAgents: [] as string[],
+      activeRuntimeEnvironmentId: null as string | null
     },
-    openSettingsPageMock: vi.fn(),
-    openSettingsTargetMock: vi.fn()
-  })
-)
+    worktreesByRepo: {} as Record<string, { id: string; repoId: string; hostId?: string | null }[]>,
+    repos: [] as { id: string; connectionId: string | null; executionHostId: string | null }[],
+    openSettingsPage: vi.fn(),
+    openSettingsTarget: vi.fn()
+  },
+  openSettingsPageMock: vi.fn(),
+  openSettingsTargetMock: vi.fn(),
+  useDetectedAgentsMock: vi.fn()
+}))
 
 vi.mock('@/hooks/useDetectedAgents', () => ({
-  useDetectedAgents: () => ({ detectedIds: ['claude', 'codex', 'gemini'] })
+  useDetectedAgents: useDetectedAgentsMock
 }))
 
 vi.mock('@/hooks/useShortcutLabel', () => ({
@@ -89,10 +95,10 @@ vi.mock('@/lib/launch-agent-in-new-tab', () => ({
   launchAgentInNewTab: vi.fn()
 }))
 
-function renderAgentMenuItems(): string {
+function renderAgentMenuItems(worktreeId = 'worktree-1'): string {
   return renderToStaticMarkup(
     React.createElement(QuickLaunchAgentMenuItems, {
-      worktreeId: 'worktree-1',
+      worktreeId,
       groupId: 'group-1',
       onFocusTerminal: vi.fn()
     })
@@ -113,8 +119,11 @@ beforeEach(() => {
   shortcutLabelMock.mockReturnValue(null)
   openSettingsPageMock.mockReset()
   openSettingsTargetMock.mockReset()
+  useDetectedAgentsMock.mockReset()
+  useDetectedAgentsMock.mockReturnValue({ detectedIds: ['claude', 'codex', 'gemini'] })
   storeState.settings.defaultTuiAgent = 'codex'
   storeState.settings.disabledTuiAgents = []
+  storeState.settings.activeRuntimeEnvironmentId = null
   storeState.worktreesByRepo = {}
   storeState.repos = []
   storeState.openSettingsPage = openSettingsPageMock
@@ -149,6 +158,48 @@ describe('QuickLaunchAgentMenuItems', () => {
 
     storeState.settings.defaultTuiAgent = 'blank'
     expect(renderAgentMenuItems()).not.toContain('data-dropdown-shortcut="true"')
+  })
+
+  it('detects agents on the runtime environment that owns the worktree', () => {
+    // Why: regression — runtime-hosted workspaces have no SSH connection id;
+    // the menu used to fall back to local detection and offer agents that are
+    // not installed on the remote machine.
+    storeState.repos = [{ id: 'repo-1', connectionId: null, executionHostId: 'runtime:env-1' }]
+    storeState.worktreesByRepo = {
+      'repo-1': [{ id: 'repo-1::wt-1', repoId: 'repo-1', hostId: null }]
+    }
+
+    renderAgentMenuItems('repo-1::wt-1')
+
+    expect(useDetectedAgentsMock).toHaveBeenCalledWith({ kind: 'runtime', environmentId: 'env-1' })
+  })
+
+  it('detects agents on the SSH host that owns the worktree', () => {
+    storeState.repos = [{ id: 'repo-1', connectionId: 'conn-1', executionHostId: null }]
+    storeState.worktreesByRepo = {
+      'repo-1': [{ id: 'repo-1::wt-1', repoId: 'repo-1', hostId: null }]
+    }
+
+    renderAgentMenuItems('repo-1::wt-1')
+
+    expect(useDetectedAgentsMock).toHaveBeenCalledWith({ kind: 'ssh', connectionId: 'conn-1' })
+  })
+
+  it('detects agents locally for local worktrees', () => {
+    storeState.repos = [{ id: 'repo-1', connectionId: null, executionHostId: null }]
+    storeState.worktreesByRepo = {
+      'repo-1': [{ id: 'repo-1::wt-1', repoId: 'repo-1', hostId: null }]
+    }
+
+    renderAgentMenuItems('repo-1::wt-1')
+
+    expect(useDetectedAgentsMock).toHaveBeenCalledWith({ kind: 'local' })
+  })
+
+  it('does not fall back to local detection while the owning repo hydrates', () => {
+    renderAgentMenuItems('missing-repo::wt-1')
+
+    expect(useDetectedAgentsMock).toHaveBeenCalledWith(undefined)
   })
 })
 

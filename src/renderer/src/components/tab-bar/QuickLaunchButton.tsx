@@ -4,7 +4,7 @@ import { toast } from 'sonner'
 import { DropdownMenuItem, DropdownMenuShortcut } from '@/components/ui/dropdown-menu'
 import { getAgentCatalog, AgentIcon } from '@/lib/agent-catalog'
 import { useAppStore } from '@/store'
-import { getConnectionIdFromState } from '@/lib/connection-context'
+import { useAgentDetectionTarget } from '@/hooks/useAgentDetectionTarget'
 import { useDetectedAgents } from '@/hooks/useDetectedAgents'
 import { useOptionalShortcutLabel } from '@/hooks/useShortcutLabel'
 import { launchAgentInNewTab } from '@/lib/launch-agent-in-new-tab'
@@ -100,12 +100,13 @@ function QuickLaunchAgentMenuItemsInner({
   launchSource,
   onPromptDelivered
 }: QuickLaunchAgentMenuItemsProps): React.JSX.Element | null {
-  // Why: must be a reactive selector (not getConnectionId() which reads a
-  // snapshot via getState()). This ensures the component re-renders when the
-  // SSH connection state changes. Returns undefined when the worktree isn't
-  // found (store not hydrated), null for local repos, string for remote.
-  const connectionId = useAppStore((s) => getConnectionIdFromState(s, worktreeId))
-  const { detectedIds } = useDetectedAgents(connectionId)
+  // Why: resolve the host that owns this worktree (local, SSH, or runtime
+  // environment) so the menu only offers agents installed on that host.
+  // Previously this only checked the SSH connection id, so runtime-hosted
+  // workspaces fell back to local detection and surfaced agents that do not
+  // exist on the remote machine.
+  const agentDetectionTarget = useAgentDetectionTarget(worktreeId)
+  const { detectedIds } = useDetectedAgents(agentDetectionTarget)
   const defaultAgent = useAppStore((s) => s.settings?.defaultTuiAgent)
   const disabledAgents = useAppStore((s) => s.settings?.disabledTuiAgents ?? [])
   const openSettingsPage = useAppStore((s) => s.openSettingsPage)
