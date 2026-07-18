@@ -219,6 +219,25 @@ describe('KeybindingService tab-switch cohort seeding', () => {
     unsubscribe()
   })
 
+  it('isolates keybinding change listener failures after persistence', () => {
+    const service = new KeybindingService({ homePath: home, platform: 'linux' })
+    const laterListener = vi.fn()
+    const consoleError = vi.spyOn(console, 'error').mockImplementation(() => undefined)
+    service.onChanged(() => {
+      throw new Error('listener failed')
+    })
+    service.onChanged(laterListener)
+
+    expect(() => service.setActionBindings('app.settings', ['Ctrl+Comma'])).not.toThrow()
+    expect(laterListener).toHaveBeenCalledOnce()
+    expect(service.getOverrides()).toEqual({ 'app.settings': ['Ctrl+Comma'] })
+    expect(consoleError).toHaveBeenCalledWith(
+      'Keybinding change listener failed:',
+      expect.any(Error)
+    )
+    consoleError.mockRestore()
+  })
+
   it('leaves the cohort pending when the seed write fails (retries next launch)', () => {
     // homePath is a regular file, so creating `<home>/.orca/` throws. The service
     // must swallow the error and NOT mark the one-shot done.

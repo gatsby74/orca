@@ -7,10 +7,13 @@ import {
   unwrapPortableSettingsSyncResponse
 } from './portable-settings-sync-bundle'
 import {
+  createPortableSettingsSyncRuleCommitter,
   readPortableSettingsSyncRules,
-  writePortableSettingsSyncRules
+  type PortableSettingsSyncRuleCommitter,
+  type PortableSettingsSyncRuntimeState
 } from './portable-settings-sync-file'
 import { PortableSettingsSyncScheduler } from './portable-settings-sync-scheduler'
+import { runWithSettingsSyncSuppressed } from './portable-settings-sync-suppression'
 import type { PortableSettingsCategory } from '../shared/portable-settings'
 import {
   PortableSettingsSyncConfigureArgsSchema,
@@ -34,14 +37,12 @@ type PortableSettingsSyncDependencies = {
   now?: () => number
 }
 
-type RuntimeSyncState = Pick<PortableSettingsSyncState, 'phase' | 'lastError'> &
-  Record<'retryAttempt', number>
-
 export class PortableSettingsSyncService {
   private readonly rules = new Map<string, PortableSettingsSyncRule>()
-  private readonly runtimeStates = new Map<string, RuntimeSyncState>()
+  private readonly runtimeStates = new Map<string, PortableSettingsSyncRuntimeState>()
   private readonly listeners = new Set<(states: PortableSettingsSyncState[]) => void>()
   private readonly scheduler: PortableSettingsSyncScheduler
+  private readonly commitRule: PortableSettingsSyncRuleCommitter
   private readonly now: () => number
   private suppressOutboundDepth = 0
   private unsubscribeSettings: (() => void) | null = null
@@ -52,6 +53,12 @@ export class PortableSettingsSyncService {
     this.scheduler = new PortableSettingsSyncScheduler(
       (environmentId, forceRemoteCheck) => this.performSync(environmentId, forceRemoteCheck),
       (environmentId) => this.markPending(environmentId)
+    )
+    this.commitRule = createPortableSettingsSyncRuleCommitter(
+      deps.configPath,
+      this.rules,
+      this.runtimeStates,
+      () => this.emit()
     )
     for (const rule of readPortableSettingsSyncRules(deps.configPath)) {
       this.rules.set(rule.environmentId, rule)
@@ -93,12 +100,11 @@ export class PortableSettingsSyncService {
   }
 
   runWithoutOutboundSync<T>(operation: () => T): T {
-    this.suppressOutboundDepth += 1
-    try {
-      return operation()
-    } finally {
-      this.suppressOutboundDepth -= 1
-    }
+    return runWithSettingsSyncSuppressed(
+      operation,
+      () => (this.suppressOutboundDepth += 1),
+      () => (this.suppressOutboundDepth -= 1)
+    )
   }
 
   getStates(): PortableSettingsSyncState[] {
@@ -129,13 +135,11 @@ export class PortableSettingsSyncService {
       lastSyncedHash: categoriesChanged ? null : previous.lastSyncedHash,
       lastSyncedAt: categoriesChanged ? null : previous.lastSyncedAt
     }
-    this.rules.set(args.environmentId, rule)
-    this.runtimeStates.set(args.environmentId, {
+    this.commitRule(rule, {
       phase: args.enabled ? 'pending' : 'paused',
       lastError: null,
       retryAttempt: 0
     })
-    this.persistAndEmit()
     if (!args.enabled) {
       this.scheduler.clear(args.environmentId)
       return this.toPublicState(rule)
@@ -146,23 +150,19 @@ export class PortableSettingsSyncService {
   pause(environmentId: string): PortableSettingsSyncState {
     const rule = this.requireRule(environmentId)
     const paused = { ...rule, enabled: false }
-    this.rules.set(environmentId, paused)
-    this.runtimeStates.set(environmentId, {
+    this.commitRule(paused, {
       phase: 'paused',
       lastError: null,
       retryAttempt: 0
     })
     this.scheduler.clear(environmentId)
-    this.persistAndEmit()
     return this.toPublicState(paused)
   }
 
   stop(environmentId: string): void {
     this.requireRule(environmentId)
-    this.rules.delete(environmentId)
-    this.runtimeStates.delete(environmentId)
+    this.commitRule(null, null, environmentId)
     this.scheduler.clear(environmentId)
-    this.persistAndEmit()
   }
 
   syncNow(environmentId: string): Promise<PortableSettingsSyncState> {
@@ -258,13 +258,11 @@ export class PortableSettingsSyncService {
         lastSyncedHash: bundleHash,
         lastSyncedAt: this.now()
       }
-      this.rules.set(environmentId, syncedRule)
-      this.runtimeStates.set(environmentId, {
+      this.commitRule(syncedRule, {
         phase: syncedRule.enabled ? 'synced' : 'paused',
         lastError: null,
         retryAttempt: 0
       })
-      this.persistAndEmit()
       return this.toPublicState(syncedRule)
     } catch (error) {
       const latestRule = this.rules.get(environmentId)
@@ -286,7 +284,10 @@ export class PortableSettingsSyncService {
     }
   }
 
-  private setRuntimeState(environmentId: string, updates: Partial<RuntimeSyncState>): void {
+  private setRuntimeState(
+    environmentId: string,
+    updates: Partial<PortableSettingsSyncRuntimeState>
+  ): void {
     const current = this.runtimeStates.get(environmentId) ?? {
       phase: 'pending',
       lastError: null,
@@ -311,11 +312,6 @@ export class PortableSettingsSyncService {
       phase: runtime?.phase ?? (rule.enabled ? 'pending' : 'paused'),
       lastError: runtime?.lastError ?? null
     }
-  }
-
-  private persistAndEmit(): void {
-    writePortableSettingsSyncRules(this.deps.configPath, Array.from(this.rules.values()))
-    this.emit()
   }
 
   private emit(): void {

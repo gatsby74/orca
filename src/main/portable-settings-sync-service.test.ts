@@ -1,4 +1,4 @@
-import { mkdtempSync, readFileSync, rmSync } from 'node:fs'
+import { mkdtempSync, readFileSync, rmSync, writeFileSync } from 'node:fs'
 import { tmpdir } from 'node:os'
 import { join } from 'node:path'
 import { afterEach, beforeEach, describe, expect, it, vi, type Mock } from 'vitest'
@@ -173,6 +173,48 @@ describe('PortableSettingsSyncService', () => {
     service.dispose()
   })
 
+  it('does not mutate in-memory rules when persistence fails', async () => {
+    const service = createService()
+    service.start()
+    rmSync(dir, { recursive: true, force: true })
+    writeFileSync(dir, 'not a directory', 'utf8')
+
+    await expect(
+      service.configure({
+        environmentId: 'server-1',
+        categories: ['appearance'],
+        enabled: true
+      })
+    ).rejects.toThrow()
+    expect(service.getState('server-1')).toBeNull()
+    expect(callEnvironment).not.toHaveBeenCalled()
+    service.dispose()
+  })
+
+  it('does not schedule a retry after disposal', async () => {
+    let rejectRequest: (error: Error) => void = () => undefined
+    callEnvironment.mockImplementationOnce(
+      () =>
+        new Promise((_resolve, reject) => {
+          rejectRequest = reject
+        })
+    )
+    const service = createService()
+    service.start()
+    const configure = service.configure({
+      environmentId: 'server-1',
+      categories: ['appearance'],
+      enabled: true
+    })
+    await vi.waitFor(() => expect(callEnvironment).toHaveBeenCalledOnce())
+
+    service.dispose()
+    rejectRequest(new Error('late offline failure'))
+    await expect(configure).rejects.toThrow('late offline failure')
+    await vi.advanceTimersByTimeAsync(120_000)
+    expect(callEnvironment).toHaveBeenCalledOnce()
+  })
+
   it('suppresses outbound work while applying an inbound settings bundle', async () => {
     const service = createService()
     service.start()
@@ -187,6 +229,33 @@ describe('PortableSettingsSyncService', () => {
       settingsListener?.()
       keybindingListener?.()
     })
+    await vi.advanceTimersByTimeAsync(2_000)
+
+    expect(callEnvironment).not.toHaveBeenCalled()
+    service.dispose()
+  })
+
+  it('keeps outbound suppression active until asynchronous inbound work settles', async () => {
+    const service = createService()
+    service.start()
+    await service.configure({
+      environmentId: 'server-1',
+      categories: ['input'],
+      enabled: true
+    })
+    callEnvironment.mockClear()
+    let finishInbound: () => void = () => undefined
+    const inboundWait = new Promise<void>((resolve) => {
+      finishInbound = resolve
+    })
+
+    const guarded = service.runWithoutOutboundSync(async () => {
+      await inboundWait
+      settingsListener?.()
+      keybindingListener?.()
+    })
+    finishInbound()
+    await guarded
     await vi.advanceTimersByTimeAsync(2_000)
 
     expect(callEnvironment).not.toHaveBeenCalled()

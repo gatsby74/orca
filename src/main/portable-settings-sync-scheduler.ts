@@ -8,6 +8,7 @@ type RunSync = (
 ) => Promise<PortableSettingsSyncState>
 
 export class PortableSettingsSyncScheduler {
+  private disposed = false
   private readonly timers = new Map<string, NodeJS.Timeout>()
   private readonly queues = new Map<string, Promise<PortableSettingsSyncState>>()
 
@@ -22,6 +23,9 @@ export class PortableSettingsSyncScheduler {
     forceRemoteCheck: boolean,
     markPending = true
   ): void {
+    if (this.disposed) {
+      return
+    }
     this.clear(environmentId)
     if (markPending) {
       this.onPending(environmentId)
@@ -66,6 +70,7 @@ export class PortableSettingsSyncScheduler {
   }
 
   dispose(): void {
+    this.disposed = true
     for (const timer of this.timers.values()) {
       clearTimeout(timer)
     }

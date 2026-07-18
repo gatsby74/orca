@@ -114,7 +114,12 @@ export class KeybindingService {
       return
     }
     for (const listener of this.changeListeners) {
-      listener(this.snapshot)
+      try {
+        listener(this.snapshot)
+      } catch (error) {
+        // Persistence has already succeeded; one observer must not block the others.
+        console.error('Keybinding change listener failed:', error)
+      }
     }
   }
 }

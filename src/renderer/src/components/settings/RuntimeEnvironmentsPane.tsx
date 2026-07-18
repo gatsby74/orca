@@ -607,7 +607,11 @@ export function RuntimeEnvironmentsPane({
         return false
       }
       if (settingsSyncByEnvironmentId[environment.id]) {
-        await window.api.portableSettingsSync.stop({ environmentId: environment.id })
+        try {
+          await window.api.portableSettingsSync.stop({ environmentId: environment.id })
+        } catch {
+          // Server removal is authoritative; a stale sync rule can self-clean afterward.
+        }
       }
       await window.api.runtimeEnvironments.remove({ selector: environment.id })
       await loadEnvironments()
