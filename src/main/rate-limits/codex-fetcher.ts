@@ -1179,6 +1179,7 @@ async function fetchViaPty(options?: FetchCodexRateLimitsOptions): Promise<Provi
           clearPtyTimers()
           cleanupHiddenRateLimitPty(term, termDisposables, { kill: true })
 
+          // Re-strip after the settle delay so trailing chunks are included.
           const settledClean = stripPtyControlSequences(output)
           const { session, weekly } = parsePtyStatus(settledClean)
 

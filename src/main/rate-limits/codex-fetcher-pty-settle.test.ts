@@ -98,7 +98,6 @@ describe('fetchCodexRateLimits PTY settle timers', () => {
     const resultPromise = fetchCodexRateLimits()
     await vi.advanceTimersByTimeAsync(0)
 
-<<<<<<< HEAD
     const onPtyData = ptyHandlers.onData
     if (!onPtyData) {
       throw new Error('PTY data handler was not registered')
