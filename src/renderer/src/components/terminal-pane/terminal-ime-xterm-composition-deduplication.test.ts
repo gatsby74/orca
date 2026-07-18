@@ -159,7 +159,6 @@ describe('xterm IME composition de-duplication', () => {
     document.body.replaceChildren()
   })
 
-<<<<<<< HEAD
   it('emits a propagated IBus Hangul commit exactly once', async () => {
     const { emitted, terminal, textarea } = openTerminal()
 
