@@ -767,7 +767,7 @@ export function RemoteFileBrowser({
           ? FILE_HINT_TEXT
           : selectionPurpose === 'create-inside'
             ? translate(
-                'auto.components.sidebar.RemoteFileBrowser.createInsideFooter',
+                'auto.components.sidebar.RemoteFileBrowser.55216d346f',
                 'New repository folder will be created inside · {{value0}}',
                 { value0: resolvedPath }
               )
@@ -790,7 +790,7 @@ export function RemoteFileBrowser({
         >
           {selectionPurpose === 'create-inside'
             ? translate(
-                'auto.components.sidebar.RemoteFileBrowser.selectParentFolder',
+                'auto.components.sidebar.RemoteFileBrowser.7194618895',
                 'Select parent folder'
               )
             : translate('auto.components.sidebar.RemoteFileBrowser.9e060f5815', 'Select folder')}

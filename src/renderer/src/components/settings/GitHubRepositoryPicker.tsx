@@ -56,7 +56,7 @@ export function GitHubRepositoryPicker({
         >
           <Github className="size-3.5" />
           {translate(
-            'auto.components.settings.GitHubRepositoryPicker.chooseFromGitHub',
+            'auto.components.settings.GitHubRepositoryPicker.dbbe08840d',
             'Choose from GitHub'
           )}
           <ChevronsUpDown className="size-3 opacity-50" />
@@ -66,21 +66,25 @@ export function GitHubRepositoryPicker({
         <Command>
           <CommandInput
             placeholder={translate(
-              'auto.components.settings.GitHubRepositoryPicker.searchRepositories',
+              'auto.components.settings.GitHubRepositoryPicker.35722ed29c',
               'Search repositories…'
             )}
           />
           <CommandList className="max-h-80">
             {loading ? (
-              <div className="flex items-center justify-center gap-2 py-8 text-xs text-muted-foreground">
-                <Loader2 className="size-4 animate-spin" />
+              <div
+                role="status"
+                aria-live="polite"
+                className="flex items-center justify-center gap-2 py-8 text-xs text-muted-foreground"
+              >
+                <Loader2 aria-hidden="true" className="size-4 animate-spin" />
                 {translate(
-                  'auto.components.settings.GitHubRepositoryPicker.loadingRepositories',
+                  'auto.components.settings.GitHubRepositoryPicker.610e020ba9',
                   'Loading GitHub repositories…'
                 )}
               </div>
             ) : error ? (
-              <div className="space-y-3 px-4 py-5 text-center">
+              <div role="alert" className="space-y-3 px-4 py-5 text-center">
                 <p className="text-xs text-destructive">{error}</p>
                 <Button
                   type="button"
@@ -89,14 +93,14 @@ export function GitHubRepositoryPicker({
                   onClick={() => void loadRepositories()}
                 >
                   <RefreshCw className="size-3.5" />
-                  {translate('auto.components.settings.GitHubRepositoryPicker.retry', 'Retry')}
+                  {translate('auto.components.settings.GitHubRepositoryPicker.f22b38fcca', 'Retry')}
                 </Button>
               </div>
             ) : (
               <>
                 <CommandEmpty>
                   {translate(
-                    'auto.components.settings.GitHubRepositoryPicker.noRepositories',
+                    'auto.components.settings.GitHubRepositoryPicker.b306b325d2',
                     'No repositories found.'
                   )}
                 </CommandEmpty>
@@ -117,7 +121,18 @@ export function GitHubRepositoryPicker({
                           {repository.nameWithOwner}
                         </span>
                         {repository.isPrivate ? (
-                          <LockKeyhole className="size-3 shrink-0 text-muted-foreground" />
+                          <>
+                            <LockKeyhole
+                              aria-hidden="true"
+                              className="size-3 shrink-0 text-muted-foreground"
+                            />
+                            <span className="sr-only">
+                              {translate(
+                                'auto.components.settings.GitHubRepositoryPicker.f1cd6dcccf',
+                                'Private repository'
+                              )}
+                            </span>
+                          </>
                         ) : null}
                       </span>
                       {repository.description ? (

@@ -15,6 +15,8 @@ describe('repository host clone path preview', () => {
     expect(getClonePathPreview('C:\\Users\\alice\\projects\\', 'orca')).toBe(
       'C:\\Users\\alice\\projects\\orca'
     )
+    expect(getClonePathPreview('/', 'orca')).toBe('/orca')
+    expect(getClonePathPreview('\\', 'orca')).toBe('\\orca')
   })
 
   it('withholds incomplete previews', () => {

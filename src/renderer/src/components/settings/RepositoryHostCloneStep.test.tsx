@@ -113,6 +113,7 @@ describe('RepositoryHostCloneStep', () => {
       (item) => item.textContent?.includes('acme/orca')
     )
     expect(repository).toBeTruthy()
+    expect(repository?.textContent).toContain('Private repository')
     act(() => repository?.click())
 
     expect(listRepositories).toHaveBeenCalledOnce()

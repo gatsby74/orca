@@ -15,7 +15,7 @@ export function getClonePathPreview(parent: string, folderName: string | null): 
   const separator = trimmedParent.includes('\\') && !trimmedParent.includes('/') ? '\\' : '/'
   const withoutTrailingSeparators = trimmedParent.replace(/[\\/]+$/, '')
   if (!withoutTrailingSeparators) {
-    return `/${folderName}`
+    return `${separator}${folderName}`
   }
   return `${withoutTrailingSeparators}${separator}${folderName}`
 }

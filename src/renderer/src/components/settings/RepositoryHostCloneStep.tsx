@@ -54,13 +54,13 @@ export function RepositoryHostCloneStep({
         <CloneStepBackButton
           onBack={() => setBrowsingDestination(false)}
           label={translate(
-            'auto.components.settings.RepositoryPane.browseHostFilesystem',
+            'auto.components.settings.RepositoryHostCloneStep.9718c9172b',
             'Browse host filesystem'
           )}
         />
         <p className="text-xs text-muted-foreground">
           {translate(
-            'auto.components.settings.RepositoryPane.cloneParentBrowseHelp',
+            'auto.components.settings.RepositoryHostCloneStep.dd432fb54c',
             'Choose the directory where Orca should create the repository folder.'
           )}
         </p>
@@ -91,10 +91,10 @@ export function RepositoryHostCloneStep({
   }
   const browseLabel = canBrowseRemoteHost
     ? translate(
-        'auto.components.settings.RepositoryPane.browseHostFilesystem',
+        'auto.components.settings.RepositoryHostCloneStep.9718c9172b',
         'Browse host filesystem'
       )
-    : translate('auto.components.settings.RepositoryPane.chooseFolder', 'Choose folder')
+    : translate('auto.components.settings.RepositoryHostCloneStep.287b80e006', 'Choose folder')
 
   return (
     <div className="space-y-3 rounded-md border border-border bg-muted/20 p-3">
@@ -106,7 +106,7 @@ export function RepositoryHostCloneStep({
         <div className="flex items-center justify-between gap-3">
           <Label className="text-xs">
             {translate(
-              'auto.components.settings.RepositoryPane.cloneSourceLabel',
+              'auto.components.settings.RepositoryHostCloneStep.2d9b8fcbe2',
               'Repository URL'
             )}
           </Label>
@@ -130,7 +130,10 @@ export function RepositoryHostCloneStep({
       </div>
       <div className="space-y-1.5">
         <Label className="text-xs">
-          {translate('auto.components.settings.RepositoryPane.cloneParentLabel', 'Parent folder')}
+          {translate(
+            'auto.components.settings.RepositoryHostCloneStep.dfb6632216',
+            'Parent folder'
+          )}
         </Label>
         <div className="flex gap-2">
           <Input
@@ -166,12 +169,12 @@ export function RepositoryHostCloneStep({
         <p className="text-[11px] text-muted-foreground">
           {clonePathPreview
             ? translate(
-                'auto.components.settings.RepositoryPane.clonePathPreview',
+                'auto.components.settings.RepositoryHostCloneStep.372cff9ced',
                 'Creates {{path}}',
                 { path: clonePathPreview }
               )
             : translate(
-                'auto.components.settings.RepositoryPane.cloneParentHelp',
+                'auto.components.settings.RepositoryHostCloneStep.a00f0d9e1f',
                 'Orca creates the repository folder inside this directory.'
               )}
         </p>
