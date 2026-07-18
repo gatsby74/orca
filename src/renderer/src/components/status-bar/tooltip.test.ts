@@ -452,7 +452,8 @@ describe('getExtraUsageLabel', () => {
   it('names the balance per provider', () => {
     expect(getExtraUsageLabel('claude')).toBe('Usage credits')
     expect(getExtraUsageLabel('opencode-go')).toBe('Zen balance')
-    expect(getExtraUsageLabel('codex')).toBe('Balance')
+    expect(getExtraUsageLabel('codex')).toBe('Credits')
+    expect(getExtraUsageLabel('gemini')).toBe('Balance')
   })
 })
 
@@ -463,6 +464,8 @@ describe('ProviderPanel extra-usage rendering', () => {
       session: { usedPercent: 100, windowMinutes: 300, resetsAt: null, resetDescription: null },
       extraUsage: {
         balance: 10,
+        unit: 'currency',
+        unlimited: false,
         currencyCode: 'EUR',
         enabled: true,
         disabledReason: null,
@@ -488,6 +491,8 @@ describe('ProviderPanel extra-usage rendering', () => {
       session: { usedPercent: 100, windowMinutes: 300, resetsAt: null, resetDescription: null },
       extraUsage: {
         balance: 0,
+        unit: 'currency',
+        unlimited: false,
         currencyCode: 'EUR',
         enabled: false,
         disabledReason: 'out_of_credits',
@@ -512,6 +517,8 @@ describe('ProviderPanel extra-usage rendering', () => {
       session: { usedPercent: 20, windowMinutes: 300, resetsAt: null, resetDescription: null },
       extraUsage: {
         balance: 12.4,
+        unit: 'currency',
+        unlimited: false,
         currencyCode: 'USD',
         enabled: true,
         disabledReason: null,
@@ -527,6 +534,57 @@ describe('ProviderPanel extra-usage rendering', () => {
     expect(markup).toContain('Zen balance')
     expect(markup).toContain('$12.40')
     expect(markup).toContain('available')
+  })
+
+  it('renders a Codex credit count as a plain "N credits available" line', () => {
+    const p = provider({
+      provider: 'codex',
+      status: 'ok',
+      session: { usedPercent: 20, windowMinutes: 300, resetsAt: null, resetDescription: null },
+      extraUsage: {
+        balance: 500,
+        unit: 'credits',
+        unlimited: false,
+        currencyCode: 'USD',
+        enabled: true,
+        disabledReason: null,
+        spent: null,
+        spendLimit: null,
+        spentPercent: null,
+        resetsAt: null
+      }
+    })
+
+    const markup = renderToStaticMarkup(ProviderPanel({ p }))
+
+    expect(markup).toContain('Credits')
+    expect(markup).toContain('500 credits available')
+    // A credit count is not a currency amount.
+    expect(markup).not.toContain('$500')
+  })
+
+  it('renders unlimited Codex credits as "Unlimited"', () => {
+    const p = provider({
+      provider: 'codex',
+      status: 'ok',
+      session: { usedPercent: 20, windowMinutes: 300, resetsAt: null, resetDescription: null },
+      extraUsage: {
+        balance: 0,
+        unit: 'credits',
+        unlimited: true,
+        currencyCode: 'USD',
+        enabled: true,
+        disabledReason: null,
+        spent: null,
+        spendLimit: null,
+        spentPercent: null,
+        resetsAt: null
+      }
+    })
+
+    const markup = renderToStaticMarkup(ProviderPanel({ p }))
+
+    expect(markup).toContain('Unlimited')
   })
 
   it('omits the balance row when no extra usage is reported', () => {

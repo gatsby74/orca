@@ -409,6 +409,8 @@ function mapSpend(spend: OAuthSpend | undefined): ExtraUsageBalance | null {
         : null
   return {
     balance,
+    unit: 'currency',
+    unlimited: false,
     currencyCode:
       spend.used?.currency ?? spend.limit?.currency ?? spend.cap?.money?.currency ?? 'USD',
     enabled: spend.enabled === true,
@@ -436,6 +438,8 @@ function mapLegacyExtraUsage(extra: OAuthExtraUsage | undefined): ExtraUsageBala
         : null
   return {
     balance: 0,
+    unit: 'currency',
+    unlimited: false,
     currencyCode: extra.currency?.trim() || 'USD',
     enabled: extra.is_enabled === true,
     disabledReason: extra.disabled_reason ?? null,

@@ -85,6 +85,8 @@ function makeZenBalance(balanceUsd: number | null): ExtraUsageBalance | null {
   }
   return {
     balance: Math.max(0, balanceUsd),
+    unit: 'currency',
+    unlimited: false,
     currencyCode: 'USD',
     enabled: true,
     disabledReason: null,

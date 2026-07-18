@@ -34,6 +34,36 @@ function openCodeGo(sessionUsedPercent: number): ProviderRateLimits {
     weekly: { usedPercent: 40, windowMinutes: 10080, resetsAt: null, resetDescription: null },
     extraUsage: {
       balance: 12.4,
+      unit: 'currency',
+      unlimited: false,
+      currencyCode: 'USD',
+      enabled: true,
+      disabledReason: null,
+      spent: null,
+      spendLimit: null,
+      spentPercent: null,
+      resetsAt: null
+    },
+    updatedAt: Date.now(),
+    error: null,
+    status: 'ok'
+  }
+}
+
+function codexCredits(sessionUsedPercent: number): ProviderRateLimits {
+  return {
+    provider: 'codex',
+    session: {
+      usedPercent: sessionUsedPercent,
+      windowMinutes: 300,
+      resetsAt: null,
+      resetDescription: null
+    },
+    weekly: { usedPercent: 40, windowMinutes: 10080, resetsAt: null, resetDescription: null },
+    extraUsage: {
+      balance: 500,
+      unit: 'credits',
+      unlimited: false,
       currencyCode: 'USD',
       enabled: true,
       disabledReason: null,
@@ -55,6 +85,8 @@ function claudeDisabledCredits(): ProviderRateLimits {
     weekly: { usedPercent: 80, windowMinutes: 10080, resetsAt: null, resetDescription: null },
     extraUsage: {
       balance: 0,
+      unit: 'currency',
+      unlimited: false,
       currencyCode: 'EUR',
       enabled: false,
       disabledReason: 'out_of_credits',
@@ -99,6 +131,18 @@ describe('ProviderSegment extra-usage balance token', () => {
       <ProviderSegment p={claudeDisabledCredits()} compact={false} display="used" />
     )
 
+    expect(markup).not.toContain('bal')
+  })
+
+  it('reveals a Codex credit count (not a currency amount) when a window caps', async () => {
+    const { ProviderSegment } = await import('./StatusBar')
+
+    const markup = renderToStaticMarkup(
+      <ProviderSegment p={codexCredits(100)} compact={false} display="used" />
+    )
+
+    expect(markup).toContain('500 credits')
+    expect(markup).not.toContain('$500')
     expect(markup).not.toContain('bal')
   })
 })

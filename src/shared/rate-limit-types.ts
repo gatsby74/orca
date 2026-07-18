@@ -19,9 +19,16 @@ export type ProviderRateLimitStatus = 'idle' | 'fetching' | 'ok' | 'error' | 'un
  * balance (OpenCode Go — only `balance` set).
  */
 export type ExtraUsageBalance = {
-  /** Current spendable credit balance in major currency units. */
+  /**
+   * Current spendable balance — a currency amount (major units) when `unit` is
+   * "currency", or a unitless credit count when `unit` is "credits".
+   */
   balance: number
-  /** ISO 4217 currency code, e.g. "USD" or "EUR". */
+  /** How `balance` is denominated: a currency amount or a plain credit count. */
+  unit: 'currency' | 'credits'
+  /** True when the balance is effectively unlimited (render "Unlimited"). */
+  unlimited: boolean
+  /** ISO 4217 currency code; only meaningful when `unit` is "currency". */
   currencyCode: string
   /** Whether the provider can currently spend into this balance. */
   enabled: boolean

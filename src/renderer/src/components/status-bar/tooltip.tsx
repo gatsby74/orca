@@ -191,7 +191,28 @@ export function getExtraUsageLabel(provider: ProviderRateLimits['provider']): st
   if (provider === 'opencode-go') {
     return translate('auto.components.status.bar.tooltip.fbc80d8be2', 'Zen balance')
   }
+  if (provider === 'codex') {
+    return translate('auto.components.status.bar.tooltip.f21b2ba897', 'Credits')
+  }
   return translate('auto.components.status.bar.tooltip.c03c61f53f', 'Balance')
+}
+
+// The uncapped balance line reads differently by denomination: a currency
+// amount (Zen balance), a credit count (Codex), or "Unlimited".
+function renderUncappedBalanceLine(balance: ExtraUsageBalance, currencyText: string): string {
+  if (balance.unit === 'credits') {
+    if (balance.unlimited) {
+      return translate('auto.components.status.bar.tooltip.56c0d70577', 'Unlimited')
+    }
+    return translate(
+      'auto.components.status.bar.tooltip.87b5bda4d3',
+      '{{value0}} credits available',
+      { value0: String(balance.balance) }
+    )
+  }
+  return translate('auto.components.status.bar.tooltip.f6a27a3c0a', '{{value0}} available', {
+    value0: currencyText
+  })
 }
 
 // ---------------------------------------------------------------------------
@@ -340,11 +361,7 @@ export function ProviderPanel({
       return (
         <div className="space-y-1">
           <div className={`font-medium ${textClass}`}>{label}</div>
-          <div className={mutedClass}>
-            {translate('auto.components.status.bar.tooltip.f6a27a3c0a', '{{value0}} available', {
-              value0: balanceText
-            })}
-          </div>
+          <div className={mutedClass}>{renderUncappedBalanceLine(balance, balanceText)}</div>
         </div>
       )
     }
