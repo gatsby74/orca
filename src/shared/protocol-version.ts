@@ -97,6 +97,9 @@ export const WORKTREE_VISIBILITY_DEFAULTS_RUNTIME_CAPABILITY =
 export const WORKTREE_VISIBILITY_SOURCE_DEFAULTS_RUNTIME_CAPABILITY =
   'worktree.visibility-source-defaults.v1' as const
 export const PORTABLE_SETTINGS_RUNTIME_CAPABILITY = 'settings.portable-sync.v1' as const
+// Why: optional one-shot remote install of allowlisted agent CLIs (not continuous
+// settings sync). Older servers omit this capability so the client hides the UI.
+export const AGENTS_CLI_INSTALL_RUNTIME_CAPABILITY = 'agents.cli-install.v1' as const
 
 export const RUNTIME_CAPABILITIES = [
   'runtime.status.compat.v1',
@@ -136,7 +139,8 @@ export const RUNTIME_CAPABILITIES = [
   WORKTREE_VISIBILITY_SOURCE_DEFAULTS_RUNTIME_CAPABILITY,
   ACCOUNT_IMPORT_RUNTIME_CAPABILITY,
   CODEX_RESET_CREDIT_RUNTIME_CAPABILITY,
-  PORTABLE_SETTINGS_RUNTIME_CAPABILITY
+  PORTABLE_SETTINGS_RUNTIME_CAPABILITY,
+  AGENTS_CLI_INSTALL_RUNTIME_CAPABILITY
 ] as const
 
 export type RuntimeCapability = (typeof RUNTIME_CAPABILITIES)[number] | (string & {})

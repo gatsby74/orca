@@ -1515,6 +1515,12 @@ export function RuntimeEnvironmentsPane({
           settings={settings}
           syncState={settingsSyncByEnvironmentId[pendingSettingsSync.id] ?? null}
           allowContinuousSync={canGeneratePairingUrl}
+          hostPlatform={
+            detailsByEnvironmentId[pendingSettingsSync.id]?.runtimeStatus?.hostPlatform ?? null
+          }
+          capabilities={
+            detailsByEnvironmentId[pendingSettingsSync.id]?.runtimeStatus?.capabilities ?? []
+          }
           onClose={() => setPendingSettingsSync(null)}
         />
       ) : null}

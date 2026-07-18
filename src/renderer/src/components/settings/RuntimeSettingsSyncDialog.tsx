@@ -1,16 +1,21 @@
 import { useEffect, useMemo, useState } from 'react'
 import { Loader2, ShieldCheck } from 'lucide-react'
 import { toast } from 'sonner'
-import type { GlobalSettings } from '../../../../shared/types'
+import type { GlobalSettings, TuiAgent } from '../../../../shared/types'
 import type { PortableSettingsSyncState } from '../../../../shared/portable-settings-sync'
 import {
-  createPortableSettingsBundle,
   getPortableSettingsCategoryDifferences,
   PORTABLE_SETTINGS_CATEGORIES,
   type PortableSettingsBundle,
   type PortableSettingsCategory
 } from '../../../../shared/portable-settings'
+import {
+  AGENTS_CLI_INSTALL_RUNTIME_CAPABILITY,
+  type RuntimeCapability
+} from '../../../../shared/protocol-version'
+import { toAgentInstallPlatform } from '../../../../shared/tui-agent-install-commands'
 import { callRuntimeRpc } from '@/runtime/runtime-rpc-client'
+import { useAppStore } from '@/store'
 import { translate } from '@/i18n/i18n'
 import { Button } from '../ui/button'
 import {
@@ -26,12 +31,19 @@ import {
   type RuntimeSettingsSyncCategoryPreview
 } from './RuntimeSettingsSyncCategoryList'
 import { RuntimeSettingsSyncModeControl } from './RuntimeSettingsSyncModeControl'
+import { RuntimeSettingsSyncAgentsSection } from './RuntimeSettingsSyncAgentsSection'
+import { installMissingAgentsOnRuntime } from './runtime-settings-sync-agent-install'
+import {
+  formatRuntimeSettingsSyncLoadError,
+  loadRuntimeSettingsSyncDialogState
+} from './runtime-settings-sync-dialog-load'
 
-type PortableSettingsGetResult = { bundle: PortableSettingsBundle }
 type PortableSettingsApplyResult = {
   bundle: PortableSettingsBundle
   appliedCategories: PortableSettingsCategory[]
 }
+
+const EMPTY_CAPABILITIES: readonly RuntimeCapability[] = []
 
 export function RuntimeSettingsSyncDialog({
   environmentId,
@@ -39,6 +51,8 @@ export function RuntimeSettingsSyncDialog({
   settings,
   syncState,
   allowContinuousSync = true,
+  hostPlatform = null,
+  capabilities = EMPTY_CAPABILITIES,
   onClose
 }: {
   environmentId: string
@@ -46,8 +60,14 @@ export function RuntimeSettingsSyncDialog({
   settings: GlobalSettings
   syncState: PortableSettingsSyncState | null
   allowContinuousSync?: boolean
+  hostPlatform?: NodeJS.Platform | null
+  capabilities?: readonly RuntimeCapability[]
   onClose: () => void
 }): React.JSX.Element {
+  const ensureDetectedAgents = useAppStore((s) => s.ensureDetectedAgents)
+  const ensureRuntimeDetectedAgents = useAppStore((s) => s.ensureRuntimeDetectedAgents)
+  const clearRuntimeDetectedAgents = useAppStore((s) => s.clearRuntimeDetectedAgents)
+
   const [localBundle, setLocalBundle] = useState<PortableSettingsBundle | null>(null)
   const [remoteBundle, setRemoteBundle] = useState<PortableSettingsBundle | null>(null)
   const [selected, setSelected] = useState<PortableSettingsCategory[]>(
@@ -58,6 +78,13 @@ export function RuntimeSettingsSyncDialog({
   const [applying, setApplying] = useState(false)
   const [error, setError] = useState<string | null>(null)
   const [reloadToken, setReloadToken] = useState(0)
+  const [installableAgents, setInstallableAgents] = useState<TuiAgent[]>([])
+  const [manualOnlyAgents, setManualOnlyAgents] = useState<TuiAgent[]>([])
+  const [installAgentsEnabled, setInstallAgentsEnabled] = useState(false)
+  const [selectedInstallAgents, setSelectedInstallAgents] = useState<TuiAgent[]>([])
+  const [installProgress, setInstallProgress] = useState<string | null>(null)
+  const supportsAgentInstall = capabilities.includes(AGENTS_CLI_INSTALL_RUNTIME_CAPABILITY)
+  const installPlatform = toAgentInstallPlatform(hostPlatform ?? 'linux')
   const syncCategoriesKey = syncState?.categories.join('\0') ?? ''
   const configuredCategories = useMemo(
     () =>
@@ -73,32 +100,28 @@ export function RuntimeSettingsSyncDialog({
       setLoading(true)
       setError(null)
       try {
-        const [keybindings, remote] = await Promise.all([
-          window.api.keybindings.get(),
-          callRuntimeRpc<PortableSettingsGetResult>(
-            { kind: 'environment', environmentId },
-            'settings.portable.get',
-            undefined,
-            { timeoutMs: 15_000 }
-          )
-        ])
+        const loaded = await loadRuntimeSettingsSyncDialogState({
+          environmentId,
+          settings,
+          configuredCategories,
+          supportsAgentInstall,
+          installPlatform,
+          ensureDetectedAgents,
+          ensureRuntimeDetectedAgents
+        })
         if (cancelled) {
           return
         }
-        const local = createPortableSettingsBundle(settings, keybindings)
-        setLocalBundle(local)
-        setRemoteBundle(remote.bundle)
-        setSelected(configuredCategories)
+        setLocalBundle(loaded.localBundle)
+        setRemoteBundle(loaded.remoteBundle)
+        setSelected(loaded.selected)
+        setInstallableAgents(loaded.installable)
+        setManualOnlyAgents(loaded.manualOnly)
+        setSelectedInstallAgents(loaded.installable)
+        setInstallAgentsEnabled(loaded.installable.length > 0)
       } catch (loadError) {
         if (!cancelled) {
-          setError(
-            loadError instanceof Error
-              ? loadError.message
-              : translate(
-                  'auto.components.settings.RuntimeSettingsSyncDialog.loadFailed',
-                  'Could not compare settings with this server.'
-                )
-          )
+          setError(formatRuntimeSettingsSyncLoadError(loadError))
         }
       } finally {
         if (!cancelled) {
@@ -110,7 +133,16 @@ export function RuntimeSettingsSyncDialog({
     return () => {
       cancelled = true
     }
-  }, [configuredCategories, environmentId, reloadToken, settings])
+  }, [
+    configuredCategories,
+    ensureDetectedAgents,
+    ensureRuntimeDetectedAgents,
+    environmentId,
+    installPlatform,
+    reloadToken,
+    settings,
+    supportsAgentInstall
+  ])
 
   const previews = useMemo<RuntimeSettingsSyncCategoryPreview[]>(
     () =>
@@ -124,6 +156,7 @@ export function RuntimeSettingsSyncDialog({
   )
 
   const selectedSet = useMemo(() => new Set(selected), [selected])
+  const selectedInstallSet = useMemo(() => new Set(selectedInstallAgents), [selectedInstallAgents])
 
   const stopSyncing = async (): Promise<void> => {
     if (applying) {
@@ -154,6 +187,7 @@ export function RuntimeSettingsSyncDialog({
     }
     setApplying(true)
     setError(null)
+    let settingsOk = false
     try {
       if (keepInSync) {
         await window.api.portableSettingsSync.configure({
@@ -168,6 +202,7 @@ export function RuntimeSettingsSyncDialog({
             { value0: environmentName }
           )
         )
+        settingsOk = true
       } else {
         if (syncState) {
           await window.api.portableSettingsSync.configure({
@@ -189,8 +224,8 @@ export function RuntimeSettingsSyncDialog({
             { value0: environmentName }
           )
         )
+        settingsOk = true
       }
-      onClose()
     } catch (applyError) {
       setError(
         applyError instanceof Error
@@ -200,7 +235,33 @@ export function RuntimeSettingsSyncDialog({
               'Could not sync settings to this server.'
             )
       )
-    } finally {
+    }
+
+    // Why: installs are independent of preference sync — a settings failure
+    // should not block provisioning CLIs, and install failures must not roll
+    // back settings that already applied.
+    if (supportsAgentInstall && installAgentsEnabled && selectedInstallAgents.length > 0) {
+      setInstallProgress(
+        translate(
+          'auto.components.settings.RuntimeSettingsSyncDialog.installingAgents',
+          'Installing missing agent CLIs…'
+        )
+      )
+      await installMissingAgentsOnRuntime({
+        environmentId,
+        environmentName,
+        agents: selectedInstallAgents,
+        clearRuntimeDetectedAgents,
+        ensureRuntimeDetectedAgents,
+        onSuccess: (message) => toast.success(message),
+        onError: (message) => toast.error(message)
+      })
+      setInstallProgress(null)
+    }
+
+    if (settingsOk) {
+      onClose()
+    } else {
       setApplying(false)
     }
   }
@@ -257,21 +318,46 @@ export function RuntimeSettingsSyncDialog({
             </Button>
           </div>
         ) : (
-          <RuntimeSettingsSyncCategoryList
-            previews={previews}
-            selected={selectedSet}
-            applying={applying}
-            onSelectedChange={(category, checked) =>
-              setSelected((current) =>
-                checked
-                  ? Array.from(new Set([...current, category]))
-                  : current.filter((entry) => entry !== category)
-              )
-            }
-          />
+          <div className="space-y-4">
+            <RuntimeSettingsSyncCategoryList
+              previews={previews}
+              selected={selectedSet}
+              applying={applying}
+              onSelectedChange={(category, checked) =>
+                setSelected((current) =>
+                  checked
+                    ? Array.from(new Set([...current, category]))
+                    : current.filter((entry) => entry !== category)
+                )
+              }
+            />
+            {supportsAgentInstall ? (
+              <RuntimeSettingsSyncAgentsSection
+                installable={installableAgents}
+                manualOnly={manualOnlyAgents}
+                selected={selectedInstallSet}
+                enabled={installAgentsEnabled}
+                applying={applying}
+                onEnabledChange={setInstallAgentsEnabled}
+                onSelectedChange={(agent, checked) =>
+                  setSelectedInstallAgents((current) =>
+                    checked
+                      ? Array.from(new Set([...current, agent]))
+                      : current.filter((entry) => entry !== agent)
+                  )
+                }
+              />
+            ) : null}
+          </div>
         )}
 
         {error && previews.length > 0 ? <p className="text-sm text-destructive">{error}</p> : null}
+        {installProgress ? (
+          <p className="flex items-center gap-2 text-sm text-muted-foreground">
+            <Loader2 className="size-3.5 animate-spin" />
+            {installProgress}
+          </p>
+        ) : null}
 
         {!loading && previews.length > 0 && allowContinuousSync ? (
           <RuntimeSettingsSyncModeControl
