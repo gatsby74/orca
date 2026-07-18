@@ -387,7 +387,10 @@ function writeActivePlatformSection(
   platform: NodeJS.Platform,
   fallbackCommonOverrides: KeybindingOverrides,
   mutateActivePlatform: (activePlatform: JsonObject) => void,
-  options: { replaceCommonOverrides?: KeybindingOverrides } = {}
+  options: {
+    replaceCommonOverrides?: KeybindingOverrides
+    preserveExistingCommonOnInactivePlatforms?: boolean
+  } = {}
 ): KeybindingFileSnapshot {
   const keybindingPlatform = getKeybindingPlatform(platform)
   const readResult = readJsonDocument(path)
@@ -397,11 +400,12 @@ function writeActivePlatformSection(
     throw new Error(readResult.error ?? 'Could not read keybindings file.')
   }
   const document = { ...readResult.document }
+  const existingCommon = isJsonObject(document.keybindings)
+    ? { ...document.keybindings }
+    : { ...fallbackCommonOverrides }
   const common = options.replaceCommonOverrides
     ? { ...options.replaceCommonOverrides }
-    : isJsonObject(document.keybindings)
-      ? { ...document.keybindings }
-      : { ...fallbackCommonOverrides }
+    : existingCommon
   for (const rootKey of Object.keys(document)) {
     if (isKeybindingActionId(rootKey)) {
       delete document[rootKey]
@@ -413,24 +417,38 @@ function writeActivePlatformSection(
     : {}
   mutateActivePlatform(activePlatform)
 
+  const platformSections = Object.fromEntries(
+    PLATFORM_KEYS.map((targetPlatform) => {
+      const existing = isJsonObject(platforms[targetPlatform])
+        ? (platforms[targetPlatform] as JsonObject)
+        : {}
+      if (
+        options.preserveExistingCommonOnInactivePlatforms === true &&
+        targetPlatform !== keybindingPlatform
+      ) {
+        // Why: removing shared bindings for one platform must not change what the
+        // same file resolves to when it is later opened on another operating system.
+        return [targetPlatform, { ...existingCommon, ...existing }]
+      }
+      return [targetPlatform, existing]
+    })
+  )
+
   document.version = FILE_VERSION
   document.keybindings = common
   document.platforms = {
     ...platforms,
-    darwin: isJsonObject(platforms.darwin) ? platforms.darwin : {},
-    linux: isJsonObject(platforms.linux) ? platforms.linux : {},
-    win32: isJsonObject(platforms.win32) ? platforms.win32 : {},
+    ...platformSections,
     [keybindingPlatform]: activePlatform
   }
   writeJsonDocument(path, document)
   return readKeybindingFile(path, platform)
 }
 
-export function replaceKeybindingOverrides(
-  path: string,
+export function validateKeybindingOverrides(
   platform: NodeJS.Platform,
   overrides: KeybindingOverrides
-): KeybindingFileSnapshot {
+): KeybindingOverrides {
   const keybindingPlatform = getKeybindingPlatform(platform)
   const normalizedOverrides: KeybindingOverrides = {}
   for (const [actionId, bindings] of Object.entries(overrides)) {
@@ -451,6 +469,15 @@ export function replaceKeybindingOverrides(
       )}.`
     )
   }
+  return normalizedOverrides
+}
+
+export function replaceKeybindingOverrides(
+  path: string,
+  platform: NodeJS.Platform,
+  overrides: KeybindingOverrides
+): KeybindingFileSnapshot {
+  const normalizedOverrides = validateKeybindingOverrides(platform, overrides)
   const current = readKeybindingFile(path, platform)
   return writeActivePlatformSection(
     path,
@@ -466,7 +493,10 @@ export function replaceKeybindingOverrides(
     },
     // Why: the imported snapshot already represents effective source overrides;
     // stale common bindings would otherwise leak into the target platform.
-    { replaceCommonOverrides: {} }
+    {
+      replaceCommonOverrides: {},
+      preserveExistingCommonOnInactivePlatforms: true
+    }
   )
 }
 

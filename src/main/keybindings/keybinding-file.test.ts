@@ -194,7 +194,17 @@ describe('keybinding-file', () => {
       'terminal.search': ['Ctrl+F']
     })
     expect(snapshot.commonOverrides).toEqual({})
-    expect(snapshot.platformOverrides.darwin).toEqual({ 'terminal.search': ['Mod+F'] })
+    expect(snapshot.platformOverrides.darwin).toEqual({
+      'terminal.clear': ['Ctrl+Alt+L'],
+      'terminal.search': ['Mod+F']
+    })
+    expect(readKeybindingFile(filePath, 'darwin').overrides).toEqual({
+      'terminal.clear': ['Ctrl+Alt+L'],
+      'terminal.search': ['Mod+F']
+    })
+    expect(readKeybindingFile(filePath, 'win32').overrides).toEqual({
+      'terminal.clear': ['Ctrl+Alt+L']
+    })
   })
 
   it('migrates root-level legacy overrides before writing settings edits', () => {

@@ -11,6 +11,7 @@ import {
   readKeybindingFile,
   replaceKeybindingOverrides,
   seedLegacyTabSwitchBindings,
+  validateKeybindingOverrides,
   writeKeybindingOverride
 } from './keybinding-file'
 
@@ -80,6 +81,10 @@ export class KeybindingService {
   ensureFile(): KeybindingFileSnapshot {
     ensureKeybindingFile(this.configPath)
     return this.reload()
+  }
+
+  validateOverrides(overrides: KeybindingOverrides): KeybindingOverrides {
+    return validateKeybindingOverrides(this.platform, overrides)
   }
 
   replaceOverrides(overrides: KeybindingOverrides): KeybindingFileSnapshot {
