@@ -326,13 +326,10 @@ export function ProviderPanel({
       ? formatResetCreditExpiry(p.rateLimitResetCredits?.nextExpiresAt, resetCreditCount)
       : null
 
-  const PanelBalanceSection = ({
-    balance,
-    label
-  }: {
-    balance: ExtraUsageBalance
-    label: string
-  }): React.JSX.Element => {
+  // Why: a plain render function, not a nested component — defining a component
+  // inside ProviderPanel would remount it every render and kill the bar's
+  // width transition.
+  const renderBalanceSection = (balance: ExtraUsageBalance, label: string): React.JSX.Element => {
     // Capped balances (Claude usage credits) render a spent/limit meter plus the
     // current balance; uncapped balances (OpenCode Go Zen credit) render a plain
     // available amount.
@@ -416,9 +413,7 @@ export function ProviderPanel({
         />
       ))}
 
-      {p.extraUsage ? (
-        <PanelBalanceSection balance={p.extraUsage} label={getExtraUsageLabel(p.provider)} />
-      ) : null}
+      {p.extraUsage ? renderBalanceSection(p.extraUsage, getExtraUsageLabel(p.provider)) : null}
 
       {p.error ? (
         <ErrorMessage
