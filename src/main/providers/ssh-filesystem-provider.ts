@@ -24,6 +24,7 @@ import type {
 import type { DirEntry, FsChangeEvent, SearchOptions, SearchResult } from '../../shared/types'
 import { routeSshFilesystemWatchNotification } from './ssh-filesystem-watch-notifications'
 import type { WorkspaceSpaceDirectoryScanResult } from '../../shared/workspace-space-types'
+import { isWindowsRemoteHost, type RemoteHostPlatform } from '../ssh/ssh-remote-platform'
 const WORKSPACE_SPACE_SCAN_TIMEOUT_MS = 130_000
 
 export class SshFilesystemProvider implements IFilesystemProvider {
@@ -40,7 +41,8 @@ export class SshFilesystemProvider implements IFilesystemProvider {
     connectionId: string,
     mux: SshChannelMultiplexer,
     private readonly createSftp?: SftpFactory,
-    private readonly rawTransfer?: SshRawTransferOptions
+    private readonly rawTransfer?: SshRawTransferOptions,
+    hostPlatform?: RemoteHostPlatform
   ) {
     this.connectionId = connectionId
     this.mux = mux
@@ -48,8 +50,12 @@ export class SshFilesystemProvider implements IFilesystemProvider {
     if (createSftp) {
       // Why: system SSH has raw single-file transfer but no ssh2 SFTP channel;
       // omitting this method makes folder capability truthful at the provider boundary.
+      const windowsRemotePaths = hostPlatform ? isWindowsRemoteHost(hostPlatform) : undefined
       this.downloadFolder = (sourcePath, destinationPath, options) =>
-        downloadFolderViaSftp(createSftp, sourcePath, destinationPath, options)
+        downloadFolderViaSftp(createSftp, sourcePath, destinationPath, {
+          ...options,
+          windowsRemotePaths: options?.windowsRemotePaths ?? windowsRemotePaths
+        })
     }
 
     this.unsubscribeNotifications = mux.onNotification((method, params) =>

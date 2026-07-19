@@ -255,7 +255,8 @@ export type FileReadResult = {
   mimeType?: string
 }
 
-export type FolderDownloadOptions = { signal?: AbortSignal }
+/** When known, drives remote path joining; omit falls back to path-shape heuristics. */
+export type FolderDownloadOptions = { signal?: AbortSignal; windowsRemotePaths?: boolean }
 
 export type IFilesystemProvider = {
   readDir(dirPath: string): Promise<DirEntry[]>

@@ -320,7 +320,9 @@ export function shouldShowRemoteDownloadAction(
   node: TreeNode,
   connectionId?: string | null,
   runtimeDownloadContext?: RuntimeFileOperationArgs | null,
-  supportsFolderDownload = true
+  // Why: fail closed — only show folder download when the connection explicitly
+  // advertises SFTP recursive transfer (system-SSH and unknown states stay off).
+  supportsFolderDownload = false
 ): boolean {
   // Why: Desktop-only because download depends on Electron's native save/folder dialogs;
   // runtime and system-SSH folders have no recursive transfer contract.
@@ -442,7 +444,7 @@ export function FileExplorerRow({
   deleteShortcutLabel,
   connectionId,
   runtimeDownloadContext,
-  supportsFolderDownload = true,
+  supportsFolderDownload = false,
   canCollapseFolderSubtree,
   targetDir,
   targetDepth,

@@ -138,7 +138,8 @@ describe('SshRelaySession terminal relay error (RelayVersionMismatchError)', () 
       'target-1',
       expect.anything(),
       undefined,
-      expect.objectContaining({ downloadFile: expect.any(Function) })
+      expect.objectContaining({ downloadFile: expect.any(Function) }),
+      undefined
     )
   })
 

@@ -7,6 +7,7 @@ import {
   normalizeRuntimePathSeparators
 } from '../../shared/cross-platform-path'
 import { sanitizeLocalDownloadFilename } from '../local-download-filename'
+import type { FolderDownloadOptions } from './types'
 import { fastGetViaSftp, readDirViaSftp, statViaSftp } from './ssh-filesystem-provider-sftp'
 
 export type SftpFactory = (options?: { signal?: AbortSignal }) => Promise<SFTPWrapper>
@@ -32,8 +33,21 @@ async function reserveLocalFile(localPath: string, localName: string): Promise<v
   }
 }
 
-function joinSftpChildPath(sourceDir: string, childName: string): string {
-  const windowsPath = isWindowsAbsolutePathLike(sourceDir)
+function remotePathsAreWindows(sourceDir: string, windowsRemotePaths?: boolean): boolean {
+  // Why: remote path rules belong to the SSH host. Prefer the known host platform
+  // and only fall back to string shape when the provider could not supply it.
+  if (windowsRemotePaths !== undefined) {
+    return windowsRemotePaths
+  }
+  return isWindowsAbsolutePathLike(sourceDir)
+}
+
+function joinSftpChildPath(
+  sourceDir: string,
+  childName: string,
+  windowsRemotePaths?: boolean
+): string {
+  const windowsPath = remotePathsAreWindows(sourceDir, windowsRemotePaths)
   if (
     !childName ||
     childName === '.' ||
@@ -66,7 +80,8 @@ async function downloadDirectoryTree(
   sftp: SFTPWrapper,
   sourceDir: string,
   destinationDir: string,
-  signal?: AbortSignal
+  signal?: AbortSignal,
+  windowsRemotePaths?: boolean
 ): Promise<void> {
   signal?.throwIfAborted()
   const entries = (await readDirViaSftp(sftp, sourceDir, { signal })).filter(
@@ -95,10 +110,10 @@ async function downloadDirectoryTree(
   await mkdir(destinationDir, { recursive: false })
   for (const { entry, kind, localName } of plannedEntries) {
     signal?.throwIfAborted()
-    const remotePath = joinSftpChildPath(sourceDir, entry.filename)
+    const remotePath = joinSftpChildPath(sourceDir, entry.filename, windowsRemotePaths)
     const localPath = join(destinationDir, localName)
     if (kind === 'directory') {
-      await downloadDirectoryTree(sftp, remotePath, localPath, signal)
+      await downloadDirectoryTree(sftp, remotePath, localPath, signal, windowsRemotePaths)
       continue
     }
     // Why: filesystem semantics belong to the selected volume, not the host OS;
@@ -128,7 +143,7 @@ export async function downloadFolderViaSftp(
   createSftp: SftpFactory | undefined,
   sourcePath: string,
   destinationPath: string,
-  options?: { signal?: AbortSignal }
+  options?: FolderDownloadOptions
 ): Promise<void> {
   if (!createSftp) {
     throw new Error(DOWNLOAD_UNAVAILABLE_MESSAGE)
@@ -153,7 +168,13 @@ export async function downloadFolderViaSftp(
     if (!rootStats.isDirectory()) {
       throw new Error('Cannot download a file as a folder')
     }
-    await downloadDirectoryTree(sftp, sourcePath, destinationPath, signal)
+    await downloadDirectoryTree(
+      sftp,
+      sourcePath,
+      destinationPath,
+      signal,
+      options?.windowsRemotePaths
+    )
   } finally {
     signal?.removeEventListener('abort', endSftp)
     endSftp()

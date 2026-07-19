@@ -74,7 +74,7 @@ export function FileExplorerVirtualRows(props: FileExplorerVirtualRowsProps): Re
     deleteShortcutLabel,
     connectionId,
     runtimeDownloadContext,
-    supportsFolderDownload = true,
+    supportsFolderDownload = false,
     onClick,
     onDoubleClick,
     onViewFile,

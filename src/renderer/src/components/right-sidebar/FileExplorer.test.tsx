@@ -598,7 +598,10 @@ describe('FileExplorerRow collapse folder action', () => {
     expect(shouldShowRemoteDownloadAction({ ...fileNode, isSymlink: true }, 'ssh-1')).toBe(true)
     expect(shouldShowRemoteDownloadAction(fileNode, null, runtimeContext)).toBe(true)
     expect(shouldShowRemoteDownloadAction(fileNode, null)).toBe(false)
-    expect(shouldShowRemoteDownloadAction(directoryNode, 'ssh-1')).toBe(true)
+    // Why: directory download defaults fail-closed until the connection advertises
+    // supportsFolderDownload (SFTP); system-SSH and unknown capability stay hidden.
+    expect(shouldShowRemoteDownloadAction(directoryNode, 'ssh-1')).toBe(false)
+    expect(shouldShowRemoteDownloadAction(directoryNode, 'ssh-1', null, true)).toBe(true)
     expect(shouldShowRemoteDownloadAction(directoryNode, 'ssh-1', null, false)).toBe(false)
     expect(shouldShowRemoteDownloadAction(fileNode, 'ssh-1', null, false)).toBe(true)
     expect(shouldShowRemoteDownloadAction(directoryNode, null, runtimeContext)).toBe(false)

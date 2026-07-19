@@ -146,13 +146,36 @@ describe('downloadFolderViaSftp', () => {
       end: vi.fn()
     }
 
-    await downloadFolderViaSftp(async () => sftp as never, sourcePath, destination)
+    await downloadFolderViaSftp(async () => sftp as never, sourcePath, destination, {
+      windowsRemotePaths: false
+    })
 
     expect(sftp.fastGet).toHaveBeenCalledWith(
       '/remote/parent\\literal/..\\secret.txt',
       join(destination, '.._secret.txt'),
       expect.any(Function)
     )
+  })
+
+  it('rejects Windows-path traversal names when the remote host is Windows', async () => {
+    const destination = await createDestination()
+    const sftp = {
+      stat: vi.fn((_path: string, callback: (err: Error | undefined, value: unknown) => void) =>
+        callback(undefined, sftpStats('directory'))
+      ),
+      readdir: vi.fn((_path: string, callback: (err: Error | undefined, value: unknown) => void) =>
+        callback(undefined, [sftpEntry('..\\secret.txt', 'file')])
+      ),
+      fastGet: vi.fn(),
+      end: vi.fn()
+    }
+
+    await expect(
+      downloadFolderViaSftp(async () => sftp as never, 'C:/remote/src', destination, {
+        windowsRemotePaths: true
+      })
+    ).rejects.toThrow("Invalid remote directory entry '..\\secret.txt'")
+    expect(sftp.fastGet).not.toHaveBeenCalled()
   })
 
   it('waits for active SFTP file handles to quiesce when canceled', async () => {
