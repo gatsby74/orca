@@ -2560,6 +2560,19 @@ export function useIpcEvents(): void {
           if (outcome.status === 'created' || isWebRuntimeSessionActive(environmentId)) {
             return
           }
+          // Why: remote-owned workspaces must stay host-owned. A failed host create
+          // used to fall through to a local tab that either never spawned or was
+          // wiped by the next session snapshot — looking like a silent no-op
+          // (issue #9464). Surface the failure instead.
+          if (environmentId) {
+            toast.error(
+              translate(
+                'auto.hooks.useIpcEvents.remote_terminal_create_failed',
+                'Could not create a new terminal on the remote server.'
+              )
+            )
+            return
+          }
           const newTab = store.createTab(worktreeId)
           store.setActiveTabType('terminal')
           // Why: mirror Terminal.tsx handleNewTab so a new tab appends at the end, not index 0, when tabBarOrder is unset.

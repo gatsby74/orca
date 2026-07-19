@@ -1535,12 +1535,23 @@ function Terminal(): React.JSX.Element | null {
         useAppStore.getState().groupsByWorktree[activeWorktreeId]?.[0]?.id
       const runtimeEnvironmentId = getActiveWorktreeRuntimeEnvironmentId(activeWorktreeId)
       if (isWebRuntimeSessionActive(runtimeEnvironmentId)) {
+        // Why: remote-owned tabs are host-authoritative; a failed host create
+        // must not look like a dead click (issue #9464).
         void createWebRuntimeSessionTerminal({
           worktreeId: activeWorktreeId,
           environmentId: runtimeEnvironmentId,
           targetGroupId,
           command: shellOverride,
           activate: true
+        }).then((created) => {
+          if (!created) {
+            toast.error(
+              translate(
+                'auto.components.Terminal.remote_terminal_create_failed',
+                'Could not create a new terminal on the remote server.'
+              )
+            )
+          }
         })
         return
       }
