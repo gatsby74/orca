@@ -667,6 +667,11 @@ export function useTabGroupWorkspaceModel({
             activate: true
           })
           if (outcome.status === 'created' || isWebRuntimeSessionActive(environmentId)) {
+            if (outcome.status === 'created') {
+              // Why: local createTab records this; remote host create must too
+              // so feature-discovery telemetry stays consistent across entry points.
+              useAppStore.getState().recordFeatureInteraction?.('terminal-tabs')
+            }
             return
           }
           // Why: remote-owned workspaces stay host-owned. Local shell fallback after

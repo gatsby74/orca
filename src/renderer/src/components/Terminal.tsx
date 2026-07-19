@@ -1544,14 +1544,18 @@ function Terminal(): React.JSX.Element | null {
           command: shellOverride,
           activate: true
         }).then((created) => {
-          if (!created) {
-            toast.error(
-              translate(
-                'auto.components.Terminal.remote_terminal_create_failed',
-                'Could not create a new terminal on the remote server.'
-              )
-            )
+          if (created) {
+            // Why: local createTab records this; remote host create must too
+            // so feature-discovery telemetry stays consistent across entry points.
+            useAppStore.getState().recordFeatureInteraction?.('terminal-tabs')
+            return
           }
+          toast.error(
+            translate(
+              'auto.components.Terminal.remote_terminal_create_failed',
+              'Could not create a new terminal on the remote server.'
+            )
+          )
         })
         return
       }
