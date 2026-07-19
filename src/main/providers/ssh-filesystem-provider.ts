@@ -50,11 +50,12 @@ export class SshFilesystemProvider implements IFilesystemProvider {
     if (createSftp) {
       // Why: system SSH has raw single-file transfer but no ssh2 SFTP channel;
       // omitting this method makes folder capability truthful at the provider boundary.
+      // windowsRemotePaths is provider-owned (from host platform), not a caller option.
       const windowsRemotePaths = hostPlatform ? isWindowsRemoteHost(hostPlatform) : undefined
       this.downloadFolder = (sourcePath, destinationPath, options) =>
         downloadFolderViaSftp(createSftp, sourcePath, destinationPath, {
           ...options,
-          windowsRemotePaths: options?.windowsRemotePaths ?? windowsRemotePaths
+          windowsRemotePaths
         })
     }
 

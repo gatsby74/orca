@@ -7,10 +7,12 @@ import {
   normalizeRuntimePathSeparators
 } from '../../shared/cross-platform-path'
 import { sanitizeLocalDownloadFilename } from '../local-download-filename'
-import type { FolderDownloadOptions } from './types'
 import { fastGetViaSftp, readDirViaSftp, statViaSftp } from './ssh-filesystem-provider-sftp'
 
 export type SftpFactory = (options?: { signal?: AbortSignal }) => Promise<SFTPWrapper>
+
+/** When known, windowsRemotePaths drives remote path joining; omit uses path-shape heuristics. */
+export type FolderDownloadOptions = { signal?: AbortSignal; windowsRemotePaths?: boolean }
 
 const DOWNLOAD_UNAVAILABLE_MESSAGE =
   'Remote folder download is unavailable. Reconnect the SSH target and retry.'
