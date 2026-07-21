@@ -6,20 +6,21 @@ import type { Editor } from '@tiptap/react'
  * from modals/dialogs and skips scrollIntoView to avoid racing with
  * useEditorScrollRestore.
  */
-export function autoFocusRichEditor(nextEditor: Editor, rootEl: HTMLElement | null): () => void {
+export function autoFocusRichEditor(
+  nextEditor: Editor,
+  rootEl: HTMLElement | null,
+  force = false
+): () => void {
   let frameId: number | null = requestAnimationFrame(() => {
     frameId = null
     if (nextEditor.isDestroyed) {
       return
     }
-    // Why: Explorer file-row activation hands focus to the opened editor, matching Monaco.
-    // Other controls retain focus so lazy mounts cannot disrupt fields or dialogs.
     const active = document.activeElement
+    // Why: explicit file-open requests may hand focus to the editor; ordinary
+    // lazy mounts must still leave unrelated fields and dialogs alone.
     const canTakeFocus =
-      active === null ||
-      active === document.body ||
-      (rootEl?.contains(active) ?? false) ||
-      Boolean(active?.closest('[data-file-explorer-row]'))
+      force || active === null || active === document.body || (rootEl?.contains(active) ?? false)
     if (!canTakeFocus) {
       return
     }

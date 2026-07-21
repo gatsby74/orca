@@ -310,6 +310,14 @@ export type PendingEditorReveal = {
   matchLength: number
 }
 
+export type PendingEditorFocusRequest = {
+  fileId: string
+  worktreeId: string
+  token: number
+}
+
+let nextEditorFocusRequestToken = 0
+
 const pendingEditorLineRevealFrameIds = new Set<number>()
 
 function cancelPendingEditorLineRevealFrames(): void {
@@ -440,6 +448,7 @@ export type EditorSlice = {
       recordReplacedPreview?: boolean
       suppressActiveRuntimeFallback?: boolean
       forceContentReload?: boolean
+      focusEditor?: boolean
     }
   ) => void
   openNewMarkdownInActiveWorkspace: (groupId: string) => Promise<void>
@@ -687,6 +696,8 @@ export type EditorSlice = {
   // Editor navigation (for search result → go-to-line)
   pendingEditorReveal: PendingEditorReveal | null
   setPendingEditorReveal: (reveal: PendingEditorReveal | null) => void
+  pendingEditorFocusRequest: PendingEditorFocusRequest | null
+  consumeEditorFocusRequest: (token: number) => void
 
   // Session hydration — restore editor files from persisted workspace session
   hydrateEditorSession: (
@@ -1638,6 +1649,17 @@ export const createEditorSlice: StateCreator<AppState, [], [], EditorSlice> = (s
         resolveEditorOpenTargetGroupId(s, worktreeId, options?.targetGroupId) ?? undefined
       editorItemTargetGroupId = targetGroupId
       const activeResult = buildEditorActiveResult(s, worktreeId, id)
+      // Why: the renderer may mount asynchronously after the opening control
+      // receives DOM focus, so carry the user's explicit focus handoff by file.
+      const focusRequestUpdate = options?.focusEditor
+        ? {
+            pendingEditorFocusRequest: {
+              fileId: id,
+              worktreeId,
+              token: ++nextEditorFocusRequestToken
+            }
+          }
+        : {}
 
       if (existing) {
         // If opening as non-preview, also pin the existing tab
@@ -1665,7 +1687,7 @@ export const createEditorSlice: StateCreator<AppState, [], [], EditorSlice> = (s
           existing.runtimeEnvironmentId !== runtimeEnvironmentId ||
           existing.fileContentReloadNonce !== fileContentReloadNonce
         if (!needsExistingUpdate) {
-          return activeResult
+          return { ...activeResult, ...focusRequestUpdate }
         }
         // Why: `readOnly` is intentionally NOT in this override map — it's sticky, so `...f` preserves the tab's own read-only state.
         return {
@@ -1693,7 +1715,8 @@ export const createEditorSlice: StateCreator<AppState, [], [], EditorSlice> = (s
                 }
               : f
           ),
-          ...activeResult
+          ...activeResult,
+          ...focusRequestUpdate
         }
       }
 
@@ -1771,7 +1794,8 @@ export const createEditorSlice: StateCreator<AppState, [], [], EditorSlice> = (s
             recentlyClosedEditorTabsByWorktree: nextRecentlyClosed,
             recentlyClosedTabKindsByWorktree: nextRecentlyClosedKinds,
             ...previewTabBarUpdate,
-            ...activeResult
+            ...activeResult,
+            ...focusRequestUpdate
           }
         }
       }
@@ -1811,7 +1835,8 @@ export const createEditorSlice: StateCreator<AppState, [], [], EditorSlice> = (s
           }
         ],
         ...tabBarUpdate,
-        ...activeResult
+        ...activeResult,
+        ...focusRequestUpdate
       }
     })
     void openWorkspaceEditorItem(
@@ -2154,6 +2179,8 @@ export const createEditorSlice: StateCreator<AppState, [], [], EditorSlice> = (s
         markdownTableOfContentsVisible: newMarkdownTableOfContentsVisible,
         tabBarOrderByWorktree: nextTabBarOrderByWorktree,
         pendingEditorReveal: null,
+        pendingEditorFocusRequest:
+          s.pendingEditorFocusRequest?.fileId === fileId ? null : s.pendingEditorFocusRequest,
         recentlyClosedEditorTabsByWorktree: nextRecentlyClosed,
         recentlyClosedTabKindsByWorktree: nextRecentlyClosedKinds
       }
@@ -2239,7 +2266,8 @@ export const createEditorSlice: StateCreator<AppState, [], [], EditorSlice> = (s
           editorViewMode: {},
           markdownFrontmatterVisible: {},
           markdownTableOfContentsVisible: {},
-          pendingEditorReveal: null
+          pendingEditorReveal: null,
+          pendingEditorFocusRequest: null
         }
       }
       // Only close files for the current worktree
@@ -2334,6 +2362,10 @@ export const createEditorSlice: StateCreator<AppState, [], [], EditorSlice> = (s
         tabBarOrderByWorktree: nextTabBarOrderByWorktree,
         // Why: clear the one-shot search reveal; keeping it after closing all editors would make a later reopen jump to an old match.
         pendingEditorReveal: null,
+        pendingEditorFocusRequest:
+          s.pendingEditorFocusRequest?.worktreeId === activeWorktreeId
+            ? null
+            : s.pendingEditorFocusRequest,
         recentlyClosedEditorTabsByWorktree: {
           ...s.recentlyClosedEditorTabsByWorktree,
           [activeWorktreeId]: nextRecentClosed
@@ -4237,6 +4269,11 @@ export const createEditorSlice: StateCreator<AppState, [], [], EditorSlice> = (s
   // Editor navigation
   pendingEditorReveal: null,
   setPendingEditorReveal: (reveal) => set({ pendingEditorReveal: reveal }),
+  pendingEditorFocusRequest: null,
+  consumeEditorFocusRequest: (token) =>
+    set((s) =>
+      s.pendingEditorFocusRequest?.token === token ? { pendingEditorFocusRequest: null } : s
+    ),
 
   activateMarkdownLink: async (rawHref, ctx) => {
     const initialState = get()

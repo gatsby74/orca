@@ -9,7 +9,10 @@ function createEditor(focus = vi.fn()): Editor {
   } as unknown as Editor
 }
 
-function setupScheduledFocus(activeElement: { closest: (selector: string) => unknown } | null): {
+function setupScheduledFocus(
+  activeElement: object | null,
+  force = false
+): {
   focus: ReturnType<typeof vi.fn>
   runFrame: () => void
 } {
@@ -23,7 +26,7 @@ function setupScheduledFocus(activeElement: { closest: (selector: string) => unk
   })
   vi.stubGlobal('cancelAnimationFrame', vi.fn())
   vi.stubGlobal('document', { activeElement, body: {} })
-  autoFocusRichEditor(createEditor(focus), null)
+  autoFocusRichEditor(createEditor(focus), null, force)
 
   return {
     focus,
@@ -59,22 +62,15 @@ describe('autoFocusRichEditor', () => {
     expect(focus).toHaveBeenCalledWith('start', { scrollIntoView: false })
   })
 
-  it('takes focus from the Explorer file row that opened the document', () => {
-    const activeElement = {
-      closest: vi.fn().mockReturnValue({})
-    }
-    const { focus, runFrame } = setupScheduledFocus(activeElement)
+  it('honors an explicit focus handoff', () => {
+    const { focus, runFrame } = setupScheduledFocus({}, true)
     runFrame()
 
-    expect(activeElement.closest).toHaveBeenCalledWith('[data-file-explorer-row]')
     expect(focus).toHaveBeenCalledWith('start', { scrollIntoView: false })
   })
 
   it('does not steal focus from other controls outside the editor', () => {
-    const activeElement = {
-      closest: vi.fn().mockReturnValue(null)
-    }
-    const { focus, runFrame } = setupScheduledFocus(activeElement)
+    const { focus, runFrame } = setupScheduledFocus({})
     runFrame()
 
     expect(focus).not.toHaveBeenCalled()
