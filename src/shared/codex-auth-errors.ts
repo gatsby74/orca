@@ -1,6 +1,4 @@
-// Why: Codex surface text drifts across app-server vs CLI (e.g. "sign in" vs
-// "signing in", plus machine codes like token_invalidated). Keep this list
-// broad enough that quota refresh stops at re-auth instead of PTY fallback.
+// Why: auth wording drifts across app-server and CLI; match stable machine codes and known user-facing variants.
 const CODEX_AUTH_ERROR_PATTERNS = [
   /access token could not be refreshed/i,
   /authentication session could not be refreshed/i,
@@ -8,8 +6,7 @@ const CODEX_AUTH_ERROR_PATTERNS = [
   /token_invalidated/i,
   /refresh token (?:has expired|was already used|was revoked)/i,
   /you have since logged out or signed in to another account/i,
-  // "Please sign in again" / "Please log out and sign in again" /
-  // "Please try signing in again" (Codex 0.144+ usage API wording)
+  // Covers "sign in", "log out and sign in", and "try signing in" variants.
   /please (?:try )?(?:log out and )?sign(?:ing)? in again/i,
   /please reauthenticate/i,
   /not logged in/i,
