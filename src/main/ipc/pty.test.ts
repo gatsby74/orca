@@ -821,6 +821,14 @@ describe('registerPtyHandlers', () => {
   }
 
   describe('spawn environment', () => {
+    it('publishes a lifecycle signal after a successful renderer spawn', async () => {
+      await spawnAndGetEnv()
+
+      expect(mainWindow.webContents.send).toHaveBeenCalledWith('pty:spawned', {
+        id: expect.any(String)
+      })
+    })
+
     it('marks local Claude launches live until the PTY is killed', async () => {
       let exitCb: ((info: { exitCode: number }) => void) | undefined
       spawnMock.mockReturnValue({
@@ -5223,7 +5231,7 @@ describe('registerPtyHandlers', () => {
     registerPtyHandlers(mainWindow as never, runtime as never)
     expect(controller).not.toBeNull()
     const spawnController = controller as unknown as RuntimeSpawnController
-    await spawnController.spawn({
+    const spawned = await spawnController.spawn({
       cols: 80,
       rows: 24,
       worktreeId: 'wt-1',
@@ -5238,6 +5246,9 @@ describe('registerPtyHandlers', () => {
       expect.any(String),
       'term_expected'
     )
+    expect(mainWindow.webContents.send).toHaveBeenCalledWith('pty:spawned', {
+      id: spawned.id
+    })
   })
 
   it('does not update cached PTY size when runtime controller resize fails', async () => {
@@ -8840,6 +8851,7 @@ describe('registerPtyHandlers', () => {
         cwd: '/tmp'
       })) as { id: string }
       const writeListener = getPtyWriteListener()
+      mainWindow.webContents.send.mockClear()
 
       const pendingOutput = 'x'.repeat(1020)
       mockProc.emitData(pendingOutput)

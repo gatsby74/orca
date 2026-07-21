@@ -2,7 +2,6 @@ import { describe, expect, it } from 'vitest'
 import {
   EMPTY_DAEMON_SESSION_INVENTORY,
   inventoryFromSessions,
-  inventoryHasUnknownLivePty,
   removeSessionFromInventory,
   removeSessionsFromInventory
 } from './resource-session-inventory'
@@ -42,25 +41,5 @@ describe('resource session inventory', () => {
     expect(removeSessionFromInventory(start, 'gone')).toBe(start)
     expect(removeSessionsFromInventory(start, new Set())).toBe(start)
     expect(EMPTY_DAEMON_SESSION_INVENTORY.count).toBe(0)
-  })
-
-  it('detects newly mounted live PTYs missing from the daemon cache', () => {
-    const inventory = inventoryFromSessions([session('known')])
-    expect(
-      inventoryHasUnknownLivePty(inventory, {
-        'tab-1': ['known']
-      })
-    ).toBe(false)
-    expect(
-      inventoryHasUnknownLivePty(inventory, {
-        'tab-1': ['known', 'fresh-spawn']
-      })
-    ).toBe(true)
-    expect(inventoryHasUnknownLivePty(inventory, {})).toBe(false)
-    expect(
-      inventoryHasUnknownLivePty(EMPTY_DAEMON_SESSION_INVENTORY, {
-        'tab-1': ['fresh-spawn']
-      })
-    ).toBe(true)
   })
 })

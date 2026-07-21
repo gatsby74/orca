@@ -1439,6 +1439,7 @@ export type PreloadApi = {
     /** Title-only replay snapshot for (re)attach; attention facts never replay. */
     getSideEffectSnapshot: (id: string) => Promise<TerminalSideEffectBatch | null>
     onExit: (callback: (data: { id: string; code: number }) => void) => () => void
+    onSpawned: (callback: (data: { id: string }) => void) => () => void
     onSerializeBufferRequest: (
       callback: (data: {
         requestId: string

@@ -41,25 +41,3 @@ export function removeSessionFromInventory(
 ): DaemonSessionInventory {
   return removeSessionsFromInventory(inventory, new Set([sessionId]))
 }
-
-/**
- * True when a live mounted PTY id is missing from the cached daemon inventory.
- * Used to re-seed the closed badge after a new terminal spawns without polling.
- */
-export function inventoryHasUnknownLivePty(
-  inventory: DaemonSessionInventory,
-  livePtyIdsByTabId: Record<string, readonly string[]>
-): boolean {
-  if (Object.keys(livePtyIdsByTabId).length === 0) {
-    return false
-  }
-  const known = new Set(inventory.sessions.map((session) => session.id))
-  for (const ptyIds of Object.values(livePtyIdsByTabId)) {
-    for (const ptyId of ptyIds) {
-      if (ptyId && !known.has(ptyId)) {
-        return true
-      }
-    }
-  }
-  return false
-}

@@ -71,14 +71,7 @@ import {
   countUnboundDaemonSessions,
   type ResourceSessionBindingInputs
 } from './resource-session-bindings'
-import {
-  EMPTY_DAEMON_SESSION_INVENTORY,
-  inventoryFromSessions,
-  inventoryHasUnknownLivePty,
-  removeSessionFromInventory,
-  removeSessionsFromInventory,
-  type DaemonSessionInventory
-} from './resource-session-inventory'
+import { useResourceSessionInventory } from './use-resource-session-inventory'
 import { translate } from '@/i18n/i18n'
 
 const POLL_MS = 2_000
@@ -738,9 +731,6 @@ export function ResourceUsageStatusSegment({
   const memorySnapshotError = useAppStore((s) => s.memorySnapshotError)
   const fetchSnapshot = useAppStore((s) => s.fetchMemorySnapshot)
   const workspaceSessionReady = useAppStore((s) => s.workspaceSessionReady)
-  // Why: closed-badge create detection needs live mounted PTY ids only. Wake
-  // hints must not drive the count (they inflated the old boundPtyIds badge).
-  const livePtyIdsByTabId = useAppStore((s) => s.ptyIdsByTabId)
   const setActiveView = useAppStore((s) => s.setActiveView)
   const openModal = useAppStore((s) => s.openModal)
   const openSpacePage = useAppStore((s) => s.openSpacePage)
@@ -755,14 +745,15 @@ export function ResourceUsageStatusSegment({
   const [collapsedRepos, setCollapsedRepos] = useState<Set<string>>(new Set())
   const [collapsedWorktrees, setCollapsedWorktrees] = useState<Set<string>>(new Set())
   const [appCollapsed, setAppCollapsed] = useState(true)
-  // Why: badge count must track real daemon inventory, not tab/layout wake
-  // hints. Cache listSessions results so the closed chip stays accurate
-  // without continuous global polling.
-  const [sessionInventory, setSessionInventory] = useState<DaemonSessionInventory>(
-    EMPTY_DAEMON_SESSION_INVENTORY
-  )
+  const {
+    sessionInventory,
+    sessionsError,
+    refreshSessions,
+    clearSessionsError,
+    removeSession,
+    removeSessions
+  } = useResourceSessionInventory(workspaceSessionReady)
   const sessions = sessionInventory.sessions
-  const [sessionsError, setSessionsError] = useState(false)
   const [killConfirm, setKillConfirm] = useState<UnifiedSessionRow | null>(null)
   const [killing, setKilling] = useState(false)
   const [spaceScanSnapshot, setSpaceScanSnapshot] = useState<ResourceUsageSpaceScanSnapshot>(
@@ -819,24 +810,9 @@ export function ResourceUsageStatusSegment({
     [cancelPopoverBodyFocusFrame]
   )
 
-  const refreshSessions = useCallback(async () => {
-    try {
-      const result = await window.api.pty.listSessions()
-      if (!mountedRef.current) {
-        return
-      }
-      setSessionInventory(inventoryFromSessions(result))
-      setSessionsError(false)
-    } catch {
-      if (mountedRef.current) {
-        setSessionsError(true)
-      }
-    }
-  }, [mountedRef])
-
   const daemonActions = useDaemonActions({
     onRestartSettled: () => {
-      setSessionsError(false)
+      clearSessionsError()
       void fetchSnapshot()
       void refreshSessions()
     },
@@ -863,19 +839,13 @@ export function ResourceUsageStatusSegment({
   }
   const spaceScanReady = nextSpaceScanSnapshot.ready
 
-  // Why: seed the closed badge once session restore is ready — both RAM
-  // (memory snapshot) and terminal count (daemon listSessions). Without this,
-  // the chip shows "—" / 0 until the user opens Resource Manager. Do not use
-  // tab/layout wake-hint counts for sessions — they stay high after sessions
-  // die and produced the inflated 60+ closed chip.
+  // Why: seed RAM after session restore so the closed chip does not require a
+  // click; the session-inventory hook independently seeds daemon PTYs.
   useEffect(() => {
-    if (!workspaceSessionReady) {
-      setSessionInventory(EMPTY_DAEMON_SESSION_INVENTORY)
-      return
+    if (workspaceSessionReady) {
+      void fetchSnapshot()
     }
-    void fetchSnapshot()
-    void refreshSessions()
-  }, [workspaceSessionReady, fetchSnapshot, refreshSessions])
+  }, [workspaceSessionReady, fetchSnapshot])
 
   // Poll memory only while the popover is open. Session inventory is still
   // explicit-on-open/action/seed (not a closed interval) because full
@@ -894,36 +864,6 @@ export function ResourceUsageStatusSegment({
       window.clearInterval(memTimer)
     }
   }, [open, fetchSnapshot, refreshSessions])
-
-  // Why: read inventory via ref so live-PTY create detection re-runs only when
-  // the mounted PTY map changes — not after every listSessions result (which
-  // could loop if a live id is temporarily absent from the daemon list).
-  // Why: keep the ref write in an effect so discarded/replayed renders cannot
-  // leak a mutated ref from uncommitted UI (React Doctor).
-  const sessionInventoryRef = useRef(sessionInventory)
-  useEffect(() => {
-    sessionInventoryRef.current = sessionInventory
-  }, [sessionInventory])
-
-  // Why: when a new terminal mounts while the popover is closed, re-inventory
-  // once so the badge tracks creates without a closed-state poll loop.
-  useEffect(() => {
-    if (open || !workspaceSessionReady) {
-      return
-    }
-    if (!inventoryHasUnknownLivePty(sessionInventoryRef.current, livePtyIdsByTabId)) {
-      return
-    }
-    void refreshSessions()
-  }, [open, workspaceSessionReady, livePtyIdsByTabId, refreshSessions])
-
-  // Why: exits (including kills that race list refresh) should drop the badge
-  // immediately without waiting for the next open.
-  useEffect(() => {
-    return window.api.pty.onExit(({ id }) => {
-      setSessionInventory((prev) => removeSessionFromInventory(prev, id))
-    })
-  }, [])
 
   const repoDisplayNameById = useMemo(() => {
     const map = new Map<string, string>()
@@ -1107,7 +1047,7 @@ export function ResourceUsageStatusSegment({
     (session: UnifiedSessionRow): void => {
       // Why: orphan sessions have no tab here (no unsaved work to lose), so skip the confirm dialog; bound sessions still confirm.
       if (!session.bound) {
-        setSessionInventory((prev) => removeSessionFromInventory(prev, session.sessionId))
+        removeSession(session.sessionId)
         // Why: await the kill before refreshing, else the refresh re-reads the daemon list before the kill lands and re-adds the row.
         void (async () => {
           try {
@@ -1121,7 +1061,7 @@ export function ResourceUsageStatusSegment({
       }
       setKillConfirm(session)
     },
-    [refreshSessions]
+    [refreshSessions, removeSession]
   )
 
   const handleKillOrphans = useCallback(async () => {
@@ -1135,10 +1075,10 @@ export function ResourceUsageStatusSegment({
     }
     // Why: optimistic removal so rows disappear immediately instead of waiting for the next daemon-side list refresh.
     const orphanIds = new Set(orphans.map((s) => s.id))
-    setSessionInventory((prev) => removeSessionsFromInventory(prev, orphanIds))
+    removeSessions(orphanIds)
     await Promise.allSettled(orphans.map((s) => window.api.pty.kill(s.id)))
     void refreshSessions()
-  }, [sessions, resourceSessionBindings, workspaceSessionReady, refreshSessions])
+  }, [sessions, resourceSessionBindings, workspaceSessionReady, refreshSessions, removeSessions])
 
   const runKillConfirmed = useCallback(async () => {
     if (!killConfirm) {
@@ -1147,7 +1087,7 @@ export function ResourceUsageStatusSegment({
     const target = killConfirm
     setKilling(true)
     // Why: optimistic removal avoids a flash where the dialog closes but the killed row lingers until the next list refresh.
-    setSessionInventory((prev) => removeSessionFromInventory(prev, target.sessionId))
+    removeSession(target.sessionId)
     try {
       await window.api.pty.kill(target.sessionId)
     } catch {
@@ -1167,7 +1107,7 @@ export function ResourceUsageStatusSegment({
         void refreshSessions()
       }
     }
-  }, [cancelPopoverBodyFocusFrame, killConfirm, mountedRef, refreshSessions])
+  }, [cancelPopoverBodyFocusFrame, killConfirm, mountedRef, refreshSessions, removeSession])
 
   const openSpaceResults = useCallback((): void => {
     setOpen(false)

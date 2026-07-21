@@ -2954,6 +2954,7 @@ function createPtyApi(): NonNullable<Partial<PreloadApi>['pty']> {
     onReplay: () => noopUnsubscribe,
     onModelRestoreNeeded: () => noopUnsubscribe,
     onExit: () => noopUnsubscribe,
+    onSpawned: () => noopUnsubscribe,
     onSerializeBufferRequest: () => noopUnsubscribe,
     onClearBufferRequest: () => noopUnsubscribe,
     sendSerializedBuffer: () => {},
