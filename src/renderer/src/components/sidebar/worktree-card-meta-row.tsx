@@ -35,8 +35,7 @@ export function WorktreeCardMetaRow({
   const {
     showRepoBadgeInMetaRow,
     showHostContextBadge,
-    showProjectDirectoryBadge,
-    normalizedProjectDirectoryName,
+    showBoardProjectLabel,
     showIdentityInNewCard,
     hasHoverDetails,
     showBranch,
@@ -67,18 +66,18 @@ export function WorktreeCardMetaRow({
           </Badge>
         )}
 
-        {showProjectDirectoryBadge ? (
+        {showBoardProjectLabel && repo ? (
           <Badge
             variant="secondary"
             className="h-[16px] max-w-[8rem] shrink-0 rounded border border-border bg-accent px-1.5 text-[10px] font-medium leading-none text-muted-foreground dark:bg-accent/80 dark:border-border/50"
             data-worktree-card-project-label=""
             aria-label={translate(
-              'auto.components.sidebar.WorktreeCard.projectFolderLabel',
-              'Project folder {{value0}}',
-              { value0: normalizedProjectDirectoryName }
+              'auto.components.sidebar.WorktreeCard.35ccfe2475',
+              'Project {{value0}}',
+              { value0: repo.displayName }
             )}
           >
-            <span className="truncate">{normalizedProjectDirectoryName}</span>
+            <span className="truncate">{repo.displayName}</span>
           </Badge>
         ) : null}
 

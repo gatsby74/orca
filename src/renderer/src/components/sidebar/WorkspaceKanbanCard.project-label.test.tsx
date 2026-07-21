@@ -5,9 +5,7 @@ import type { Worktree } from '../../../../shared/worktree/types'
 import WorkspaceKanbanCard from './WorkspaceKanbanCard'
 import WorktreeCard from './WorktreeCard'
 
-vi.mock('./WorktreeCard', () => ({
-  default: vi.fn(() => null)
-}))
+vi.mock('./WorktreeCard', () => ({ default: vi.fn(() => null) }))
 
 function makeWorktree(): Worktree {
   return {
@@ -27,23 +25,24 @@ function makeWorktree(): Worktree {
   } as Worktree
 }
 
-function makeRepo(path: string): Repo {
+function makeRepo(): Repo {
   return {
     id: 'repo-1',
-    path,
-    displayName: 'orca',
+    path: '/Users/me/projects/customer-api',
+    displayName: 'Customer API',
     badgeColor: '#737373',
+    addedAt: 0,
     kind: 'git',
-    hostId: 'local'
-  } as Repo
+    executionHostId: 'local'
+  }
 }
 
-function renderCard(repoPath: string): void {
+function renderCard(): void {
   renderToStaticMarkup(
     <WorkspaceKanbanCard
       worktree={makeWorktree()}
       laneIndex={0}
-      repo={makeRepo(repoPath)}
+      repo={makeRepo()}
       isActive={false}
       isSelected={false}
       onActivate={vi.fn()}
@@ -56,20 +55,12 @@ function renderCard(repoPath: string): void {
 beforeEach(() => {
   vi.mocked(WorktreeCard).mockClear()
 })
-describe('WorkspaceKanbanCard project directory label', () => {
-  it('forwards the project directory basename from POSIX repo paths', () => {
-    renderCard('/Users/me/projects/customer-api')
+describe('WorkspaceKanbanCard project label', () => {
+  it('requests a visible project label from the shared card', () => {
+    renderCard()
 
     expect(vi.mocked(WorktreeCard).mock.calls[0]?.[0]).toEqual(
-      expect.objectContaining({ projectDirectoryName: 'customer-api' })
-    )
-  })
-
-  it('forwards the project directory basename from Windows repo paths', () => {
-    renderCard('C:\\Users\\me\\projects\\customer-app')
-
-    expect(vi.mocked(WorktreeCard).mock.calls[0]?.[0]).toEqual(
-      expect.objectContaining({ projectDirectoryName: 'customer-app' })
+      expect.objectContaining({ showProjectLabel: true })
     )
   })
 })

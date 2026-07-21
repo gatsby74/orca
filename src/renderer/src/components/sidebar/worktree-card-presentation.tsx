@@ -19,7 +19,7 @@ export function buildWorktreeCardPresentation(card: WorktreeCardController) {
     inPinnedSection,
     hideRepoBadge,
     hostContextLabel,
-    projectDirectoryName,
+    showProjectLabel: shouldShowProjectLabel = false,
     affiliateListMode,
     flushSurface,
     contentIndent,
@@ -77,9 +77,10 @@ export function buildWorktreeCardPresentation(card: WorktreeCardController) {
   const showRepoBadgeInMetaRow =
     !showRepoIdentityInTitle && !!repo && !hideRepoBadge && !showPinnedRepoIcon
   const showHostContextBadge = !compactCards && !!hostContextLabel
-  const normalizedProjectDirectoryName = projectDirectoryName?.trim() ?? ''
-  const showProjectDirectoryBadge =
-    !compactCards && normalizedProjectDirectoryName.length > 0 && !isFolder
+  // Why: legacy detailed cards already show a textual repo badge; the icon-only style
+  // needs explicit project context when the board mixes workspaces from multiple repos.
+  const showBoardProjectLabel =
+    newCardStyle && shouldShowProjectLabel && !!repo && !hideRepoBadge && !isFolder
   const showDetachedHeadInMetaRow = !compactCards && !isFolder && detachedHeadDisplay !== null
   const showBranch =
     !isFolder &&
@@ -100,7 +101,7 @@ export function buildWorktreeCardPresentation(card: WorktreeCardController) {
   const hasDetailedMetaRowContent = Boolean(
     (showRepoBadgeInMetaRow && repo) ||
     showHostContextBadge ||
-    showProjectDirectoryBadge ||
+    showBoardProjectLabel ||
     folderMetaRowContent ||
     showBranch ||
     showIdentityInNewCard ||
@@ -266,8 +267,7 @@ export function buildWorktreeCardPresentation(card: WorktreeCardController) {
     showInlineRepoBadge,
     showRepoBadgeInMetaRow,
     showHostContextBadge,
-    showProjectDirectoryBadge,
-    normalizedProjectDirectoryName,
+    showBoardProjectLabel,
     showIdentityInNewCard,
     showDetachedHeadInMetaRow,
     showBranch,
