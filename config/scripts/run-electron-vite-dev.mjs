@@ -115,9 +115,11 @@ function pruneRemovedWorktreeElectronApps(cacheRoot, currentDistDir) {
     return
   }
 
-  let runningCommands = ''
+  let runningExecutables = []
   try {
-    runningCommands = execFileSync('/bin/ps', ['-axo', 'command='], { encoding: 'utf8' })
+    runningExecutables = execFileSync('/bin/ps', ['-axo', 'comm='], { encoding: 'utf8' })
+      .split('\n')
+      .filter(Boolean)
   } catch {
     // Keep stale bundles when process inspection is unavailable rather than
     // deleting a helper executable that another dev instance may still need.
@@ -141,14 +143,15 @@ function pruneRemovedWorktreeElectronApps(cacheRoot, currentDistDir) {
       ) {
         continue
       }
-      const executablePath = path.join(
-        distDir,
-        marker.appBundleName,
-        'Contents',
-        'MacOS',
-        'Electron'
-      )
-      if (runningCommands.includes(executablePath)) {
+      const appPath = path.join(distDir, marker.appBundleName)
+      // Why: Chromium helpers run executables elsewhere in the app bundle and
+      // can outlive the browser briefly, so any live bundle executable protects it.
+      if (
+        runningExecutables.some(
+          (executablePath) =>
+            executablePath === appPath || executablePath.startsWith(`${appPath}${path.sep}`)
+        )
+      ) {
         continue
       }
       rmSync(distDir, { recursive: true, force: true })
