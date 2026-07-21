@@ -7,9 +7,9 @@ import {
 } from '../../../../shared/execution-host'
 import { buildExecutionHostRegistry } from '../../../../shared/execution-host-registry'
 import { getHostDisplayLabelOverrides } from '../../../../shared/host-setting-overrides'
-import { buildGitHubRepoUrl } from '../../../../shared/github-links'
 import type { ProjectHostSetup } from '../../../../shared/project-types'
 import type { Repo } from '../../../../shared/repo-types'
+import { getProjectHostCloneUrl } from '../../lib/project-host-clone-url'
 import { useAppStore } from '../../store'
 import { getProjectHostSetupProjectionFromState } from '../../store/selectors'
 import { cn } from '../../lib/utils'
@@ -140,9 +140,8 @@ export function RepositoryHostSetupsSection({
   const selectedProject = projectId
     ? projectHostSetupProjection.projects.find((project) => project.id === projectId)
     : null
-  const projectGitHubUrl = buildGitHubRepoUrl(selectedProject?.providerIdentity)
   const cloneSourceUrl =
-    repo.gitRemoteIdentity?.remoteUrl ?? (projectGitHubUrl ? `${projectGitHubUrl}.git` : undefined)
+    repo.gitRemoteIdentity?.remoteUrl ?? getProjectHostCloneUrl(selectedProject) ?? undefined
   // Why: the single project pane switches host in place — set the ephemeral
   // per-project selection instead of navigating to a separate repo section.
   const selectHost = (hostId: ExecutionHostId) => {

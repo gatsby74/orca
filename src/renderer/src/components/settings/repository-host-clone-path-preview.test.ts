@@ -21,6 +21,8 @@ describe('repository host clone path preview', () => {
 
   it('withholds incomplete previews', () => {
     expect(getCloneFolderNamePreview('')).toBeNull()
+    expect(getCloneFolderNamePreview('file:///tmp/source/..')).toBeNull()
+    expect(getCloneFolderNamePreview('git@example.com:acme\\orca.git')).toBeNull()
     expect(getClonePathPreview('', 'orca')).toBeNull()
     expect(getClonePathPreview('/projects', null)).toBeNull()
   })

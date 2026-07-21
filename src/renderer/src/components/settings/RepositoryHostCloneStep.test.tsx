@@ -32,13 +32,15 @@ afterEach(() => {
   container.remove()
 })
 
-function renderStep(overrides: { onCloneUrlChange?: (value: string) => void } = {}): void {
+function renderStep(
+  overrides: { cloneUrl?: string; onCloneUrlChange?: (value: string) => void } = {}
+): void {
   act(() => {
     root.render(
       <TooltipProvider>
         <RepositoryHostCloneStep
           hostId="local"
-          cloneUrl=""
+          cloneUrl={overrides.cloneUrl ?? ''}
           cloneDestination=""
           disabled={false}
           isCloning={false}
@@ -118,5 +120,36 @@ describe('RepositoryHostCloneStep', () => {
 
     expect(listRepositories).toHaveBeenCalledOnce()
     expect(onCloneUrlChange).toHaveBeenCalledWith('https://github.com/acme/orca.git')
+  })
+
+  it('preserves the current SSH clone protocol when selecting a repository', async () => {
+    const onCloneUrlChange = vi.fn()
+    listRepositories.mockResolvedValue([
+      {
+        nameWithOwner: 'acme/orca',
+        description: null,
+        isPrivate: false,
+        updatedAt: '2026-07-18T20:00:00Z',
+        httpsUrl: 'https://github.com/acme/orca.git',
+        sshUrl: 'git@github.com:acme/orca.git'
+      }
+    ])
+    renderStep({ cloneUrl: 'git@github.com:existing/project.git', onCloneUrlChange })
+
+    const trigger = Array.from(container.querySelectorAll('button')).find((button) =>
+      button.textContent?.includes('Choose from GitHub')
+    )
+    await act(async () => {
+      trigger?.click()
+      await Promise.resolve()
+      await Promise.resolve()
+    })
+
+    const repository = Array.from(document.querySelectorAll<HTMLElement>('[cmdk-item]')).find(
+      (item) => item.textContent?.includes('acme/orca')
+    )
+    act(() => repository?.click())
+
+    expect(onCloneUrlChange).toHaveBeenCalledWith('git@github.com:acme/orca.git')
   })
 })

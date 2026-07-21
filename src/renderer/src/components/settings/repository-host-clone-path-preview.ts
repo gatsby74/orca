@@ -1,10 +1,11 @@
+import { deriveCloneRepoNameFromUrl } from '../../../../shared/git-clone-repository-name'
+
 export function getCloneFolderNamePreview(url: string): string | null {
-  const source = url
-    .trim()
-    .replace(/[\\/]+$/, '')
-    .replace(/\.git$/i, '')
-  const name = source.replace(/\\/g, '/').split('/').at(-1)?.trim()
-  return name && name !== '.' && name !== '..' ? name : null
+  try {
+    return deriveCloneRepoNameFromUrl(url.trim())
+  } catch {
+    return null
+  }
 }
 
 export function getClonePathPreview(parent: string, folderName: string | null): string | null {

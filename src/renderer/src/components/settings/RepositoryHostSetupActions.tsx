@@ -229,7 +229,12 @@ export function RepositoryHostSetupActions({
         </Label>
         <Select
           value={setupTargetHostId ?? undefined}
-          onValueChange={(value) => setSelectedSetupHostId(value as ExecutionHostId)}
+          onValueChange={(value) => {
+            // Why: project paths belong to one host and must never carry into another machine.
+            setSelectedSetupHostId(value as ExecutionHostId)
+            setSetupPath('')
+            setCloneDestination('')
+          }}
         >
           <SelectTrigger className="h-9 min-w-0">
             <SelectValue />
@@ -277,6 +282,7 @@ export function RepositoryHostSetupActions({
       ) : null}
       {step === 'clone' && setupTargetHostId ? (
         <RepositoryHostCloneStep
+          key={setupTargetHostId}
           hostId={setupTargetHostId}
           cloneUrl={cloneUrl}
           cloneDestination={cloneDestination}
