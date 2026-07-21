@@ -140,7 +140,7 @@ async function stopPtysForDestructiveWorktreeRemoval(
   }
 }
 
-function getRepoForWorktreeRemoval(
+function resolveRepoForHost(
   store: Store,
   repoId: string,
   hostId?: ExecutionHostId
@@ -1376,7 +1376,7 @@ export function registerWorktreeHandlers(
     'worktrees:remove',
     async (_event, args: RemoveWorktreeArgs): Promise<RemoveWorktreeResult> => {
       const { repoId, worktreePath } = parseWorktreeId(args.worktreeId)
-      const repo = getRepoForWorktreeRemoval(store, repoId, args.hostId)
+      const repo = resolveRepoForHost(store, repoId, args.hostId)
       if (!repo) {
         throw new Error(`Repo not found: ${repoId}`)
       }
@@ -1898,7 +1898,7 @@ export function registerWorktreeHandlers(
       args: Pick<RemoveWorktreeArgs, 'worktreeId' | 'hostId'>
     ): Promise<RemoveWorktreeResult> => {
       const { repoId } = parseWorktreeId(args.worktreeId)
-      const repo = getRepoForWorktreeRemoval(store, repoId, args.hostId)
+      const repo = resolveRepoForHost(store, repoId, args.hostId)
       if (!repo) {
         throw new Error(`Repo not found: ${repoId}`)
       }
@@ -2080,7 +2080,7 @@ export function registerWorktreeHandlers(
   ipcMain.handle(
     'hooks:check',
     async (_event, args: { repoId: string; hostId?: ExecutionHostId }) => {
-      const repo = getRepoForWorktreeRemoval(store, args.repoId, args.hostId)
+      const repo = resolveRepoForHost(store, args.repoId, args.hostId)
       if (!repo) {
         const repoIdExists = store.getRepos().some((candidate) => candidate.id === args.repoId)
         // Why: callers treat inspection errors as "skip", so a requested/ambiguous host must report error (fail closed), not hook-free.
@@ -2148,71 +2148,74 @@ export function registerWorktreeHandlers(
     }
   )
 
-  ipcMain.handle('hooks:inspectSetupScriptImports', async (_event, args: { repoId: string }) => {
-    const repo = store.getRepo(args.repoId)
-    if (!repo || isFolderRepo(repo)) {
-      return []
-    }
+  ipcMain.handle(
+    'hooks:inspectSetupScriptImports',
+    async (_event, args: { repoId: string; hostId?: ExecutionHostId }) => {
+      const repo = resolveRepoForHost(store, args.repoId, args.hostId)
+      if (!repo || isFolderRepo(repo)) {
+        return []
+      }
 
-    return inspectSetupScriptImportCandidates(
-      async (relativePath) => {
-        const filePath = joinWorktreeRelativePath(repo.path, relativePath)
-        if (repo.connectionId) {
-          const fsProvider = getSshFilesystemProvider(repo.connectionId)
-          if (!fsProvider) {
-            return null
-          }
-          try {
-            const result = await fsProvider.readFile(filePath)
-            return result.isBinary ? null : result.content
-          } catch {
-            return null
-          }
-        }
-
-        try {
-          return await readFile(filePath, 'utf-8')
-        } catch (error) {
-          if (!isENOENT(error)) {
-            console.warn('[hooks] Failed to inspect setup script import candidate:', error)
-          }
-          return null
-        }
-      },
-      {
-        fileExists: async (relativePath) => {
+      return inspectSetupScriptImportCandidates(
+        async (relativePath) => {
           const filePath = joinWorktreeRelativePath(repo.path, relativePath)
           if (repo.connectionId) {
             const fsProvider = getSshFilesystemProvider(repo.connectionId)
             if (!fsProvider) {
-              return false
+              return null
             }
             try {
-              const fileStat = await fsProvider.stat(filePath)
-              return fileStat.type !== 'directory'
+              const result = await fsProvider.readFile(filePath)
+              return result.isBinary ? null : result.content
             } catch {
-              return false
+              return null
             }
           }
 
           try {
-            const fileStat = await stat(filePath)
-            return !fileStat.isDirectory()
+            return await readFile(filePath, 'utf-8')
           } catch (error) {
             if (!isENOENT(error)) {
-              console.warn('[hooks] Failed to stat setup script import candidate:', error)
+              console.warn('[hooks] Failed to inspect setup script import candidate:', error)
             }
-            return false
+            return null
+          }
+        },
+        {
+          fileExists: async (relativePath) => {
+            const filePath = joinWorktreeRelativePath(repo.path, relativePath)
+            if (repo.connectionId) {
+              const fsProvider = getSshFilesystemProvider(repo.connectionId)
+              if (!fsProvider) {
+                return false
+              }
+              try {
+                const fileStat = await fsProvider.stat(filePath)
+                return fileStat.type !== 'directory'
+              } catch {
+                return false
+              }
+            }
+
+            try {
+              const fileStat = await stat(filePath)
+              return !fileStat.isDirectory()
+            } catch (error) {
+              if (!isENOENT(error)) {
+                console.warn('[hooks] Failed to stat setup script import candidate:', error)
+              }
+              return false
+            }
           }
         }
-      }
-    )
-  })
+      )
+    }
+  )
 
   ipcMain.handle(
     'hooks:readIssueCommand',
     async (_event, args: { repoId: string; hostId?: ExecutionHostId }) => {
-      const repo = getRepoForWorktreeRemoval(store, args.repoId, args.hostId)
+      const repo = resolveRepoForHost(store, args.repoId, args.hostId)
       if (!repo || isFolderRepo(repo)) {
         return {
           status: 'ok',
@@ -2279,7 +2282,7 @@ export function registerWorktreeHandlers(
   ipcMain.handle(
     'hooks:writeIssueCommand',
     async (_event, args: { repoId: string; content: string; hostId?: ExecutionHostId }) => {
-      const repo = getRepoForWorktreeRemoval(store, args.repoId, args.hostId)
+      const repo = resolveRepoForHost(store, args.repoId, args.hostId)
       if (!repo || isFolderRepo(repo)) {
         return
       }

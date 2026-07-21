@@ -7484,6 +7484,52 @@ describe('registerWorktreeHandlers', () => {
     expect(hasHooksFileMock).not.toHaveBeenCalled()
   })
 
+  it('inspects setup imports on the requested host when repo ids collide', async () => {
+    const localRepo = {
+      id: 'repo-shared',
+      path: '/local/repo',
+      displayName: 'local',
+      badgeColor: '#000',
+      addedAt: 0
+    }
+    const sshRepo = { ...localRepo, path: '/remote/repo', connectionId: 'conn-1' }
+    const fsProvider = {
+      readFile: vi.fn().mockResolvedValue({
+        content: JSON.stringify({ packageManager: 'pnpm@10.0.0' }),
+        isBinary: false
+      })
+    }
+    store.getRepos.mockReturnValue([localRepo, sshRepo])
+    getSshFilesystemProviderMock.mockReturnValue(fsProvider)
+
+    await expect(
+      handlers['hooks:inspectSetupScriptImports'](null, {
+        repoId: 'repo-shared',
+        hostId: 'ssh:conn-1'
+      })
+    ).resolves.toContainEqual(
+      expect.objectContaining({ provider: 'package-manager', setup: 'pnpm install' })
+    )
+    expect(fsProvider.readFile).toHaveBeenCalledWith('/remote/repo/package.json')
+  })
+
+  it('skips setup import inspection when duplicate repo ids omit the host', async () => {
+    const localRepo = {
+      id: 'repo-shared',
+      path: '/local/repo',
+      displayName: 'local',
+      badgeColor: '#000',
+      addedAt: 0
+    }
+    const sshRepo = { ...localRepo, path: '/remote/repo', connectionId: 'conn-1' }
+    store.getRepos.mockReturnValue([localRepo, sshRepo])
+
+    await expect(
+      handlers['hooks:inspectSetupScriptImports'](null, { repoId: 'repo-shared' })
+    ).resolves.toEqual([])
+    expect(getSshFilesystemProviderMock).not.toHaveBeenCalled()
+  })
+
   it('does not coalesce forget requests for the same id on different hosts', async () => {
     const localRepo = {
       id: 'repo-shared',

@@ -22,7 +22,10 @@ import { RepositorySourceControlAiSection } from './RepositorySourceControlAiSec
 import { SearchableSetting } from './SearchableSetting'
 import { matchesSettingsSearch } from './settings-search'
 import { useAppStore } from '../../store'
-import { getRepositoryIconSectionId } from './repository-settings-targets'
+import {
+  getRepositoryDisplayNameSectionId,
+  getRepositoryIconSectionId
+} from './repository-settings-targets'
 import { RepositoryIconPicker } from './RepositoryIconPicker'
 import { getRepositoryPaneSearchEntries } from './repository-search'
 import { RepositoryHostSetupsSection } from './RepositoryHostSetupsSection'
@@ -86,6 +89,7 @@ export function RepositoryPane({
   // host, not findRepoForHost's focused-host fallback (the same-id/self-pair
   // case where local and a runtime share one repo id).
   const selectedHostId = getRepoExecutionHostId(repo)
+  const displayNameInputId = getRepositoryDisplayNameSectionId(repo.id)
   const updateSelectedRepo = useCallback(
     (repoId: string, updates: RepositoryPaneRepoUpdate) =>
       updateRepo(repoId, updates, { hostId: selectedHostId }),
@@ -281,11 +285,11 @@ export function RepositoryPane({
           className="space-y-2"
           forceVisible={forceFullPaneForRepoMatch}
         >
-          <Label htmlFor={`repo-display-name-${repo.id}`} className="text-sm font-semibold">
+          <Label htmlFor={displayNameInputId} className="text-sm font-semibold">
             {translate('auto.components.settings.RepositoryPane.c7ef4415de', 'Display Name')}
           </Label>
           <RepoSettingsDraftInput
-            id={`repo-display-name-${repo.id}`}
+            id={displayNameInputId}
             repoId={repo.id}
             storeValue={repo.displayName}
             onTextChange={(text) => updateSelectedRepo(repo.id, { displayName: text })}

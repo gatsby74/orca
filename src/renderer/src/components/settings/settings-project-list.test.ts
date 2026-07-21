@@ -1,13 +1,13 @@
 import { describe, expect, it, vi } from 'vitest'
 import type { ProjectHostSetup, Repo } from '../../../../shared/types'
 import {
-  buildRepoIdToHostSelection,
   buildRepoIdToRepresentative,
   buildSettingsProjectList,
   getSettingsProjectHostRepo,
   getSettingsProjectRepresentativeRepoId,
   removeSettingsProjectFromAllHosts,
   resolveEffectiveProjectHost,
+  resolveSettingsTargetHostSelection,
   resolveSettingsTargetRepoId
 } from './settings-project-list'
 
@@ -152,15 +152,36 @@ describe('deep-link resolution', () => {
   })
 
   it('maps a repoId to its owning project + host for selection', () => {
-    const map = buildRepoIdToHostSelection(projects)
-    expect(map.get('remote-9')).toEqual({
+    expect(resolveSettingsTargetHostSelection({ repoId: 'remote-9' }, projects)).toEqual({
       projectId: projects[0].projectId,
       hostId: 'runtime:home-mac'
     })
   })
 
+  it('uses an explicit host when local and remote setups share one repo id', () => {
+    const sameIdRepos = [
+      makeRepo({ id: 'same-repo', gitRemoteIdentity: gitRemote }),
+      makeRepo({
+        id: 'same-repo',
+        gitRemoteIdentity: gitRemote,
+        executionHostId: 'runtime:home-mac'
+      })
+    ]
+    const sameIdProjects = buildSettingsProjectList(sameIdRepos)
+
+    expect(
+      resolveSettingsTargetHostSelection(
+        { repoId: 'same-repo', repoHostId: 'runtime:home-mac' },
+        sameIdProjects
+      )
+    ).toEqual({
+      projectId: sameIdProjects[0].projectId,
+      hostId: 'runtime:home-mac'
+    })
+  })
+
   it('parses a repoId from a host-specific subsection sectionId', () => {
-    const repoIds = [...buildRepoIdToHostSelection(projects).keys()]
+    const repoIds = projects.flatMap((project) => project.setups.map((setup) => setup.repoId))
     expect(
       resolveSettingsTargetRepoId(
         { repoId: null, sectionId: 'repo-remote-9-source-control-ai' },
@@ -185,7 +206,7 @@ describe('deep-link resolution', () => {
   })
 
   it('resolves the remote host repo row when a remote host is selected', () => {
-    const hostSelection = buildRepoIdToHostSelection(projects).get('remote-9')
+    const hostSelection = resolveSettingsTargetHostSelection({ repoId: 'remote-9' }, projects)
     expect(getSettingsProjectHostRepo(projects[0], repos, hostSelection?.hostId)?.id).toBe(
       'remote-9'
     )

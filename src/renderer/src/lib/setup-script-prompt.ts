@@ -2,7 +2,12 @@ import { getDefaultRepoHookSettings } from '../../../shared/constants'
 import { resolveHookCommandSourcePolicy } from '../../../shared/hook-command-source-policy'
 import type { SetupScriptImportCandidate } from '../../../shared/setup-script-imports'
 import type { Repo, RepoHookSettings } from '../../../shared/types'
-import type { HookCheckResult } from '@/runtime/runtime-hooks-client'
+import { getRepoExecutionHostId, parseExecutionHostId } from '../../../shared/execution-host'
+import {
+  checkRuntimeHooks,
+  inspectRuntimeSetupScriptImports,
+  type HookCheckResult
+} from '@/runtime/runtime-hooks-client'
 import { isRuntimeScopeForbiddenError } from '@/runtime/runtime-rpc-client'
 
 const SETUP_SCRIPT_PROMPT_DISMISSAL_PREFIX = 'generation-v1:'
@@ -67,6 +72,21 @@ export async function inspectSetupScriptPromptState({
     console.warn('[setup-script-prompt] Failed to inspect setup scripts:', error)
     return { status: 'error', repoId: repo.id }
   }
+}
+
+export function inspectSetupScriptPromptRepo(repo: Repo): Promise<SetupScriptPromptInspection> {
+  const hostId = getRepoExecutionHostId(repo)
+  const parsedHost = parseExecutionHostId(hostId)
+  // Why: prompt inspection must follow the displayed repo, not whichever
+  // runtime or same-id desktop row happens to be focused when the request runs.
+  const runtimeSettings = {
+    activeRuntimeEnvironmentId: parsedHost?.kind === 'runtime' ? parsedHost.environmentId : null
+  }
+  return inspectSetupScriptPromptState({
+    repo,
+    checkHooks: () => checkRuntimeHooks(runtimeSettings, repo.id, hostId),
+    inspectImports: () => inspectRuntimeSetupScriptImports(runtimeSettings, repo.id, hostId)
+  })
 }
 
 export function hasEffectiveSetupCommand(repo: Repo, hooksResult: HookCheckResult): boolean {

@@ -6,6 +6,7 @@ import { Input } from '@/components/ui/input'
 import { useAppStore } from '@/store'
 import { useAllWorktrees } from '@/store/selectors'
 import { getDefaultRepoHookSettings } from '../../../../shared/constants'
+import { getRepoExecutionHostId } from '../../../../shared/execution-host'
 import { isGitRepoKind } from '../../../../shared/repo-kind'
 import type { Repo, RepoHookSettings, Worktree } from '../../../../shared/types'
 import { getRepositoryLocalCommandsSectionId } from '../settings/repository-settings-targets'
@@ -114,9 +115,11 @@ export function SetupScriptAction(): React.JSX.Element {
       return
     }
     setSettingsSearchQuery('')
+    const repoHostId = getRepoExecutionHostId(repo)
     openSettingsTarget({
       pane: 'repo',
       repoId: repo.id,
+      repoHostId,
       sectionId: getRepositoryLocalCommandsSectionId(repo.id)
     })
     closeModal()
@@ -141,7 +144,11 @@ export function SetupScriptAction(): React.JSX.Element {
         setup: setupScript.trim()
       }
     }
-    const updated = await updateRepo(repo.id, { hookSettings: nextHookSettings })
+    const updated = await updateRepo(
+      repo.id,
+      { hookSettings: nextHookSettings },
+      { hostId: getRepoExecutionHostId(repo) }
+    )
     if (updated) {
       toast.success(
         translate(

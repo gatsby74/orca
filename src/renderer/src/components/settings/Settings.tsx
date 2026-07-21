@@ -114,12 +114,11 @@ import { translate } from '@/i18n/i18n'
 import { getProjectHostSetupProjectionFromState } from '../../store/selectors'
 import { getRepoHostIdentity } from '../../store/slices/repo-host-identity'
 import {
-  buildRepoIdToHostSelection,
   buildRepoIdToRepresentative,
   buildSettingsProjectList,
   getSettingsProjectHostRepo,
   removeSettingsProjectFromAllHosts,
-  resolveSettingsTargetRepoId
+  resolveSettingsTargetHostSelection
 } from './settings-project-list'
 
 const DevToolsPane = import.meta.env.DEV
@@ -304,11 +303,6 @@ function Settings(): React.JSX.Element {
   const settingsProjectList = useMemo(() => buildSettingsProjectList(repos), [repos])
   const repoIdToRepresentative = useMemo(
     () => buildRepoIdToRepresentative(settingsProjectList),
-    [settingsProjectList]
-  )
-  // Why: lets a deep-link's repoId select the owning project's host so host-specific subsection anchors exist.
-  const repoIdToHostSelection = useMemo(
-    () => buildRepoIdToHostSelection(settingsProjectList),
     [settingsProjectList]
   )
   // Why: pane-level "Remove Project" removes every host setup, not just the selected host (per-host remove lives in "Available Hosts").
@@ -628,15 +622,12 @@ function Settings(): React.JSX.Element {
       repoIdToRepresentative
     )
     // Why: select the target repo's host before scrolling so its host-specific subsection anchor renders and the scroll lands.
-    const targetRepoId = resolveSettingsTargetRepoId(
+    const hostSelection = resolveSettingsTargetHostSelection(
       settingsNavigationTarget,
-      repoIdToHostSelection.keys()
+      settingsProjectList
     )
-    if (targetRepoId) {
-      const hostSelection = repoIdToHostSelection.get(targetRepoId)
-      if (hostSelection) {
-        setSettingsProjectHostSelection(hostSelection.projectId, hostSelection.hostId)
-      }
+    if (hostSelection) {
+      setSettingsProjectHostSelection(hostSelection.projectId, hostSelection.hostId)
     }
     pendingNavSectionRef.current = paneSectionId
     pendingScrollTargetRef.current = settingsNavigationTarget.sectionId ?? paneSectionId
@@ -661,11 +652,11 @@ function Settings(): React.JSX.Element {
     clearSettingsTarget()
   }, [
     clearSettingsTarget,
-    repoIdToHostSelection,
     repoIdToRepresentative,
     setSettingsProjectHostSelection,
     settings,
-    settingsNavigationTarget
+    settingsNavigationTarget,
+    settingsProjectList
   ])
 
   // Why: recompute scrollback mode only when the row value changes, not on every settings mutation.

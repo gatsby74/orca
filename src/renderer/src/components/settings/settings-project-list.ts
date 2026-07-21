@@ -107,20 +107,32 @@ export function buildRepoIdToRepresentative(
   return map
 }
 
-/** Maps each host's repoId to its owning project + host, so a deep link can
- *  select that host in the pane's "Available Hosts" switcher. */
-export function buildRepoIdToHostSelection(
+export function resolveSettingsTargetHostSelection(
+  target: {
+    repoId: string | null
+    repoHostId?: ExecutionHostId
+    sectionId?: string
+  },
   projects: readonly SettingsProject[]
-): Map<string, { projectId: string; hostId: ExecutionHostId }> {
-  const map = new Map<string, { projectId: string; hostId: ExecutionHostId }>()
-  for (const settingsProject of projects) {
-    for (const setup of settingsProject.setups) {
-      if (setup.repoId.trim().length > 0 && !map.has(setup.repoId)) {
-        map.set(setup.repoId, { projectId: settingsProject.projectId, hostId: setup.hostId })
-      }
+): { projectId: string; hostId: ExecutionHostId } | null {
+  const repoIds = projects.flatMap((project) => project.setups.map((setup) => setup.repoId))
+  const repoId = resolveSettingsTargetRepoId(target, repoIds)
+  if (!repoId) {
+    return null
+  }
+  for (const project of projects) {
+    // Why: same-id local/runtime setups need the caller's host; repoId alone
+    // preserves legacy links but cannot identify the intended setup.
+    const setup = project.setups.find(
+      (candidate) =>
+        candidate.repoId === repoId &&
+        (!target.repoHostId || candidate.hostId === target.repoHostId)
+    )
+    if (setup) {
+      return { projectId: project.projectId, hostId: setup.hostId }
     }
   }
-  return map
+  return null
 }
 
 /**

@@ -38,11 +38,12 @@ export async function checkRuntimeHooks(
 
 export async function inspectRuntimeSetupScriptImports(
   settings: Pick<GlobalSettings, 'activeRuntimeEnvironmentId'> | null | undefined,
-  repoId: string
+  repoId: string,
+  hostId?: ExecutionHostId
 ): Promise<SetupScriptImportCandidate[]> {
   const target = getActiveRuntimeTarget(settings)
   if (target.kind !== 'environment') {
-    return window.api.hooks.inspectSetupScriptImports({ repoId })
+    return window.api.hooks.inspectSetupScriptImports({ repoId, ...(hostId ? { hostId } : {}) })
   }
   return callRuntimeRpc<SetupScriptImportCandidate[]>(
     target,

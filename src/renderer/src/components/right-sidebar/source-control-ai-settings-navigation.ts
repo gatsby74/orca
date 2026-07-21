@@ -1,5 +1,6 @@
 import { getRepositorySourceControlAiSectionId } from '@/components/settings/repository-settings-targets'
 import type { AppState } from '@/store'
+import { getRepoExecutionHostId } from '../../../../shared/execution-host'
 import type { Repo } from '../../../../shared/types'
 
 export function openSourceControlAiSettingsTarget({
@@ -15,6 +16,7 @@ export function openSourceControlAiSettingsTarget({
     openSettingsTarget({
       pane: 'repo',
       repoId: activeRepo.id,
+      repoHostId: getRepoExecutionHostId(activeRepo),
       sectionId: getRepositorySourceControlAiSectionId(activeRepo.id)
     })
   } else {
