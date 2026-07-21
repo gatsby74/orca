@@ -8,6 +8,7 @@ import {
   formatResetDuration
 } from '../../../../shared/rate-limit-reset-format'
 import { formatCurrencyAmount } from '../../../../shared/currency-format'
+import { formatCreditCount } from '../../../../shared/credit-count-format'
 import { AgentIcon } from '@/lib/agent-catalog'
 import { ClaudeIcon, GeminiIcon, MiniMaxIcon, OpenAIIcon, OpenCodeGoIcon } from './icons'
 import { translate } from '@/i18n/i18n'
@@ -199,7 +200,7 @@ export function getExtraUsageLabel(provider: ProviderRateLimits['provider']): st
 
 // The uncapped balance line reads differently by denomination: a currency
 // amount (Zen balance), a credit count (Codex), or "Unlimited".
-function renderUncappedBalanceLine(balance: ExtraUsageBalance, currencyText: string): string {
+function renderUncappedBalanceLine(balance: ExtraUsageBalance): string {
   if (balance.unit === 'credits') {
     if (balance.unlimited) {
       return translate('auto.components.status.bar.tooltip.56c0d70577', 'Unlimited')
@@ -207,9 +208,10 @@ function renderUncappedBalanceLine(balance: ExtraUsageBalance, currencyText: str
     return translate(
       'auto.components.status.bar.tooltip.87b5bda4d3',
       '{{value0}} credits available',
-      { value0: String(balance.balance) }
+      { value0: formatCreditCount(balance.balance) }
     )
   }
+  const currencyText = formatCurrencyAmount(balance.balance, balance.currencyCode)
   return translate('auto.components.status.bar.tooltip.f6a27a3c0a', '{{value0}} available', {
     value0: currencyText
   })
@@ -351,9 +353,14 @@ export function ProviderPanel({
   // inside ProviderPanel would remount it every render and kill the bar's
   // width transition.
   const renderBalanceSection = (balance: ExtraUsageBalance, label: string): React.JSX.Element => {
-    // Capped balances (Claude usage credits) render a spent/limit meter plus the
-    // current balance; uncapped balances (OpenCode Go Zen credit) render a plain
-    // available amount.
+    if (balance.unit === 'credits') {
+      return (
+        <div className="space-y-1">
+          <div className={`font-medium ${textClass}`}>{label}</div>
+          <div className={mutedClass}>{renderUncappedBalanceLine(balance)}</div>
+        </div>
+      )
+    }
     const capped = balance.spendLimit !== null && balance.spentPercent !== null
     const balanceText = formatCurrencyAmount(balance.balance, balance.currencyCode)
 
@@ -361,7 +368,7 @@ export function ProviderPanel({
       return (
         <div className="space-y-1">
           <div className={`font-medium ${textClass}`}>{label}</div>
-          <div className={mutedClass}>{renderUncappedBalanceLine(balance, balanceText)}</div>
+          <div className={mutedClass}>{renderUncappedBalanceLine(balance)}</div>
         </div>
       )
     }

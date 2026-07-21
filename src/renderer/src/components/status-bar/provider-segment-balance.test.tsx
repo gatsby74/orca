@@ -35,7 +35,6 @@ function openCodeGo(sessionUsedPercent: number): ProviderRateLimits {
     extraUsage: {
       balance: 12.4,
       unit: 'currency',
-      unlimited: false,
       currencyCode: 'USD',
       enabled: true,
       disabledReason: null,
@@ -64,12 +63,8 @@ function codexCredits(sessionUsedPercent: number): ProviderRateLimits {
       balance: 500,
       unit: 'credits',
       unlimited: false,
-      currencyCode: 'USD',
       enabled: true,
       disabledReason: null,
-      spent: null,
-      spendLimit: null,
-      spentPercent: null,
       resetsAt: null
     },
     updatedAt: Date.now(),
@@ -86,7 +81,6 @@ function claudeDisabledCredits(): ProviderRateLimits {
     extraUsage: {
       balance: 0,
       unit: 'currency',
-      unlimited: false,
       currencyCode: 'EUR',
       enabled: false,
       disabledReason: 'out_of_credits',

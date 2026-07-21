@@ -378,10 +378,13 @@ function moneyToMajor(money: OAuthMoney | number | null | undefined): number | n
   if (typeof money === 'number') {
     return Number.isFinite(money) ? money : null
   }
-  if (!money || typeof money.amount_minor !== 'number') {
+  if (!money || typeof money.amount_minor !== 'number' || !Number.isFinite(money.amount_minor)) {
     return null
   }
   const exponent = typeof money.exponent === 'number' ? money.exponent : 2
+  if (!Number.isInteger(exponent) || exponent < 0 || exponent > 6) {
+    return null
+  }
   return money.amount_minor / 10 ** exponent
 }
 
@@ -410,7 +413,6 @@ function mapSpend(spend: OAuthSpend | undefined): ExtraUsageBalance | null {
   return {
     balance,
     unit: 'currency',
-    unlimited: false,
     currencyCode:
       spend.used?.currency ?? spend.limit?.currency ?? spend.cap?.money?.currency ?? 'USD',
     enabled: spend.enabled === true,
@@ -439,7 +441,6 @@ function mapLegacyExtraUsage(extra: OAuthExtraUsage | undefined): ExtraUsageBala
   return {
     balance: 0,
     unit: 'currency',
-    unlimited: false,
     currencyCode: extra.currency?.trim() || 'USD',
     enabled: extra.is_enabled === true,
     disabledReason: extra.disabled_reason ?? null,

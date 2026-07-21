@@ -524,12 +524,8 @@ function mapCodexCredits(raw: RpcCredits | null | undefined): ExtraUsageBalance 
     balance,
     unit: 'credits',
     unlimited: raw.unlimited === true,
-    currencyCode: 'USD',
     enabled: raw.hasCredits === true || raw.unlimited === true,
     disabledReason: null,
-    spent: null,
-    spendLimit: null,
-    spentPercent: null,
     resetsAt: null
   }
 }

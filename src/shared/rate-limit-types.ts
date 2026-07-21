@@ -11,38 +11,29 @@ export type RateLimitWindow = {
 
 export type ProviderRateLimitStatus = 'idle' | 'fetching' | 'ok' | 'error' | 'unavailable'
 
-/**
- * Pay-as-you-go / overage balance that a plan spends into once its included
- * usage windows are exhausted (Claude "usage credits", OpenCode Go "Zen
- * balance"). Two shapes share these fields: a capped balance with a monthly
- * spend limit (Claude — `spendLimit`/`spentPercent` set) and an uncapped raw
- * balance (OpenCode Go — only `balance` set).
- */
-export type ExtraUsageBalance = {
-  /**
-   * Current spendable balance — a currency amount (major units) when `unit` is
-   * "currency", or a unitless credit count when `unit` is "credits".
-   */
+type ExtraUsageBalanceBase = {
   balance: number
-  /** How `balance` is denominated: a currency amount or a plain credit count. */
-  unit: 'currency' | 'credits'
-  /** True when the balance is effectively unlimited (render "Unlimited"). */
-  unlimited: boolean
-  /** ISO 4217 currency code; only meaningful when `unit` is "currency". */
-  currencyCode: string
-  /** Whether the provider can currently spend into this balance. */
   enabled: boolean
-  /** Machine-readable reason spending is unavailable (e.g. "out_of_credits"), or null. */
   disabledReason: string | null
-  /** Amount spent against the monthly cap this period (major units); null when uncapped. */
-  spent: number | null
-  /** Monthly spend cap in major units; null when uncapped (raw balance only). */
-  spendLimit: number | null
-  /** Percent of the monthly cap spent (0–100); null when uncapped. */
-  spentPercent: number | null
-  /** Unix ms timestamp when the cap resets, if known. */
   resetsAt: number | null
 }
+
+type CurrencyExtraUsageBalance = ExtraUsageBalanceBase & {
+  unit: 'currency'
+  currencyCode: string
+  spent: number | null
+  spendLimit: number | null
+  spentPercent: number | null
+}
+
+type CreditExtraUsageBalance = ExtraUsageBalanceBase & {
+  unit: 'credits'
+  unlimited: boolean
+}
+
+// Why: currency and unitless credits have different metadata; the discriminator
+// prevents consumers from inventing dummy currency or spend-limit values.
+export type ExtraUsageBalance = CurrencyExtraUsageBalance | CreditExtraUsageBalance
 
 export type RateLimitBucket = RateLimitWindow & {
   name: string
@@ -97,9 +88,7 @@ export type ProviderRateLimits = {
   /** 30-day monthly window (OpenCode Go, Grok unified billing), null if not available. */
   monthly?: RateLimitWindow | null
   /**
-   * Overage / pay-as-you-go balance the plan spends into once its windows are
-   * capped (Claude "extra usage" cap, OpenCode Go "Zen balance"), null when the
-   * provider reports none or extra usage is disabled.
+   * Overage / pay-as-you-go balance the plan spends into once its windows cap.
    */
   extraUsage?: ExtraUsageBalance | null
   /** Named per-model buckets (Gemini only). */

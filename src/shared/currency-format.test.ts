@@ -5,7 +5,7 @@ describe('formatCurrencyAmount', () => {
   it('formats USD amounts with the dollar symbol', () => {
     // Force a stable locale-independent expectation by asserting substrings.
     const formatted = formatCurrencyAmount(12.4, 'USD')
-    expect(formatted).toContain('12.40')
+    expect(formatted).toMatch(/12[.,]40/)
     expect(formatted).toContain('$')
   })
 
@@ -25,6 +25,6 @@ describe('formatCurrencyAmount', () => {
   })
 
   it('treats non-finite amounts as zero', () => {
-    expect(formatCurrencyAmount(Number.NaN, 'USD')).toContain('0.00')
+    expect(formatCurrencyAmount(Number.NaN, 'USD')).toMatch(/0[.,]00/)
   })
 })

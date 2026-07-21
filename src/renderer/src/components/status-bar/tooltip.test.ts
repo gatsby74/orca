@@ -1,4 +1,5 @@
 import { afterEach, describe, expect, it, vi } from 'vitest'
+import { createElement } from 'react'
 import { renderToStaticMarkup } from 'react-dom/server'
 import type * as ReactModule from 'react'
 import type { ProviderRateLimits } from '../../../../shared/rate-limit-types'
@@ -465,7 +466,6 @@ describe('ProviderPanel extra-usage rendering', () => {
       extraUsage: {
         balance: 10,
         unit: 'currency',
-        unlimited: false,
         currencyCode: 'EUR',
         enabled: true,
         disabledReason: null,
@@ -476,7 +476,7 @@ describe('ProviderPanel extra-usage rendering', () => {
       }
     })
 
-    const markup = renderToStaticMarkup(ProviderPanel({ p }))
+    const markup = renderToStaticMarkup(createElement(ProviderPanel, { p }))
 
     expect(markup).toContain('Usage credits')
     expect(markup).toContain('€2,000.00')
@@ -492,7 +492,6 @@ describe('ProviderPanel extra-usage rendering', () => {
       extraUsage: {
         balance: 0,
         unit: 'currency',
-        unlimited: false,
         currencyCode: 'EUR',
         enabled: false,
         disabledReason: 'out_of_credits',
@@ -503,7 +502,7 @@ describe('ProviderPanel extra-usage rendering', () => {
       }
     })
 
-    const markup = renderToStaticMarkup(ProviderPanel({ p }))
+    const markup = renderToStaticMarkup(createElement(ProviderPanel, { p }))
 
     expect(markup).toContain('Usage credits')
     expect(markup).toContain('€0.00 / €2,000.00')
@@ -518,7 +517,6 @@ describe('ProviderPanel extra-usage rendering', () => {
       extraUsage: {
         balance: 12.4,
         unit: 'currency',
-        unlimited: false,
         currencyCode: 'USD',
         enabled: true,
         disabledReason: null,
@@ -529,7 +527,7 @@ describe('ProviderPanel extra-usage rendering', () => {
       }
     })
 
-    const markup = renderToStaticMarkup(ProviderPanel({ p }))
+    const markup = renderToStaticMarkup(createElement(ProviderPanel, { p }))
 
     expect(markup).toContain('Zen balance')
     expect(markup).toContain('$12.40')
@@ -545,17 +543,13 @@ describe('ProviderPanel extra-usage rendering', () => {
         balance: 500,
         unit: 'credits',
         unlimited: false,
-        currencyCode: 'USD',
         enabled: true,
         disabledReason: null,
-        spent: null,
-        spendLimit: null,
-        spentPercent: null,
         resetsAt: null
       }
     })
 
-    const markup = renderToStaticMarkup(ProviderPanel({ p }))
+    const markup = renderToStaticMarkup(createElement(ProviderPanel, { p }))
 
     expect(markup).toContain('Credits')
     expect(markup).toContain('500 credits available')
@@ -572,17 +566,13 @@ describe('ProviderPanel extra-usage rendering', () => {
         balance: 0,
         unit: 'credits',
         unlimited: true,
-        currencyCode: 'USD',
         enabled: true,
         disabledReason: null,
-        spent: null,
-        spendLimit: null,
-        spentPercent: null,
         resetsAt: null
       }
     })
 
-    const markup = renderToStaticMarkup(ProviderPanel({ p }))
+    const markup = renderToStaticMarkup(createElement(ProviderPanel, { p }))
 
     expect(markup).toContain('Unlimited')
   })
@@ -593,7 +583,7 @@ describe('ProviderPanel extra-usage rendering', () => {
       session: { usedPercent: 40, windowMinutes: 300, resetsAt: null, resetDescription: null }
     })
 
-    const markup = renderToStaticMarkup(ProviderPanel({ p }))
+    const markup = renderToStaticMarkup(createElement(ProviderPanel, { p }))
 
     expect(markup).not.toContain('Usage credits')
     expect(markup).not.toContain('Zen balance')
@@ -616,7 +606,7 @@ describe('ProviderPanel reset rendering', () => {
       }
     })
 
-    const markup = renderToStaticMarkup(ProviderPanel({ p }))
+    const markup = renderToStaticMarkup(createElement(ProviderPanel, { p }))
 
     expect(markup).toContain('Fable')
     expect(markup).toContain('Resets in 6d 17h')
@@ -636,7 +626,7 @@ describe('ProviderPanel reset rendering', () => {
       }
     })
 
-    const markup = renderToStaticMarkup(ProviderPanel({ p }))
+    const markup = renderToStaticMarkup(createElement(ProviderPanel, { p }))
 
     // Why: bars show consumption (% used), matching harness meters (#7551).
     expect(markup).toContain('35%')
@@ -658,7 +648,7 @@ describe('ProviderPanel reset rendering', () => {
       }
     })
 
-    const markup = renderToStaticMarkup(ProviderPanel({ p }))
+    const markup = renderToStaticMarkup(createElement(ProviderPanel, { p }))
 
     expect(markup).toContain('100%')
     expect(markup).toContain('% used')
@@ -678,7 +668,7 @@ describe('ProviderPanel reset rendering', () => {
       }
     })
 
-    const markup = renderToStaticMarkup(ProviderPanel({ p }))
+    const markup = renderToStaticMarkup(createElement(ProviderPanel, { p }))
 
     expect(markup).toContain('100%')
     expect(markup).toContain('width:100%')
@@ -697,7 +687,9 @@ describe('ProviderPanel reset rendering', () => {
       }
     })
 
-    const markup = renderToStaticMarkup(ProviderPanel({ p, usagePercentageDisplay: 'remaining' }))
+    const markup = renderToStaticMarkup(
+      createElement(ProviderPanel, { p, usagePercentageDisplay: 'remaining' })
+    )
 
     expect(markup).toContain('75% left')
     expect(markup).toContain('width:75%')
@@ -731,7 +723,7 @@ describe('barColor', () => {
 
 describe('ProviderIcon', () => {
   it('renders the Antigravity agent icon for the antigravity provider', () => {
-    const markup = renderToStaticMarkup(ProviderIcon({ provider: 'antigravity' }))
+    const markup = renderToStaticMarkup(createElement(ProviderIcon, { provider: 'antigravity' }))
     expect(markup).toContain('data-agent-icon="antigravity"')
   })
 
@@ -739,7 +731,7 @@ describe('ProviderIcon', () => {
     // Why: the icon must travel to the status bar / tooltip unchanged so the
     // user recognises the brand. We pin it to an <img> with a non-empty
     // resource URL and aria-hidden so the icon stays purely decorative.
-    const markup = renderToStaticMarkup(ProviderIcon({ provider: 'minimax' }))
+    const markup = renderToStaticMarkup(createElement(ProviderIcon, { provider: 'minimax' }))
     expect(markup.startsWith('<img')).toBe(true)
     expect(markup).toContain('aria-hidden="true"')
     expect(markup).toMatch(/src="[^"]+"/)

@@ -60,6 +60,7 @@ import {
   getProviderUsageStatusLabel
 } from './tooltip'
 import { formatCurrencyAmount } from '../../../../shared/currency-format'
+import { formatCreditCount } from '../../../../shared/credit-count-format'
 import { ClaudeIcon, GeminiIcon, MiniMaxIcon, OpenAIIcon, OpenCodeGoIcon } from './icons'
 import { AgentIcon } from '@/lib/agent-catalog'
 import { UsageRosterPanel, getTightestUsageSection } from './UsageRosterPanel'
@@ -1252,10 +1253,7 @@ function VerboseProviderUsage({
 // exhausted. Treat ~100% as capped to tolerate provider rounding.
 const CAP_THRESHOLD_PERCENT = 99.5
 
-// Why: the overage balance stays hidden in the compact bar until the plan is
-// actually spending it — the balance must be spendable (enabled) and a
-// session/weekly/monthly window must be capped — so it appears (and visibly
-// counts down) exactly when it matters.
+// Why: only reveal the compact balance once a capped window can spend it.
 function isExtraUsageActive(p: ProviderRateLimits): boolean {
   if (!p.extraUsage || !p.extraUsage.enabled) {
     return false
@@ -1272,7 +1270,7 @@ function formatCompactExtraUsage(balance: ProviderRateLimits['extraUsage']): str
   if (balance.unit === 'credits') {
     return balance.unlimited
       ? translate('auto.components.status.bar.StatusBar.4025a6f62f', 'Unlimited')
-      : `${balance.balance} ${translate('auto.components.status.bar.StatusBar.a95969101f', 'credits')}`
+      : `${formatCreditCount(balance.balance)} ${translate('auto.components.status.bar.StatusBar.a95969101f', 'credits')}`
   }
   return `${formatCurrencyAmount(balance.balance, balance.currencyCode)} ${translate('auto.components.status.bar.StatusBar.4fba7dc1e7', 'bal')}`
 }
