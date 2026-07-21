@@ -56,6 +56,7 @@ export function DiffCommentCard({
   const cardRef = useRef<HTMLDivElement | null>(null)
   const textareaRef = useRef<HTMLTextAreaElement | null>(null)
   const resizeAfterCloseRef = useRef(false)
+  const observesContentResize = onContentResize !== undefined
 
   // Why: stash `onContentResize` in a ref so resize effects do not depend on
   // the decorator's fresh arrow each render. Re-running the edit layout effect
@@ -65,14 +66,14 @@ export function DiffCommentCard({
 
   useLayoutEffect(() => {
     const card = cardRef.current
-    if (!card || !onContentResizeRef.current) {
+    if (!card || !observesContentResize) {
       return
     }
     onContentResizeRef.current?.()
     let frameId: number | null = null
     const notifyResize = (): void => {
       if (frameId !== null) {
-        cancelAnimationFrame(frameId)
+        return
       }
       frameId = requestAnimationFrame(() => {
         frameId = null
@@ -86,8 +87,8 @@ export function DiffCommentCard({
         }
       }
     }
-    // Why: side-by-side diffs make cards narrow enough for body/header text to
-    // wrap after Monaco's initial estimate; observe the real card height.
+    // Why: narrow diff panes can wrap body/header text after Monaco's initial
+    // estimate; observe the real card height in either diff layout.
     const observer = new ResizeObserver(() => notifyResize())
     observer.observe(card)
     return () => {
@@ -96,7 +97,7 @@ export function DiffCommentCard({
         cancelAnimationFrame(frameId)
       }
     }
-  }, [])
+  }, [observesContentResize])
 
   // Why: focus + auto-grow the textarea on entering edit mode. Layout effect
   // so the height is set before the browser paints — a measurement pass on
