@@ -70,6 +70,7 @@ describe('useResourceSessionInventory', () => {
     await waitFor(() => expect(result.current.sessionInventory.count).toBe(1))
 
     await act(async () => {
+      spawnedCallback?.({ id: 'one' })
       spawnedCallback?.({ id: 'background' })
       spawnedCallback?.({ id: 'background-2' })
       await new Promise((resolve) => window.setTimeout(resolve, 0))
@@ -77,6 +78,18 @@ describe('useResourceSessionInventory', () => {
 
     await waitFor(() => expect(result.current.sessionInventory.count).toBe(2))
     expect(listSessions).toHaveBeenCalledTimes(2)
+  })
+
+  it('does not inventory again when an existing session reattaches', async () => {
+    listSessions.mockResolvedValue([session('one')])
+    const { result } = renderHook(() => useResourceSessionInventory(true))
+    await waitFor(() => expect(result.current.sessionInventory.count).toBe(1))
+
+    act(() => {
+      spawnedCallback?.({ id: 'one' })
+    })
+
+    expect(listSessions).toHaveBeenCalledTimes(1)
   })
 
   it('filters an exit from an in-flight list without losing other new sessions', async () => {

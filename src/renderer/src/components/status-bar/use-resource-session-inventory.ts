@@ -28,6 +28,7 @@ export function useResourceSessionInventory(ready: boolean): ResourceSessionInve
   const refreshGenerationRef = useRef(0)
   const lifecycleRevisionRef = useRef(0)
   const removedAtRevisionRef = useRef(new Map<string, number>())
+  const knownSessionIdsRef = useRef(new Set<string>())
   const [storedState, setStoredState] = useState<ResourceSessionInventoryState>(() => ({
     ready,
     sessionInventory: EMPTY_DAEMON_SESSION_INVENTORY,
@@ -71,6 +72,7 @@ export function useResourceSessionInventory(ready: boolean): ResourceSessionInve
           currentRemovedAtRevision.delete(id)
         }
       }
+      knownSessionIdsRef.current = new Set(liveSessions.map(({ id }) => id))
       setStoredState({
         ready: true,
         sessionInventory: inventoryFromSessions(liveSessions),
@@ -92,6 +94,7 @@ export function useResourceSessionInventory(ready: boolean): ResourceSessionInve
     // only that id preserves unrelated sessions discovered by the same list.
     const lifecycleRevision = ++lifecycleRevisionRef.current
     removedAtRevisionRef.current.set(sessionId, lifecycleRevision)
+    knownSessionIdsRef.current.delete(sessionId)
     setStoredState((current) => ({
       ...current,
       sessionInventory: removeSessionFromInventory(current.sessionInventory, sessionId)
@@ -102,6 +105,7 @@ export function useResourceSessionInventory(ready: boolean): ResourceSessionInve
     const lifecycleRevision = ++lifecycleRevisionRef.current
     for (const sessionId of sessionIds) {
       removedAtRevisionRef.current.set(sessionId, lifecycleRevision)
+      knownSessionIdsRef.current.delete(sessionId)
     }
     setStoredState((current) => ({
       ...current,
@@ -113,6 +117,7 @@ export function useResourceSessionInventory(ready: boolean): ResourceSessionInve
     refreshGenerationRef.current += 1
     if (!ready) {
       removedAtRevisionRef.current.clear()
+      knownSessionIdsRef.current.clear()
       return
     }
     void refreshSessions()
@@ -123,7 +128,11 @@ export function useResourceSessionInventory(ready: boolean): ResourceSessionInve
       return
     }
     let refreshTimer: number | null = null
-    const unsubscribeSpawned = window.api.pty.onSpawned(() => {
+    const unsubscribeSpawned = window.api.pty.onSpawned(({ id }) => {
+      // Why: reattach emits the same lifecycle signal; known IDs must not turn remounts into global inventory scans.
+      if (knownSessionIdsRef.current.has(id)) {
+        return
+      }
       // Why: background panes can spawn in a batch; coalesce their lifecycle
       // signals so the global provider inventory is listed once per turn.
       if (refreshTimer !== null) {
