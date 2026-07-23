@@ -127,26 +127,56 @@ export function useResourceSessionInventory(ready: boolean): ResourceSessionInve
     if (!ready) {
       return
     }
+    let disposed = false
     let refreshTimer: number | null = null
+    let lifecycleRefresh: Promise<void> | null = null
+    const pendingSpawnIds = new Set<string>()
+    const scheduleLifecycleRefresh = (): void => {
+      if (disposed || refreshTimer !== null || lifecycleRefresh !== null) {
+        return
+      }
+      refreshTimer = window.setTimeout(() => {
+        refreshTimer = null
+        if (pendingSpawnIds.size === 0) {
+          return
+        }
+        pendingSpawnIds.clear()
+        const refresh = refreshSessions()
+        lifecycleRefresh = refresh
+        void refresh.finally(() => {
+          if (disposed || lifecycleRefresh !== refresh) {
+            return
+          }
+          lifecycleRefresh = null
+          for (const id of pendingSpawnIds) {
+            if (knownSessionIdsRef.current.has(id)) {
+              pendingSpawnIds.delete(id)
+            }
+          }
+          scheduleLifecycleRefresh()
+        })
+      }, 0)
+    }
     const unsubscribeSpawned = window.api.pty.onSpawned(({ id }) => {
       // Why: reattach emits the same lifecycle signal; known IDs must not turn remounts into global inventory scans.
       if (knownSessionIdsRef.current.has(id)) {
         return
       }
-      // Why: background panes can spawn in a batch; coalesce their lifecycle
-      // signals so the global provider inventory is listed once per turn.
-      if (refreshTimer !== null) {
-        return
-      }
-      refreshTimer = window.setTimeout(() => {
-        refreshTimer = null
-        void refreshSessions()
-      }, 0)
+      pendingSpawnIds.add(id)
+      // Why: serialize slow provider-wide lists; retry once only when a result missed a later spawn.
+      scheduleLifecycleRefresh()
     })
     const unsubscribeExit = window.api.pty.onExit(({ id }) => {
+      pendingSpawnIds.delete(id)
+      if (pendingSpawnIds.size === 0 && refreshTimer !== null) {
+        window.clearTimeout(refreshTimer)
+        refreshTimer = null
+      }
       removeSession(id)
     })
     return () => {
+      disposed = true
+      pendingSpawnIds.clear()
       if (refreshTimer !== null) {
         window.clearTimeout(refreshTimer)
       }

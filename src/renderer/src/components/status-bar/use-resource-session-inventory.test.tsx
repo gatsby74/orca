@@ -51,14 +51,33 @@ describe('useResourceSessionInventory', () => {
   it('seeds from the daemon inventory and resets when session restore is not ready', async () => {
     listSessions.mockResolvedValue([session('one'), session('two')])
     const { result, rerender } = renderHook(({ ready }) => useResourceSessionInventory(ready), {
-      initialProps: { ready: true }
+      initialProps: { ready: false }
     })
 
+    expect(result.current.sessionInventory.count).toBe(0)
+    expect(listSessions).not.toHaveBeenCalled()
+
+    rerender({ ready: true })
     await waitFor(() => expect(result.current.sessionInventory.count).toBe(2))
     expect(listSessions).toHaveBeenCalledTimes(1)
 
     rerender({ ready: false })
     expect(result.current.sessionInventory.count).toBe(0)
+    expect(result.current.sessionsError).toBe(false)
+  })
+
+  it('recovers inventory and clears the error after a failed readiness seed', async () => {
+    listSessions
+      .mockRejectedValueOnce(new Error('daemon unavailable'))
+      .mockResolvedValueOnce([session('recovered')])
+    const { result } = renderHook(() => useResourceSessionInventory(true))
+
+    await waitFor(() => expect(result.current.sessionsError).toBe(true))
+    await act(async () => {
+      await result.current.refreshSessions()
+    })
+
+    expect(result.current.sessionInventory.sessions).toEqual([session('recovered')])
     expect(result.current.sessionsError).toBe(false)
   })
 
@@ -90,6 +109,96 @@ describe('useResourceSessionInventory', () => {
     })
 
     expect(listSessions).toHaveBeenCalledTimes(1)
+  })
+
+  it('does not overlap provider-wide inventory reads for spawns during a slow refresh', async () => {
+    listSessions.mockResolvedValueOnce([session('one')])
+    const { result } = renderHook(() => useResourceSessionInventory(true))
+    await waitFor(() => expect(result.current.sessionInventory.count).toBe(1))
+
+    const inFlight = deferred<DaemonSession[]>()
+    listSessions.mockReturnValueOnce(inFlight.promise)
+    await act(async () => {
+      spawnedCallback?.({ id: 'background-one' })
+      await new Promise((resolve) => window.setTimeout(resolve, 0))
+    })
+    expect(listSessions).toHaveBeenCalledTimes(2)
+
+    await act(async () => {
+      spawnedCallback?.({ id: 'background-two' })
+      await new Promise((resolve) => window.setTimeout(resolve, 0))
+    })
+    expect(listSessions).toHaveBeenCalledTimes(2)
+
+    await act(async () => {
+      inFlight.resolve([session('one'), session('background-one'), session('background-two')])
+      await inFlight.promise
+    })
+    await waitFor(() => expect(result.current.sessionInventory.count).toBe(3))
+    expect(listSessions).toHaveBeenCalledTimes(2)
+  })
+
+  it('reconciles once when an in-flight inventory misses a later spawn', async () => {
+    listSessions.mockResolvedValueOnce([session('one')])
+    const { result } = renderHook(() => useResourceSessionInventory(true))
+    await waitFor(() => expect(result.current.sessionInventory.count).toBe(1))
+
+    const inFlight = deferred<DaemonSession[]>()
+    listSessions
+      .mockReturnValueOnce(inFlight.promise)
+      .mockResolvedValueOnce([session('one'), session('background-one'), session('background-two')])
+    await act(async () => {
+      spawnedCallback?.({ id: 'background-one' })
+      await new Promise((resolve) => window.setTimeout(resolve, 0))
+    })
+    act(() => {
+      spawnedCallback?.({ id: 'background-two' })
+    })
+
+    await act(async () => {
+      inFlight.resolve([session('one'), session('background-one')])
+      await inFlight.promise
+    })
+    await waitFor(() => expect(result.current.sessionInventory.count).toBe(3))
+    expect(listSessions).toHaveBeenCalledTimes(3)
+  })
+
+  it('cancels a queued inventory read when the unknown session exits first', async () => {
+    listSessions.mockResolvedValueOnce([session('one')])
+    const { result } = renderHook(() => useResourceSessionInventory(true))
+    await waitFor(() => expect(result.current.sessionInventory.count).toBe(1))
+
+    act(() => {
+      spawnedCallback?.({ id: 'short-lived' })
+      exitCallback?.({ id: 'short-lived', code: 0 })
+    })
+    await new Promise((resolve) => window.setTimeout(resolve, 0))
+
+    expect(listSessions).toHaveBeenCalledTimes(1)
+    expect(result.current.sessionInventory.count).toBe(1)
+  })
+
+  it('does not schedule follow-up inventory after unmount', async () => {
+    listSessions.mockResolvedValueOnce([session('one')])
+    const { result, unmount } = renderHook(() => useResourceSessionInventory(true))
+    await waitFor(() => expect(result.current.sessionInventory.count).toBe(1))
+
+    const inFlight = deferred<DaemonSession[]>()
+    listSessions.mockReturnValueOnce(inFlight.promise)
+    await act(async () => {
+      spawnedCallback?.({ id: 'background-one' })
+      await new Promise((resolve) => window.setTimeout(resolve, 0))
+    })
+    act(() => {
+      spawnedCallback?.({ id: 'background-two' })
+    })
+    unmount()
+
+    inFlight.resolve([session('one'), session('background-one')])
+    await inFlight.promise
+    await new Promise((resolve) => window.setTimeout(resolve, 0))
+
+    expect(listSessions).toHaveBeenCalledTimes(2)
   })
 
   it('filters an exit from an in-flight list without losing other new sessions', async () => {

@@ -5382,6 +5382,48 @@ describe('registerPtyHandlers', () => {
     })
   })
 
+  it('starts local and SSH session inventories concurrently', async () => {
+    let resolveLocal!: (sessions: { id: string; cwd: string; title: string }[]) => void
+    const localSessions = new Promise<{ id: string; cwd: string; title: string }[]>((resolve) => {
+      resolveLocal = resolve
+    })
+    vi.spyOn(getLocalPtyProvider(), 'listProcesses').mockReturnValue(localSessions)
+    registerPtyHandlers(mainWindow as never)
+
+    let resolveSsh!: (sessions: { id: string; cwd: string; title: string }[]) => void
+    const sshSessions = new Promise<{ id: string; cwd: string; title: string }[]>((resolve) => {
+      resolveSsh = resolve
+    })
+    const sshListProcesses = vi.fn(() => sshSessions)
+    registerSshPtyProvider('ssh-1', {
+      spawn: vi.fn(),
+      write: vi.fn(),
+      resize: vi.fn(),
+      shutdown: vi.fn(),
+      sendSignal: vi.fn(),
+      getCwd: vi.fn(),
+      getInitialCwd: vi.fn(),
+      clearBuffer: vi.fn(),
+      acknowledgeDataEvent: vi.fn(),
+      onData: vi.fn(() => () => {}),
+      onExit: vi.fn(() => () => {}),
+      listProcesses: sshListProcesses,
+      hasChildProcesses: vi.fn(),
+      getForegroundProcess: vi.fn(),
+      serialize: vi.fn(),
+      revive: vi.fn(),
+      getDefaultShell: vi.fn(),
+      getProfiles: vi.fn()
+    } as never)
+
+    const pendingInventory = handlers.get('pty:listSessions')!(null, undefined)
+
+    expect(sshListProcesses).toHaveBeenCalledTimes(1)
+    resolveLocal([])
+    resolveSsh([])
+    await pendingInventory
+  })
+
   it('reports authoritative snapshot capability with the owning provider context', () => {
     const capabilityProvider = {
       authoritativeIds: new Set(['current-pty']),

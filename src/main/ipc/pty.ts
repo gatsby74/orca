@@ -5239,10 +5239,10 @@ export function registerPtyHandlers(
     'pty:listSessions',
     async (): Promise<{ id: string; cwd: string; title: string }[]> => {
       const providerSessions = await Promise.all([
-        Promise.resolve({
+        (async () => ({
           connectionId: null as string | null,
           sessions: await localProvider.listProcesses()
-        }),
+        }))(),
         ...Array.from(sshProviders.entries(), async ([connectionId, provider]) => ({
           connectionId,
           sessions: await provider.listProcesses().catch(() => [])

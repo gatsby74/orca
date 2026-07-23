@@ -2292,9 +2292,10 @@
       "invariant": "Typing, focus, terminal switch, workspace switch, visibility resume, resize, render, and per-pane liveness paths must not call global pty:listSessions; they must use targeted per-PTY APIs or cached provider-owned state.",
       "oracle": "The current executable slice asserts targeted visibility/first-input liveness, resize re-assertion after visibility resume, light tab/active-state resume, SSH/remote skip behavior, and a closed Resource Manager budget of one readiness seed plus one coalesced inventory read only for unknown spawn IDs; known-session reattach signals and steady closed time perform zero reads. Targeted hasPty/getSize calls are allowed for liveness/resize slices and forbidden for light tab/active-state resume. The full hot-path oracle still needs instrumentation around raw focus, split focus, workspace switch, render ticks, and high-session local/daemon/SSH fixtures.",
       "commands": [
-        "pnpm exec vitest run --config config/vitest.config.ts src/renderer/src/components/status-bar/use-resource-session-inventory.test.tsx src/renderer/src/components/status-bar/resource-session-inventory.test.ts src/renderer/src/components/status-bar/ResourceUsageStatusSegment.session-polling.test.ts"
+        "pnpm exec vitest run --config config/vitest.config.ts src/main/ipc/pty.test.ts src/renderer/src/components/status-bar/use-resource-session-inventory.test.tsx src/renderer/src/components/status-bar/resource-session-inventory.test.ts src/renderer/src/components/status-bar/ResourceUsageStatusSegment.session-polling.test.ts"
       ],
       "testFiles": [
+        "src/main/ipc/pty.test.ts",
         "src/renderer/src/components/status-bar/use-resource-session-inventory.test.tsx",
         "src/renderer/src/components/status-bar/resource-session-inventory.test.ts",
         "src/renderer/src/components/status-bar/ResourceUsageStatusSegment.session-polling.test.ts"
@@ -2303,10 +2304,27 @@
         {
           "file": "src/renderer/src/components/status-bar/use-resource-session-inventory.test.tsx",
           "assertions": [
-            "session-ready performs one daemon inventory seed",
+            "the false-to-true workspace readiness transition performs one daemon inventory seed",
+            "a failed readiness seed surfaces an error and a later inventory refresh recovers",
             "known-session reattach signals perform zero additional inventory reads",
             "multiple unknown background spawn signals coalesce to one inventory read",
+            "spawn signals during a slow inventory read never overlap provider-wide scans and cause at most one required follow-up",
+            "unknown sessions that exit before reconciliation cancel their queued inventory read",
+            "unmount during a slow inventory read cannot schedule follow-up work",
             "exit and out-of-order refresh races cannot resurrect stale sessions"
+          ]
+        },
+        {
+          "file": "src/main/ipc/pty.test.ts",
+          "assertions": [
+            "global inventory starts local and SSH provider listings concurrently"
+          ]
+        },
+        {
+          "file": "src/renderer/src/components/status-bar/resource-session-inventory.test.ts",
+          "assertions": [
+            "daemon inventory construction copies its source and preserves count parity",
+            "single and batch removals preserve unrelated sessions and no-op references"
           ]
         },
         {
@@ -2322,10 +2340,10 @@
           "date": "2026-07-22",
           "runner": "local",
           "platform": "macos",
-          "command": "pnpm exec vitest run --config config/vitest.config.ts src/renderer/src/components/status-bar/use-resource-session-inventory.test.tsx src/renderer/src/components/status-bar/resource-session-inventory.test.ts src/renderer/src/components/status-bar/ResourceUsageStatusSegment.session-polling.test.ts",
+          "command": "pnpm exec vitest run --config config/vitest.config.ts src/main/ipc/pty.test.ts src/renderer/src/components/status-bar/use-resource-session-inventory.test.tsx src/renderer/src/components/status-bar/resource-session-inventory.test.ts src/renderer/src/components/status-bar/ResourceUsageStatusSegment.session-polling.test.ts",
           "result": "passed",
-          "durationSeconds": 3.2,
-          "summary": "3 files and 13 tests passed, covering one readiness seed, zero interval polling, one coalesced read for unknown spawns, zero additional reads for known reattach signals, exit fencing, and out-of-order refresh fencing."
+          "durationSeconds": 4.3,
+          "summary": "4 files and 358 tests passed, covering readiness seed/recovery, zero interval polling, bounded unknown-spawn reconciliation, concurrent provider starts, exit fencing, cleanup, and out-of-order refresh fencing."
         }
       ],
       "runtimeBudget": {
