@@ -39,7 +39,8 @@ import type {
   RuntimeTerminalDriverState
 } from '../../../shared/runtime-types'
 import { importRemoteWorkspaceSession } from '../../../shared/remote-workspace-session-projection'
-import { zoomLevelToPercent, ZOOM_MIN, ZOOM_MAX } from '@/components/settings/SettingsConstants'
+import { zoomLevelToPercent } from '@/components/settings/SettingsConstants'
+import { stepUIZoomLevel } from '../../../shared/ui-zoom-level'
 import { dispatchZoomLevelChanged } from '@/lib/zoom-events'
 import { canShowRightSidebarForView } from '@/lib/right-sidebar-visibility'
 import { resolveZoomTarget } from './resolve-zoom-target'
@@ -86,6 +87,7 @@ import { attachMobileMarkdownBridge } from '@/runtime/mobile-markdown-bridge'
 import { closeMobileSessionTabInStore } from '@/runtime/mobile-session-tab-close'
 import { createWorktreeChangeRefreshQueue } from './worktree-change-refresh-queue'
 import { subscribeRuntimeClientEvents } from '@/runtime/runtime-client-events'
+import { subscribeToUnpairedDeviceAuthNotification } from './unpaired-device-auth-notification'
 import {
   applyRuntimeEnvironmentSshStateChanged,
   hydrateRuntimeEnvironmentSshState
@@ -102,6 +104,7 @@ import { buildWorkspaceSessionPayload } from '@/lib/workspace-session'
 import { persistWorkspaceSessionByHost } from '@/lib/workspace-session-host-persistence'
 import { getLinearIssueWorkspaceName } from '../../../shared/workspace-name'
 import type { RuntimeClientEvent } from '../../../shared/runtime-client-events'
+import { applyHostWorktreeTerminalSleepState } from '@/components/terminal-pane/pty-shutdown-exit-deferral'
 import type { AppState } from '../store/types'
 import { guardPinnedTabClose, resolvePinnedTabLabel } from '../store/pinned-tab-close-guard'
 import {
@@ -237,7 +240,6 @@ function acquireBrowserAutomationBootstrapLease(
 
 export { resolveZoomTarget } from './resolve-zoom-target'
 
-const ZOOM_STEP = 0.5
 const PENDING_AGENT_STATUS_RETRY_MS = 100
 const PENDING_AGENT_STATUS_TTL_MS = 15_000
 const MAX_PENDING_AGENT_STATUS_EVENTS = 100
@@ -846,8 +848,11 @@ export function useIpcEvents(): void {
 
     const handleWorktreesChanged = async (
       repoId: string,
-      renamed?: { oldWorktreeId: string; newWorktreeId: string }
+      renamed?: { oldWorktreeId: string; newWorktreeId: string },
+      options?: { forceLocalOwner?: boolean }
     ): Promise<void> => {
+      const localRefreshStartedWithRuntime =
+        options?.forceLocalOwner === true && isRuntimeEnvironmentActive()
       // Why: capture active-ness before migration moves the pointer; re-key maps before the diff so a rename isn't a deletion.
       const renamedWasActive =
         renamed != null && useAppStore.getState().activeWorktreeId === renamed.oldWorktreeId
@@ -863,18 +868,40 @@ export function useIpcEvents(): void {
       const before =
         getAuthoritativeDetectedWorktreeIds(state, repoId) ??
         getVisibleWorktreeIdsForRepo(state, repoId)
-      await state.fetchWorktrees(repoId)
-      await useAppStore.getState().fetchWorktreeLineage()
+      await state.fetchWorktrees(
+        repoId,
+        options?.forceLocalOwner ? { forceLocalOwner: true } : undefined
+      )
+      await useAppStore
+        .getState()
+        .fetchWorktreeLineage(options?.forceLocalOwner ? { forceLocalOwner: true } : undefined)
       // Why: an id change unmounts the active pane; re-activate so the tab reconciles, else it vanishes until re-select.
       if (renamedWasActive && renamed) {
         useAppStore.getState().setActiveWorktree(renamed.newWorktreeId)
+      }
+      // Sweep expired rename-grace entries before any early return, else forced-local
+      // (or non-authoritative) events let the map grow for the session.
+      const now = Date.now()
+      for (const [id, expiry] of recentlyRenamedWorktreeIdExpiry) {
+        if (expiry <= now) {
+          recentlyRenamedWorktreeIdExpiry.delete(id)
+        }
+      }
+      // Why: the deletion diff below is repo-wide, but a forced-local scan overlapping
+      // a runtime cannot prove remote absence (legacy runtime rows may lack hostId).
+      // fetchWorktrees still purges removed local rows host-scoped; accepted gap: the
+      // workspace-space entry survives until the next local-only rescan.
+      if (
+        options?.forceLocalOwner &&
+        (localRefreshStartedWithRuntime || isRuntimeEnvironmentActive())
+      ) {
+        return
       }
       const afterState = useAppStore.getState()
       const after = getAuthoritativeDetectedWorktreeIds(afterState, repoId)
       if (!after) {
         return
       }
-      const now = Date.now()
       const removed: string[] = []
       for (const id of before) {
         if (after.has(id)) {
@@ -886,11 +913,6 @@ export function useIpcEvents(): void {
           continue
         }
         removed.push(id)
-      }
-      for (const [id, expiry] of recentlyRenamedWorktreeIdExpiry) {
-        if (expiry <= now) {
-          recentlyRenamedWorktreeIdExpiry.delete(id)
-        }
       }
       if (removed.length > 0) {
         console.warn(
@@ -963,6 +985,10 @@ export function useIpcEvents(): void {
       null
 
     const handleRuntimeClientEvent = (environmentId: string, event: RuntimeClientEvent): void => {
+      if (event.type === 'worktreeTerminalSleepState') {
+        applyHostWorktreeTerminalSleepState(environmentId, event)
+        return
+      }
       if (event.type === 'reposChanged') {
         runtimeProjectRefreshScheduler.request(environmentId)
         return
@@ -1088,12 +1114,14 @@ export function useIpcEvents(): void {
           repoId: string
           renamed?: { oldWorktreeId: string; newWorktreeId: string }
         }) => {
-          if (isRuntimeEnvironmentActive()) {
-            // Why: local worktree events carry local repo ids; fetching the runtime with them can purge or overwrite server state.
-            return
-          }
-          // A folder rename changes the worktree id; handleWorktreesChanged re-keys state and shields it from the deletion diff.
-          worktreeChangeRefreshQueue.enqueue(data)
+          // Why: preserve this event's local origin across queue delays and runtime
+          // focus changes; otherwise an unbound repo can refresh from the wrong host.
+          // A folder rename changes the worktree id; handleWorktreesChanged re-keys
+          // state and shields it from the deletion diff.
+          worktreeChangeRefreshQueue.enqueue({
+            ...data,
+            forceLocalOwner: true
+          })
         }
       )
     )
@@ -1102,7 +1130,8 @@ export function useIpcEvents(): void {
       unsubs.push(
         window.api.worktrees.onHeadIdentitiesChanged((data) => {
           if (isRuntimeEnvironmentActive()) {
-            // Why: local worktree events carry local repo ids (see onChanged).
+            // Why: local worktree events carry local repo ids; the local-pinned list
+            // refresh (onChanged) covers local rows while a runtime is active.
             return
           }
           const state = useAppStore.getState()
@@ -1170,6 +1199,36 @@ export function useIpcEvents(): void {
       window.api.ui.onOpenSetupGuide?.(() => {
         useAppStore.getState().openModal('setup-guide', { telemetrySource: 'help_menu' })
       }) ?? (() => {})
+    )
+
+    // Why: a phone stuck in a silent 4001 auth loop (lost device registry) reads as
+    // "phone won't connect" with no clue on either end; main throttles to once per session.
+    unsubs.push(
+      subscribeToUnpairedDeviceAuthNotification(window.api.mobile, () => {
+        toast.warning(
+          translate(
+            'auto.hooks.useIpcEvents.ef223fbb6b',
+            'A device tried to connect but is not paired'
+          ),
+          {
+            id: 'unpaired-device-auth-failure',
+            description: translate(
+              'auto.hooks.useIpcEvents.11992d0337',
+              'If this was your phone or another Orca client, re-pair it from Settings → Mobile.'
+            ),
+            // Why: main emits this recovery path once per session, so it must remain visible until acted on or dismissed.
+            duration: Infinity,
+            action: {
+              label: translate('auto.hooks.useIpcEvents.6573cfe955', 'Open Mobile Settings'),
+              onClick: () => {
+                const store = useAppStore.getState()
+                store.openSettingsTarget({ pane: 'mobile', repoId: null })
+                store.openSettingsPage()
+              }
+            }
+          }
+        )
+      })
     )
 
     unsubs.push(
@@ -1387,6 +1446,7 @@ export function useIpcEvents(): void {
           cwd,
           env,
           launchConfig,
+          resumeProviderSession,
           launchToken,
           launchAgent,
           viewMode,
@@ -1572,6 +1632,7 @@ export function useIpcEvents(): void {
                 command,
                 ...(env ? { env } : {}),
                 ...(launchConfig ? { launchConfig } : {}),
+                ...(resumeProviderSession ? { resumeProviderSession } : {}),
                 ...(launchToken ? { launchToken } : {}),
                 ...(launchAgent ? { launchAgent } : {})
               })
@@ -1723,6 +1784,9 @@ export function useIpcEvents(): void {
               ...(data.env ? { env: data.env } : {}),
               ...(data.envToDelete ? { envToDelete: data.envToDelete } : {}),
               ...(data.launchConfig ? { launchConfig: data.launchConfig } : {}),
+              ...(data.resumeProviderSession
+                ? { resumeProviderSession: data.resumeProviderSession }
+                : {}),
               ...(data.launchToken ? { launchToken: data.launchToken } : {}),
               ...(data.launchAgent ? { launchAgent: data.launchAgent } : {}),
               ...(data.startupCommandDelivery
@@ -2424,13 +2488,13 @@ export function useIpcEvents(): void {
           return
         }
         void (async () => {
-          if (
-            await createWebRuntimeSessionTerminal({
-              worktreeId,
-              environmentId: getWorktreeRuntimeEnvironmentId(worktreeId),
-              activate: true
-            })
-          ) {
+          const environmentId = getWorktreeRuntimeEnvironmentId(worktreeId)
+          const outcome = await createWebRuntimeSessionTerminal({
+            worktreeId,
+            environmentId,
+            activate: true
+          })
+          if (outcome.status === 'created' || isWebRuntimeSessionActive(environmentId)) {
             return
           }
           const newTab = store.createTab(worktreeId)
@@ -2482,7 +2546,8 @@ export function useIpcEvents(): void {
               void closeWebRuntimeSessionTab({
                 worktreeId,
                 tabId,
-                environmentId
+                environmentId,
+                reason: 'user'
               })
               return
             }
@@ -2810,9 +2875,7 @@ export function useIpcEvents(): void {
         }
 
         const current = window.api.ui.getZoomLevel()
-        const rawNext =
-          direction === 'in' ? current + ZOOM_STEP : direction === 'out' ? current - ZOOM_STEP : 0
-        const next = Math.max(ZOOM_MIN, Math.min(ZOOM_MAX, rawNext))
+        const next = stepUIZoomLevel(current, direction)
 
         applyUIZoom(next)
         void window.api.ui.set({ uiZoomLevel: next })
@@ -2891,6 +2954,7 @@ export function useIpcEvents(): void {
         state: data.state,
         prompt: data.prompt,
         agentType: data.agentType,
+        model: data.model,
         toolName: data.toolName,
         toolInput: data.toolInput,
         // Why: the live AskUserQuestion prompt rides this field; omitting it drops the native question card on web/mobile.

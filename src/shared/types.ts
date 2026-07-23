@@ -1136,6 +1136,22 @@ export type WorkspaceSessionState = {
   defaultTerminalTabsAppliedByWorktreeId?: Record<string, true>
   /** Provider-session resume records captured when workspaces sleep. */
   sleepingAgentSessionsByPaneKey?: Record<string, SleepingAgentSessionRecord>
+  /** Host-issued process incarnation for each durable terminal surface. */
+  terminalPtyIncarnationsByPaneKey?: Record<string, string>
+  /** Monotonic host authority watermark for terminal membership in each repo. */
+  terminalTopologyRevisionByRepoId?: Record<string, number>
+  /** Legacy per-surface fences migrated into terminalTopologyRevisionByRepoId on load. */
+  terminalSurfaceTombstonesByPaneKey?: Record<
+    string,
+    {
+      worktreeId: string
+      parentTabId: string
+      leafId: string
+      ptyId: string
+      incarnationId: string
+      retiredAt: number
+    }
+  >
 }
 
 export type WorkspaceSessionPatch = Partial<WorkspaceSessionState>
@@ -1687,6 +1703,7 @@ export type LinearIssue = {
 
 export type LinearProjectSummary = {
   id: string
+  slugId?: string
   workspaceId?: string
   workspaceName?: string
   name: string
@@ -1851,6 +1868,7 @@ export type LinearIssueUpdate = {
   dueDate?: string | null
   labelIds?: string[]
   projectId?: string | null
+  parentId?: string | null
 }
 
 export type ClassifiedError = {
@@ -2026,6 +2044,8 @@ export type LinearLabel = {
 export type LinearMember = {
   id: string
   displayName: string
+  name?: string
+  email?: string
   avatarUrl?: string
 }
 
@@ -2602,6 +2622,8 @@ export type GlobalSettings = {
   editorAutoSave: boolean
   editorAutoSaveDelayMs: number
   editorMinimapEnabled: boolean
+  /** Opt-in code-editor font; empty (the default) keeps following `terminalFontFamily`. */
+  editorFontFamily?: string
   /** Defaults on for profiles saved before file-editor wrapping became configurable. */
   editorWordWrap?: boolean
   /** Persisted opt-out for browser spellcheck noise in rich Markdown editing surfaces. */
@@ -3397,6 +3419,19 @@ export type LegacyPaneKeyAliasEntry = {
   updatedAt: number
 }
 
+/** Last tab selection a paired client made in a worktree; restores phone navigation across host restarts. */
+export type PersistedMobileClientTabSelection = {
+  activeTabId: string | null
+  activeGroupId: string | null
+  activeTabIdByGroupId: Readonly<Record<string, string>>
+}
+
+/** deviceId → worktreeId → selection. */
+export type PersistedMobileClientTabSelections = Record<
+  string,
+  Record<string, PersistedMobileClientTabSelection>
+>
+
 // ─── Persistence shape ──────────────────────────────────────────────
 export type PersistedState = {
   schemaVersion: number
@@ -3407,6 +3442,8 @@ export type PersistedState = {
   folderWorkspaces: FolderWorkspace[]
   /** Sparse-checkout presets keyed by repoId. */
   sparsePresetsByRepo: Record<string, SparsePreset[]>
+  /** Per paired device last tab selection by worktree; keeps mobile navigation across host restarts. */
+  mobileClientTabSelectionsByDeviceId?: PersistedMobileClientTabSelections
   worktreeMeta: Record<string, WorktreeMeta>
   worktreeLineageById: Record<string, WorktreeLineage>
   workspaceLineageByChildKey: Record<WorkspaceKey, WorkspaceLineage>
