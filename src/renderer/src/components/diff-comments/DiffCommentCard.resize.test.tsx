@@ -5,17 +5,20 @@ import { DiffCommentCard } from './DiffCommentCard'
 
 describe('DiffCommentCard content resize', () => {
   let notifyObservedResize: ResizeObserverCallback
+  let constructObserver = vi.fn<() => void>()
   let disconnect: ReturnType<typeof vi.fn>
   let frameCallbacks: Map<number, FrameRequestCallback>
   let nextFrameId: number
 
   beforeEach(() => {
+    constructObserver = vi.fn<() => void>()
     disconnect = vi.fn()
     frameCallbacks = new Map()
     nextFrameId = 1
 
     class TestResizeObserver {
       constructor(callback: ResizeObserverCallback) {
+        constructObserver()
         notifyObservedResize = callback
       }
 
@@ -47,9 +50,15 @@ describe('DiffCommentCard content resize', () => {
   it('re-measures after wrapping and coalesces observer notifications', () => {
     const onContentResize = vi.fn()
     const view = render(
-      <DiffCommentCard lineNumber={26} body="A saved note" onContentResize={onContentResize} />
+      <DiffCommentCard
+        lineNumber={26}
+        body="A saved note"
+        onContentResize={onContentResize}
+        observeRenderedSize
+      />
     )
 
+    expect(constructObserver).toHaveBeenCalledOnce()
     expect(onContentResize).toHaveBeenCalledOnce()
 
     act(() => {
@@ -69,6 +78,7 @@ describe('DiffCommentCard content resize', () => {
         lineNumber={26}
         body="A saved note"
         onContentResize={latestOnContentResize}
+        observeRenderedSize
       />
     )
     expect(disconnect).not.toHaveBeenCalled()
@@ -80,5 +90,15 @@ describe('DiffCommentCard content resize', () => {
 
     view.unmount()
     expect(disconnect).toHaveBeenCalledOnce()
+  })
+
+  it('does not observe cards outside Monaco view zones', () => {
+    const onContentResize = vi.fn()
+    render(
+      <DiffCommentCard lineNumber={26} body="A saved note" onContentResize={onContentResize} />
+    )
+
+    expect(constructObserver).not.toHaveBeenCalled()
+    expect(onContentResize).not.toHaveBeenCalled()
   })
 })

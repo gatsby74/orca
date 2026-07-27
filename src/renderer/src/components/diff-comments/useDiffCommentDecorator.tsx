@@ -448,6 +448,7 @@ export function useDiffCommentDecorator({
                 : undefined
             }
             onContentResize={() => resizeZone(comment.id)}
+            observeRenderedSize
             headerActions={
               worktreeId && comment.author === undefined ? (
                 <NotesSendMenu

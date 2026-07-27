@@ -30,6 +30,7 @@ type Props = {
   // and aren't auto-measured. The parent decorator re-syncs that height when
   // the rendered card wraps or grows so it cannot overlap following lines.
   onContentResize?: () => void
+  observeRenderedSize?: boolean
   onSubmitEdit?: (body: string) => Promise<boolean>
   headerActions?: ReactNode
 }
@@ -46,6 +47,7 @@ export function DiffCommentCard({
   url,
   onDelete,
   onContentResize,
+  observeRenderedSize,
   onSubmitEdit,
   headerActions
 }: Props): React.JSX.Element {
@@ -56,7 +58,7 @@ export function DiffCommentCard({
   const cardRef = useRef<HTMLDivElement | null>(null)
   const textareaRef = useRef<HTMLTextAreaElement | null>(null)
   const resizeAfterCloseRef = useRef(false)
-  const observesContentResize = onContentResize !== undefined
+  const observesRenderedSize = observeRenderedSize === true && onContentResize !== undefined
 
   // Why: stash `onContentResize` in a ref so resize effects do not depend on
   // the decorator's fresh arrow each render. Re-running the edit layout effect
@@ -66,7 +68,7 @@ export function DiffCommentCard({
 
   useLayoutEffect(() => {
     const card = cardRef.current
-    if (!card || !observesContentResize) {
+    if (!card || !observesRenderedSize) {
       return
     }
     onContentResizeRef.current?.()
@@ -97,7 +99,7 @@ export function DiffCommentCard({
         cancelAnimationFrame(frameId)
       }
     }
-  }, [observesContentResize])
+  }, [observesRenderedSize])
 
   // Why: focus + auto-grow the textarea on entering edit mode. Layout effect
   // so the height is set before the browser paints — a measurement pass on
