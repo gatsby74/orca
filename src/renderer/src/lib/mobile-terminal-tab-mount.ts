@@ -12,16 +12,9 @@ type MobileTerminalTabMountOptions = {
   isTabMounted?: (tabId: string) => boolean
 }
 
-/**
- * True when mounting this tab could only *create* a PTY rather than attach one:
- * the workspace holds no live PTY and nothing is queued to spawn.
- *
- * Why: sleeping a workspace kills its PTYs but keeps `tab.ptyId` as a wake hint,
- * so a mobile subscribe could mount the pane and bring the workspace back to life
- * on the desktop with no user activation (#10205). `terminal.subscribe` already
- * degrades to a scrollback-only stream when no PTY appears, so failing closed here
- * still serves the saved output — it just stops resurrecting a slept workspace.
- */
+/** Why: sleep keeps `tab.ptyId` as a wake hint, so a mobile subscribe could mount the pane and
+ *  revive a slept workspace (#10205); failing closed is safe — `terminal.subscribe` already
+ *  degrades to a scrollback-only stream when no PTY appears. */
 function worktreeHasNoResumableTerminal(
   state: Pick<AppState, 'tabsByWorktree' | 'ptyIdsByTabId' | 'pendingStartupByTabId'>,
   worktreeId: string
