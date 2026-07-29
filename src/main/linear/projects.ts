@@ -121,6 +121,11 @@ type LinearIssueNode = {
     name?: string | null
     key?: string | null
   } | null
+  project?: {
+    id: string
+    name: string
+    color?: string | null
+  } | null
   assignee?: LinearUserNode | null
   labels?: LinearConnection<{ id: string; name: string }> | null
 }
@@ -298,6 +303,11 @@ const ORCA_ISSUE_FIELDS = `
     id
     name
     key
+  }
+  project {
+    id
+    name
+    color
   }
   assignee {
     id
@@ -713,6 +723,13 @@ function mapIssueForWorkspace(
       name: issue.team?.name ?? '',
       key: issue.team?.key ?? ''
     },
+    project: issue.project
+      ? {
+          id: issue.project.id,
+          name: issue.project.name,
+          color: issue.project.color ?? undefined
+        }
+      : undefined,
     labels: labelNodes.map((label) => label.name),
     labelIds: issue.labelIds ?? labelNodes.map((label) => label.id),
     assignee: mapUser(issue.assignee),

@@ -56,6 +56,11 @@ type LinearIssueNode = {
     name?: string | null
     key?: string | null
   } | null
+  project?: {
+    id: string
+    name: string
+    color?: string | null
+  } | null
   assignee?: {
     id: string
     displayName: string
@@ -161,6 +166,11 @@ const LINEAR_ISSUE_NODE_FIELDS = `
     id
     name
     key
+  }
+  project {
+    id
+    name
+    color
   }
   assignee {
     id
@@ -414,6 +424,13 @@ function mapRawIssueForWorkspace(
       name: issue.team?.name ?? '',
       key: issue.team?.key ?? ''
     },
+    project: issue.project
+      ? {
+          id: issue.project.id,
+          name: issue.project.name,
+          color: issue.project.color ?? undefined
+        }
+      : undefined,
     labels: labelNodes.map((label) => label.name),
     // Why: labelIds drives full-replace updates. Keep Linear's complete id
     // list even when display label nodes are paginated.
