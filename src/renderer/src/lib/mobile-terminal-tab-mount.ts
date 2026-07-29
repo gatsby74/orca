@@ -12,13 +12,42 @@ type MobileTerminalTabMountOptions = {
   isTabMounted?: (tabId: string) => boolean
 }
 
+/**
+ * True when mounting this tab could only *create* a PTY rather than attach one:
+ * the workspace holds no live PTY and nothing is queued to spawn.
+ *
+ * Why: sleeping a workspace kills its PTYs but keeps `tab.ptyId` as a wake hint,
+ * so a mobile subscribe could mount the pane and bring the workspace back to life
+ * on the desktop with no user activation (#10205). `terminal.subscribe` already
+ * degrades to a scrollback-only stream when no PTY appears, so failing closed here
+ * still serves the saved output — it just stops resurrecting a slept workspace.
+ */
+function worktreeHasNoResumableTerminal(
+  state: Pick<AppState, 'tabsByWorktree' | 'ptyIdsByTabId' | 'pendingStartupByTabId'>,
+  worktreeId: string
+): boolean {
+  const tabs = state.tabsByWorktree[worktreeId] ?? []
+  return tabs.every(
+    (tab) =>
+      (state.ptyIdsByTabId[tab.id]?.length ?? 0) === 0 &&
+      state.pendingStartupByTabId[tab.id] === undefined &&
+      !tab.pendingActivationSpawn
+  )
+}
+
 /** Why: exact-tab planning prevents a stale ptyId from mounting every saved xterm (#8597). */
 export function planMobileTerminalTabMount(
-  state: Pick<AppState, 'tabsByWorktree' | 'terminalLayoutsByTabId'>,
+  state: Pick<
+    AppState,
+    'tabsByWorktree' | 'terminalLayoutsByTabId' | 'ptyIdsByTabId' | 'pendingStartupByTabId'
+  >,
   request: MobileTerminalTabMountRequest,
   options: MobileTerminalTabMountOptions = {}
 ): BackgroundMountTerminalWorktreeDetail | null {
   if (!request.worktreeId) {
+    return null
+  }
+  if (worktreeHasNoResumableTerminal(state, request.worktreeId)) {
     return null
   }
   const requestedTabExists = request.tabId
