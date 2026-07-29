@@ -56,6 +56,27 @@ describe('resolvePluginFileIconUrl', () => {
     const broken = { ...THEME, fileExtensions: { ts: 'missing' }, defaultIcon: null }
     expect(resolvePluginFileIconUrl(broken, 'index.ts')).toBeNull()
   })
+
+  // The registry copy and the IPC structured clone both restore Object.prototype,
+  // so a bare `table[name]` would resolve these to inherited members.
+  it.each(['constructor', '__proto__', 'tostring', 'valueof'])(
+    'does not resolve %s through Object.prototype',
+    (filename) => {
+      expect(resolvePluginFileIconUrl(THEME, filename)).toBe(THEME.icons.fallback)
+    }
+  )
+
+  it('still falls back to built-in icons for a prototype-named file with no theme default', () => {
+    expect(resolvePluginFileIconUrl({ ...THEME, defaultIcon: null }, 'constructor')).toBeNull()
+  })
+
+  it('matches a compound extension deeper than three segments', () => {
+    const deep = {
+      ...THEME,
+      fileExtensions: { ...THEME.fileExtensions, 'generated.api.client.ts': 'npm' }
+    }
+    expect(resolvePluginFileIconUrl(deep, 'schema.generated.api.client.ts')).toBe(deep.icons.npm)
+  })
 })
 
 describe('selectActivePluginIconTheme', () => {

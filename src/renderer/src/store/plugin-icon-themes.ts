@@ -5,6 +5,9 @@ import type { PluginIconThemeRegistration } from '../../../shared/plugins/plugin
 type PluginIconThemeState = {
   themes: PluginIconThemeRegistration[]
   loaded: boolean
+  /** Every rendered file icon calls ensure…Loaded; without this each one would
+   *  start its own IPC transfer of the full theme payload before `loaded` flips. */
+  loading: boolean
   fetchThemes: () => Promise<void>
 }
 
@@ -14,31 +17,31 @@ let changeSubscriptionStarted = false
 export const usePluginIconThemeStore = create<PluginIconThemeState>()((set) => ({
   themes: [],
   loaded: false,
+  loading: false,
   fetchThemes: async () => {
     const generation = ++requestGeneration
+    set({ loading: true })
+    const settle = (themes: PluginIconThemeRegistration[]): void => {
+      if (generation === requestGeneration) {
+        set({ themes, loaded: true, loading: false })
+      }
+    }
     const api = window.api?.plugins
     if (!api?.listIconThemes) {
-      if (generation === requestGeneration) {
-        set({ themes: [], loaded: true })
-      }
+      settle([])
       return
     }
     try {
-      const themes = await api.listIconThemes()
-      if (generation === requestGeneration) {
-        set({ themes, loaded: true })
-      }
+      settle(await api.listIconThemes())
     } catch {
-      if (generation === requestGeneration) {
-        set({ themes: [], loaded: true })
-      }
+      settle([])
     }
   }
 }))
 
 export function ensurePluginIconThemesLoaded(): void {
   const state = usePluginIconThemeStore.getState()
-  if (!state.loaded) {
+  if (!state.loaded && !state.loading) {
     void state.fetchThemes()
   }
   if (!changeSubscriptionStarted && window.api?.plugins?.onChanged) {

@@ -1,7 +1,11 @@
 import type { PluginIconThemeRegistration } from './plugin-icon-theme-artifact'
 
-/** Longest compound suffix a theme may key on, e.g. `spec.tsx` in `a.spec.tsx`. */
-const MAX_SUFFIX_SEGMENTS = 3
+// Why: the parser's null-prototype tables do not survive the registry copy or
+// the IPC structured clone, so a file named `constructor` would otherwise hit
+// Object.prototype and short-circuit the fallback with a non-id value.
+function lookup(table: Record<string, string>, key: string): string | undefined {
+  return Object.hasOwn(table, key) ? table[key] : undefined
+}
 
 function getFilename(filePath: string | undefined | null): string {
   if (!filePath) {
@@ -28,23 +32,23 @@ export function resolvePluginFileIconUrl(
     return null
   }
 
-  const byName = theme.fileNames[filename]
+  const byName = lookup(theme.fileNames, filename)
   if (byName) {
-    return theme.icons[byName] ?? null
+    return lookup(theme.icons, byName) ?? null
   }
 
-  // Longest suffix first so `d.ts` beats `ts` for `types.d.ts`.
+  // Longest suffix first so `d.ts` beats `ts` for `types.d.ts`. Every suffix is
+  // tried so a theme can key an arbitrarily long compound extension.
   const segments = filename.split('.')
-  const suffixCount = Math.min(segments.length - 1, MAX_SUFFIX_SEGMENTS)
-  for (let take = suffixCount; take >= 1; take -= 1) {
+  for (let take = segments.length - 1; take >= 1; take -= 1) {
     const suffix = segments.slice(segments.length - take).join('.')
-    const definitionId = theme.fileExtensions[suffix]
+    const definitionId = lookup(theme.fileExtensions, suffix)
     if (definitionId) {
-      return theme.icons[definitionId] ?? null
+      return lookup(theme.icons, definitionId) ?? null
     }
   }
 
-  return theme.defaultIcon ? (theme.icons[theme.defaultIcon] ?? null) : null
+  return theme.defaultIcon ? (lookup(theme.icons, theme.defaultIcon) ?? null) : null
 }
 
 /**

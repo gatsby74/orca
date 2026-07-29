@@ -210,11 +210,22 @@ export function validatePluginIconSvg(svg: string): PluginIconSvgValidation {
   return { ok: true }
 }
 
+// Why: spreading a whole 64 KiB icon into String.fromCharCode can exceed the
+// engine argument cap, so the browser/CLI path encodes in chunks.
+const BASE64_CHUNK_BYTES = 0x8000
+
+function browserBase64(svg: string): string {
+  const bytes = new TextEncoder().encode(svg)
+  let binary = ''
+  for (let offset = 0; offset < bytes.length; offset += BASE64_CHUNK_BYTES) {
+    binary += String.fromCharCode(...bytes.subarray(offset, offset + BASE64_CHUNK_BYTES))
+  }
+  return btoa(binary)
+}
+
 export function pluginIconSvgDataUrl(svg: string): string {
   // base64 avoids percent-encoding every quote/angle bracket in the payload.
   const base64 =
-    typeof Buffer !== 'undefined'
-      ? Buffer.from(svg, 'utf8').toString('base64')
-      : btoa(String.fromCharCode(...new TextEncoder().encode(svg)))
+    typeof Buffer === 'undefined' ? browserBase64(svg) : Buffer.from(svg, 'utf8').toString('base64')
   return `data:image/svg+xml;base64,${base64}`
 }

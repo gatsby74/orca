@@ -3,6 +3,7 @@ import {
   parsePluginIconThemeArtifact,
   pluginIconSvgDataUrl,
   validatePluginIconSvg,
+  PLUGIN_ICON_SVG_MAX_BYTES,
   PLUGIN_ICON_THEME_MAX_LOOKUP_ENTRIES
 } from './plugin-icon-theme-artifact'
 
@@ -86,8 +87,8 @@ describe('parsePluginIconThemeArtifact', () => {
     if (!parsed.ok) {
       return
     }
-    // A plain-object table would resolve `toString` to the inherited function.
-    expect(parsed.artifact.fileExtensions.nonexistent).toBeUndefined()
+    // A plain-object table would resolve `constructor` to the inherited function.
+    expect(parsed.artifact.fileExtensions.constructor).toBeUndefined()
     expect(parsed.artifact.fileExtensions.tostring).toBe('a')
   })
 })
@@ -120,5 +121,22 @@ describe('pluginIconSvgDataUrl', () => {
     const url = pluginIconSvgDataUrl(svg)
     expect(url.startsWith('data:image/svg+xml;base64,')).toBe(true)
     expect(Buffer.from(url.split(',')[1] ?? '', 'base64').toString('utf8')).toBe(svg)
+  })
+
+  // Guards the browser/CLI path, where spreading a full-size icon into
+  // String.fromCharCode can exceed the engine argument cap.
+  it('encodes an icon at the size ceiling without Buffer', () => {
+    const svg = `<svg>${'a'.repeat(PLUGIN_ICON_SVG_MAX_BYTES - 11)}</svg>`
+    expect(Buffer.byteLength(svg, 'utf8')).toBe(PLUGIN_ICON_SVG_MAX_BYTES)
+    const withBuffer = pluginIconSvgDataUrl(svg)
+
+    const realBuffer = globalThis.Buffer
+    // @ts-expect-error -- exercising the branch taken where Buffer is absent
+    delete globalThis.Buffer
+    try {
+      expect(pluginIconSvgDataUrl(svg)).toBe(withBuffer)
+    } finally {
+      globalThis.Buffer = realBuffer
+    }
   })
 })

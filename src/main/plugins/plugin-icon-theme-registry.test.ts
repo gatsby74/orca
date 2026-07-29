@@ -132,29 +132,33 @@ describe('PluginIconThemeRegistry', () => {
     )
   })
 
-  it('rejects an icon symlinked out of the plugin directory', async () => {
-    const outside = await mkdtemp(join(tmpdir(), 'orca-plugin-icon-symlink-'))
-    roots.push(outside)
-    const secret = join(outside, 'secret.svg')
-    await writeFile(secret, SVG, 'utf8')
-    const plugin = await iconThemePlugin({})
-    await symlink(resolve(secret), join(plugin.rootDir, 'icons', 'linked.svg'))
-    await writeFile(
-      join(plugin.rootDir, 'icon-theme.json'),
-      JSON.stringify({
-        iconDefinitions: { ts: 'icons/linked.svg' },
-        fileExtensions: { ts: 'ts' }
-      }),
-      'utf8'
-    )
-    const subject = registry()
-    await subject.reconcile([plugin], approveAll)
+  // Why: creating a symlink on Windows needs elevation or Developer Mode.
+  it.skipIf(process.platform === 'win32')(
+    'rejects an icon symlinked out of the plugin directory',
+    async () => {
+      const outside = await mkdtemp(join(tmpdir(), 'orca-plugin-icon-symlink-'))
+      roots.push(outside)
+      const secret = join(outside, 'secret.svg')
+      await writeFile(secret, SVG, 'utf8')
+      const plugin = await iconThemePlugin({})
+      await symlink(resolve(secret), join(plugin.rootDir, 'icons', 'linked.svg'))
+      await writeFile(
+        join(plugin.rootDir, 'icon-theme.json'),
+        JSON.stringify({
+          iconDefinitions: { ts: 'icons/linked.svg' },
+          fileExtensions: { ts: 'ts' }
+        }),
+        'utf8'
+      )
+      const subject = registry()
+      await subject.reconcile([plugin], approveAll)
 
-    expect(subject.list()).toEqual([])
-    expect(subject.error('orca-samples.demo-file-icons')).toContain(
-      'resolves outside the plugin directory'
-    )
-  })
+      expect(subject.list()).toEqual([])
+      expect(subject.error('orca-samples.demo-file-icons')).toContain(
+        'resolves outside the plugin directory'
+      )
+    }
+  )
 
   it('excludes a plugin the approval predicate rejects', async () => {
     const subject = registry()
