@@ -489,6 +489,17 @@ function stripGrokUserQueryWrapper(promptText: string): string {
   return text.trim()
 }
 
+// Why: harness-injected UserPromptSubmit (compact summary, task-notification envelopes,
+// system-reminders, local-command machinery) is not a real user turn. Emitting `working`
+// with no matching Stop left worktrees stuck on the spinner after /compact (issue #11352).
+// Shared by Claude and Kimi so the two Claude-compatible paths cannot drift on this bug class.
+function shouldIgnoreHarnessInjectedUserPromptSubmit(
+  eventName: unknown,
+  promptText: string
+): boolean {
+  return eventName === 'UserPromptSubmit' && isKnownHarnessInjectedUserTurnText(promptText)
+}
+
 function resolvePrompt(
   state: HookListenerState,
   paneKey: string,
@@ -2559,12 +2570,9 @@ function normalizeClaudeEvent(
     return normalizeClaudeSubagentLifecycleEvent(state, eventName, paneKey, hookPayload)
   }
 
-  // Why: harness-injected UserPromptSubmit (compact summary, task-notification envelopes,
-  // system-reminders, local-command machinery) is not a real user turn. Emitting `working`
-  // with no matching Stop left worktrees stuck on the spinner after /compact (issue #11352).
-  // Real tool activity still arrives as PreToolUse/PostToolUse; do not mint a working row
-  // from machinery alone. resolvePrompt already preserves the cached user prompt for labels.
-  if (eventName === 'UserPromptSubmit' && isKnownHarnessInjectedUserTurnText(promptText)) {
+  // Why: do not mint a working row from machinery alone; real tool activity still arrives as
+  // PreToolUse/PostToolUse. resolvePrompt already preserves the cached user prompt for labels.
+  if (shouldIgnoreHarnessInjectedUserPromptSubmit(eventName, promptText)) {
     return null
   }
 
@@ -2784,9 +2792,7 @@ function normalizeKimiEvent(
   paneKey: string,
   hookPayload: Record<string, unknown>
 ): ParsedAgentStatusPayload | null {
-  // Why: Kimi shares Claude's harness-injected UserPromptSubmit shapes; same sticky-working
-  // risk after compact/local-command machinery (issue #11352).
-  if (eventName === 'UserPromptSubmit' && isKnownHarnessInjectedUserTurnText(promptText)) {
+  if (shouldIgnoreHarnessInjectedUserPromptSubmit(eventName, promptText)) {
     return null
   }
 
