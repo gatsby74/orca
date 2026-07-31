@@ -64,6 +64,7 @@ export function ReviewNotesSendMenuContent({
   const terminalLayoutsByTabId = useAppStore((s) => s.terminalLayoutsByTabId)
   const ptyIdsByTabId = useAppStore(useShallow((s) => selectLivePtyIdsForWorktree(s, worktreeId)))
   const runtimePaneTitlesByTabId = useAppStore((s) => s.runtimePaneTitlesByTabId)
+  const settings = useAppStore((s) => s.settings)
   const agentStatusEpoch = useAppStore((s) => s.agentStatusEpoch)
   const agentRows = useWorktreeAgentRows(worktreeId)
   const now = useNow(30_000)
@@ -75,7 +76,8 @@ export function ReviewNotesSendMenuContent({
         tabsByWorktree,
         terminalLayoutsByTabId,
         ptyIdsByTabId,
-        runtimePaneTitlesByTabId
+        runtimePaneTitlesByTabId,
+        settings
       },
       worktreeId
     )
@@ -88,6 +90,7 @@ export function ReviewNotesSendMenuContent({
     terminalLayoutsByTabId,
     runtimePaneTitlesByTabId,
     ptyIdsByTabId,
+    settings,
     worktreeId
   ])
   const orderedSendTargets = useMemo(
@@ -246,10 +249,13 @@ function AgentTargetMenuItem({
   const tabTitle = target.tabTitle.trim()
   const state = asDotState(agent?.state ?? 'idle')
   const timeAgo = agent ? formatAgentRelativeTime(agent, now) : null
+  const agentLabel = formatAgentTypeLabel(target.agentType ?? agent?.agentType)
+  // Why: the tab name is what the user picks between — several targets can share
+  // the same harness — so it leads and the harness drops to the detail line.
   const secondaryParts = [
+    ...(tabTitle ? [agentLabel] : []),
     agentStateLabel(state),
-    ...(timeAgo ? [timeAgo] : []),
-    ...(tabTitle ? [tabTitle] : [])
+    ...(timeAgo ? [timeAgo] : [])
   ]
   return (
     <DropdownMenuItem
@@ -264,9 +270,7 @@ function AgentTargetMenuItem({
       <AgentStateDot state={state} size="sm" className="shrink-0" />
       <AgentIcon agent={agentTypeToIconAgent(target.agentType ?? agent?.agentType)} size={14} />
       <span className="grid min-w-0 flex-1 text-left">
-        <span className="truncate">
-          {formatAgentTypeLabel(target.agentType ?? agent?.agentType)}
-        </span>
+        <span className="truncate">{tabTitle || agentLabel}</span>
         <span className="truncate text-[11px] font-normal text-muted-foreground">
           {secondaryParts.join(' · ')}
         </span>

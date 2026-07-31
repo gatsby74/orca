@@ -85,6 +85,7 @@ function state(
     terminalLayoutsByTabId: Record<string, TerminalLayoutSnapshot>
     ptyIdsByTabId: Record<string, string[]>
     runtimePaneTitlesByTabId: Record<string, Record<number, string>>
+    settings: NotesSendAgentTargetState['settings']
   }> = {}
 ): NotesSendAgentTargetState {
   const terminalLayoutsByTabId = overrides.terminalLayoutsByTabId ?? {}
@@ -132,6 +133,74 @@ describe('notes send agent targets', () => {
         status: 'eligible'
       }
     ])
+  })
+
+  it('names a status-backed target after its tab, not the live agent title', () => {
+    const paneKey = makePaneKey(STATUS_TAB_ID, LEAF_A)
+    const targets = deriveNotesSendAgentTargets(
+      state({
+        agentStatusByPaneKey: { [paneKey]: entry(paneKey, 'done') },
+        tabsByWorktree: {
+          [WORKTREE_ID]: [
+            tab(STATUS_TAB_ID, {
+              title: '✳ Add validation to prevent deleting live attractions',
+              customTitle: 'Designer'
+            })
+          ]
+        },
+        terminalLayoutsByTabId: { [STATUS_TAB_ID]: leafLayout(LEAF_A, 'pty-a') }
+      }),
+      WORKTREE_ID,
+      NOW
+    )
+
+    expect(targets[0].tabTitle).toBe('Designer')
+  })
+
+  it('names a title-hint target after its tab, not the live agent title', () => {
+    const targets = deriveNotesSendAgentTargets(
+      state({
+        tabsByWorktree: {
+          [WORKTREE_ID]: [
+            tab(LAUNCH_TAB_ID, {
+              title: 'Codex ready',
+              customTitle: 'Import Parks',
+              launchAgent: 'codex'
+            })
+          ]
+        },
+        terminalLayoutsByTabId: { [LAUNCH_TAB_ID]: leafLayout(LEAF_B, 'pty-b') },
+        runtimePaneTitlesByTabId: { [LAUNCH_TAB_ID]: { 1: 'Codex ready' } }
+      }),
+      WORKTREE_ID,
+      NOW
+    )
+
+    expect(targets[0].tabTitle).toBe('Import Parks')
+  })
+
+  it('uses the generated tab title only while generated titles are enabled', () => {
+    const paneKey = makePaneKey(STATUS_TAB_ID, LEAF_A)
+    const titleFor = (settings: NotesSendAgentTargetState['settings']): string =>
+      deriveNotesSendAgentTargets(
+        state({
+          settings,
+          agentStatusByPaneKey: { [paneKey]: entry(paneKey, 'done') },
+          tabsByWorktree: {
+            [WORKTREE_ID]: [
+              tab(STATUS_TAB_ID, { title: 'Codex ready', generatedTitle: 'Refactor auth' })
+            ]
+          },
+          terminalLayoutsByTabId: { [STATUS_TAB_ID]: leafLayout(LEAF_A, 'pty-a') }
+        }),
+        WORKTREE_ID,
+        NOW
+      )[0].tabTitle
+
+    expect(titleFor({ tabAutoGenerateTitle: true } as NotesSendAgentTargetState['settings'])).toBe(
+      'Refactor auth'
+    )
+    expect(titleFor(null)).toBe('Codex ready')
   })
 
   it('keeps permission status-backed targets visible but disabled', () => {

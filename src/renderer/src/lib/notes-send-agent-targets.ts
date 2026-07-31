@@ -1,6 +1,7 @@
 import type { AgentType } from '../../../shared/agent-status-types'
 import type { AppState } from '@/store/types'
 import { isTerminalLeafId, makePaneKey } from '../../../shared/stable-pane-id'
+import { resolveTerminalTabTitle } from '../../../shared/tab-title-resolution'
 import { resolveTerminalTitleAgentType } from '../../../shared/terminal-title-agent-type'
 import type { TerminalTab } from '../../../shared/types'
 import { detectAgentSendTitleStatus } from './agent-send-title-status'
@@ -14,7 +15,8 @@ import {
 } from './running-agent-targets'
 
 export type NotesSendAgentTargetState = RunningAgentTargetState &
-  Pick<AppState, 'runtimePaneTitlesByTabId'>
+  Pick<AppState, 'runtimePaneTitlesByTabId'> &
+  Partial<Pick<AppState, 'settings'>>
 
 export type NotesSendAgentTarget = {
   paneKey: string
@@ -29,6 +31,13 @@ export type NotesSendAgentTarget = {
 type AgentTitleEvidence = {
   status: NonNullable<ReturnType<typeof detectAgentSendTitleStatus>>
   title: string
+}
+
+// Why: name each target the way its tab is named in the tab bar. `tab.title` is
+// the agent's live OSC title, so a manual rename or generated title would be
+// dropped and the menu would disagree with the tab the user is looking at.
+function resolveTargetTabTitle(state: NotesSendAgentTargetState, tab: TerminalTab): string {
+  return resolveTerminalTabTitle(tab, state.settings?.tabAutoGenerateTitle === true, tab.title)
 }
 
 function detectTitleHintPaneEvidence(
@@ -75,7 +84,7 @@ export function deriveNotesSendAgentTargets(
       tabId: target.tabId,
       leafId: target.leafId,
       agentType: resolveNotesTargetAgentType(target.entry.agentType, target.tab.launchAgent),
-      tabTitle: target.tab.title,
+      tabTitle: resolveTargetTabTitle(state, target.tab),
       status: target.status,
       ...(target.disabledReason ? { disabledReason: target.disabledReason } : {})
     })
@@ -142,7 +151,7 @@ function deriveTitleHintAgentTarget(
     tabId: tab.id,
     leafId,
     agentType: tab.launchAgent ?? resolveTerminalTitleAgentType(titleEvidence.title),
-    tabTitle: tab.title,
+    tabTitle: resolveTargetTabTitle(state, tab),
     status: disabledReason ? 'disabled' : 'eligible',
     ...(disabledReason ? { disabledReason } : {})
   }
