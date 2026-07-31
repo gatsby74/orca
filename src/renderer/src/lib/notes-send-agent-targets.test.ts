@@ -85,7 +85,7 @@ function state(
     terminalLayoutsByTabId: Record<string, TerminalLayoutSnapshot>
     ptyIdsByTabId: Record<string, string[]>
     runtimePaneTitlesByTabId: Record<string, Record<number, string>>
-    settings: NotesSendAgentTargetState['settings']
+    generatedTabTitlesEnabled: boolean
   }> = {}
 ): NotesSendAgentTargetState {
   const terminalLayoutsByTabId = overrides.terminalLayoutsByTabId ?? {}
@@ -238,12 +238,29 @@ describe('notes send agent targets', () => {
     expect(targets[0].tabTitle).toBe('✳')
   })
 
+  // Why: an empty name is the signal the menu row uses to promote the harness
+  // label to its title line, so a whitespace-only title must not survive as one.
+  it('resolves a whitespace-only live title to an empty name', () => {
+    const paneKey = makePaneKey(STATUS_TAB_ID, LEAF_A)
+    const targets = deriveNotesSendAgentTargets(
+      state({
+        agentStatusByPaneKey: { [paneKey]: entry(paneKey, 'done') },
+        tabsByWorktree: { [WORKTREE_ID]: [tab(STATUS_TAB_ID, { title: '   ' })] },
+        terminalLayoutsByTabId: { [STATUS_TAB_ID]: leafLayout(LEAF_A, 'pty-a') }
+      }),
+      WORKTREE_ID,
+      NOW
+    )
+
+    expect(targets[0].tabTitle).toBe('')
+  })
+
   it('uses the generated tab title only while generated titles are enabled', () => {
     const paneKey = makePaneKey(STATUS_TAB_ID, LEAF_A)
-    const titleFor = (settings: NotesSendAgentTargetState['settings']): string =>
+    const titleFor = (generatedTabTitlesEnabled: boolean): string =>
       deriveNotesSendAgentTargets(
         state({
-          settings,
+          generatedTabTitlesEnabled,
           agentStatusByPaneKey: { [paneKey]: entry(paneKey, 'done') },
           tabsByWorktree: {
             [WORKTREE_ID]: [
@@ -256,10 +273,8 @@ describe('notes send agent targets', () => {
         NOW
       )[0].tabTitle
 
-    expect(titleFor({ tabAutoGenerateTitle: true } as NotesSendAgentTargetState['settings'])).toBe(
-      'Refactor auth'
-    )
-    expect(titleFor(null)).toBe('Codex ready')
+    expect(titleFor(true)).toBe('Refactor auth')
+    expect(titleFor(false)).toBe('Codex ready')
   })
 
   it('keeps permission status-backed targets visible but disabled', () => {

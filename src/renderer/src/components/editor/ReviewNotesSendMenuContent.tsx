@@ -64,7 +64,7 @@ export function ReviewNotesSendMenuContent({
   const terminalLayoutsByTabId = useAppStore((s) => s.terminalLayoutsByTabId)
   const ptyIdsByTabId = useAppStore(useShallow((s) => selectLivePtyIdsForWorktree(s, worktreeId)))
   const runtimePaneTitlesByTabId = useAppStore((s) => s.runtimePaneTitlesByTabId)
-  const settings = useAppStore((s) => s.settings)
+  const generatedTabTitlesEnabled = useAppStore((s) => s.settings?.tabAutoGenerateTitle === true)
   const agentStatusEpoch = useAppStore((s) => s.agentStatusEpoch)
   const agentRows = useWorktreeAgentRows(worktreeId)
   const now = useNow(30_000)
@@ -77,7 +77,7 @@ export function ReviewNotesSendMenuContent({
         terminalLayoutsByTabId,
         ptyIdsByTabId,
         runtimePaneTitlesByTabId,
-        settings
+        generatedTabTitlesEnabled
       },
       worktreeId
     )
@@ -90,7 +90,7 @@ export function ReviewNotesSendMenuContent({
     terminalLayoutsByTabId,
     runtimePaneTitlesByTabId,
     ptyIdsByTabId,
-    settings,
+    generatedTabTitlesEnabled,
     worktreeId
   ])
   const orderedSendTargets = useMemo(
@@ -218,9 +218,12 @@ function resolveCurrentSendTargetEligibility(
   worktreeId: string
 ): { status: 'eligible' } | { status: 'disabled'; disabledReason: string } {
   const state = useAppStore.getState()
-  const currentTarget = deriveNotesSendAgentTargets(state, worktreeId).find(
-    (candidate) => candidate.paneKey === target.paneKey
-  )
+  // Why: this re-check only reads eligibility, but pass the title flag anyway so
+  // it can never derive a different label than the row the user just clicked.
+  const currentTarget = deriveNotesSendAgentTargets(
+    { ...state, generatedTabTitlesEnabled: state.settings?.tabAutoGenerateTitle === true },
+    worktreeId
+  ).find((candidate) => candidate.paneKey === target.paneKey)
   if (currentTarget) {
     return currentTarget.status === 'eligible'
       ? { status: 'eligible' }

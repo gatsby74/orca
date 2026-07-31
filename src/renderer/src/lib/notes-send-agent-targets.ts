@@ -16,8 +16,11 @@ import {
 } from './running-agent-targets'
 
 export type NotesSendAgentTargetState = RunningAgentTargetState &
-  Pick<AppState, 'runtimePaneTitlesByTabId'> &
-  Partial<Pick<AppState, 'settings'>>
+  Pick<AppState, 'runtimePaneTitlesByTabId'> & {
+    /** Why: the one setting this derivation reads, not the whole settings object
+     *  — selecting the object would re-derive on every unrelated settings write. */
+    generatedTabTitlesEnabled?: boolean
+  }
 
 export type NotesSendAgentTarget = {
   paneKey: string
@@ -41,11 +44,9 @@ type AgentTitleEvidence = {
 // the provider icon, so the agent's own glyph would read as a second one. A
 // manual rename is the user's text and is never stripped.
 function resolveTargetTabTitle(state: NotesSendAgentTargetState, tab: TerminalTab): string {
-  const title = resolveTerminalTabTitle(
-    tab,
-    state.settings?.tabAutoGenerateTitle === true,
-    tab.title
-  )
+  // Why: no fallback — the resolver only reaches it once the trimmed live title
+  // is empty, so passing `tab.title` back would only ever restore whitespace.
+  const title = resolveTerminalTabTitle(tab, state.generatedTabTitlesEnabled === true)
   return tab.customTitle?.trim() ? title : stripLeadingAgentTitleDecoration(title)
 }
 
