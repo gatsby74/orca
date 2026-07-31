@@ -179,6 +179,65 @@ describe('notes send agent targets', () => {
     expect(targets[0].tabTitle).toBe('Import Parks')
   })
 
+  // Why: the menu row renders the provider icon, so the agent's own leading
+  // status glyph would read as a second icon — the same reason SortableTab
+  // strips it. Every agent that decorates its OSC title is affected, not Claude
+  // alone, so the shared decoration table is exercised here.
+  it.each([
+    ['Claude', '✳ Say hello world', 'Say hello world'],
+    ['Gemini', '◇ Refactor the parser', 'Refactor the parser'],
+    ['Gemini clock', '⏲ Refactor the parser', 'Refactor the parser'],
+    ['braille spinner', '⠋ Refactor the parser', 'Refactor the parser'],
+    ['Claude text prefix', '* Refactor the parser', 'Refactor the parser']
+  ])('strips the %s status glyph from a live-title target name', (_agent, liveTitle, expected) => {
+    const paneKey = makePaneKey(STATUS_TAB_ID, LEAF_A)
+    const targets = deriveNotesSendAgentTargets(
+      state({
+        agentStatusByPaneKey: { [paneKey]: entry(paneKey, 'done') },
+        tabsByWorktree: { [WORKTREE_ID]: [tab(STATUS_TAB_ID, { title: liveTitle })] },
+        terminalLayoutsByTabId: { [STATUS_TAB_ID]: leafLayout(LEAF_A, 'pty-a') }
+      }),
+      WORKTREE_ID,
+      NOW
+    )
+
+    expect(targets[0].tabTitle).toBe(expected)
+  })
+
+  it('keeps a manual rename that starts with a status glyph intact', () => {
+    const paneKey = makePaneKey(STATUS_TAB_ID, LEAF_A)
+    const targets = deriveNotesSendAgentTargets(
+      state({
+        agentStatusByPaneKey: { [paneKey]: entry(paneKey, 'done') },
+        tabsByWorktree: {
+          [WORKTREE_ID]: [
+            tab(STATUS_TAB_ID, { title: '✳ Say hello world', customTitle: '✳ my own label' })
+          ]
+        },
+        terminalLayoutsByTabId: { [STATUS_TAB_ID]: leafLayout(LEAF_A, 'pty-a') }
+      }),
+      WORKTREE_ID,
+      NOW
+    )
+
+    expect(targets[0].tabTitle).toBe('✳ my own label')
+  })
+
+  it('keeps a glyph-only live title rather than collapsing the name to empty', () => {
+    const paneKey = makePaneKey(STATUS_TAB_ID, LEAF_A)
+    const targets = deriveNotesSendAgentTargets(
+      state({
+        agentStatusByPaneKey: { [paneKey]: entry(paneKey, 'done') },
+        tabsByWorktree: { [WORKTREE_ID]: [tab(STATUS_TAB_ID, { title: '✳' })] },
+        terminalLayoutsByTabId: { [STATUS_TAB_ID]: leafLayout(LEAF_A, 'pty-a') }
+      }),
+      WORKTREE_ID,
+      NOW
+    )
+
+    expect(targets[0].tabTitle).toBe('✳')
+  })
+
   it('uses the generated tab title only while generated titles are enabled', () => {
     const paneKey = makePaneKey(STATUS_TAB_ID, LEAF_A)
     const titleFor = (settings: NotesSendAgentTargetState['settings']): string =>

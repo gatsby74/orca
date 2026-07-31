@@ -1,5 +1,6 @@
 import type { AgentType } from '../../../shared/agent-status-types'
 import type { AppState } from '@/store/types'
+import { stripLeadingAgentTitleDecoration } from '../../../shared/agent-title-decoration'
 import { isTerminalLeafId, makePaneKey } from '../../../shared/stable-pane-id'
 import { resolveTerminalTabTitle } from '../../../shared/tab-title-resolution'
 import { resolveTerminalTitleAgentType } from '../../../shared/terminal-title-agent-type'
@@ -36,8 +37,16 @@ type AgentTitleEvidence = {
 // Why: name each target the way its tab is named in the tab bar. `tab.title` is
 // the agent's live OSC title, so a manual rename or generated title would be
 // dropped and the menu would disagree with the tab the user is looking at.
+// Stripping the leading status glyph mirrors SortableTab: every row here renders
+// the provider icon, so the agent's own glyph would read as a second one. A
+// manual rename is the user's text and is never stripped.
 function resolveTargetTabTitle(state: NotesSendAgentTargetState, tab: TerminalTab): string {
-  return resolveTerminalTabTitle(tab, state.settings?.tabAutoGenerateTitle === true, tab.title)
+  const title = resolveTerminalTabTitle(
+    tab,
+    state.settings?.tabAutoGenerateTitle === true,
+    tab.title
+  )
+  return tab.customTitle?.trim() ? title : stripLeadingAgentTitleDecoration(title)
 }
 
 function detectTitleHintPaneEvidence(
