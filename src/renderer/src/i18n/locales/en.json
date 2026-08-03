@@ -3206,7 +3206,8 @@
             "runtime_disconnect_failed": "Disconnect failed",
             "runtime_reconnecting": "Reconnecting",
             "runtime_last_close_reason": "Closed: {{value0}}",
-            "runtime_reconnect_attempt": "Attempt {{value0}}"
+            "runtime_reconnect_attempt": "Attempt {{value0}}",
+            "runtime_workspace_window_closed": "Workspace window closed"
           },
           "StatusBar": {
             "9659e38343": "Ports",
@@ -6685,7 +6686,9 @@
           "projectRuntimeDescription": "Choose whether this project runs on Windows or WSL.",
           "hostStateDisconnected": "Disconnected",
           "hostStateUnknown": "Unknown",
-          "nestedHostLabel": "{{value0}} via {{value1}}"
+          "nestedHostLabel": "{{value0}} via {{value1}}",
+          "hostStateOpenOrca": "Open Orca",
+          "hostStateOpenOrcaHelp": "Orca is connected, but its workspace window is closed. Open Orca on this host to use terminals."
         },
         "RepositorySourceControlAiActionRows": {
           "548a6e1281": "Command template",

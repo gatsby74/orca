@@ -30,6 +30,17 @@ describe('RuntimeHostStatusRow', () => {
     expect(markup).toContain('Connect')
   })
 
+  it('renders reachable hosts that need a workspace window without calling them disconnected', () => {
+    const markup = renderToStaticMarkup(
+      <RuntimeHostStatusRow label="Dev Box" state="needs-window" onDisconnect={async () => {}} />
+    )
+
+    expect(markup).toContain('Dev Box')
+    expect(markup).toContain('Workspace window closed')
+    expect(markup).toContain('Disconnect')
+    expect(markup).not.toContain('Disconnected')
+  })
+
   it('renders connected hosts with a disconnect action', () => {
     const markup = renderToStaticMarkup(
       <RuntimeHostStatusRow label="Dev Box" state="connected" onDisconnect={async () => {}} />

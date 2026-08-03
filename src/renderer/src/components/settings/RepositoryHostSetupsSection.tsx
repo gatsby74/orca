@@ -24,6 +24,10 @@ import {
   selectRuntimeAwareSshStatus,
   selectRuntimeAwareSshTargetLabel
 } from '@/store/slices/runtime-environment-ssh'
+import {
+  isConnectedRuntimeHostState,
+  runtimeHostConnectionState
+} from '@/runtime/runtime-host-connection-state'
 
 type RepositoryHostSetupsSectionProps = {
   repo: Repo
@@ -214,9 +218,24 @@ export function RepositoryHostSetupsSection({
           const runtimeOwnerEnvironmentId =
             setup.runtimeOwnerEnvironmentId?.trim() ||
             (transportHost?.kind === 'runtime' ? transportHost.environmentId : null)
+          const runtimeOwnerStatusEntry = runtimeOwnerEnvironmentId
+            ? runtimeStatusByEnvironmentId.get(runtimeOwnerEnvironmentId)
+            : undefined
+          const runtimeOwnerStatus = runtimeOwnerStatusEntry?.status
+          const runtimeOwnerConnectionState = runtimeOwnerEnvironmentId
+            ? runtimeHostConnectionState({
+                hasStatus: Boolean(runtimeOwnerStatusEntry),
+                online: Boolean(runtimeOwnerStatus),
+                graphStatus: runtimeOwnerStatus?.graphStatus,
+                desktopWindowStatus: runtimeOwnerStatus?.desktopWindowStatus,
+                remoteControl: runtimeOwnerStatus?.remoteControl
+              })
+            : null
           const runtimeOwnerReachable =
             !runtimeOwnerEnvironmentId ||
-            Boolean(runtimeStatusByEnvironmentId.get(runtimeOwnerEnvironmentId)?.status)
+            (runtimeOwnerConnectionState !== null &&
+              isConnectedRuntimeHostState(runtimeOwnerConnectionState))
+          const runtimeOwnerNeedsWindow = runtimeOwnerConnectionState === 'needs-window'
           const nestedSshStatus =
             runtimeOwnerEnvironmentId && executionHost?.kind === 'ssh'
               ? selectRuntimeAwareSshStatus(
@@ -235,20 +254,23 @@ export function RepositoryHostSetupsSection({
           const setupReady =
             setup.setupState === 'ready' &&
             runtimeOwnerReachable &&
+            !runtimeOwnerNeedsWindow &&
             (nestedSshStatus === undefined || nestedSshStatus === 'connected')
           const setupStateLabel = !runtimeOwnerReachable
             ? translate(
                 'auto.components.settings.RepositoryPane.hostStateDisconnected',
                 'Disconnected'
               )
-            : nestedSshStatus === null
-              ? translate('auto.components.settings.RepositoryPane.hostStateUnknown', 'Unknown')
-              : nestedSshStatus !== undefined && nestedSshStatus !== 'connected'
-                ? translate(
-                    'auto.components.settings.RepositoryPane.hostStateDisconnected',
-                    'Disconnected'
-                  )
-                : getSetupStateLabel(setup.setupState)
+            : runtimeOwnerNeedsWindow
+              ? translate('auto.components.settings.RepositoryPane.hostStateOpenOrca', 'Open Orca')
+              : nestedSshStatus === null
+                ? translate('auto.components.settings.RepositoryPane.hostStateUnknown', 'Unknown')
+                : nestedSshStatus !== undefined && nestedSshStatus !== 'connected'
+                  ? translate(
+                      'auto.components.settings.RepositoryPane.hostStateDisconnected',
+                      'Disconnected'
+                    )
+                  : getSetupStateLabel(setup.setupState)
           const setupHostLabel =
             runtimeOwnerEnvironmentId && executionHost?.kind === 'ssh'
               ? translate(
@@ -298,6 +320,14 @@ export function RepositoryHostSetupsSection({
                       'Path pending'
                     )}
                 </p>
+                {runtimeOwnerNeedsWindow ? (
+                  <p className="mt-1 text-xs text-muted-foreground">
+                    {translate(
+                      'auto.components.settings.RepositoryPane.hostStateOpenOrcaHelp',
+                      'Orca is connected, but its workspace window is closed. Open Orca on this host to use terminals.'
+                    )}
+                  </p>
+                ) : null}
               </div>
               {isCurrentSetup ? (
                 <SettingsBadge>

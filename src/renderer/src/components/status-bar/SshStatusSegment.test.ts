@@ -1,9 +1,10 @@
 import { describe, expect, it, vi } from 'vitest'
+import { connectRuntimeHostForNavigation } from './SshStatusSegment'
 import {
-  connectRuntimeHostForNavigation,
   isConnectedRuntimeHostState,
+  runtimeHostConnectionState,
   runtimeStatusForOverall
-} from './SshStatusSegment'
+} from '@/runtime/runtime-host-connection-state'
 
 describe('SshStatusSegment host status helpers', () => {
   it('counts connected remote servers as connected hosts', () => {
@@ -11,6 +12,39 @@ describe('SshStatusSegment host status helpers', () => {
     // There is no separate "available" state — a reachable host is just Connected.
     expect(runtimeStatusForOverall('connected')).toBe('connected')
     expect(isConnectedRuntimeHostState('connected')).toBe(true)
+  })
+
+  it('keeps reachable servers connected while identifying a closed workspace window', () => {
+    const state = runtimeHostConnectionState({
+      hasStatus: true,
+      online: true,
+      graphStatus: 'unavailable',
+      desktopWindowStatus: 'openable'
+    })
+
+    expect(state).toBe('needs-window')
+    expect(runtimeStatusForOverall(state)).toBe('connected')
+    expect(isConnectedRuntimeHostState(state)).toBe(true)
+  })
+
+  it('does not hide a closed connection behind stale workspace-window diagnostics', () => {
+    const state = runtimeHostConnectionState({
+      hasStatus: true,
+      online: true,
+      graphStatus: 'unavailable',
+      desktopWindowStatus: 'openable',
+      remoteControl: {
+        state: 'closed',
+        pendingRequestCount: 0,
+        subscriptionCount: 0,
+        reconnectAttempt: 0,
+        lastConnectedAt: null,
+        lastClose: null,
+        lastError: 'Connection closed'
+      }
+    })
+
+    expect(state).toBe('disconnected')
   })
 
   it('keeps reconnecting and disconnected remote servers out of the connected count', () => {
