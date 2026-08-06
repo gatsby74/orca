@@ -126,6 +126,22 @@ describe('convertRemoteFolderToGit cleanup ownership', () => {
     expect(existingPaths.has(GIT_METADATA)).toBe(false)
     expect(fsProvider.deletePath).toHaveBeenCalledWith(GIT_METADATA, true)
   })
+
+  it('reports the conversion and cleanup failures together', async () => {
+    fsProvider = makeFilesystem(existingPaths, {
+      deletePath: vi.fn(async () => {
+        throw new Error('permission denied')
+      })
+    })
+
+    await expect(convert()).resolves.toEqual({
+      ok: false,
+      error:
+        'Failed to create initial commit: commit failed. Failed to remove partial Git metadata: permission denied'
+    })
+
+    expect(existingPaths.has(GIT_METADATA)).toBe(true)
+  })
 })
 
 describe('writeGitignoreExclusiveRemote', () => {

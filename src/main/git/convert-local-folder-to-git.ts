@@ -81,16 +81,22 @@ export async function convertLocalFolderToGit(
       return outcome
     }
 
+    const outcomeError = outcome.isIdentityError
+      ? GIT_IDENTITY_NOT_CONFIGURED_MESSAGE
+      : `${convertStepLabel(outcome.step)}: ${outcome.message}`
+    let cleanupError: string | undefined
     // Why: git init can leave partial metadata when it fails; only preserve a
     // .git path that existed before this conversion attempt.
     if (!gitMetadataExisted) {
-      await rm(gitMetadataPath, { recursive: true, force: true }).catch(() => undefined)
+      await rm(gitMetadataPath, { recursive: true, force: true }).catch((error) => {
+        cleanupError = error instanceof Error ? error.message : String(error)
+      })
     }
     return {
       ok: false,
-      error: outcome.isIdentityError
-        ? GIT_IDENTITY_NOT_CONFIGURED_MESSAGE
-        : `${convertStepLabel(outcome.step)}: ${outcome.message}`
+      error: cleanupError
+        ? `${outcomeError}. Failed to remove partial Git metadata: ${cleanupError}`
+        : outcomeError
     }
   } catch (error) {
     return {

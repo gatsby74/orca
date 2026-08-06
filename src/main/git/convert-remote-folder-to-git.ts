@@ -109,21 +109,22 @@ export async function convertRemoteFolderToGit(args: {
       return { ok: true, repoPath: path }
     }
 
+    const outcomeError = outcome.isIdentityError
+      ? 'Git author identity is not configured on the SSH host. Run `git config --global user.name "Your Name"` and `git config --global user.email "you@example.com"` on that host, then try again.'
+      : `${convertStepLabel(outcome.step)}: ${outcome.message}`
+    let cleanupError: string | undefined
     // Why: git init can leave partial metadata when it fails; only preserve a
     // .git path that existed before this conversion attempt.
     if (!gitMetadataExisted) {
-      await fsProvider.deletePath(gitMetadataPath, true).catch(() => undefined)
-    }
-    if (outcome.isIdentityError) {
-      return {
-        ok: false,
-        error:
-          'Git author identity is not configured on the SSH host. Run `git config --global user.name "Your Name"` and `git config --global user.email "you@example.com"` on that host, then try again.'
-      }
+      await fsProvider.deletePath(gitMetadataPath, true).catch((error) => {
+        cleanupError = error instanceof Error ? error.message : String(error)
+      })
     }
     return {
       ok: false,
-      error: `${convertStepLabel(outcome.step)}: ${outcome.message}`
+      error: cleanupError
+        ? `${outcomeError}. Failed to remove partial Git metadata: ${cleanupError}`
+        : outcomeError
     }
   } catch (error) {
     return {
