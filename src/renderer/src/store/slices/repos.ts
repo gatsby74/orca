@@ -1836,7 +1836,11 @@ export type RepoSlice = {
   ) => Promise<ProjectHostSetupDeleteResult | null>
   setupProjectClone: (args: ProjectHostSetupCloneArgs) => Promise<ProjectHostSetupResult | null>
   addNonGitFolder: (path: string, options?: AddRepoPathRouteOptions) => Promise<Repo | null>
-  convertNonGitFolderToGit: (args: { path: string; connectionId?: string }) => Promise<Repo | null>
+  convertNonGitFolderToGit: (args: {
+    path: string
+    connectionId?: string
+    runtimeEnvironmentId?: string | null
+  }) => Promise<Repo | null>
   scanNestedRepos: (
     path: string,
     connectionId?: string,
@@ -3592,9 +3596,16 @@ export const createRepoSlice: StateCreator<AppState, [], [], RepoSlice> = (set, 
     }
   },
 
-  convertNonGitFolderToGit: async ({ path, connectionId }) => {
+  convertNonGitFolderToGit: async ({ path, connectionId, runtimeEnvironmentId }) => {
     try {
-      const target = getActiveRuntimeTarget(get().settings)
+      // Why: the active host can change while the confirmation dialog is open;
+      // conversion must stay on the host that inspected the folder.
+      const target = getActiveRuntimeTarget(
+        getAddRepoPathRouteSettings(
+          runtimeEnvironmentId === undefined ? undefined : { runtimeEnvironmentId },
+          get().settings
+        )
+      )
       let repo: Repo
       if (connectionId) {
         // SSH folder: convert on the host via the connection's providers.
@@ -3625,16 +3636,25 @@ export const createRepoSlice: StateCreator<AppState, [], [], RepoSlice> = (set, 
         }
         repo = result.repo
       }
-      repo = repoWithFetchedOwner(repo, target)
+      repo = connectionId
+        ? { ...repo, executionHostId: toSshExecutionHostId(connectionId) }
+        : repoWithFetchedOwner(repo, target)
+      const repoHostId = getRepoExecutionHostId(repo)
       set((s) => {
-        // Upsert: replace an existing entry in place so converting a path that
-        // was already known as a folder doesn't leave stale folder metadata.
-        const nextRepos = s.repos.some((r) => r.id === repo.id)
-          ? s.repos.map((r) => (r.id === repo.id ? repo : r))
+        const nextRepos = s.repos.some((entry) =>
+          repoMatchesHostIdentity(entry, repo.id, repoHostId)
+        )
+          ? s.repos.map((entry) =>
+              repoMatchesHostIdentity(entry, repo.id, repoHostId) ? repo : entry
+            )
           : [...s.repos, repo]
         return {
           repos: nextRepos,
-          ...projectCompatibilityFromRepos(nextRepos),
+          ...mergeProjectCompatibilityForHostRepoChange({
+            previous: { projects: s.projects, projectHostSetups: s.projectHostSetups },
+            nextRepos,
+            hostId: repoHostId
+          }),
           folderWorkspacePathStatuses: {}
         }
       })

@@ -19,6 +19,7 @@ const mocks = vi.hoisted(() => ({
     } as Record<string, unknown>,
     closeModal: vi.fn(),
     addNonGitFolder: vi.fn(),
+    convertNonGitFolderToGit: vi.fn(),
     runtimeEnvironments: [{ id: 'env-1', name: 'Remote Mac' }],
     repos: [] as Repo[],
     projects: [],
@@ -128,6 +129,7 @@ describe('NonGitFolderDialog', () => {
     mocks.state.projectHostSetups = []
     mocks.state.worktreesByRepo = {}
     mocks.state.fetchWorktrees.mockResolvedValue(true)
+    mocks.state.convertNonGitFolderToGit.mockReset()
     mocks.onboardingGet.mockResolvedValue(null)
     vi.stubGlobal('window', {
       api: {
@@ -152,6 +154,48 @@ describe('NonGitFolderDialog', () => {
 
     expect(mocks.state.addNonGitFolder).toHaveBeenCalledWith('/srv/non-git', {
       runtimeEnvironmentId: 'env-1'
+    })
+    expect(mocks.state.closeModal).toHaveBeenCalled()
+  })
+
+  it('converts and reveals the project on the host captured by the dialog', async () => {
+    const repo: Repo = {
+      id: 'shared-repo',
+      path: '/srv/non-git',
+      displayName: 'Remote project',
+      badgeColor: '#111',
+      addedAt: 1,
+      kind: 'git',
+      executionHostId: 'runtime:env-1'
+    }
+    const runtimeWorktree = makeWorktree(
+      'shared-repo::/srv/non-git',
+      '/srv/non-git',
+      'runtime:env-1'
+    )
+    mocks.state.convertNonGitFolderToGit.mockResolvedValue(repo)
+    mocks.state.fetchWorktrees.mockImplementation(async () => {
+      mocks.state.worktreesByRepo = { [repo.id]: [runtimeWorktree] }
+      return true
+    })
+    renderToStaticMarkup(<NonGitFolderDialog />)
+
+    const button = mocks.buttons.find((entry) => entry.label.includes('Convert to Git Repository'))
+    button?.onClick?.()
+
+    await vi.waitFor(() =>
+      expect(mocks.activateAndRevealWorktree).toHaveBeenCalledWith(runtimeWorktree.id, {
+        sidebarRevealBehavior: 'auto',
+        executionHostId: 'runtime:env-1'
+      })
+    )
+    expect(mocks.state.convertNonGitFolderToGit).toHaveBeenCalledWith({
+      path: '/srv/non-git',
+      runtimeEnvironmentId: 'env-1'
+    })
+    expect(mocks.state.fetchWorktrees).toHaveBeenCalledWith(repo.id, {
+      requireAuthoritative: true,
+      executionHostId: 'runtime:env-1'
     })
     expect(mocks.state.closeModal).toHaveBeenCalled()
   })

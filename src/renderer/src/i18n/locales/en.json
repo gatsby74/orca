@@ -4362,8 +4362,8 @@
           "8851b77327": "This path was checked locally.",
           "eb079b3809": "Convert to Git Repository",
           "15b3ae7310": "This folder isn't a Git repository",
-          "1d9e5c8007": "Convert it to a Git repository to use worktrees, source control, and pull requests. Or open it as a plain folder with just the editor, terminal, and search.",
-          "2bef0e9e6d": "Converting runs git init, adds a .gitignore if one is missing, and makes an initial commit. It won't edit your existing files."
+          "1d9e5c8007": "Convert it to a Git repository to use worktrees, source control, and code reviews. Or open it as a plain folder with just the editor, terminal, and search.",
+          "2bef0e9e6d": "Converting runs git init, adds a .gitignore if one is missing, and makes an initial commit. Your existing files aren't changed."
         },
         "OrcaYamlTrustDialog": {
           "f3e2b868fb": "Run hooks",

@@ -129,16 +129,32 @@ const NonGitFolderDialog = React.memo(function NonGitFolderDialog() {
       try {
         const repo = await convertNonGitFolderToGit({
           path: folderPath,
-          ...(connectionId ? { connectionId } : {})
+          ...(connectionId ? { connectionId } : {}),
+          runtimeEnvironmentId: runtimeEnvironmentId || null
         })
         if (repo) {
+          const ownerOptions = worktreeRefreshOptions(runtimeEnvironmentId || null, connectionId)
+          await useAppStore.getState().fetchWorktrees(repo.id, ownerOptions)
+          const mainWorktree = useAppStore
+            .getState()
+            .worktreesByRepo[repo.id]?.find(
+              (worktree) => worktree.hostId === ownerOptions.executionHostId
+            )
+          if (mainWorktree) {
+            // Why: conversion should visibly replace the folder workflow without
+            // requiring a remove/re-import cycle or a manual sidebar refresh.
+            activateAndRevealWorktree(mainWorktree.id, {
+              sidebarRevealBehavior: 'auto',
+              executionHostId: ownerOptions.executionHostId
+            })
+          }
           closeModal()
         }
       } finally {
         setIsConverting(false)
       }
     })()
-  }, [convertNonGitFolderToGit, closeModal, folderPath, connectionId])
+  }, [convertNonGitFolderToGit, closeModal, folderPath, connectionId, runtimeEnvironmentId])
 
   const handleOpenChange = useCallback(
     (open: boolean) => {
@@ -153,7 +169,7 @@ const NonGitFolderDialog = React.memo(function NonGitFolderDialog() {
 
   return (
     <Dialog open={isOpen} onOpenChange={handleOpenChange}>
-      <DialogContent className="max-w-md sm:max-w-md">
+      <DialogContent className="max-w-md">
         <DialogHeader>
           <DialogTitle className="text-sm">
             {translate(
@@ -164,7 +180,7 @@ const NonGitFolderDialog = React.memo(function NonGitFolderDialog() {
           <DialogDescription className="text-xs">
             {translate(
               'auto.components.sidebar.NonGitFolderDialog.1d9e5c8007',
-              'Convert it to a Git repository to use worktrees, source control, and pull requests. Or open it as a plain folder with just the editor, terminal, and search.'
+              'Convert it to a Git repository to use worktrees, source control, and code reviews. Or open it as a plain folder with just the editor, terminal, and search.'
             )}
             <span className="mt-2 block">{checkedHostDescription}</span>
           </DialogDescription>
@@ -179,7 +195,7 @@ const NonGitFolderDialog = React.memo(function NonGitFolderDialog() {
         <p className="text-xs text-muted-foreground">
           {translate(
             'auto.components.sidebar.NonGitFolderDialog.2bef0e9e6d',
-            "Converting runs git init, adds a .gitignore if one is missing, and makes an initial commit. It won't edit your existing files."
+            "Converting runs git init, adds a .gitignore if one is missing, and makes an initial commit. Your existing files aren't changed."
           )}
         </p>
 

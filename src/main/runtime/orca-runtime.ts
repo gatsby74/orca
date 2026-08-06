@@ -115,14 +115,10 @@ import { GIT_FETCH_SKIP_AUTO_MAINTENANCE_CONFIG_ARGS } from '../../shared/git-fe
 import { createHash, randomUUID } from 'node:crypto'
 import { homedir } from 'node:os'
 import { isAbsolute, join, resolve } from 'node:path'
-import { lstat, mkdir, readFile, readdir, rm, stat, writeFile } from 'node:fs/promises'
+import { mkdir, readFile, readdir, rm, stat } from 'node:fs/promises'
 import { resolveWorktreeCreateBase } from '../worktree-create-base'
 import { resolveWorktreeAddBaseRef } from '../../shared/worktree/base-ref'
-import {
-  convertStepLabel,
-  GIT_IDENTITY_NOT_CONFIGURED_MESSAGE,
-  initGitRepoInExistingFolder
-} from '../git/convert-folder-to-git'
+import { convertLocalFolderToGit } from '../git/convert-local-folder-to-git'
 import { OrchestrationDb } from './orchestration/db'
 import { reconcileRequestedWorkerTerminalReleases } from './orchestration/worker-terminal-release-reconciliation'
 import {
@@ -19212,6 +19208,26 @@ export class OrcaRuntimeService {
       return runtimeRepoMatchesExecutionHost(repo, executionHostId)
     })
     if (existing) {
+      if (kind === 'git' && isFolderRepo(existing)) {
+        const detected = await detectRepoIconAndUpstream({ repoPath: path, kind: 'git' })
+        const updated =
+          this.store.updateRepo(
+            existing.id,
+            {
+              kind: 'git',
+              ...detected,
+              externalWorktreeVisibility: 'hide',
+              projectHostSetupMethod: existing.projectHostSetupMethod ?? 'imported-existing-folder'
+            },
+            getRepoExecutionHostId(existing)
+          ) ?? existing
+        await prepareLocalWorktreeRootForRepo(this.store, updated)
+        invalidateAuthorizedRootsCache()
+        this.invalidateResolvedWorktreeCache()
+        this.invalidateWorktreeScanCacheForRepo(updated.id)
+        this.notifyReposChanged()
+        return updated
+      }
       // Only a runtime host backfills a legacy unstamped repo. An unstamped repo is
       // indistinguishable from a genuine local repo (both have null executionHostId and
       // connectionId), so we never stamp local/ssh onto it — that would re-attribute a
@@ -19242,7 +19258,13 @@ export class OrcaRuntimeService {
       ...detected,
       addedAt: Date.now(),
       kind,
-      ...(kind === 'git' ? { externalWorktreeVisibilityLegacy: false } : {})
+      ...(kind === 'git'
+        ? {
+            externalWorktreeVisibility: 'hide' as const,
+            externalWorktreeVisibilityLegacy: false,
+            projectHostSetupMethod: 'imported-existing-folder' as const
+          }
+        : {})
     }
     this.store.addRepo(repo)
     await prepareLocalWorktreeRootForRepo(this.store, repo)
@@ -19369,78 +19391,16 @@ export class OrcaRuntimeService {
     return { repo: this.store.getRepo(repo.id) ?? repo }
   }
 
-  // Converts an existing non-git folder on this host into a git repo, then
-  // registers it as a git project — the runtime-target counterpart of the
-  // local `repos:convertToGit` IPC (orca#3839).
   async convertRepoToGit(path: string): Promise<{ repo: Repo } | { error: string }> {
     if (!this.store) {
       throw new Error('runtime_unavailable')
     }
-    // Don't trim: trailing spaces can be part of a real folder name, so trimming
-    // could touch the wrong path. Only reject empty / whitespace-only input.
-    const targetPath = path
-    if (targetPath.trim().length === 0) {
-      return { error: 'Folder path is required' }
-    }
-    if (!isAbsolute(targetPath)) {
-      return { error: 'Folder path must be an absolute path' }
+    const conversion = await convertLocalFolderToGit(path)
+    if (!conversion.ok) {
+      return { error: conversion.error }
     }
 
-    if (!isGitRepo(targetPath)) {
-      const gitignorePath = join(targetPath, '.gitignore')
-      const outcome = await initGitRepoInExistingFolder({
-        exec: async (gitArgs) => {
-          await gitExecFileAsync(gitArgs, { cwd: targetPath })
-        },
-        hasGitignore: async () => {
-          try {
-            // Why: lstat doesn't follow symlinks, so a .gitignore symlink
-            // planted between calls can't pretend to exist (or point outside
-            // the folder) and suppress our exclusive-create write below.
-            await lstat(gitignorePath)
-            return true
-          } catch (err) {
-            const code =
-              err && typeof err === 'object' && 'code' in err
-                ? (err as NodeJS.ErrnoException).code
-                : undefined
-            // Why: only "missing" should be treated as "no .gitignore". A
-            // permission or I/O error must propagate so the user sees the real
-            // problem instead of a misleading write failure later.
-            if (code === 'ENOENT') {
-              return false
-            }
-            throw err
-          }
-        },
-        writeGitignore: async (content) => {
-          // Exclusive create so a .gitignore appearing between the check and this
-          // write is respected, not clobbered.
-          try {
-            await writeFile(gitignorePath, content, { encoding: 'utf8', flag: 'wx' })
-          } catch (err) {
-            const code =
-              err && typeof err === 'object' && 'code' in err
-                ? (err as NodeJS.ErrnoException).code
-                : undefined
-            if (code !== 'EEXIST') {
-              throw err
-            }
-          }
-        }
-      })
-      if (!outcome.ok) {
-        if (outcome.step !== 'init') {
-          await rm(join(targetPath, '.git'), { recursive: true, force: true }).catch(() => {})
-        }
-        if (outcome.isIdentityError) {
-          return { error: GIT_IDENTITY_NOT_CONFIGURED_MESSAGE }
-        }
-        return { error: `${convertStepLabel(outcome.step)}: ${outcome.message}` }
-      }
-    }
-
-    const repo = await this.addRepo(targetPath, 'git')
+    const repo = await this.addRepo(path, 'git')
     return { repo }
   }
 

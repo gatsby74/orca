@@ -26,13 +26,12 @@ vi.mock('../providers/ssh-filesystem-dispatch', () =>
 )
 vi.mock('./ssh', () => moduleMocks.sshModuleMock(reposMocks))
 
-import { registerRepoHandlers, writeGitignoreExclusiveRemote } from './repos'
+import { registerRepoHandlers } from './repos'
 import { clearGitCapabilityStateForTests } from '../git/git-capability-state'
 import { resetSshProviderAuthorities } from '../ssh/ssh-provider-authority'
 import { DEFAULT_REPO_BADGE_COLOR } from '../../shared/constants'
 import { clearSubmodulePathsCacheForTests } from '../git/status'
 import { createRepoHandlerHarness, waitForAssertion } from './repos-remote-test-harness'
-import type { IFilesystemProvider } from '../providers/filesystem-provider-contract'
 
 const {
   handleMock,
@@ -728,81 +727,5 @@ describe('repos:addRemote', () => {
       })
     )
     expect(result).toHaveProperty('repo.displayName', 'My Home')
-  })
-})
-
-// Why: the remote converter must mirror writeGitignoreExclusive — never clobber
-// a .gitignore that appears between the hasGitignore() probe and the write.
-describe('writeGitignoreExclusiveRemote', () => {
-  const TMP = '/home/user/project/.orca-gitignore-123.tmp'
-  const GITIGNORE = '/home/user/project/.gitignore'
-  const CONTENT = '*.tmp\nnode_modules/\n'
-
-  function makeFs(overrides: Partial<IFilesystemProvider> = {}): IFilesystemProvider {
-    return {
-      writeFile: vi.fn().mockResolvedValue(undefined),
-      renameNoClobber: vi.fn().mockResolvedValue(undefined),
-      deletePath: vi.fn().mockResolvedValue(undefined),
-      ...overrides
-    } as unknown as IFilesystemProvider
-  }
-
-  it('writes the tmp file then renameNoClobbers it into place without cleanup', async () => {
-    const fs = makeFs()
-
-    await writeGitignoreExclusiveRemote(fs, TMP, GITIGNORE, CONTENT)
-
-    expect(fs.writeFile).toHaveBeenCalledWith(TMP, CONTENT)
-    expect(fs.renameNoClobber).toHaveBeenCalledWith(TMP, GITIGNORE)
-    expect(fs.deletePath).not.toHaveBeenCalled()
-  })
-
-  it('respects an existing .gitignore that appears after hasGitignore() (EEXIST) and cleans up the tmp', async () => {
-    const eexist = Object.assign(new Error('exists'), { code: 'EEXIST' })
-    const fs = makeFs({ renameNoClobber: vi.fn().mockRejectedValue(eexist) })
-
-    await expect(
-      writeGitignoreExclusiveRemote(fs, TMP, GITIGNORE, CONTENT)
-    ).resolves.toBeUndefined()
-
-    expect(fs.writeFile).toHaveBeenCalledWith(TMP, CONTENT)
-    expect(fs.renameNoClobber).toHaveBeenCalledWith(TMP, GITIGNORE)
-    expect(fs.deletePath).toHaveBeenCalledWith(TMP, false)
-  })
-
-  it('rethrows non-EEXIST errors (e.g. relay lacks safe rename) and still cleans up the tmp', async () => {
-    const unsafe = new Error(
-      'Remote safe rename is unavailable. Reconnect the SSH target and retry.'
-    )
-    const fs = makeFs({ renameNoClobber: vi.fn().mockRejectedValue(unsafe) })
-
-    await expect(writeGitignoreExclusiveRemote(fs, TMP, GITIGNORE, CONTENT)).rejects.toThrow(
-      'Remote safe rename is unavailable'
-    )
-
-    expect(fs.deletePath).toHaveBeenCalledWith(TMP, false)
-  })
-
-  it('cleans up the tmp file when writeFile fails and never calls rename', async () => {
-    const fs = makeFs({ writeFile: vi.fn().mockRejectedValue(new Error('disk full')) })
-
-    await expect(writeGitignoreExclusiveRemote(fs, TMP, GITIGNORE, CONTENT)).rejects.toThrow(
-      'disk full'
-    )
-
-    expect(fs.deletePath).toHaveBeenCalledWith(TMP, false)
-    expect(fs.renameNoClobber).not.toHaveBeenCalled()
-  })
-
-  it('rethrows the original error when tmp cleanup itself rejects', async () => {
-    const boom = new Error('rename boom')
-    const fs = makeFs({
-      renameNoClobber: vi.fn().mockRejectedValue(boom),
-      deletePath: vi.fn().mockRejectedValue(new Error('cleanup failed'))
-    })
-
-    await expect(writeGitignoreExclusiveRemote(fs, TMP, GITIGNORE, CONTENT)).rejects.toThrow(
-      'rename boom'
-    )
   })
 })

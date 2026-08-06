@@ -1,7 +1,7 @@
-import { execFileSync } from 'child_process'
-import { existsSync, mkdirSync, mkdtempSync, rmSync, writeFileSync } from 'fs'
-import os from 'os'
-import path from 'path'
+import { execFileSync } from 'node:child_process'
+import { existsSync, mkdirSync, mkdtempSync, rmSync, writeFileSync } from 'node:fs'
+import os from 'node:os'
+import path from 'node:path'
 import { test, expect } from './helpers/orca-app'
 import { waitForSessionReady } from './helpers/store'
 
@@ -77,18 +77,15 @@ test.describe('Convert non-git folder to a Git repository', () => {
 
     await convertButton.click()
 
-    // The dialog closes and the folder is registered as a git project.
+    // The dialog closes and the converted project becomes visible in the
+    // sidebar, proving the user no longer needs to remove and re-import it.
     await expect(dialog).toBeHidden({ timeout: 30_000 })
-    await expect
-      .poll(
-        () =>
-          orcaPage.evaluate((p) => {
-            const repo = window.__store?.getState().repos.find((r) => r.path === p)
-            return repo ? (repo.kind ?? 'git') : null
-          }, folderPath),
-        { timeout: 30_000, message: 'converted folder did not register as a git project' }
-      )
-      .toBe('git')
+    await expect(
+      orcaPage
+        .locator('[data-worktree-sidebar]')
+        .getByText('legacy-project', { exact: true })
+        .first()
+    ).toBeVisible({ timeout: 30_000 })
 
     await orcaPage.screenshot({ path: path.join(testInfo.outputDir, 'after-convert.png') })
     await testInfo.attach('after-convert', {
