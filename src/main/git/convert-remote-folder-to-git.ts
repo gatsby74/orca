@@ -109,9 +109,9 @@ export async function convertRemoteFolderToGit(args: {
       return { ok: true, repoPath: path }
     }
 
-    // Why: preserve repository metadata that existed before Orca, even when it
-    // was incomplete enough for the initial Git probe to reject it.
-    if (outcome.step !== 'init' && !gitMetadataExisted) {
+    // Why: git init can leave partial metadata when it fails; only preserve a
+    // .git path that existed before this conversion attempt.
+    if (!gitMetadataExisted) {
       await fsProvider.deletePath(gitMetadataPath, true).catch(() => undefined)
     }
     if (outcome.isIdentityError) {

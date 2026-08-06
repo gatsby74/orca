@@ -305,11 +305,22 @@ async function addLocalRepoFromPath(
 
   const resolvedPath = repoKind === 'git' ? getGitRepoRoot(path) : path
   const pathKey = normalizeRuntimePathForComparison(path)
-  const existing = store
-    .getRepos()
-    .find((repo) => !repo.connectionId && normalizeRuntimePathForComparison(repo.path) === pathKey)
+  const resolvedPathKey = normalizeRuntimePathForComparison(resolvedPath)
+  const repos = store.getRepos()
+  const existingAtResolvedPath = repos.find(
+    (repo) => !repo.connectionId && normalizeRuntimePathForComparison(repo.path) === resolvedPathKey
+  )
+  // Why: selecting a nested folder in a Git repository must resolve to the
+  // canonical root before a same-path folder record can be upgraded.
+  if (repoKind === 'git' && resolvedPathKey !== pathKey && existingAtResolvedPath) {
+    return { repo: existingAtResolvedPath, alreadyExisted: true }
+  }
+
+  const existing = repos.find(
+    (repo) => !repo.connectionId && normalizeRuntimePathForComparison(repo.path) === pathKey
+  )
   if (existing) {
-    if (repoKind === 'git' && isFolderRepo(existing)) {
+    if (repoKind === 'git' && resolvedPathKey === pathKey && isFolderRepo(existing)) {
       const detected = await detectRepoIconAndUpstream({ repoPath: resolvedPath, kind: 'git' })
       const updated = store.updateRepo(
         existing.id,
@@ -328,19 +339,8 @@ async function addLocalRepoFromPath(
         return { repo: updated, alreadyExisted: true }
       }
     }
-    return { repo: existing, alreadyExisted: true }
-  }
-
-  const resolvedPathKey = normalizeRuntimePathForComparison(resolvedPath)
-  if (resolvedPathKey !== pathKey) {
-    const existingAfterRootResolve = store
-      .getRepos()
-      .find(
-        (repo) =>
-          !repo.connectionId && normalizeRuntimePathForComparison(repo.path) === resolvedPathKey
-      )
-    if (existingAfterRootResolve) {
-      return { repo: existingAfterRootResolve, alreadyExisted: true }
+    if (resolvedPathKey === pathKey) {
+      return { repo: existing, alreadyExisted: true }
     }
   }
 

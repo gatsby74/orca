@@ -19210,17 +19210,19 @@ export class OrcaRuntimeService {
     if (existing) {
       if (kind === 'git' && isFolderRepo(existing)) {
         const detected = await detectRepoIconAndUpstream({ repoPath: path, kind: 'git' })
-        const updated =
-          this.store.updateRepo(
-            existing.id,
-            {
-              kind: 'git',
-              ...detected,
-              externalWorktreeVisibility: 'hide',
-              projectHostSetupMethod: existing.projectHostSetupMethod ?? 'imported-existing-folder'
-            },
-            getRepoExecutionHostId(existing)
-          ) ?? existing
+        const updated = this.store.updateRepo(
+          existing.id,
+          {
+            kind: 'git',
+            ...detected,
+            externalWorktreeVisibility: 'hide',
+            projectHostSetupMethod: existing.projectHostSetupMethod ?? 'imported-existing-folder'
+          },
+          getRepoExecutionHostId(existing)
+        )
+        if (!updated) {
+          throw new Error(`Project disappeared before it could be converted to Git: ${existing.id}`)
+        }
         await prepareLocalWorktreeRootForRepo(this.store, updated)
         invalidateAuthorizedRootsCache()
         this.invalidateResolvedWorktreeCache()

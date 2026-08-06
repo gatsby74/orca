@@ -200,6 +200,45 @@ describe('NonGitFolderDialog', () => {
     expect(mocks.state.closeModal).toHaveBeenCalled()
   })
 
+  it('converts and reveals a local folder on the local host', async () => {
+    const repo: Repo = {
+      id: 'shared-repo',
+      path: '/local/non-git',
+      displayName: 'Local project',
+      badgeColor: '#111',
+      addedAt: 1,
+      kind: 'git'
+    }
+    const localWorktree = makeWorktree('shared-repo::/local/non-git', '/local/non-git', 'local')
+    mocks.state.modalData = { folderPath: '/local/non-git' }
+    mocks.state.runtimeEnvironments = []
+    mocks.state.convertNonGitFolderToGit.mockResolvedValue(repo)
+    mocks.state.fetchWorktrees.mockImplementation(async () => {
+      mocks.state.worktreesByRepo = { [repo.id]: [localWorktree] }
+      return true
+    })
+    renderToStaticMarkup(<NonGitFolderDialog />)
+
+    const button = mocks.buttons.find((entry) => entry.label.includes('Convert to Git Repository'))
+    button?.onClick?.()
+
+    await vi.waitFor(() =>
+      expect(mocks.activateAndRevealWorktree).toHaveBeenCalledWith(localWorktree.id, {
+        sidebarRevealBehavior: 'auto',
+        executionHostId: 'local'
+      })
+    )
+    expect(mocks.state.convertNonGitFolderToGit).toHaveBeenCalledWith({
+      path: '/local/non-git',
+      runtimeEnvironmentId: null
+    })
+    expect(mocks.state.fetchWorktrees).toHaveBeenCalledWith(repo.id, {
+      requireAuthoritative: true,
+      executionHostId: 'local'
+    })
+    expect(mocks.state.closeModal).toHaveBeenCalled()
+  })
+
   it('activates only the selected SSH folder when repo IDs collide', async () => {
     const repo: Repo = {
       id: 'shared-repo',

@@ -81,9 +81,9 @@ export async function convertLocalFolderToGit(
       return outcome
     }
 
-    // Why: a malformed or partial .git directory may predate Orca; only remove
-    // repository metadata that this conversion attempt created.
-    if (outcome.step !== 'init' && !gitMetadataExisted) {
+    // Why: git init can leave partial metadata when it fails; only preserve a
+    // .git path that existed before this conversion attempt.
+    if (!gitMetadataExisted) {
       await rm(gitMetadataPath, { recursive: true, force: true }).catch(() => undefined)
     }
     return {

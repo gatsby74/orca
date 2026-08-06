@@ -1756,7 +1756,12 @@ function createReposApi(): NonNullable<Partial<PreloadApi>['repos']> {
     },
     convertToGit: async ({ path }) => {
       invalidateRuntimeWorktreeCaches()
-      return callRuntimeResult('repo.convertToGit', { path })
+      const owned = await callRuntimeResultWithOwner<{ repo: Repo } | { error: string }>(
+        'repo.convertToGit',
+        { path },
+        60_000
+      )
+      return withRuntimeRepoMutationOwner(owned.result, owned.hostId)
     },
     convertRemoteToGit: async () => {
       // Why: SSH relay conversion is owned by the desktop main process; paired

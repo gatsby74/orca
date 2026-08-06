@@ -114,7 +114,17 @@ describe('initGitRepoInExistingFolder (real git, regression for unborn-HEAD work
     const result = await initGitRepoInExistingFolder({
       // Pin an identity so the commit succeeds regardless of the host's global config.
       exec: async (args) =>
-        void git(repoDir, ['-c', 'user.email=test@orca.dev', '-c', 'user.name=Orca Test', ...args]),
+        void git(repoDir, [
+          '-c',
+          'user.email=test@orca.dev',
+          '-c',
+          'user.name=Orca Test',
+          '-c',
+          'commit.gpgsign=false',
+          '-c',
+          'core.excludesFile=',
+          ...args
+        ]),
       hasGitignore: async () => existsSync(path.join(repoDir, '.gitignore')),
       writeGitignore: async (content) => writeFileSync(path.join(repoDir, '.gitignore'), content)
     })

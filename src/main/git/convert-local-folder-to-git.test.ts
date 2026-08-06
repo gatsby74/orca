@@ -58,4 +58,20 @@ describe('convertLocalFolderToGit cleanup ownership', () => {
 
     expect(existsSync(join(folderPath, '.git'))).toBe(false)
   })
+
+  it('removes partial repository metadata left by a failed git init', async () => {
+    gitExecFileAsync.mockImplementation(async (args: string[]) => {
+      if (args[0] === 'init') {
+        mkdirSync(join(folderPath, '.git'), { recursive: true })
+        throw new Error('init failed')
+      }
+    })
+
+    await expect(convertLocalFolderToGit(folderPath)).resolves.toMatchObject({
+      ok: false,
+      error: expect.stringContaining('init failed')
+    })
+
+    expect(existsSync(join(folderPath, '.git'))).toBe(false)
+  })
 })
