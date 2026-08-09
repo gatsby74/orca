@@ -155,6 +155,7 @@ test('restores an OSC 8 hyperlink after its terminal is cold-parked', async ({ o
   })
   await activateTerminalTab(orcaPage, tabId)
   await expect.poll(() => getTerminalContent(orcaPage, 4_000)).toContain(label)
+  await expect.poll(() => serializedBufferContains(orcaPage, tabId, url)).toBe(true)
 
   const restoredProbe = await locateLink(orcaPage, label)
   await orcaPage.mouse.move(restoredProbe.clientX, restoredProbe.clientY)
