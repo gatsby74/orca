@@ -166,6 +166,11 @@ function getCanonicalPassiveWakeRecords(
  * spawn is awaited.
  */
 export function wakeSleepingAgentsForWorktreeInBackground(worktreeId: string): void {
+  // Why: a client opening the workspace is an explicit wake, so it releases the
+  // deliberate-sleep mark its panes are otherwise held cold by (#10205). This runs
+  // before the no-records return: a workspace slept with only plain shells has no
+  // sleeping-agent record, and leaving it marked would keep its panes cold forever.
+  clearWorktreeSleepIntent(worktreeId)
   const worktreeRecords = Object.values(
     useAppStore.getState().sleepingAgentSessionsByPaneKey
   ).filter((record) => record.worktreeId === worktreeId)
@@ -176,9 +181,6 @@ export function wakeSleepingAgentsForWorktreeInBackground(worktreeId: string): v
     return
   }
 
-  // Why: a client opening the workspace is an explicit wake, so it releases the
-  // deliberate-sleep mark its panes are otherwise held cold by (#10205).
-  clearWorktreeSleepIntent(worktreeId)
   const wokenClaimKeys = new Set<string>()
   window.dispatchEvent(
     new CustomEvent<WakeHibernatedAgentsWorktreeDetail>(WAKE_HIBERNATED_AGENTS_WORKTREE_EVENT, {
