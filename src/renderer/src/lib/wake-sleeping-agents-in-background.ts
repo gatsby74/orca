@@ -7,6 +7,7 @@ import { useAppStore } from '@/store'
 import type { SleepingAgentSessionRecord } from '../../../shared/agent-session-resume'
 import { parseLegacyNumericPaneKey, parsePaneKey } from '../../../shared/stable-pane-id'
 import { resumeSleepingAgentSessionsForWorktree } from './resume-sleeping-agent-session'
+import { clearWorktreeSleepIntent } from './worktree-sleep-intent'
 import {
   getProviderSessionClaimKey,
   isPassiveCompletedHibernationEvidence,
@@ -175,6 +176,9 @@ export function wakeSleepingAgentsForWorktreeInBackground(worktreeId: string): v
     return
   }
 
+  // Why: a client opening the workspace is an explicit wake, so it releases the
+  // deliberate-sleep mark its panes are otherwise held cold by (#10205).
+  clearWorktreeSleepIntent(worktreeId)
   const wokenClaimKeys = new Set<string>()
   window.dispatchEvent(
     new CustomEvent<WakeHibernatedAgentsWorktreeDetail>(WAKE_HIBERNATED_AGENTS_WORKTREE_EVENT, {

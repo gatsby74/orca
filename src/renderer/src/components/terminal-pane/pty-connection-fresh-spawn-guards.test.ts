@@ -234,6 +234,64 @@ describe('connectPanePty', () => {
     expect(transport.connect).toHaveBeenCalled()
   })
 
+  it('does not spawn a PTY for a deliberately slept workspace while another is active', async () => {
+    const { connectPanePty } = await import('./pty-connection')
+    const { markWorktreeSleepIntent, clearWorktreeSleepIntent } =
+      await import('@/lib/worktree-sleep-intent')
+    const transport = createMockTransport()
+    transportFactoryQueue.push(transport)
+    mockStoreState = {
+      ...mockStoreState,
+      activeWorktreeId: 'wt-2',
+      tabsByWorktree: { 'wt-1': [{ id: 'tab-sleep-skip-spawn', ptyId: null }] },
+      ptyIdsByTabId: { 'tab-sleep-skip-spawn': [] }
+    }
+    markWorktreeSleepIntent('wt-1')
+
+    try {
+      connectPanePty(
+        createPane(1) as never,
+        createManager(1) as never,
+        createDeps({
+          tabId: 'tab-sleep-skip-spawn',
+          isVisibleRef: { current: false },
+          isActiveRef: { current: false }
+        }) as never
+      )
+      await flushAsyncTicks()
+
+      // The #10205 respawn: this connect is what woke the workspace the user slept.
+      expect(transport.connect).not.toHaveBeenCalled()
+    } finally {
+      clearWorktreeSleepIntent('wt-1')
+    }
+  })
+
+  it('spawns a PTY for a hidden pane whose workspace was never slept', async () => {
+    const { connectPanePty } = await import('./pty-connection')
+    const transport = createMockTransport()
+    transportFactoryQueue.push(transport)
+    mockStoreState = {
+      ...mockStoreState,
+      activeWorktreeId: 'wt-2',
+      tabsByWorktree: { 'wt-1': [{ id: 'tab-sleep-control-spawn', ptyId: null }] },
+      ptyIdsByTabId: { 'tab-sleep-control-spawn': [] }
+    }
+
+    connectPanePty(
+      createPane(1) as never,
+      createManager(1) as never,
+      createDeps({
+        tabId: 'tab-sleep-control-spawn',
+        isVisibleRef: { current: false },
+        isActiveRef: { current: false }
+      }) as never
+    )
+    await flushAsyncTicks()
+
+    expect(transport.connect).toHaveBeenCalled()
+  })
+
   // Why: a doomed pane (or a child pane whose parent worktree is being removed,
   // which startFreshSpawn's own-worktree skip cannot see) can still race a spawn
   // that main fences. reportError must swallow that fence so the tab never flashes
