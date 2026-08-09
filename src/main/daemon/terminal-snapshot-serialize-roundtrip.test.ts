@@ -1,4 +1,4 @@
-// Round-trip guards for two @xterm/addon-serialize defects that garbled
+// Round-trip guards for @xterm/addon-serialize defects that garbled
 // hidden-terminal snapshot restores (serialize a buffer, replay into a fresh
 // identical terminal, compare):
 //
@@ -10,6 +10,9 @@
 // BUG C (hardened Orca-side via serializeWithAbsoluteCursor): a final content
 // row filled exactly to the right margin leaves replay wrap-pending, and the
 // addon's RELATIVE cursor restore then lands one column short.
+//
+// OSC 8: upstream preserved hyperlink styling but omitted the URL metadata,
+// leaving cold-restored links visibly underlined but non-interactive.
 import './xterm-env-polyfill'
 import { describe, expect, it } from 'vitest'
 import { Terminal } from '@xterm/headless'
@@ -62,6 +65,20 @@ function visibleText(terminal: Terminal): string[] {
     lines.push(buffer.getLine(buffer.baseY + row)?.translateToString(true) ?? '')
   }
   return lines
+}
+
+function oscLinkUriAt(terminal: Terminal, viewportRow: number, col: number): string | null {
+  const cell = cellAt(terminal, viewportRow, col) as unknown as {
+    extended?: { urlId?: number }
+  }
+  const linkId = cell.extended?.urlId ?? 0
+  if (!linkId) {
+    return null
+  }
+  const core = terminal as unknown as {
+    _core?: { _oscLinkService?: { getLinkData: (id: number) => { uri: string } | undefined } }
+  }
+  return core._core?._oscLinkService?.getLinkData(linkId)?.uri ?? null
 }
 
 async function roundTripStyles(source: string): Promise<Terminal> {
@@ -135,6 +152,30 @@ describe('SGR intensity round-trip (BUG B, addon patch)', () => {
     const c = cellAt(restored, 0, 2)
     expect(!!c.isBold()).toBe(true)
     expect(!!c.isUnderline()).toBe(false)
+  })
+})
+
+describe('OSC 8 hyperlink round-trip (addon patch)', () => {
+  it('restores the URL target as well as its underline styling', async () => {
+    const url = 'https://github.com/stablyai/orca/issues/12345'
+    const { terminal, addon } = createTerminal(80, 5)
+    await write(terminal, `before \x1b]8;;${url}\x1b\\#12345\x1b]8;;\x1b\\ after`)
+
+    const restored = await replay(addon.serialize(), 80, 5)
+    expect(visibleText(restored)[0]).toBe('before #12345 after')
+    expect(!!cellAt(restored, 0, 7).isUnderline()).toBe(true)
+    expect(oscLinkUriAt(restored, 0, 7)).toBe(url)
+    expect(oscLinkUriAt(restored, 0, 14)).toBeNull()
+  })
+
+  it('restores an open hyperlink for output that arrives after replay', async () => {
+    const url = 'https://example.com/streaming-link'
+    const { terminal, addon } = createTerminal(80, 5)
+    await write(terminal, `\x1b]8;id=stream;${url}\x1b\\linked`)
+
+    const restored = await replay(addon.serialize(), 80, 5)
+    await write(restored, 'Z\x1b]8;;\x1b\\')
+    expect(oscLinkUriAt(restored, 0, 6)).toBe(url)
   })
 })
 
