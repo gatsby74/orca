@@ -6,6 +6,8 @@ const ROOT = resolve(import.meta.dirname, '..', '..')
 const OUT_DIR = resolve(ROOT, 'src/renderer/public/file-icons')
 const MANIFEST_PATH = resolve(ROOT, 'src/renderer/src/lib/material-file-icons-manifest.json')
 const ICONS_SRC = resolve(ROOT, 'node_modules/material-icon-theme/icons')
+const LICENSE_SRC = resolve(ROOT, 'node_modules/material-icon-theme/LICENSE')
+const LICENSE_OUT = resolve(OUT_DIR, 'LICENSE.material-icon-theme.txt')
 
 /** Keep optional manifest mappings from producing invalid asset names. */
 function addIcon(referencedIcons, name) {
@@ -71,6 +73,8 @@ function run() {
     rmSync(OUT_DIR, { recursive: true })
   }
   mkdirSync(OUT_DIR, { recursive: true })
+  cpSync(LICENSE_SRC, LICENSE_OUT)
+  chmodSync(LICENSE_OUT, 0o644)
 
   let copied = 0
   for (const iconName of referencedIcons) {
