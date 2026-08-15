@@ -2141,6 +2141,11 @@ export const createTabsSlice: StateCreator<AppState, [], [], TabsSlice> = (set, 
         current.layoutByWorktree,
         hydrated.layoutByWorktree,
         replaceWorkspaceKeys
+      ),
+      zoomedGroupIdByWorktree: replaceWorkspaceRecordKeys(
+        current.zoomedGroupIdByWorktree,
+        {},
+        replaceWorkspaceKeys
       )
     }))
   }
