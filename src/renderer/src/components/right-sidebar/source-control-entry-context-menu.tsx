@@ -121,7 +121,6 @@ export function SourceControlEntryContextMenu({
             {translate('auto.components.sidebar.WorktreeOpenInMenu.8009ab69a6', 'Open in')}
           </ContextMenuSubTrigger>
           <ContextMenuSubContent className="w-52">
-<<<<<<< HEAD
             {openInEntries.map((entry) => {
               const availability = getOpenInEntryAvailability(entry, settings, connectionId)
               return (
