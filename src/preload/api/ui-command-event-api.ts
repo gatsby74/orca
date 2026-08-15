@@ -69,7 +69,12 @@ export type UiCommandEventApi = {
       activate?: boolean
     }) => void
   ) => () => void
-  replyTabCreate: (reply: { requestId: string; browserPageId?: string; error?: string }) => void
+  replyTabCreate: (reply: {
+    requestId: string
+    browserPageId?: string
+    hostedRemotely?: boolean
+    error?: string
+  }) => void
   onRequestTabSetProfile: (
     callback: (data: {
       requestId: string
