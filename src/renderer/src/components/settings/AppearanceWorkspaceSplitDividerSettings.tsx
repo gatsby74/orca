@@ -4,9 +4,9 @@ import {
   DEFAULT_TAB_GROUP_SPLIT_DIVIDER_DARK,
   DEFAULT_TAB_GROUP_SPLIT_DIVIDER_LIGHT
 } from '../../../../shared/tab-group-split-divider'
-import { translate } from '@/i18n/i18n'
 import { ColorField } from './SettingsFormControls'
 import { SearchableSetting } from './SearchableSetting'
+import { getWorkspaceSplitDividerEntries } from './appearance-search'
 
 export function AppearanceWorkspaceSplitDividerSettings({
   settings,
@@ -17,49 +17,33 @@ export function AppearanceWorkspaceSplitDividerSettings({
   updateSettings: (updates: Partial<GlobalSettings>) => void
   forceVisiblePrimary?: boolean
 }): React.JSX.Element {
-  const darkTitle = translate(
-    'auto.components.settings.AppearanceWorkspaceSplitDividerSettings.darkTitle',
-    'Workspace Split Divider (Dark)'
-  )
-  const darkDescription = translate(
-    'auto.components.settings.AppearanceWorkspaceSplitDividerSettings.darkDescription',
-    'Color of the split line between workspace panes in dark mode. This is the column between a terminal tab and an editor, not the in-terminal split.'
-  )
-  const lightTitle = translate(
-    'auto.components.settings.AppearanceWorkspaceSplitDividerSettings.lightTitle',
-    'Workspace Split Divider (Light)'
-  )
-  const lightDescription = translate(
-    'auto.components.settings.AppearanceWorkspaceSplitDividerSettings.lightDescription',
-    'Color of the split line between workspace panes in light mode.'
-  )
-  const keywords = ['workspace', 'split', 'divider', 'pane', 'color', 'tab group']
+  const [darkEntry, lightEntry] = getWorkspaceSplitDividerEntries()
 
   return (
     <>
       <SearchableSetting
-        title={darkTitle}
-        description={darkDescription}
-        keywords={keywords}
+        title={darkEntry.title}
+        description={darkEntry.description}
+        keywords={darkEntry.keywords}
         forceVisible={forceVisiblePrimary}
       >
         <ColorField
-          label={darkTitle}
-          description={darkDescription}
+          label={darkEntry.title}
+          description={darkEntry.description ?? ''}
           value={settings.tabGroupSplitDividerColorDark}
           fallback={DEFAULT_TAB_GROUP_SPLIT_DIVIDER_DARK}
           onChange={(value) => updateSettings({ tabGroupSplitDividerColorDark: value })}
         />
       </SearchableSetting>
       <SearchableSetting
-        title={lightTitle}
-        description={lightDescription}
-        keywords={keywords}
+        title={lightEntry.title}
+        description={lightEntry.description}
+        keywords={lightEntry.keywords}
         forceVisible={forceVisiblePrimary}
       >
         <ColorField
-          label={lightTitle}
-          description={lightDescription}
+          label={lightEntry.title}
+          description={lightEntry.description ?? ''}
           value={settings.tabGroupSplitDividerColorLight}
           fallback={DEFAULT_TAB_GROUP_SPLIT_DIVIDER_LIGHT}
           onChange={(value) => updateSettings({ tabGroupSplitDividerColorLight: value })}

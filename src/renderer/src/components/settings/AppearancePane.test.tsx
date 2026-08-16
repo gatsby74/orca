@@ -495,6 +495,16 @@ describe('AppearancePane', () => {
     expect(container.textContent).not.toContain('Advanced')
   })
 
+  it('shows workspace split divider controls for a control-specific search', async () => {
+    mocks.state.settingsSearchQuery = 'tab group'
+    const container = await renderAppearancePane(getDefaultSettings('/tmp'))
+
+    expect(container.textContent).toContain('Workspace Split Divider (Dark)')
+    expect(container.textContent).toContain('Workspace Split Divider (Light)')
+    expect(container.textContent).not.toContain('Theme')
+    expect(container.textContent).not.toContain('Advanced')
+  })
+
   it('updates the workspace split divider color from Window & Sidebar', async () => {
     mocks.state.settingsSearchQuery = ''
     const updateSettings = vi.fn()

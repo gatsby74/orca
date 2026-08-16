@@ -23,6 +23,7 @@ import {
   getThemeEntries,
   getTitlebarEntries,
   getTypographyEntries,
+  getWorkspaceSplitDividerEntries,
   getZoomEntries
 } from './appearance-search'
 import { getTerminalAppearanceSearchEntries } from './terminal-search'
@@ -158,7 +159,8 @@ export function AppearancePane({
     ...getSidebarEntries(),
     ...getLayoutEntries(),
     getLeftSidebarAppearanceEntry(),
-    getWorkspaceCardLayoutEntry()
+    getWorkspaceCardLayoutEntry(),
+    ...getWorkspaceSplitDividerEntries()
   ]
 
   const interfaceMatches = matchesSettingsSearch(searchQuery, interfaceSearchEntries)
