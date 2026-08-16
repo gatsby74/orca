@@ -131,7 +131,7 @@ export function AppearancePane({
   )
   const windowSidebarSummary = translate(
     'auto.components.settings.AppearancePane.windowSidebarSummary',
-    'Sidebar, status bar, and file explorer'
+    'Sidebar, status bar, file explorer, and workspace split divider'
   )
 
   // Search-entry buckets per section so a query can force-open the matching one.

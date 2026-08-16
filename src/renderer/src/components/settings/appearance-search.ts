@@ -215,7 +215,7 @@ const getAppearanceSectionEntries = createLocalizedCatalog((): SettingsSearchEnt
     ),
     description: translate(
       'auto.components.settings.AppearancePane.windowSidebarSummary',
-      'Sidebar, status bar, and file explorer'
+      'Sidebar, status bar, file explorer, and workspace split divider'
     )
   }
 ])
