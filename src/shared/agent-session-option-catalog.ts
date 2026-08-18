@@ -44,7 +44,22 @@ export function findCatalogModel(
   catalog: AgentSessionOptionCatalog,
   modelId: string
 ): CatalogModel | undefined {
-  return catalog.models.find((model) => model.id === modelId)
+  const exact = catalog.models.find((model) => model.id === modelId)
+  if (exact) {
+    return exact
+  }
+  const normalized = modelId.trim().toLowerCase()
+  if (!normalized) {
+    return undefined
+  }
+  const caseInsensitive = catalog.models.filter((model) => model.id.toLowerCase() === normalized)
+  if (caseInsensitive.length === 1) {
+    return caseInsensitive[0]
+  }
+  const aliasMatches = catalog.models.filter((model) =>
+    model.aliases?.some((alias) => alias.toLowerCase() === normalized)
+  )
+  return aliasMatches.length === 1 ? aliasMatches[0] : undefined
 }
 
 export function findCatalogOption(

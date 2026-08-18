@@ -1,7 +1,8 @@
 import type { AgentType } from './agent-status-types'
-import type {
-  CatalogMidSessionApply,
-  AgentSessionOptionCatalog
+import {
+  findCatalogModel,
+  type CatalogMidSessionApply,
+  type AgentSessionOptionCatalog
 } from './agent-session-option-catalog'
 import type { SessionOptionValue, SessionOptionValueSource } from './native-chat-session-options'
 
@@ -150,13 +151,13 @@ export function matchNativeChatCatalogModelId(
   catalog: AgentSessionOptionCatalog,
   reported: string
 ): string | null {
+  const catalogMatch = findCatalogModel(catalog, reported)
+  if (catalogMatch) {
+    return catalogMatch.id
+  }
   const normalized = reported.trim().toLowerCase()
   if (!normalized) {
     return null
-  }
-  const exact = catalog.models.find((model) => model.id.toLowerCase() === normalized)
-  if (exact) {
-    return exact.id
   }
   const byLabel = catalog.models.find((model) => model.label.toLowerCase() === normalized)
   if (byLabel) {

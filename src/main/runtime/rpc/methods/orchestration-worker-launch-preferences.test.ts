@@ -104,6 +104,28 @@ describe('orchestration worker launch preferences', () => {
     }
   })
 
+  it.each([
+    {
+      model: 'luna',
+      accepted: ['minimal', 'low', 'medium', 'high', 'xhigh', 'max'],
+      rejected: ['ultra']
+    },
+    { model: 'Luna', accepted: ['max'], rejected: ['ultra'] },
+    { model: 'sol', accepted: ['ultra'], rejected: ['future-effort'] },
+    { model: 'terra', accepted: ['ultra'], rejected: ['future-effort'] }
+  ])('applies the seeded Codex ceiling to family slug $model', ({ model, accepted, rejected }) => {
+    for (const effortValue of accepted) {
+      expect(
+        resolveWorkerLaunchPreferences({ agent: 'codex', model, effort: effortValue }).preferences
+      ).toEqual({ model, effort: effortValue })
+    }
+    for (const effortValue of rejected) {
+      expect(() =>
+        resolveWorkerLaunchPreferences({ agent: 'codex', model, effort: effortValue })
+      ).toThrow(`does not support effort ${effortValue}`)
+    }
+  })
+
   it('rejects effort without a model', () => {
     expect(() => resolveWorkerLaunchPreferences({ agent: 'codex', effort: 'high' })).toThrow(
       '--effort requires --model'

@@ -50,6 +50,9 @@ export type CatalogModel = {
   label: string
   description?: string
   isDefault?: boolean
+  // Why: worker-start and pickers receive family slugs (`luna`) while the seed
+  // stores the full CLI id (`gpt-5.6-luna`).
+  aliases?: readonly string[]
   options: CatalogOption[]
 }
 

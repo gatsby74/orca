@@ -1,5 +1,9 @@
 import { describe, expect, it } from 'vitest'
-import { getAgentSessionOptionCatalog, mergeCatalogModels } from './agent-session-option-catalog'
+import {
+  findCatalogModel,
+  getAgentSessionOptionCatalog,
+  mergeCatalogModels
+} from './agent-session-option-catalog'
 import { resolveAgentSessionOptionLaunch } from './agent-session-option-launch'
 import {
   resolveNativeChatSessionOptionDefaults,
@@ -139,6 +143,54 @@ describe('agent session option catalog', () => {
       model: 'gpt-5.3-codex',
       effort: 'high',
       fastMode: true
+    })
+  })
+
+  it('resolves Codex family slugs to the seeded model without rewriting launch ids', () => {
+    const catalog = getAgentSessionOptionCatalog('codex')!
+    expect(findCatalogModel(catalog, 'luna')?.id).toBe('gpt-5.6-luna')
+    expect(findCatalogModel(catalog, 'SOL')?.id).toBe('gpt-5.6-sol')
+    expect(findCatalogModel(catalog, 'Terra')?.id).toBe('gpt-5.6-terra')
+    expect(findCatalogModel(catalog, 'GPT-5.6-Luna')?.id).toBe('gpt-5.6-luna')
+    expect(findCatalogModel(catalog, 'mystery-model')).toBeUndefined()
+    expect(
+      findCatalogModel(
+        {
+          ...catalog,
+          models: [
+            { id: 'gpt-5.6-luna', label: 'Luna', aliases: ['luna'], options: [] },
+            { id: 'gpt-5.7-luna', label: 'Luna 5.7', aliases: ['luna'], options: [] }
+          ]
+        },
+        'luna'
+      )
+    ).toBeUndefined()
+
+    expect(
+      resolveAgentSessionOptionLaunch('codex', { model: 'luna', effort: 'max' }, [], false)
+    ).toEqual({
+      args: ['-m', 'luna', '-c', 'model_reasoning_effort=max'],
+      appliedValues: { model: 'luna', effort: 'max' }
+    })
+    expect(
+      resolveAgentSessionOptionLaunch('codex', { model: 'sol', effort: 'ultra' }, [], false)
+    ).toEqual({
+      args: ['-m', 'sol', '-c', 'model_reasoning_effort=ultra'],
+      appliedValues: { model: 'sol', effort: 'ultra' }
+    })
+  })
+
+  it('keeps Codex seed aliases when discovery overlays a matching full id', () => {
+    const seed = getAgentSessionOptionCatalog('codex')!.models
+    const merged = mergeCatalogModels(seed, [
+      { id: 'gpt-5.6-luna', label: 'GPT-5.6 Luna (live)', options: [] }
+    ])
+    expect(
+      findCatalogModel({ ...getAgentSessionOptionCatalog('codex')!, models: merged }, 'luna')
+    ).toMatchObject({
+      id: 'gpt-5.6-luna',
+      label: 'GPT-5.6 Luna (live)',
+      aliases: ['luna']
     })
   })
 
