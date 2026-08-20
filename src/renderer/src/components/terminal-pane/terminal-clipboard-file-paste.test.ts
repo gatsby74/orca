@@ -1,19 +1,20 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 import { NATIVE_FILE_DROP_TARGET } from '../../../../shared/native-file-drop'
 
-const { handleNativeTerminalFileDropMock } = vi.hoisted(() => ({
-  handleNativeTerminalFileDropMock: vi.fn(async () => undefined)
+const { pasteNativeTerminalFileDropMock } = vi.hoisted(() => ({
+  pasteNativeTerminalFileDropMock: vi.fn(async () => true)
 }))
 
 vi.mock('./terminal-native-file-drop', () => ({
-  handleNativeTerminalFileDrop: handleNativeTerminalFileDropMock
+  pasteNativeTerminalFileDrop: pasteNativeTerminalFileDropMock
 }))
 
 import { pasteTerminalClipboardFilePaths } from './terminal-clipboard-file-paste'
 
 describe('pasteTerminalClipboardFilePaths', () => {
   beforeEach(() => {
-    handleNativeTerminalFileDropMock.mockClear()
+    pasteNativeTerminalFileDropMock.mockReset()
+    pasteNativeTerminalFileDropMock.mockResolvedValue(true)
   })
 
   it('routes clipboard files through the native drop owner pipeline', async () => {
@@ -33,7 +34,7 @@ describe('pasteTerminalClipboardFilePaths', () => {
       })
     ).resolves.toBe(true)
 
-    expect(handleNativeTerminalFileDropMock).toHaveBeenCalledWith({
+    expect(pasteNativeTerminalFileDropMock).toHaveBeenCalledWith({
       manager,
       paneTransports,
       worktreeId: 'worktree-1',
@@ -60,6 +61,21 @@ describe('pasteTerminalClipboardFilePaths', () => {
       })
     ).resolves.toBe(false)
 
-    expect(handleNativeTerminalFileDropMock).not.toHaveBeenCalled()
+    expect(pasteNativeTerminalFileDropMock).not.toHaveBeenCalled()
+  })
+
+  it('rejects the clipboard paste when the native drop writes no path', async () => {
+    pasteNativeTerminalFileDropMock.mockResolvedValue(false)
+
+    await expect(
+      pasteTerminalClipboardFilePaths({
+        manager: {} as never,
+        pane: { id: 7, leafId: 'leaf-7' } as never,
+        paneTransports: new Map([[7, {} as never]]),
+        paths: ['/tmp/a.txt'],
+        tabId: 'tab-1',
+        worktreeId: 'worktree-1'
+      })
+    ).resolves.toBe(false)
   })
 })

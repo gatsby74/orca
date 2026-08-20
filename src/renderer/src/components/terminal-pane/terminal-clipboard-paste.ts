@@ -59,12 +59,7 @@ export async function pasteTerminalClipboard({
   onFilePasteError,
   onImagePasteError
 }: PasteTerminalClipboardDeps): Promise<TerminalClipboardPasteResult> {
-  // Why: an OS-copied file also puts its display name on the clipboard as text,
-  // so the text branch below would paste the bare name. Reading the real file
-  // reference first makes paste behave like drop. The file-path callback owns
-  // WSL conversion and SSH/runtime uploads before writing target-host paths.
-  // Only take this branch when a file is actually present; ordinary text and
-  // image copies fall through unchanged.
+  // Why: OS-copied files expose bare display names as text, so resolve file references first.
   let filePaths: string[] = []
   try {
     filePaths = await readClipboardFilePaths()

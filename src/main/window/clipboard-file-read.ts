@@ -6,14 +6,18 @@ export type ClipboardFileReadDeps = {
   desktop?: string
   readFormat: (format: string) => string
   readBuffer: (format: string) => Buffer
-  runCommand: (command: string, args: string[]) => Promise<string>
+  runCommand: (command: string, args: string[], timeoutMs?: number) => Promise<string>
 }
 
 export const CLIPBOARD_FILE_LIST_MAX_BYTES = 64 * 1024
 export const CLIPBOARD_FILE_LIST_MAX_PATHS = 256
 export const CLIPBOARD_FILE_READ_TIMEOUT_MS = 2_000
 
-export function runClipboardCommandCapture(command: string, args: string[]): Promise<string> {
+export function runClipboardCommandCapture(
+  command: string,
+  args: string[],
+  timeoutMs = CLIPBOARD_FILE_READ_TIMEOUT_MS
+): Promise<string> {
   return new Promise((resolve, reject) => {
     const child = spawn(command, args, { stdio: ['ignore', 'pipe', 'ignore'] })
     const chunks: Buffer[] = []
@@ -38,7 +42,7 @@ export function runClipboardCommandCapture(command: string, args: string[]): Pro
 
     const timer = setTimeout(() => {
       finish(new Error(`${command} timed out`))
-    }, CLIPBOARD_FILE_READ_TIMEOUT_MS)
+    }, timeoutMs)
 
     child.stdout?.on('data', (chunk: Buffer) => {
       received += chunk.length
@@ -80,6 +84,7 @@ function readMacClipboardFiles(deps: ClipboardFileReadDeps): string[] {
 }
 
 async function readLinuxClipboardFiles(deps: ClipboardFileReadDeps): Promise<string[]> {
+  const deadline = Date.now() + CLIPBOARD_FILE_READ_TIMEOUT_MS
   const mimeTypes = /kde/i.test(deps.desktop ?? '')
     ? (['text/uri-list', 'x-special/gnome-copied-files'] as const)
     : (['x-special/gnome-copied-files', 'text/uri-list'] as const)
@@ -93,8 +98,15 @@ async function readLinuxClipboardFiles(deps: ClipboardFileReadDeps): Promise<str
       ['wl-paste', ['--type', mime, '--no-newline']],
       ['xclip', ['-selection', 'clipboard', '-t', mime, '-o']]
     ] as const) {
+      const remainingMs = deadline - Date.now()
+      if (remainingMs <= 0) {
+        return []
+      }
       try {
-        const paths = parseLinuxClipboardPayload(await deps.runCommand(command, [...args]), mime)
+        const paths = parseLinuxClipboardPayload(
+          await deps.runCommand(command, [...args], remainingMs),
+          mime
+        )
         if (paths.length > 0) {
           return paths
         }

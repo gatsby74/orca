@@ -138,6 +138,32 @@ describe('readClipboardFilePaths', () => {
     ).toEqual(['/repo/from-tool.ts'])
   })
 
+  it('shares one timeout budget across sequential Linux clipboard probes', async () => {
+    vi.useFakeTimers()
+    try {
+      const runCommand = vi.fn(
+        (_command: string, _args: string[], timeoutMs = 750) =>
+          new Promise<string>((_resolve, reject) =>
+            setTimeout(
+              () => reject(new Error('clipboard probe timed out')),
+              Math.min(timeoutMs, 750)
+            )
+          )
+      )
+      const readPromise = readClipboardFilePaths(
+        makeDeps({ platform: 'linux', desktop: 'GNOME', runCommand })
+      )
+
+      await vi.advanceTimersByTimeAsync(2_000)
+
+      await expect(readPromise).resolves.toEqual([])
+      expect(runCommand).toHaveBeenCalledTimes(3)
+      expect(runCommand.mock.calls.map((call) => call[2])).toEqual([2_000, 1_250, 500])
+    } finally {
+      vi.useRealTimers()
+    }
+  })
+
   it('returns no files when reads fail or exceed the buffer cap', async () => {
     const throwing = makeDeps({
       platform: 'linux',
