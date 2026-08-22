@@ -73,6 +73,26 @@ describe('parseRemoteMemorySnapshot', () => {
     expect(sessions[0]).toMatchObject({ sessionId: 'pty-2', cpu: 0, memory: 0 })
   })
 
+  it('carries a host-reported session title through', () => {
+    const snapshot = parseRemoteMemorySnapshot({
+      worktrees: [
+        {
+          worktreeId: 'repo::/srv/api',
+          sessions: [
+            { sessionId: 'pty-1', title: '  build watch  ' },
+            { sessionId: 'pty-2', title: '   ' },
+            { sessionId: 'pty-3' }
+          ]
+        }
+      ]
+    })
+    const sessions = snapshot?.worktrees[0].sessions ?? []
+    expect(sessions[0].title).toBe('build watch')
+    // Why: a blank title is no title — it must not shadow the pid fallback.
+    expect(sessions[1].title).toBeUndefined()
+    expect(sessions[2].title).toBeUndefined()
+  })
+
   it('ignores unknown fields a newer host may add', () => {
     const snapshot = parseRemoteMemorySnapshot({
       ...minimal,

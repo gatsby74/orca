@@ -81,11 +81,15 @@ function sessions(value: unknown): SessionMemory[] {
       continue
     }
     const paneKey = record?.paneKey
+    // Why: carry a host-reported name through when there is one, so a host that
+    // names its own sessions still works if the title lookup cannot run.
+    const title = typeof record?.title === 'string' ? record.title.trim() : ''
     rows.push({
       ...usage(record),
       sessionId,
       paneKey: typeof paneKey === 'string' && paneKey ? paneKey : null,
-      pid: num(record?.pid)
+      pid: num(record?.pid),
+      ...(title ? { title } : {})
     })
   }
   return rows

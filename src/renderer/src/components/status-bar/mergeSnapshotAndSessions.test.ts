@@ -3,6 +3,7 @@ import type { BrowserWorkspace } from '../../../../shared/browser-workspace-type
 import type { MemorySnapshot, WorktreeMemory } from '../../../../shared/process-stats-types'
 import type { TerminalTab } from '../../../../shared/terminal-tab-types'
 import type { Worktree } from '../../../../shared/worktree/types'
+import { makePaneKey } from '../../../../shared/stable-pane-id'
 import { mergeSnapshotAndSessions, UNATTRIBUTED_REPO_ID } from './mergeSnapshotAndSessions'
 import { requiresKillConfirmation } from './resource-session-kill-confirmation'
 import type { DaemonSession, MergeContext } from './resource-usage-merge-types'
@@ -644,5 +645,41 @@ describe('mergeSnapshotAndSessions — remote host scope', () => {
       })
     )
     expect(out.map((repo) => repo.repoId)).toEqual(['hetzner-repo'])
+  })
+  it('names a session from the host title when no local tab owns it', () => {
+    const wt: WorktreeMemory = {
+      ...remoteWorktree,
+      sessions: [
+        {
+          sessionId: 'remote-pty-1',
+          paneKey: null,
+          pid: 44,
+          cpu: 1,
+          memory: 1,
+          title: 'build watch'
+        },
+        { sessionId: 'remote-pty-2', paneKey: null, pid: 45, cpu: 0, memory: 0 }
+      ]
+    }
+    const out = mergeSnapshotAndSessions(makeSnapshot([wt]), [], remoteCtx())
+    const labels = out[0].worktrees[0].sessions.map((session) => session.label)
+    // Why: the host names its own terminals; without that a remote row is a raw pid.
+    expect(labels).toEqual(['build watch', 'pid 45'])
+  })
+
+  it('still prefers the local tab title over the host title', () => {
+    const tabId = 'tab-remote'
+    const paneKey = makePaneKey(tabId, '11111111-2222-4333-8444-555555555555')
+    const wt: WorktreeMemory = {
+      ...remoteWorktree,
+      sessions: [
+        { sessionId: 'remote-pty-1', paneKey, pid: 44, cpu: 1, memory: 1, title: 'host name' }
+      ]
+    }
+    const ctx = remoteCtx({
+      tabsByWorktree: { [remoteWorktree.worktreeId]: [makeTab(tabId, 'Local tab name')] }
+    })
+    const out = mergeSnapshotAndSessions(makeSnapshot([wt]), [], ctx)
+    expect(out[0].worktrees[0].sessions[0].label).toBe('Local tab name')
   })
 })

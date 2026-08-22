@@ -3,6 +3,7 @@ import type { MemorySnapshot } from '../../shared/process-stats-types'
 import type { Store } from '../persistence'
 import { collectMemorySnapshot } from '../memory/collector'
 import { parseRemoteMemorySnapshot } from '../memory/remote-memory-snapshot'
+import { getRemoteTerminalTitles } from '../memory/remote-terminal-titles'
 import { parseExecutionHostId } from '../../shared/execution-host'
 import { callRuntimeEnvironment } from './runtime-environment-transport-routing'
 
@@ -66,7 +67,32 @@ async function collectRuntimeSnapshot(environmentId: string): Promise<MemorySnap
   if (!snapshot) {
     throw new Error('runtime_snapshot_unsupported')
   }
-  return snapshot
+  return withRemoteSessionTitles(snapshot, environmentId)
+}
+
+/**
+ * A remote snapshot names its sessions by pty id, which the panel would render as
+ * `pid <n>`. The host knows the real names, so fold them in here. Titles are a
+ * nicety: this never rejects, and a host that cannot answer keeps the pid labels.
+ */
+async function withRemoteSessionTitles(
+  snapshot: MemorySnapshot,
+  environmentId: string
+): Promise<MemorySnapshot> {
+  const titles = await getRemoteTerminalTitles(app.getPath('userData'), environmentId)
+  if (titles.size === 0) {
+    return snapshot
+  }
+  return {
+    ...snapshot,
+    worktrees: snapshot.worktrees.map((worktree) => ({
+      ...worktree,
+      sessions: worktree.sessions.map((session) => {
+        const title = titles.get(session.sessionId)
+        return title ? { ...session, title } : session
+      })
+    }))
+  }
 }
 
 export function registerMemoryHandlers(store: Store): void {

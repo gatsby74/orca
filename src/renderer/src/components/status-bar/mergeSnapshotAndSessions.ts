@@ -86,6 +86,12 @@ function resolveSnapshotSessionLabel(
       return tab.defaultTitle?.trim() || tab.title?.trim() || `Terminal ${tabIndex + 1}`
     }
   }
+  // Why: a remote host names its own terminals — this client has no tab bound to
+  // them, so without the host's answer every remote row would read as a raw pid.
+  const hostTitle = session.title?.trim()
+  if (hostTitle) {
+    return hostTitle
+  }
   if (session.pid > 0) {
     return `pid ${session.pid}`
   }

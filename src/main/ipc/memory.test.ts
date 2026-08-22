@@ -1,12 +1,18 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 
-const { collectMemorySnapshotMock, callRuntimeEnvironmentMock, handleMock, getPathMock } =
-  vi.hoisted(() => ({
-    collectMemorySnapshotMock: vi.fn(),
-    callRuntimeEnvironmentMock: vi.fn(),
-    handleMock: vi.fn(),
-    getPathMock: vi.fn(() => '/tmp/orca-user-data')
-  }))
+const {
+  collectMemorySnapshotMock,
+  callRuntimeEnvironmentMock,
+  getRemoteTerminalTitlesMock,
+  handleMock,
+  getPathMock
+} = vi.hoisted(() => ({
+  collectMemorySnapshotMock: vi.fn(),
+  callRuntimeEnvironmentMock: vi.fn(),
+  getRemoteTerminalTitlesMock: vi.fn(),
+  handleMock: vi.fn(),
+  getPathMock: vi.fn(() => '/tmp/orca-user-data')
+}))
 
 vi.mock('electron', () => ({
   app: { getPath: getPathMock },
@@ -15,6 +21,9 @@ vi.mock('electron', () => ({
 vi.mock('../memory/collector', () => ({ collectMemorySnapshot: collectMemorySnapshotMock }))
 vi.mock('./runtime-environment-transport-routing', () => ({
   callRuntimeEnvironment: callRuntimeEnvironmentMock
+}))
+vi.mock('../memory/remote-terminal-titles', () => ({
+  getRemoteTerminalTitles: getRemoteTerminalTitlesMock
 }))
 
 import type { Store } from '../persistence'
@@ -36,6 +45,8 @@ describe('memory:getSnapshot', () => {
   beforeEach(() => {
     collectMemorySnapshotMock.mockReset()
     callRuntimeEnvironmentMock.mockReset()
+    getRemoteTerminalTitlesMock.mockReset()
+    getRemoteTerminalTitlesMock.mockResolvedValue(new Map())
     collectMemorySnapshotMock.mockResolvedValue({ collectedAt: 1, worktrees: [] })
   })
 
@@ -133,6 +144,50 @@ describe('memory:getSnapshot', () => {
     } finally {
       vi.useRealTimers()
     }
+  })
+
+  describe('remote session titles', () => {
+    const withSessions = {
+      worktrees: [
+        {
+          worktreeId: 'repo::/srv/api',
+          sessions: [{ sessionId: 'pty-1' }, { sessionId: 'pty-2' }]
+        }
+      ]
+    }
+
+    it('names sessions from the host terminal listing', async () => {
+      callRuntimeEnvironmentMock.mockResolvedValue({ ok: true, result: withSessions })
+      getRemoteTerminalTitlesMock.mockResolvedValue(new Map([['pty-1', 'build watch']]))
+      const snapshot = (await handler()(null, {
+        executionHostId: 'runtime:env-lxc1'
+      })) as { worktrees: { sessions: { sessionId: string; title?: string }[] }[] }
+      const sessions = snapshot.worktrees[0].sessions
+      expect(sessions[0]).toMatchObject({ sessionId: 'pty-1', title: 'build watch' })
+      // Why: a session the host did not name keeps the pid fallback downstream.
+      expect(sessions[1].title).toBeUndefined()
+    })
+
+    it('asks for titles from the same host it sampled', async () => {
+      callRuntimeEnvironmentMock.mockResolvedValue({ ok: true, result: withSessions })
+      await handler()(null, { executionHostId: 'runtime:env%2Fone' })
+      expect(getRemoteTerminalTitlesMock).toHaveBeenCalledWith('/tmp/orca-user-data', 'env/one')
+    })
+
+    // Why: titles are a nicety; usage numbers already in hand must still be served.
+    it('serves the snapshot unchanged when no titles come back', async () => {
+      callRuntimeEnvironmentMock.mockResolvedValue({ ok: true, result: withSessions })
+      getRemoteTerminalTitlesMock.mockResolvedValue(new Map())
+      const snapshot = (await handler()(null, {
+        executionHostId: 'runtime:env-lxc1'
+      })) as { worktrees: { sessions: { title?: string }[] }[] }
+      expect(snapshot.worktrees[0].sessions.every((s) => s.title === undefined)).toBe(true)
+    })
+
+    it('never asks a local snapshot for remote titles', async () => {
+      await handler()(null, { executionHostId: 'local' })
+      expect(getRemoteTerminalTitlesMock).not.toHaveBeenCalled()
+    })
   })
 
   it('rejects an SSH host rather than answering with local numbers', async () => {
