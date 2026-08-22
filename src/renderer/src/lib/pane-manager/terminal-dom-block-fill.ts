@@ -66,6 +66,9 @@ function clearBlockFill(span: HTMLElement): void {
 }
 
 export function applyDomBlockFills(root: ParentNode): void {
+  if (typeof root.querySelectorAll !== 'function') {
+    return
+  }
   const spans = root.querySelectorAll('.xterm-rows span')
   for (const node of spans) {
     const span = node as HTMLElement
@@ -97,15 +100,37 @@ export function attachDomBlockFill(terminal: {
   onRender?: (cb: () => void) => { dispose: () => void }
   element?: HTMLElement | undefined
 }): () => void {
-  if (typeof terminal.onRender !== 'function') {
-    return () => undefined
-  }
-  const listener = terminal.onRender(() => {
+  const run = (): void => {
     const root = terminal.element
-    if (!root) {
-      return
+    if (root) {
+      applyDomBlockFills(root)
     }
-    applyDomBlockFills(root)
-  })
-  return () => listener.dispose()
+  }
+  const schedule = (): void => {
+    run()
+    if (typeof requestAnimationFrame === 'function') {
+      requestAnimationFrame(run)
+    }
+  }
+  schedule()
+  const renderDisposable =
+    typeof terminal.onRender === 'function'
+      ? terminal.onRender(schedule)
+      : { dispose: () => undefined }
+
+  let observer: MutationObserver | null = null
+  const root = terminal.element
+  if (
+    typeof Node !== 'undefined' &&
+    root instanceof Node &&
+    typeof MutationObserver === 'function'
+  ) {
+    observer = new MutationObserver(schedule)
+    observer.observe(root, { childList: true, subtree: true })
+  }
+
+  return () => {
+    renderDisposable.dispose()
+    observer?.disconnect()
+  }
 }
