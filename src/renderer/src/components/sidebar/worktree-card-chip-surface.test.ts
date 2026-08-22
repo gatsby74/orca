@@ -56,6 +56,10 @@ describe('worktree sidebar chip surface', () => {
   it('keeps the meta-row chips off base-mixed surface tokens', () => {
     const source = readFileSync(resolve(testDir, 'worktree-card-meta-row.tsx'), 'utf8')
 
+    // Both chips in the row — the repo badge and the host pill — must carry the class,
+    // so deleting it rather than fixing it can't satisfy the absence checks below.
+    expect(source.match(/worktree-sidebar-chip(?=[\s"'])/g)).toHaveLength(2)
+    expect(source).toMatch(/worktree-sidebar-chip-label(?=[\s"'])/)
     expect(source).not.toMatch(/\bbg-accent\b/)
     expect(source).not.toMatch(/\bborder-border\b/)
   })
