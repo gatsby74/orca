@@ -8,6 +8,31 @@ import { callRuntimeEnvironment } from './runtime-environment-transport-routing'
 
 export type MemorySnapshotRequest = { executionHostId?: string | null }
 
+// Why: outer bound only — deliberately longer than the transport's own 15s
+// timeout so a healthy-but-slow host still answers on its normal path. This
+// catches the stalls that timeout does not cover, such as waiting behind the
+// per-environment call queue.
+const RUNTIME_SNAPSHOT_DEADLINE_MS = 20_000
+
+/**
+ * Hard deadline around the transport. Calls to one environment are serialized,
+ * so a request that never settles would wedge every later poll behind it and
+ * leave a stale reading on screen with no way to learn contact was lost.
+ */
+async function withDeadline<T>(work: Promise<T>, timeoutMs: number): Promise<T> {
+  let timer: NodeJS.Timeout | undefined
+  try {
+    return await Promise.race([
+      work,
+      new Promise<never>((_resolve, reject) => {
+        timer = setTimeout(() => reject(new Error('runtime_unreachable')), timeoutMs)
+      })
+    ])
+  } finally {
+    clearTimeout(timer)
+  }
+}
+
 /**
  * Remote runtimes already collect their own snapshot; this proxies to the one
  * the caller asked for. Failures reject rather than degrading to a local or
@@ -15,11 +40,9 @@ export type MemorySnapshotRequest = { executionHostId?: string | null }
  * must say so instead of drawing a remote machine as 0%.
  */
 async function collectRuntimeSnapshot(environmentId: string): Promise<MemorySnapshot> {
-  const response = await callRuntimeEnvironment(
-    app.getPath('userData'),
-    environmentId,
-    'diagnostics.memory',
-    null
+  const response = await withDeadline(
+    callRuntimeEnvironment(app.getPath('userData'), environmentId, 'diagnostics.memory', null),
+    RUNTIME_SNAPSHOT_DEADLINE_MS
   )
   if (!response.ok) {
     throw new Error(response.error.message || response.error.code || 'runtime_unavailable')

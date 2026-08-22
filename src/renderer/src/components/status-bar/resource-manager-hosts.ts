@@ -35,6 +35,8 @@ export type ResourceManagerHostInputs = {
   runtimeEnvironments: readonly PublicKnownRuntimeEnvironment[]
   runtimeStatusByEnvironmentId: ReadonlyMap<string, { status?: RuntimeStatus | null } | undefined>
   hostLabelOverrides: ReadonlyMap<string, string>
+  /** Kept listed even if it drops, so a live selection is never silently swapped out. */
+  selectedHostId?: string
 }
 
 export function listResourceManagerHosts(inputs: ResourceManagerHostInputs): ResourceManagerHost[] {
@@ -50,12 +52,14 @@ export function listResourceManagerHosts(inputs: ResourceManagerHostInputs): Res
       hasStatusEntry: Boolean(statusEntry),
       status: statusEntry?.status ?? null
     })
-    // Why: a disconnected host has no snapshot to serve; offering it would only
-    // produce an unreachable panel the user cannot act on from here.
-    if (!isConnectedRuntimeHostState(state)) {
+    const id = toRuntimeExecutionHostId(environment.id)
+    // Why: a disconnected host has no snapshot to serve, so it is not worth
+    // offering — unless it is the one already on screen. Dropping that one would
+    // silently swap the panel to local numbers under no label at all, which reads
+    // as "the remote host went quiet" instead of "we lost contact with it".
+    if (!isConnectedRuntimeHostState(state) && id !== inputs.selectedHostId) {
       continue
     }
-    const id = toRuntimeExecutionHostId(environment.id)
     hosts.push({
       id,
       label: inputs.hostLabelOverrides.get(id) || environment.name || environment.id,

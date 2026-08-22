@@ -67,6 +67,36 @@ describe('listResourceManagerHosts', () => {
     expect(hosts.map((host) => host.id)).toEqual(['local'])
   })
 
+  // Why: dropping the host already on screen would silently swap the panel to
+  // local numbers under no label at all.
+  it('keeps a disconnected host listed while it is the selected one', () => {
+    const inputs = {
+      ...hostInputs([environment('env-1', { name: 'Hetzner VPS' })], [['env-1', { status: null }]]),
+      selectedHostId: 'runtime:env-1'
+    }
+    expect(listResourceManagerHosts(inputs).map((host) => host.id)).toEqual([
+      'local',
+      'runtime:env-1'
+    ])
+  })
+
+  it('still omits other disconnected hosts', () => {
+    const inputs = {
+      ...hostInputs(
+        [environment('env-1'), environment('env-2')],
+        [
+          ['env-1', { status: null }],
+          ['env-2', { status: null }]
+        ]
+      ),
+      selectedHostId: 'runtime:env-1'
+    }
+    expect(listResourceManagerHosts(inputs).map((host) => host.id)).toEqual([
+      'local',
+      'runtime:env-1'
+    ])
+  })
+
   it('prefers a user host-label override', () => {
     const hosts = listResourceManagerHosts(
       hostInputs(

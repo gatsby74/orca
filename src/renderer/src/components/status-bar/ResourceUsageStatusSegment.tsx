@@ -811,9 +811,10 @@ export function ResourceUsageStatusSegment({
       listResourceManagerHosts({
         runtimeEnvironments,
         runtimeStatusByEnvironmentId,
-        hostLabelOverrides
+        hostLabelOverrides,
+        selectedHostId
       }),
-    [runtimeEnvironments, runtimeStatusByEnvironmentId, hostLabelOverrides]
+    [runtimeEnvironments, runtimeStatusByEnvironmentId, hostLabelOverrides, selectedHostId]
   )
   // Why: a host can disconnect while the popover is open; fall back rather than
   // polling an id that no longer resolves.

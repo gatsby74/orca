@@ -89,6 +89,29 @@ describe('memory:getSnapshot', () => {
     )
   })
 
+  // Why: the per-environment call queue serializes requests, so one call that never
+  // settles would wedge every later poll and freeze a stale reading on screen.
+  it('gives up on a transport that never settles', async () => {
+    vi.useFakeTimers()
+    try {
+      callRuntimeEnvironmentMock.mockReturnValue(new Promise(() => {}))
+      const pending = handler()(null, { executionHostId: 'runtime:env-lxc1' })
+      const assertion = expect(pending).rejects.toThrow('runtime_unreachable')
+      await vi.advanceTimersByTimeAsync(20_000)
+      await assertion
+    } finally {
+      vi.useRealTimers()
+    }
+  })
+
+  // Why: the deadline is an outer bound, not a replacement for the transport's own
+  // timeout — a healthy-but-slow host must still answer on its normal path.
+  it('leaves the transport timeout at its default', async () => {
+    callRuntimeEnvironmentMock.mockResolvedValue({ ok: true, result: remotePayload })
+    await handler()(null, { executionHostId: 'runtime:env-lxc1' })
+    expect(callRuntimeEnvironmentMock.mock.calls[0][4]).toBeUndefined()
+  })
+
   it('rejects an SSH host rather than answering with local numbers', async () => {
     await expect(handler()(null, { executionHostId: 'ssh:box' })).rejects.toThrow(
       'resource_host_unsupported'
