@@ -137,6 +137,9 @@ export function forceFullViewportPresent(terminal: unknown): boolean {
     service.refreshRows(0, rows - 1, true)
     return true
   } catch {
+    // Why: same as forceRepaintThroughRenderPause — leave the latch cleared so
+    // the caller's terminal.refresh() fallback can still paint. Restoring
+    // _isPaused would swallow that refresh until IntersectionObserver fires.
     return false
   }
 }

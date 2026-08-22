@@ -177,6 +177,16 @@ describe('terminal WebGL addon lifecycle', () => {
     expect(pane.terminal.refresh).toHaveBeenCalledWith(0, 23)
   })
 
+  it('falls back to terminal.refresh on an unpaused, unsynchronized pane', () => {
+    // Restore-after-replay and other callers use presentPaneViewport even when
+    // forceFullViewportPresent is a no-op (not paused, no DEC 2026).
+    const pane = createPane()
+
+    presentPaneViewport(pane)
+
+    expect(pane.terminal.refresh).toHaveBeenCalledWith(0, 23)
+  })
+
   it('keeps the render pause latched when resetting a pane that has no layout box', () => {
     // Regression: the atlas reset released xterm's pause for every pane of a
     // visible manager, including a collapsed sibling of an expanded pane. That

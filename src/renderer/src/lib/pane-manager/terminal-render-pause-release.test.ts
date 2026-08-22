@@ -153,4 +153,20 @@ describe('forceFullViewportPresent', () => {
     expect(renderRows).not.toHaveBeenCalled()
     expect(renderService._isPaused).toBe(false)
   })
+
+  it('leaves pause cleared when the forced render throws so callers can refresh()', () => {
+    const renderService = {
+      _isPaused: true,
+      _needsFullRefresh: true,
+      refreshRows: vi.fn(() => {
+        throw new Error('terminal disposed')
+      }),
+      _renderer: { value: { renderRows: vi.fn() } }
+    }
+    const terminal = createTerminal({ rows: 24, renderService })
+
+    expect(forceFullViewportPresent(terminal)).toBe(false)
+    expect(renderService._isPaused).toBe(false)
+    expect(renderService._needsFullRefresh).toBe(false)
+  })
 })

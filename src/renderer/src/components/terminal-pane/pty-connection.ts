@@ -164,7 +164,7 @@ import {
   resolveWindowsShellOverride
 } from '@/lib/pane-manager/windows-pty-compatibility'
 import { recordTerminalOutput } from '@/lib/pane-manager/pane-scroll'
-import { forceFullViewportPresent } from '@/lib/pane-manager/terminal-render-pause-release'
+import { presentPaneViewport } from '@/lib/pane-manager/pane-webgl-renderer'
 import { ensureArabicShapingJoinerForText } from '@/lib/pane-manager/terminal-arabic-shaping-joiner'
 import { clearTerminalScrollbackAndFollowOutput } from '@/lib/pane-manager/terminal-scrollback-clear'
 import {
@@ -7471,7 +7471,7 @@ export function connectPanePty(
             // buffer. After replay parses, one full present so OpenCode's
             // alt-screen footer cannot composite on the stale framebuffer.
             if (deps.isVisibleRef.current) {
-              forceFullViewportPresent(pane.terminal)
+              presentPaneViewport(pane)
               recordTerminalFreezeBreadcrumb('stale-pixel-restore-present', {
                 paneId: pane.id
               })
