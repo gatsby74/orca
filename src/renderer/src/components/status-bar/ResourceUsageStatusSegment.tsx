@@ -1280,12 +1280,14 @@ export function ResourceUsageStatusSegment({
         align="end"
         sideOffset={8}
         {...STATUS_BAR_CONTEXT_MENU_EXEMPT_PROPS}
-        className="w-[26rem] max-w-[calc(100vw-2rem)] p-0"
+        // Why: fixed overall height — sections come and go per host (footer, Space,
+        // banners), and without this the whole popover would resize under the cursor.
+        className="flex h-[37.5rem] max-h-[calc(100vh-6rem)] w-[26rem] max-w-[calc(100vw-2rem)] flex-col p-0"
         onOpenAutoFocus={(event) => event.preventDefault()}
         // Why: activating a tab focuses xterm's DOM node; Radix would read that as focus-outside and close. Outside-click and Escape still close.
         onFocusOutside={(event) => event.preventDefault()}
       >
-        <div className="flex items-center justify-between gap-2 border-b border-border px-3 py-1.5">
+        <div className="flex shrink-0 items-center justify-between gap-2 border-b border-border px-3 py-1.5">
           <div className="flex min-w-0 items-center gap-1.5 text-[11px] font-medium text-foreground">
             <MemoryStick className="size-3 shrink-0 text-muted-foreground" />
             <span className="truncate">
@@ -1294,11 +1296,6 @@ export function ResourceUsageStatusSegment({
           </div>
 
           <div className="flex items-center gap-0.5">
-            <ResourceManagerHostSwitcher
-              hosts={resourceHosts}
-              selectedHostId={activeHostId}
-              onSelect={setSelectedHostId}
-            />
             {/* Why: Restart daemon and Kill all act on this machine's PTY daemon; offering
                 them while a remote host's rows are on screen invites killing the wrong box. */}
             {viewingRemoteHost ? null : (
@@ -1352,8 +1349,14 @@ export function ResourceUsageStatusSegment({
           </div>
         </div>
 
+        <ResourceManagerHostSwitcher
+          hosts={resourceHosts}
+          selectedHostId={activeHostId}
+          onSelect={setSelectedHostId}
+        />
+
         {daemonUnreachable && (
-          <div className="flex items-start gap-2 border-b border-border bg-yellow-500/10 px-3 py-2 text-[11px] text-foreground">
+          <div className="flex shrink-0 items-start gap-2 border-b border-border bg-yellow-500/10 px-3 py-2 text-[11px] text-foreground">
             <AlertTriangle className="mt-0.5 size-3 shrink-0 text-yellow-500" />
             <div className="flex-1">
               <div className="font-medium">
@@ -1387,7 +1390,7 @@ export function ResourceUsageStatusSegment({
 
         {!daemonUnreachable && sessionsOnlyError && (
           <div
-            className="flex items-center gap-2 border-b border-border bg-muted/40 px-3 py-1.5 text-[11px] text-muted-foreground"
+            className="flex shrink-0 items-center gap-2 border-b border-border bg-muted/40 px-3 py-1.5 text-[11px] text-muted-foreground"
             role="status"
           >
             <AlertTriangle className="size-3 shrink-0 text-yellow-500" />
@@ -1402,7 +1405,7 @@ export function ResourceUsageStatusSegment({
 
         {remoteHostUnreachable && (
           <div
-            className="flex items-center gap-2 border-b border-border bg-muted/40 px-3 py-1.5 text-[11px] text-muted-foreground"
+            className="flex shrink-0 items-center gap-2 border-b border-border bg-muted/40 px-3 py-1.5 text-[11px] text-muted-foreground"
             role="status"
           >
             <AlertTriangle className="size-3 shrink-0 text-yellow-500" />
@@ -1416,7 +1419,7 @@ export function ResourceUsageStatusSegment({
         )}
 
         {resourceSnapshot && (
-          <div className="px-3 py-2 border-b border-border flex items-baseline justify-between gap-3 text-xs tabular-nums">
+          <div className="px-3 py-2 border-b border-border shrink-0 flex items-baseline justify-between gap-3 text-xs tabular-nums">
             <div className="flex items-baseline gap-3 min-w-0">
               <Tooltip delayDuration={200}>
                 <TooltipTrigger asChild>
@@ -1470,11 +1473,12 @@ export function ResourceUsageStatusSegment({
           </div>
         )}
 
-        {/* Why: fixed 420px height so the popover doesn't jump as worktrees expand/collapse or sessions change; inner tree owns its scroll. */}
+        {/* Why: the tree flexes into the leftover space; the popover's own height is
+            fixed above, so expanding worktrees or swapping hosts never resizes it. */}
         <div
           ref={setPopoverBodyNode}
           tabIndex={-1}
-          className="flex h-[420px] flex-col outline-none"
+          className="flex min-h-0 flex-1 flex-col outline-none"
         >
           {(unifiedRepos.length > 0 || resourceSnapshot) && (
             <div className="flex items-center justify-between px-3 py-1 bg-muted/30 border-b border-border/50 text-[10px] uppercase tracking-wide shrink-0">

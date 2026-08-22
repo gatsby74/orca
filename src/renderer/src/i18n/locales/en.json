@@ -3759,7 +3759,7 @@
             "offDescription": "Allow normal system sleep behavior"
           },
           "ResourceManagerHostSwitcher": {
-            "pickHost": "Showing {{value0}}. Pick a host."
+            "hostScope": "Resource Manager host: {{value0}}"
           }
         }
       },
