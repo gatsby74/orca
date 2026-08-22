@@ -48,6 +48,8 @@ import {
   resolveSelectedResourceManagerHostId
 } from './resource-manager-hosts'
 import { ResourceManagerHostSwitcher } from './ResourceManagerHostSwitcher'
+import { ResourceManagerSkeleton, SkeletonBar } from './ResourceManagerSkeleton'
+import { useDeferredLoadingState } from './use-deferred-loading-state'
 import { mergeSnapshotAndSessions, UNATTRIBUTED_REPO_ID } from './mergeSnapshotAndSessions'
 import type {
   Metric,
@@ -91,8 +93,6 @@ import { useResourceSessionInventory } from './use-resource-session-inventory'
 import { translate } from '@/i18n/i18n'
 
 const POLL_MS = 2_000
-/** Shown while a host's first snapshot is in flight; never rendered as a zero. */
-const PENDING_METRIC = '—'
 
 type SortOption = 'memory' | 'cpu' | 'name'
 
@@ -1045,6 +1045,12 @@ export function ResourceUsageStatusSegment({
   const daemonUnreachable = sessionsError && (localSnapshotError !== null || localSnapshot === null)
   // Why: sessions IPC can fail while snapshot IPC works; flag it so the empty session list isn't mistaken for healthy.
   const sessionsOnlyError = sessionsError && localSnapshotError === null
+  // Why: a host we have never sampled has nothing to show yet. Held behind a short
+  // delay so a fast switch never flashes a placeholder — see STYLEGUIDE, "Don't pick
+  // worst-case feedback for everyone".
+  const awaitingFirstSnapshot =
+    open && !resourceSnapshot && !daemonUnreachable && !remoteHostUnreachable
+  const showLoadingSkeleton = useDeferredLoadingState(awaitingFirstSnapshot)
   const resourceManagerTooltipLines = getResourceManagerTooltipLines({
     memoryLabel: localSnapshot
       ? `${memBadgeLabel} · ${localMemoryMetricCopy.summaryLabel}`
@@ -1434,7 +1440,11 @@ export function ResourceUsageStatusSegment({
                   tabIndex={0}
                   className="inline-block min-w-[3.25rem] font-medium text-foreground focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring focus-visible:rounded"
                 >
-                  {resourceSnapshot ? formatCpu(totalCpu) : PENDING_METRIC}
+                  {resourceSnapshot ? (
+                    formatCpu(totalCpu)
+                  ) : showLoadingSkeleton ? (
+                    <SkeletonBar className="h-3 w-9" />
+                  ) : null}
                 </span>
               </TooltipTrigger>
               <TooltipContent side="top" sideOffset={6} className="z-[70] max-w-xs">
@@ -1452,7 +1462,11 @@ export function ResourceUsageStatusSegment({
                   className="font-medium text-foreground focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring focus-visible:rounded"
                 >
                   <span className="inline-block min-w-[4.5rem]">
-                    {resourceSnapshot ? formatMemory(totalMemory) : PENDING_METRIC}
+                    {resourceSnapshot ? (
+                      formatMemory(totalMemory)
+                    ) : showLoadingSkeleton ? (
+                      <SkeletonBar className="h-3 w-14" />
+                    ) : null}
                   </span>{' '}
                   <span className="font-normal text-muted-foreground">
                     {memoryMetricCopy.summaryLabel}
@@ -1577,14 +1591,7 @@ export function ResourceUsageStatusSegment({
               />
             )}
 
-            {!resourceSnapshot && !daemonUnreachable && !remoteHostUnreachable && (
-              <div className="px-3 py-4 text-center text-xs text-muted-foreground">
-                {translate(
-                  'auto.components.status.bar.ResourceUsageStatusSegment.888dad8c55',
-                  'Loading…'
-                )}
-              </div>
-            )}
+            {showLoadingSkeleton && <ResourceManagerSkeleton />}
           </div>
         </div>
 
