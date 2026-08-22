@@ -8,8 +8,11 @@ import type {
   StagedExternalImportSource
 } from './filesystem-import-result-types'
 
-const REMOTE_IMPORT_MAX_FILE_BYTES = 25 * 1024 * 1024
-const REMOTE_IMPORT_MAX_TOTAL_BYTES = 100 * 1024 * 1024
+// Why: staging streams slices at upload time and never holds a whole file, so
+// these are user-safety ceilings on an unattended transfer, not memory guards.
+// They stay until the drop UI can show progress and cancel a running upload.
+const REMOTE_IMPORT_MAX_FILE_BYTES = 2 * 1024 * 1024 * 1024
+const REMOTE_IMPORT_MAX_TOTAL_BYTES = 8 * 1024 * 1024 * 1024
 
 class RuntimeUploadSymlinkError extends Error {}
 
@@ -19,7 +22,7 @@ export async function stageOneSourceForRuntimeUpload(
   const resolvedSource = resolve(sourcePath)
 
   // Why: runtime uploads read client-local paths in the client main process;
-  // authorize before lstat/readFile just like local copy imports.
+  // authorize before lstat just like local copy imports.
   authorizeExternalPath(resolvedSource)
 
   let sourceStat: Awaited<ReturnType<typeof lstat>>
@@ -162,16 +165,13 @@ async function stageFileEntry(
         ? openedStat.size
         : options.totalBytesBefore + openedStat.size
     assertRemoteUploadBudget(relativePath, openedStat.size, totalBytes)
-    const buffer = await fileHandle.readFile()
-    const afterReadStat = await fileHandle.stat()
-    if (afterReadStat.size !== openedStat.size) {
-      throw new Error(`File changed during upload staging: '${displayPath}'`)
-    }
+    // Why: bytes are read slice-by-slice at upload time, so staging only
+    // records what the uploader needs to find and size each entry.
     return {
       entry: {
         relativePath: displayPath,
         kind: 'file',
-        contentBase64: buffer.toString('base64')
+        byteLength: openedStat.size
       },
       byteLength: openedStat.size
     }
@@ -202,11 +202,28 @@ function assertRemoteUploadBudget(
   totalBytes: number
 ): void {
   if (fileBytes > REMOTE_IMPORT_MAX_FILE_BYTES) {
-    throw new Error(`'${relativePath}' is too large for remote import`)
+    throw new Error(
+      `'${relativePath}' is ${formatByteCeiling(fileBytes)}, over the ` +
+        `${formatByteCeiling(REMOTE_IMPORT_MAX_FILE_BYTES)} per-file remote import limit`
+    )
   }
   if (totalBytes > REMOTE_IMPORT_MAX_TOTAL_BYTES) {
-    throw new Error('Remote import is too large')
+    throw new Error(
+      `This import is ${formatByteCeiling(totalBytes)}, over the ` +
+        `${formatByteCeiling(REMOTE_IMPORT_MAX_TOTAL_BYTES)} total remote import limit`
+    )
   }
+}
+
+function formatByteCeiling(bytes: number): string {
+  const units = ['B', 'KB', 'MB', 'GB', 'TB']
+  let value = bytes
+  let unit = 0
+  while (value >= 1024 && unit < units.length - 1) {
+    value /= 1024
+    unit += 1
+  }
+  return `${value >= 10 || Number.isInteger(value) ? Math.round(value) : value.toFixed(1)} ${units[unit]}`
 }
 
 function normalizeRelativeUploadPath(path: string): string {
