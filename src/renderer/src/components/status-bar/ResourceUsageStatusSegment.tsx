@@ -1287,7 +1287,9 @@ export function ResourceUsageStatusSegment({
         // Why: activating a tab focuses xterm's DOM node; Radix would read that as focus-outside and close. Outside-click and Escape still close.
         onFocusOutside={(event) => event.preventDefault()}
       >
-        <div className="flex shrink-0 items-center justify-between gap-2 border-b border-border px-3 py-1.5">
+        {/* Why: fixed height — the daemon actions are local-only, so without this the
+            header collapses on a remote host and shifts every row below it. */}
+        <div className="flex h-9 shrink-0 items-center justify-between gap-2 border-b border-border px-3 py-1.5">
           <div className="flex min-w-0 items-center gap-1.5 text-[11px] font-medium text-foreground">
             <MemoryStick className="size-3 shrink-0 text-muted-foreground" />
             <span className="truncate">
