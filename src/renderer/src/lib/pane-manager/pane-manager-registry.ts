@@ -4,12 +4,15 @@ import type { PaneRenderingDiagnostics } from './pane-manager-types'
 
 type RegisteredPaneManager = {
   resetWebglTextureAtlases(): void
+  clearWebglTextureAtlases?: () => void
+  presentForcedViewports?: () => void
   fitAllPanes?: () => void
   refreshAllPanes?: () => void
   getRenderingDiagnostics?: () => PaneRenderingDiagnostics[]
   getPanes?: (limit?: number) => { id: number; terminal: unknown }[]
   getPaneCount?: () => number
   isVisibleForAtlasRecovery?: () => boolean
+  hasRetainedWebgl?: () => boolean
   scheduleRevealPresent?: () => void
 }
 
@@ -48,21 +51,42 @@ export function resetAllTerminalWebglAtlases(): void {
   }
 }
 
+function shouldRebuildSharedAtlas(manager: RegisteredPaneManager): boolean {
+  if (manager.isVisibleForAtlasRecovery?.() !== false) {
+    return true
+  }
+  // Why: clearTextureAtlas() is module-global. Hidden worktrees that kept
+  // their WebGL addon still hold a vertex model into those pages; skipping
+  // them is the OpenCode stale-footer class after a workspace switch (#15813).
+  return manager.hasRetainedWebgl?.() === true
+}
+
 export function resetAndRefreshAllTerminalWebglAtlases(reason?: string): void {
   // Why: the atlas wipe is the heavy recovery path; recording it lets a freeze
   // report show whether a post-wake repaint actually ran. Silent breadcrumb.
-  const recoveryManagers = Array.from(liveManagers).filter(
-    (manager) => manager.isVisibleForAtlasRecovery?.() !== false
-  )
+  const recoveryManagers = Array.from(liveManagers).filter(shouldRebuildSharedAtlas)
+  const retainedHidden = Array.from(liveManagers).filter(
+    (manager) =>
+      manager.isVisibleForAtlasRecovery?.() === false && manager.hasRetainedWebgl?.() === true
+  ).length
   recordTerminalWebglDiagnostic('webgl-atlas-reset', {
     managers: recoveryManagers.length,
     mountedManagers: liveManagers.size,
+    retainedHidden,
     ...(reason ? { reason } : {})
   })
   const resetManagers: RegisteredPaneManager[] = []
+  // Why: clearTextureAtlas() is module-global. Clearing then presenting per
+  // pane interleaves a present against generation N with the next pane's wipe
+  // to N+1, so the first OpenCode column keeps pre-hide footer pixels (#15813).
+  // Wipe every recovered atlas first; present only once the generation is final.
   for (const manager of recoveryManagers) {
     try {
-      manager.resetWebglTextureAtlases()
+      if (manager.clearWebglTextureAtlases) {
+        manager.clearWebglTextureAtlases()
+      } else {
+        manager.resetWebglTextureAtlases()
+      }
       resetManagers.push(manager)
     } catch {
       // Why: recovery is best-effort during pane teardown; a disposed manager
@@ -71,7 +95,11 @@ export function resetAndRefreshAllTerminalWebglAtlases(reason?: string): void {
   }
   for (const manager of resetManagers) {
     try {
-      manager.refreshAllPanes?.()
+      if (manager.presentForcedViewports) {
+        manager.presentForcedViewports()
+      } else {
+        manager.refreshAllPanes?.()
+      }
     } catch {
       // Why: a pane can unmount between atlas reset and repaint; later
       // managers still need to repaint from their xterm buffers.

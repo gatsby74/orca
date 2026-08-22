@@ -26,6 +26,8 @@ import { applyTerminalGpuAcceleration } from './pane-terminal-gpu-acceleration'
 import { rebuildAttachedWebgl } from './pane-webgl-reattach'
 import {
   markPaneComplexScriptOutput,
+  clearPaneWebglTextureAtlases,
+  presentPaneViewports,
   resetPaneWebglTextureAtlases,
   resumePaneRendering,
   setPaneGpuRenderingState,
@@ -280,12 +282,26 @@ export class PaneManager {
     resetPaneWebglTextureAtlases(this.panes.values())
   }
 
+  clearWebglTextureAtlases(): void {
+    clearPaneWebglTextureAtlases(this.panes.values())
+  }
+
+  presentForcedViewports(): void {
+    presentPaneViewports(this.panes.values())
+  }
+
   setAtlasRecoveryVisible(visible: boolean): void {
     this.atlasRecoveryVisible = visible
   }
 
   isVisibleForAtlasRecovery(): boolean {
     return this.atlasRecoveryVisible && !this.destroyed
+  }
+
+  hasRetainedWebgl(): boolean {
+    return (
+      !this.destroyed && Array.from(this.panes.values()).some((pane) => pane.webglAddon != null)
+    )
   }
 
   scheduleRevealRepaint(): void {
