@@ -46,6 +46,12 @@ export function backgroundImageForUniformBlockRun(text: string): string | null {
   if (code === 0x2590) {
     return gradient('right', 50, false)
   }
+  if (code === 0x2594) {
+    return gradient('bottom', 12.5, true)
+  }
+  if (code === 0x2595) {
+    return gradient('right', 12.5, false)
+  }
   return null
 }
 
@@ -57,6 +63,8 @@ function clearBlockFill(span: HTMLElement): void {
   span.removeAttribute(FILL_ATTR)
   span.removeAttribute(FG_ATTR)
   span.style.removeProperty('background-image')
+  span.style.removeProperty('background-size')
+  span.style.removeProperty('background-repeat')
   span.style.removeProperty(BLOCK_FG_VAR)
   if (originalColor) {
     span.style.color = originalColor
@@ -93,6 +101,8 @@ export function applyDomBlockFills(root: ParentNode): void {
     span.style.setProperty(BLOCK_FG_VAR, fg)
     span.style.color = 'transparent'
     span.style.backgroundImage = fill
+    span.style.backgroundSize = `${100 / text.length}% 100%`
+    span.style.backgroundRepeat = 'repeat-x'
   }
 }
 

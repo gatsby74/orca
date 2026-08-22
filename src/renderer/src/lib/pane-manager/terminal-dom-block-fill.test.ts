@@ -37,6 +37,18 @@ describe('backgroundImageForUniformBlockRun', () => {
     )
   })
 
+  it('fills the top eighth for upper one-eighth blocks', () => {
+    expect(backgroundImageForUniformBlockRun('▔')).toBe(
+      'linear-gradient(to bottom, var(--orca-block-fg) 12.5%, transparent 12.5%)'
+    )
+  })
+
+  it('fills the right eighth for right one-eighth blocks', () => {
+    expect(backgroundImageForUniformBlockRun('▕')).toBe(
+      'linear-gradient(to right, transparent 87.5%, var(--orca-block-fg) 87.5%)'
+    )
+  })
+
   it('skips mixed runs, spaces, and ASCII', () => {
     expect(backgroundImageForUniformBlockRun('▀█')).toBeNull()
     expect(backgroundImageForUniformBlockRun('▀ ▀')).toBeNull()
@@ -69,7 +81,31 @@ describe('applyDomBlockFills', () => {
 
     expect(span.style.color).toBe('transparent')
     expect(span.style.backgroundImage).toContain('linear-gradient(to bottom')
+    expect(span.style.backgroundSize).toBe(`${100 / 12}% 100%`)
+    expect(span.style.backgroundRepeat).toBe('repeat-x')
     expect(span.style.getPropertyValue('--orca-block-fg')).toBe('rgb(30, 30, 30)')
+  })
+
+  it('repeats a per-cell horizontal fill across a multi-cell left-half run', () => {
+    const span = mountSpan('▌▌')
+
+    applyDomBlockFills(document)
+
+    expect(span.style.backgroundImage).toContain('linear-gradient(to right')
+    expect(span.style.backgroundSize).toBe('50% 100%')
+    expect(span.style.backgroundRepeat).toBe('repeat-x')
+  })
+
+  it('repeats a per-cell horizontal fill across a multi-cell right-half run', () => {
+    const span = mountSpan('▐▐')
+
+    applyDomBlockFills(document)
+
+    expect(span.style.backgroundImage).toBe(
+      'linear-gradient(to right, transparent 50%, var(--orca-block-fg) 50%)'
+    )
+    expect(span.style.backgroundSize).toBe('50% 100%')
+    expect(span.style.backgroundRepeat).toBe('repeat-x')
   })
 
   it('does not restyle mixed block/letter spans', () => {
@@ -85,6 +121,8 @@ describe('applyDomBlockFills', () => {
     span.textContent = 'tab agents'
     applyDomBlockFills(document)
     expect(span.style.backgroundImage).toBe('')
+    expect(span.style.backgroundSize).toBe('')
+    expect(span.style.backgroundRepeat).toBe('')
     expect(span.style.color).toBe('rgb(30, 30, 30)')
   })
 })
