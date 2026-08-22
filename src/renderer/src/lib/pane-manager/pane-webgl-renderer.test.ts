@@ -180,11 +180,28 @@ describe('terminal WebGL addon lifecycle', () => {
   it('falls back to terminal.refresh on an unpaused, unsynchronized pane', () => {
     // Restore-after-replay and other callers use presentPaneViewport even when
     // forceFullViewportPresent is a no-op (not paused, no DEC 2026).
+    const refreshRows = vi.fn()
+    const renderRows = vi.fn()
     const pane = createPane()
+    pane.terminal = {
+      ...pane.terminal,
+      refresh: vi.fn(),
+      _core: {
+        _renderService: {
+          _isPaused: false,
+          _needsFullRefresh: false,
+          refreshRows,
+          _renderer: { value: { renderRows } }
+        },
+        _coreService: { decPrivateModes: { synchronizedOutput: false } }
+      }
+    } as never
 
     presentPaneViewport(pane)
 
     expect(pane.terminal.refresh).toHaveBeenCalledWith(0, 23)
+    expect(refreshRows).not.toHaveBeenCalled()
+    expect(renderRows).not.toHaveBeenCalled()
   })
 
   it('keeps the render pause latched when resetting a pane that has no layout box', () => {
