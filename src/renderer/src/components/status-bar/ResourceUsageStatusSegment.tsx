@@ -91,6 +91,8 @@ import { useResourceSessionInventory } from './use-resource-session-inventory'
 import { translate } from '@/i18n/i18n'
 
 const POLL_MS = 2_000
+/** Shown while a host's first snapshot is in flight; never rendered as a zero. */
+const PENDING_METRIC = '—'
 
 type SortOption = 'memory' | 'cpu' | 'name'
 
@@ -1420,60 +1422,64 @@ export function ResourceUsageStatusSegment({
           </div>
         )}
 
-        {resourceSnapshot && (
-          <div className="px-3 py-2 border-b border-border shrink-0 flex items-baseline justify-between gap-3 text-xs tabular-nums">
-            <div className="flex items-baseline gap-3 min-w-0">
-              <Tooltip delayDuration={200}>
-                <TooltipTrigger asChild>
-                  <span
-                    tabIndex={0}
-                    className="font-medium text-foreground focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring focus-visible:rounded"
-                  >
-                    {formatCpu(totalCpu)}
+        {/* Why: always mounted once open — hiding this row while a host's first
+            snapshot lands made the whole panel jump on every switch. */}
+        <div className="px-3 py-2 border-b border-border shrink-0 flex items-baseline justify-between gap-3 text-xs tabular-nums">
+          <div className="flex items-baseline gap-3 min-w-0">
+            <Tooltip delayDuration={200}>
+              <TooltipTrigger asChild>
+                {/* Why: reserve the widest plausible reading so the separator and
+                      the memory label hold still as the number changes. */}
+                <span
+                  tabIndex={0}
+                  className="inline-block min-w-[3.25rem] font-medium text-foreground focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring focus-visible:rounded"
+                >
+                  {resourceSnapshot ? formatCpu(totalCpu) : PENDING_METRIC}
+                </span>
+              </TooltipTrigger>
+              <TooltipContent side="top" sideOffset={6} className="z-[70] max-w-xs">
+                {translate(
+                  'auto.components.status.bar.ResourceUsageStatusSegment.1fedf94eae',
+                  'Combined CPU load. Values above 100% mean more than one core is working at once.'
+                )}
+              </TooltipContent>
+            </Tooltip>
+            <span className="text-muted-foreground/50">·</span>
+            <Tooltip delayDuration={200}>
+              <TooltipTrigger asChild>
+                <span
+                  tabIndex={0}
+                  className="font-medium text-foreground focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring focus-visible:rounded"
+                >
+                  <span className="inline-block min-w-[4.5rem]">
+                    {resourceSnapshot ? formatMemory(totalMemory) : PENDING_METRIC}
+                  </span>{' '}
+                  <span className="font-normal text-muted-foreground">
+                    {memoryMetricCopy.summaryLabel}
                   </span>
-                </TooltipTrigger>
-                <TooltipContent side="top" sideOffset={6} className="z-[70] max-w-xs">
-                  {translate(
-                    'auto.components.status.bar.ResourceUsageStatusSegment.1fedf94eae',
-                    'Combined CPU load. Values above 100% mean more than one core is working at once.'
-                  )}
-                </TooltipContent>
-              </Tooltip>
-              <span className="text-muted-foreground/50">·</span>
-              <Tooltip delayDuration={200}>
-                <TooltipTrigger asChild>
-                  <span
-                    tabIndex={0}
-                    className="font-medium text-foreground focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring focus-visible:rounded"
-                  >
-                    {formatMemory(totalMemory)}{' '}
-                    <span className="font-normal text-muted-foreground">
-                      {memoryMetricCopy.summaryLabel}
-                    </span>
-                  </span>
-                </TooltipTrigger>
-                <TooltipContent side="top" sideOffset={6} className="z-[70] max-w-xs">
-                  {memoryMetricCopy.description}
-                </TooltipContent>
-              </Tooltip>
-            </div>
-            {orphanCount > 0 && !viewingRemoteHost && (
-              <span className="shrink-0 text-yellow-500" aria-live="polite">
-                {orphanCount === 1
-                  ? translate(
-                      'auto.components.status.bar.ResourceUsageStatusSegment.30ff2c3c31',
-                      '{{value0}} orphan',
-                      { value0: orphanCount }
-                    )
-                  : translate(
-                      'auto.components.status.bar.ResourceUsageStatusSegment.b8f4a2c1d0e3',
-                      '{{value0}} orphans',
-                      { value0: orphanCount }
-                    )}
-              </span>
-            )}
+                </span>
+              </TooltipTrigger>
+              <TooltipContent side="top" sideOffset={6} className="z-[70] max-w-xs">
+                {memoryMetricCopy.description}
+              </TooltipContent>
+            </Tooltip>
           </div>
-        )}
+          {orphanCount > 0 && !viewingRemoteHost && (
+            <span className="shrink-0 text-yellow-500" aria-live="polite">
+              {orphanCount === 1
+                ? translate(
+                    'auto.components.status.bar.ResourceUsageStatusSegment.30ff2c3c31',
+                    '{{value0}} orphan',
+                    { value0: orphanCount }
+                  )
+                : translate(
+                    'auto.components.status.bar.ResourceUsageStatusSegment.b8f4a2c1d0e3',
+                    '{{value0}} orphans',
+                    { value0: orphanCount }
+                  )}
+            </span>
+          )}
+        </div>
 
         {/* Why: the tree flexes into the leftover space; the popover's own height is
             fixed above, so expanding worktrees or swapping hosts never resizes it. */}
@@ -1482,63 +1488,59 @@ export function ResourceUsageStatusSegment({
           tabIndex={-1}
           className="flex min-h-0 flex-1 flex-col outline-none"
         >
-          {(unifiedRepos.length > 0 || resourceSnapshot) && (
-            <div className="flex items-center justify-between px-3 py-1 bg-muted/30 border-b border-border/50 text-[10px] uppercase tracking-wide shrink-0">
-              <button
-                type="button"
-                onClick={() => setSortOption('name')}
-                className={cn(
-                  'hover:text-foreground transition-colors',
-                  sortOption === 'name'
-                    ? 'font-semibold text-foreground'
-                    : 'text-muted-foreground/80'
-                )}
-                aria-pressed={sortOption === 'name'}
-              >
-                {translate(
-                  'auto.components.status.bar.ResourceUsageStatusSegment.2aa2de6cb9',
-                  'Name'
-                )}
-              </button>
-              <div className="flex items-center gap-2 shrink-0">
-                <div className={cn(METRIC_COLUMNS_CLS, 'text-[10px]')}>
-                  <button
-                    type="button"
-                    onClick={() => setSortOption('cpu')}
-                    className={cn(
-                      CPU_COLUMN_CLS,
-                      'hover:text-foreground transition-colors',
-                      sortOption === 'cpu'
-                        ? 'font-semibold text-foreground'
-                        : 'text-muted-foreground/80'
-                    )}
-                    aria-pressed={sortOption === 'cpu'}
-                  >
-                    {translate(
-                      'auto.components.status.bar.ResourceUsageStatusSegment.298f4be7f2',
-                      'CPU'
-                    )}
-                  </button>
-                  <button
-                    type="button"
-                    onClick={() => setSortOption('memory')}
-                    className={cn(
-                      MEM_COLUMN_CLS,
-                      'hover:text-foreground transition-colors',
-                      sortOption === 'memory'
-                        ? 'font-semibold text-foreground'
-                        : 'text-muted-foreground/80'
-                    )}
-                    aria-pressed={sortOption === 'memory'}
-                  >
-                    {memoryMetricCopy.columnLabel}
-                  </button>
-                </div>
-                {/* Why: empty trailing gutter keeps CPU/Memory header cells aligned with rows that reserve this width for the kill-X. */}
-                <span className={ROW_TRAILING_GUTTER_CLS} aria-hidden />
+          <div className="flex items-center justify-between px-3 py-1 bg-muted/30 border-b border-border/50 text-[10px] uppercase tracking-wide shrink-0">
+            <button
+              type="button"
+              onClick={() => setSortOption('name')}
+              className={cn(
+                'hover:text-foreground transition-colors',
+                sortOption === 'name' ? 'font-semibold text-foreground' : 'text-muted-foreground/80'
+              )}
+              aria-pressed={sortOption === 'name'}
+            >
+              {translate(
+                'auto.components.status.bar.ResourceUsageStatusSegment.2aa2de6cb9',
+                'Name'
+              )}
+            </button>
+            <div className="flex items-center gap-2 shrink-0">
+              <div className={cn(METRIC_COLUMNS_CLS, 'text-[10px]')}>
+                <button
+                  type="button"
+                  onClick={() => setSortOption('cpu')}
+                  className={cn(
+                    CPU_COLUMN_CLS,
+                    'hover:text-foreground transition-colors',
+                    sortOption === 'cpu'
+                      ? 'font-semibold text-foreground'
+                      : 'text-muted-foreground/80'
+                  )}
+                  aria-pressed={sortOption === 'cpu'}
+                >
+                  {translate(
+                    'auto.components.status.bar.ResourceUsageStatusSegment.298f4be7f2',
+                    'CPU'
+                  )}
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setSortOption('memory')}
+                  className={cn(
+                    MEM_COLUMN_CLS,
+                    'hover:text-foreground transition-colors',
+                    sortOption === 'memory'
+                      ? 'font-semibold text-foreground'
+                      : 'text-muted-foreground/80'
+                  )}
+                  aria-pressed={sortOption === 'memory'}
+                >
+                  {memoryMetricCopy.columnLabel}
+                </button>
               </div>
+              {/* Why: empty trailing gutter keeps CPU/Memory header cells aligned with rows that reserve this width for the kill-X. */}
+              <span className={ROW_TRAILING_GUTTER_CLS} aria-hidden />
             </div>
-          )}
+          </div>
 
           <div className="flex-1 overflow-y-auto scrollbar-sleek">
             {unifiedRepos.length > 0 && (
