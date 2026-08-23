@@ -242,6 +242,31 @@ describe('handleTerminalFileDrop', () => {
     expect(mocks.toastDismiss).not.toHaveBeenCalled()
   })
 
+  it('publishes the upload panel without an explicit undefined id', async () => {
+    mocks.importExternalPathsToRuntime.mockImplementation(announceRowThenResolve({ results: [] }))
+    const pane = { id: 1, leafId: 'leaf-1', terminal: { focus: vi.fn() } }
+    const manager = { getActivePane: () => pane, getPanes: () => [pane] }
+
+    await handleTerminalFileDrop({
+      manager: manager as never,
+      paneTransports: new Map([[1, createTerminalTransport(vi.fn(() => true))]]) as never,
+      worktreeId: 'wt-1',
+      tabId: 'tab-1',
+      cwd: undefined,
+      data: { paths: ['/Users/me/logo.png'], target: 'terminal' }
+    })
+
+    // Why: sonner spreads these options over the id it just minted, so passing
+    // `id: undefined` registers the toast under an id it never returns and every
+    // re-issue stacks another panel instead of updating the first.
+    expect(mocks.toastCustom).toHaveBeenCalledTimes(1)
+    const options = (mocks.toastCustom.mock.calls as unknown as unknown[][])[0]?.[1] as Record<
+      string,
+      unknown
+    >
+    expect(Object.hasOwn(options, 'id')).toBe(false)
+  })
+
   it('tears the upload panel down immediately when the import throws', async () => {
     mocks.importExternalPathsToRuntime.mockImplementation(
       async (_context: unknown, _paths: unknown, _dest: unknown, options: never) => {
