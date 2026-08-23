@@ -3,11 +3,13 @@ import type {
   ProviderRateLimits,
   ProviderRateLimitStatus
 } from '../../../../shared/rate-limit-types'
-import type { StatusBarItem, TuiAgent } from '../../../../shared/types'
+import type { TuiAgent } from '../../../../shared/tui-agent'
+import type { StatusBarItem } from '../../../../shared/ui-chrome-types'
 import type { UsageProviderSettings } from './status-bar-provider-visibility'
 import {
   getPinnedUsageProviders,
   getUsageRosterProviders,
+  isAntigravityUsageConfigured,
   type UsageProviderSnapshots
 } from './usage-roster-provider-selection'
 
@@ -73,6 +75,27 @@ describe('getUsageRosterProviders', () => {
     })
 
     expect(providers).toMatchObject([{ provider: 'minimax', status: 'fetching' }])
+  })
+
+  it('keeps detected Antigravity in the roster when unpinned with a null or unavailable snapshot', () => {
+    const providerSettings = settings({
+      antigravityUsageConfigured: isAntigravityUsageConfigured(['antigravity']),
+      geminiCliOAuthEnabled: true
+    })
+    for (const antigravity of [null, provider('antigravity', 'unavailable')]) {
+      const rosterProviders = getUsageRosterProviders({
+        snapshots: snapshots({ antigravity }),
+        settings: providerSettings
+      })
+      const pinnedProviders = getPinnedUsageProviders({
+        rosterProviders,
+        statusBarItems: [] as StatusBarItem[],
+        detectedAgentIds: ['antigravity']
+      })
+
+      expect(rosterProviders).toContainEqual(expect.objectContaining({ provider: 'antigravity' }))
+      expect(pinnedProviders).toEqual([])
+    }
   })
 
   it('omits unavailable providers without durable configuration', () => {

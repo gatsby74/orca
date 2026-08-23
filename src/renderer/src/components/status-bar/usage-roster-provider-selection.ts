@@ -1,5 +1,6 @@
 import type { ProviderRateLimits } from '../../../../shared/rate-limit-types'
-import type { StatusBarItem, TuiAgent } from '../../../../shared/types'
+import type { TuiAgent } from '../../../../shared/tui-agent'
+import type { StatusBarItem } from '../../../../shared/ui-chrome-types'
 import { isStatusBarItemAvailable } from './status-bar-agent-gating'
 import {
   getVisibleUsageProvider,
@@ -9,6 +10,10 @@ import {
 type UsageProviderId = ProviderRateLimits['provider']
 
 export type UsageProviderSnapshots = Record<UsageProviderId, ProviderRateLimits | null>
+
+export function isAntigravityUsageConfigured(detectedAgentIds: TuiAgent[] | null): boolean {
+  return isStatusBarItemAvailable('antigravity', detectedAgentIds)
+}
 
 // Why: the roster order stays stable even when providers are pinned or unpinned.
 export const USAGE_ROSTER_PROVIDER_ORDER: readonly UsageProviderId[] = [

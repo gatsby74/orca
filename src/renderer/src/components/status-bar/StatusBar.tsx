@@ -63,7 +63,12 @@ import { ClaudeIcon, GeminiIcon, MiniMaxIcon, OpenAIIcon, OpenCodeGoIcon } from 
 import { AgentIcon } from '@/lib/agent-catalog'
 import { UsageRosterPanel, getTightestUsageSection } from './UsageRosterPanel'
 import { getUsageProviderAccountsSectionId } from './usage-provider-settings-target'
-import { getPinnedUsageProviders, getUsageRosterProviders } from './usage-roster-provider-selection'
+import {
+  getPinnedUsageProviders,
+  getUsageRosterProviders,
+  isAntigravityUsageConfigured
+} from './usage-roster-provider-selection'
+import { getUsageRosterTriggerAriaLabel } from './usage-roster-trigger-accessibility'
 import { formatRateLimitWindowChipLabel } from '@/lib/window-label-formatter'
 import { useResetCountdownClock } from '@/hooks/useResetCountdownClock'
 import {
@@ -2115,11 +2120,9 @@ function StatusBarInner({ floatingTerminalOpen }: StatusBarProps): React.JSX.Ele
   const { claude, codex, gemini, opencodeGo, kimi, antigravity, minimax, grok } = rateLimits
 
   // Why: a bar is earned by a live snapshot or durable Settings setup; detection-gating hides per-CLI bars when the agent isn't on PATH.
-  // Why: Antigravity has no persisted credential, so a checked status item + detected CLI is the durable "show its slot" signal.
+  // Why: Antigravity has no persisted credential, so a detected CLI is its durable configured signal.
   // Why: Antigravity visibility also requires geminiCliOAuthEnabled because its usage snapshot mirrors the Gemini fetch.
-  const antigravityUsageConfigured =
-    statusBarItems.includes('antigravity') &&
-    isStatusBarItemAvailable('antigravity', detectedAgentIds)
+  const antigravityUsageConfigured = isAntigravityUsageConfigured(detectedAgentIds)
   // Why: thread non-GlobalSettings durability flags so bars stay visible across reloads and snapshot refreshes.
   const usageSettings = {
     ...settings,
@@ -2239,10 +2242,7 @@ function StatusBarInner({ floatingTerminalOpen }: StatusBarProps): React.JSX.Ele
                 <button
                   type="button"
                   className="inline-flex items-center gap-3 rounded px-1 py-0.5 hover:bg-accent/70"
-                  aria-label={translate(
-                    'auto.components.status.bar.UsageRosterPanel.title',
-                    'Usage'
-                  )}
+                  aria-label={getUsageRosterTriggerAriaLabel(pinnedUsageProviders)}
                 >
                   {pinnedUsageProviders.length === 0 ? (
                     <span className="text-muted-foreground">
