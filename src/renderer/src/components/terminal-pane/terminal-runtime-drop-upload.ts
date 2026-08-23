@@ -74,20 +74,27 @@ export async function uploadRuntimeDropPaths(
             )
             // Why: created only once rows exist, so a drop that stages nothing
             // never flashes an empty panel.
-            pending = toast.custom(
-              // Why: createElement, not a direct call — the toast body must be its
-              // own component or its hooks run outside a component boundary.
-              (toastId) =>
-                createElement(TerminalDropUploadToast, {
-                  sessionId,
-                  onCancel: cancelRow,
-                  onDismiss: () => {
-                    toast.dismiss(toastId)
-                    endRuntimeUploadSession(sessionId)
-                  }
-                }),
-              { duration: Infinity, dismissible: false, unstyled: true }
-            )
+            // Why: createElement, not a direct call — the toast body must be its
+            // own component or its hooks run outside a component boundary.
+            const renderPanel = (toastId: string | number) =>
+              createElement(TerminalDropUploadToast, {
+                sessionId,
+                onCancel: cancelRow,
+                onDismiss: () => {
+                  toast.dismiss(toastId)
+                  endRuntimeUploadSession(sessionId)
+                },
+                onLayoutChange: () => showPanel()
+              })
+            const showPanel = (): void => {
+              pending = toast.custom(renderPanel, {
+                id: pending ?? undefined,
+                duration: Infinity,
+                dismissible: false,
+                unstyled: true
+              })
+            }
+            showPanel()
           },
           onRowProgress: (uploadId, sentBytes) =>
             updateRuntimeUploadRow(sessionId, uploadId, { sentBytes }),

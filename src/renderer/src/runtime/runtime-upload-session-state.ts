@@ -14,6 +14,8 @@ export type RuntimeUploadSession = {
   rows: RuntimeUploadRow[]
   /** Every row has stopped moving; the panel shows its outcome, then leaves. */
   settled: boolean
+  /** Kept here, not in the panel: toggling it remounts the panel to re-measure. */
+  collapsed: boolean
 }
 
 type Listener = () => void
@@ -39,7 +41,7 @@ export function getRuntimeUploadSession(sessionId: string): RuntimeUploadSession
 }
 
 export function startRuntimeUploadSession(sessionId: string, rows: RuntimeUploadRow[]): void {
-  sessions.set(sessionId, { sessionId, rows, settled: false })
+  sessions.set(sessionId, { sessionId, rows, settled: false, collapsed: false })
   emit()
 }
 
@@ -56,6 +58,15 @@ export function settleRuntimeUploadSession(sessionId: string): void {
     return
   }
   sessions.set(sessionId, { ...session, settled: true })
+  emit()
+}
+
+export function toggleRuntimeUploadCollapsed(sessionId: string): void {
+  const session = sessions.get(sessionId)
+  if (!session) {
+    return
+  }
+  sessions.set(sessionId, { ...session, collapsed: !session.collapsed })
   emit()
 }
 

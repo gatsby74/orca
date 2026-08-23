@@ -7,6 +7,7 @@ import {
   getRuntimeUploadSession,
   subscribeToRuntimeUploadSessions,
   summarizeRuntimeUploadSession,
+  toggleRuntimeUploadCollapsed,
   type RuntimeUploadRow
 } from '@/runtime/runtime-upload-session-state'
 import { formatTransferredOfTotal, toPercent } from './terminal-drop-upload-progress'
@@ -21,17 +22,26 @@ type Props = {
   onCancel: (uploadId: string) => void
   /** Closes the toast; the panel owns the timing so the exit is not cut short. */
   onDismiss: () => void
+  /**
+   * Re-issues the toast so its host re-measures.
+   *
+   * Sonner caches a toast's height and only recomputes it when the element
+   * identity changes, so a panel that shrinks in place keeps the old height and
+   * ends up top-aligned inside it — the collapsed header appears to hang where
+   * the expanded panel started instead of sitting at the bottom.
+   */
+  onLayoutChange: () => void
 }
 
 export function TerminalDropUploadToast({
   sessionId,
   onCancel,
-  onDismiss
+  onDismiss,
+  onLayoutChange
 }: Props): React.JSX.Element | null {
   const session = useSyncExternalStore(subscribeToRuntimeUploadSessions, () =>
     getRuntimeUploadSession(sessionId)
   )
-  const [collapsed, setCollapsed] = useState(false)
   const [leaving, setLeaving] = useState(false)
   const settled = session?.settled === true
 
@@ -56,6 +66,7 @@ export function TerminalDropUploadToast({
   if (!session) {
     return null
   }
+  const collapsed = session.collapsed
   const summary = summarizeRuntimeUploadSession(session)
   const heading = formatTerminalDropUploadHeading({
     rowCount: session.rows.length,
@@ -83,7 +94,10 @@ export function TerminalDropUploadToast({
         <button
           type="button"
           hidden={session.settled}
-          onClick={() => setCollapsed((value) => !value)}
+          onClick={() => {
+            toggleRuntimeUploadCollapsed(sessionId)
+            onLayoutChange()
+          }}
           aria-expanded={!collapsed}
           aria-label={
             collapsed

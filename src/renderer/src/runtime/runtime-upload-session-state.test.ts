@@ -6,6 +6,7 @@ import {
   startRuntimeUploadSession,
   subscribeToRuntimeUploadSessions,
   summarizeRuntimeUploadSession,
+  toggleRuntimeUploadCollapsed,
   updateRuntimeUploadRow,
   type RuntimeUploadRow
 } from './runtime-upload-session-state'
@@ -89,6 +90,21 @@ describe('runtime upload session state', () => {
     expect(session?.rows).toHaveLength(1)
   })
 
+  it('toggles collapse in the store so the panel can be remounted to re-measure', () => {
+    startRuntimeUploadSession('s', [row()])
+    expect(getRuntimeUploadSession('s')?.collapsed).toBe(false)
+
+    toggleRuntimeUploadCollapsed('s')
+    expect(getRuntimeUploadSession('s')?.collapsed).toBe(true)
+
+    toggleRuntimeUploadCollapsed('s')
+    expect(getRuntimeUploadSession('s')?.collapsed).toBe(false)
+  })
+
+  it('survives a collapse toggle on a session that already ended', () => {
+    expect(() => toggleRuntimeUploadCollapsed('gone')).not.toThrow()
+  })
+
   it('settles only once', () => {
     startRuntimeUploadSession('s', [row()])
     settleRuntimeUploadSession('s')
@@ -116,6 +132,7 @@ describe('summarizeRuntimeUploadSession', () => {
     const summary = summarizeRuntimeUploadSession({
       sessionId: 's',
       settled: true,
+      collapsed: false,
       rows: [
         row({ uploadId: 'a', sentBytes: 10, totalBytes: 10 }),
         row({ uploadId: 'b', sentBytes: 0, totalBytes: 90 })
@@ -129,6 +146,7 @@ describe('summarizeRuntimeUploadSession', () => {
     const summary = summarizeRuntimeUploadSession({
       sessionId: 's',
       settled: true,
+      collapsed: false,
       rows: [
         row({ uploadId: 'a', sentBytes: 100, totalBytes: 100, status: 'done' }),
         row({ uploadId: 'b', sentBytes: 20, totalBytes: 900, status: 'cancelled' })
@@ -143,6 +161,7 @@ describe('summarizeRuntimeUploadSession', () => {
     const summary = summarizeRuntimeUploadSession({
       sessionId: 's',
       settled: true,
+      collapsed: false,
       rows: [
         row({ uploadId: 'a', status: 'done' }),
         row({ uploadId: 'b', status: 'uploading' }),
@@ -157,6 +176,7 @@ describe('summarizeRuntimeUploadSession', () => {
     const summary = summarizeRuntimeUploadSession({
       sessionId: 's',
       settled: true,
+      collapsed: false,
       rows: [row({ sentBytes: 0, totalBytes: 0 })]
     })
 
