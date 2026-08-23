@@ -1,4 +1,4 @@
-import { mkdtemp, mkdir, rm, symlink, writeFile } from 'node:fs/promises'
+import { mkdtemp, mkdir, rm, symlink, truncate, writeFile } from 'node:fs/promises'
 import { tmpdir } from 'node:os'
 import { join } from 'node:path'
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
@@ -66,6 +66,18 @@ describe('streamExternalFileToRuntime', () => {
     expect(calls).toHaveLength(3)
     expect(calls.map((call) => call.append)).toEqual([false, true, true])
     expect(uploadedBytes().equals(contents)).toBe(true)
+  })
+
+  it('refuses a file over the ceiling even when no staged size is supplied', async () => {
+    const filePath = join(workDir, 'huge.bin')
+    await writeFile(filePath, '')
+    // Sparse: the ceiling is read from stat(), so no real bytes are written.
+    await truncate(filePath, 3 * 1024 * 1024 * 1024)
+
+    await expect(streamExternalFileToRuntime(baseArgs(filePath))).rejects.toThrow(
+      'over the 2 GB per-file remote import limit'
+    )
+    expect(chunkCalls()).toHaveLength(0)
   })
 
   it('never buffers more than one slice per chunk', async () => {

@@ -3,6 +3,7 @@ import { lstat, open, realpath } from 'node:fs/promises'
 import { isAbsolute, join, relative, sep } from 'node:path'
 import { authorizeExternalPath } from './filesystem-auth'
 import { RuntimeUploadCancelledError } from './runtime-upload-cancellation'
+import { formatByteCeiling, REMOTE_IMPORT_MAX_FILE_BYTES } from './runtime-import-limits'
 import { callRuntimeEnvironment } from './runtime-environment-transport-routing'
 
 // Why: base64 turns 3 bytes into 4 chars, so a 384 KiB slice lands on the wire
@@ -83,6 +84,14 @@ export async function streamExternalFileToRuntime(
     const totalBytes = openedStat.size
     if (args.expectedByteLength !== undefined && totalBytes !== args.expectedByteLength) {
       throw new Error(`File changed since it was staged: '${displayPath}'`)
+    }
+    // Why: enforced again where the bytes actually move. Staging is a separate
+    // call, so the ceiling only holds here if this boundary checks it too.
+    if (totalBytes > REMOTE_IMPORT_MAX_FILE_BYTES) {
+      throw new Error(
+        `'${displayPath}' is ${formatByteCeiling(totalBytes)}, over the ` +
+          `${formatByteCeiling(REMOTE_IMPORT_MAX_FILE_BYTES)} per-file remote import limit`
+      )
     }
     throwIfCancelled(args.signal)
     // Why: a zero-byte source produces no slices, but the destination still has

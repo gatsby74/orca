@@ -1,3 +1,8 @@
+import {
+  formatByteCeiling,
+  REMOTE_IMPORT_MAX_FILE_BYTES,
+  REMOTE_IMPORT_MAX_TOTAL_BYTES
+} from './runtime-import-limits'
 import { constants } from 'node:fs'
 import { lstat, open, readdir, realpath } from 'node:fs/promises'
 import { basename, isAbsolute, join, relative, resolve, sep } from 'node:path'
@@ -7,12 +12,6 @@ import type {
   StagedExternalImportEntry,
   StagedExternalImportSource
 } from './filesystem-import-result-types'
-
-// Why: staging streams slices at upload time and never holds a whole file, so
-// these are user-safety ceilings on an unattended transfer, not memory guards.
-// They stay until the drop UI can show progress and cancel a running upload.
-const REMOTE_IMPORT_MAX_FILE_BYTES = 2 * 1024 * 1024 * 1024
-const REMOTE_IMPORT_MAX_TOTAL_BYTES = 8 * 1024 * 1024 * 1024
 
 class RuntimeUploadSymlinkError extends Error {}
 
@@ -213,21 +212,6 @@ function assertRemoteUploadBudget(
         `${formatByteCeiling(REMOTE_IMPORT_MAX_TOTAL_BYTES)} total remote import limit`
     )
   }
-}
-
-function formatByteCeiling(bytes: number): string {
-  const units = ['B', 'KB', 'MB', 'GB', 'TB']
-  let value = bytes
-  let unit = 0
-  while (value >= 1024 && unit < units.length - 1) {
-    value /= 1024
-    unit += 1
-  }
-  // Why: rounds up, so a file one byte over the ceiling never renders as the
-  // same figure as the ceiling itself — "is 2 GB, over the 2 GB limit" reads
-  // like a bug in the check rather than an oversized file.
-  const rounded = Math.ceil(value * 10) / 10
-  return `${Number.isInteger(rounded) ? rounded : rounded.toFixed(1)} ${units[unit]}`
 }
 
 function normalizeRelativeUploadPath(path: string): string {
