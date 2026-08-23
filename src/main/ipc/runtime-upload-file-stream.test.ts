@@ -122,6 +122,25 @@ describe('streamExternalFileToRuntime', () => {
     expect(chunkCalls()).toHaveLength(2)
   })
 
+  it('refuses a source whose size no longer matches what staging measured', async () => {
+    const filePath = join(workDir, 'grown.bin')
+    await writeFile(filePath, Buffer.alloc(2048))
+
+    await expect(
+      streamExternalFileToRuntime({ ...baseArgs(filePath), expectedByteLength: 1024 })
+    ).rejects.toThrow('File changed since it was staged')
+    expect(chunkCalls()).toHaveLength(0)
+  })
+
+  it('accepts a source that still matches its staged size', async () => {
+    const filePath = join(workDir, 'same.bin')
+    await writeFile(filePath, Buffer.alloc(2048))
+
+    await expect(
+      streamExternalFileToRuntime({ ...baseArgs(filePath), expectedByteLength: 2048 })
+    ).resolves.toEqual({ byteLength: 2048 })
+  })
+
   it('reports monotonic progress that ends on the file size', async () => {
     const size = RUNTIME_UPLOAD_SLICE_BYTES * 2 + 500
     const filePath = join(workDir, 'tracked.bin')
@@ -204,7 +223,8 @@ describe('streamExternalFileToRuntime', () => {
     expect(chunkCalls()).toHaveLength(1)
   })
 
-  it('refuses a symlinked source', async () => {
+  // symlink() needs privileges or Developer Mode on Windows.
+  it.skipIf(process.platform === 'win32')('refuses a symlinked source', async () => {
     const targetPath = join(workDir, 'secret.txt')
     await writeFile(targetPath, 'secret')
     const linkPath = join(workDir, 'link.txt')
@@ -216,19 +236,22 @@ describe('streamExternalFileToRuntime', () => {
     expect(chunkCalls()).toHaveLength(0)
   })
 
-  it('refuses a directory entry whose real path escapes the dropped root', async () => {
-    const outsidePath = join(workDir, 'outside.txt')
-    await writeFile(outsidePath, 'outside')
-    const rootPath = join(workDir, 'root')
-    await mkdir(rootPath)
-    await symlink(outsidePath, join(rootPath, 'escape.txt'))
+  it.skipIf(process.platform === 'win32')(
+    'refuses a directory entry whose real path escapes the dropped root',
+    async () => {
+      const outsidePath = join(workDir, 'outside.txt')
+      await writeFile(outsidePath, 'outside')
+      const rootPath = join(workDir, 'root')
+      await mkdir(rootPath)
+      await symlink(outsidePath, join(rootPath, 'escape.txt'))
 
-    await expect(
-      streamExternalFileToRuntime({
-        ...baseArgs(rootPath),
-        entryRelativePath: 'escape.txt'
-      })
-    ).rejects.toThrow('Symlink not allowed')
-    expect(chunkCalls()).toHaveLength(0)
-  })
+      await expect(
+        streamExternalFileToRuntime({
+          ...baseArgs(rootPath),
+          entryRelativePath: 'escape.txt'
+        })
+      ).rejects.toThrow('Symlink not allowed')
+      expect(chunkCalls()).toHaveLength(0)
+    }
+  )
 })

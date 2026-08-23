@@ -181,6 +181,7 @@ export type FilesystemApi = {
         entryRelativePath: string
         worktree: string
         relativePath: string
+        expectedByteLength?: number
         uploadId?: string
         expectedEnvironmentPairingRevision?: number
       } & SshMutationExpectation

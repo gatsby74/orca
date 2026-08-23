@@ -18,6 +18,14 @@ export type RuntimeUploadFileStreamArgs = {
   sourceRootPath: string
   /** Path of this file within the dropped directory; empty when the source is a file. */
   entryRelativePath: string
+  /**
+   * Size staging measured and validated against the import ceilings.
+   *
+   * Staging and upload are separate IPC calls, so a source can be replaced or
+   * grown in between. Without this the streamer would take the current size as
+   * authoritative and happily move a file the ceilings had already rejected.
+   */
+  expectedByteLength?: number
   worktree: string
   /** Destination path on the runtime, relative to the worktree. */
   relativePath: string
@@ -73,6 +81,9 @@ export async function streamExternalFileToRuntime(
     }
 
     const totalBytes = openedStat.size
+    if (args.expectedByteLength !== undefined && totalBytes !== args.expectedByteLength) {
+      throw new Error(`File changed since it was staged: '${displayPath}'`)
+    }
     throwIfCancelled(args.signal)
     // Why: a zero-byte source produces no slices, but the destination still has
     // to exist before commitUpload renames it into place.

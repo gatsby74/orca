@@ -226,6 +226,7 @@ export function registerFilesystemMutationHandlers(store: Store): void {
         entryRelativePath: string
         worktree: string
         relativePath: string
+        expectedByteLength?: number
         uploadId?: string
         expectedEnvironmentPairingRevision?: number
       } & SshMutationExpectation
@@ -247,6 +248,7 @@ export function registerFilesystemMutationHandlers(store: Store): void {
           environmentId: args.environmentId,
           sourceRootPath: args.sourceRootPath,
           entryRelativePath: args.entryRelativePath,
+          expectedByteLength: args.expectedByteLength,
           worktree: args.worktree,
           relativePath: args.relativePath,
           expectedExecutionHostId: args.expectedExecutionHostId,

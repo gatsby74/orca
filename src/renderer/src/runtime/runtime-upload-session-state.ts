@@ -45,13 +45,7 @@ export function startRuntimeUploadSession(sessionId: string, rows: RuntimeUpload
   emit()
 }
 
-/**
- * Mark the drop finished without removing it.
- *
- * The panel has to outlive the transfer long enough to say how it ended —
- * deleting the session here is what made a cancelled upload vanish mid-gesture
- * with nothing to read.
- */
+/** Keeps the rows so the panel can state how the drop ended before it closes. */
 export function settleRuntimeUploadSession(sessionId: string): void {
   const session = sessions.get(sessionId)
   if (!session || session.settled) {

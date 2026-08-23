@@ -1,20 +1,15 @@
 export type RuntimeUploadProgressReport = { sentBytes: number; totalBytes: number }
 
 export type RuntimeUploadProgressTracker = {
+  /** Opens the window in which progress for the next file is accepted. */
+  beginFile: () => void
   /** Bytes of the file currently in flight that have reached the runtime. */
   reportFileProgress: (sentBytes: number) => void
   /** Called once a file is committed, so its bytes move from in-flight to done. */
   completeFile: (byteLength: number) => void
 }
 
-/**
- * Turn per-file byte counts into one figure for a whole drop.
- *
- * Files upload strictly one at a time, so "in flight" is always a single file and
- * the running total is simply the committed files plus that file's progress.
- * Directory entries carry no bytes and are deliberately absent from the total —
- * they would otherwise stall the bar at each `createDirNoClobber`.
- */
+/** Committed files plus the one in flight; uploads are strictly sequential. */
 export function createRuntimeUploadProgressTracker(
   totalBytes: number,
   report: (progress: RuntimeUploadProgressReport) => void
@@ -22,6 +17,9 @@ export function createRuntimeUploadProgressTracker(
   let completedBytes = 0
   let inFlightBytes = 0
   let lastReported = -1
+  // Electron does not order webContents.send against an invoke reply, so a final
+  // progress event can land after completeFile and be counted twice.
+  let acceptingProgress = false
 
   const emit = (): void => {
     // Why: a source can grow between staging and upload, so the sum of what
@@ -35,11 +33,19 @@ export function createRuntimeUploadProgressTracker(
   }
 
   return {
+    beginFile: () => {
+      acceptingProgress = true
+      inFlightBytes = 0
+    },
     reportFileProgress: (sentBytes) => {
+      if (!acceptingProgress) {
+        return
+      }
       inFlightBytes = sentBytes
       emit()
     },
     completeFile: (byteLength) => {
+      acceptingProgress = false
       completedBytes += byteLength
       inFlightBytes = 0
       emit()

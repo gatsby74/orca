@@ -59,6 +59,10 @@ export async function uploadRuntimeDropPaths(
         assertCurrent: args.assertCurrent,
         progress: {
           onStart: (rows) => {
+            // A drop where every source was skipped still reports a start.
+            if (rows.length === 0) {
+              return
+            }
             for (const row of rows) {
               sourcePathsByUploadId.set(row.uploadId, row.sourcePath)
             }

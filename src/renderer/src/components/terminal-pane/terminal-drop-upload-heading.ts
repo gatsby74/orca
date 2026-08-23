@@ -7,18 +7,7 @@ type HeadingInput = {
   cancelledCount: number
 }
 
-/**
- * What the panel's header says.
- *
- * While the drop is running it counts files; once everything has stopped it
- * states the outcome instead, so a cancelled upload leaves something to read
- * rather than closing on "Uploading 2 files".
- *
- * Names the destination, because a drop onto a remote workspace is the only
- * case that shows this panel and "Uploading 2 files" alone reads local.
- * The cancelled and failed lines stay short: the destination no longer matters
- * once nothing landed there.
- */
+/** Counts files while running, states the outcome once everything has stopped. */
 export function formatTerminalDropUploadHeading({
   rowCount,
   settled,

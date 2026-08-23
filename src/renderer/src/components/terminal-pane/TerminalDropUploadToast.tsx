@@ -22,14 +22,7 @@ type Props = {
   onCancel: (uploadId: string) => void
   /** Closes the toast; the panel owns the timing so the exit is not cut short. */
   onDismiss: () => void
-  /**
-   * Re-issues the toast so its host re-measures.
-   *
-   * Sonner caches a toast's height and only recomputes it when the element
-   * identity changes, so a panel that shrinks in place keeps the old height and
-   * ends up top-aligned inside it — the collapsed header appears to hang where
-   * the expanded panel started instead of sitting at the bottom.
-   */
+  /** Re-issues the toast: sonner re-measures height only on a new element identity. */
   onLayoutChange: () => void
 }
 

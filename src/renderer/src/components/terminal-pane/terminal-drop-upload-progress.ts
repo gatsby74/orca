@@ -1,12 +1,6 @@
 const BYTE_UNITS = ['B', 'KB', 'MB', 'GB', 'TB', 'PB'] as const
 
-/**
- * "8.6 / 32.5 MB" — both figures scaled to the total's unit.
- *
- * Formatting each side independently reads as a bug the moment they land in
- * different units: 900 KB of a 32.5 MB file would render "900 / 32.5" with the
- * two numbers on different scales.
- */
+/** Both figures share the total's unit; scaling each alone renders "900 / 32.5". */
 export function formatTransferredOfTotal(sentBytes: number, totalBytes: number): string {
   if (!Number.isFinite(totalBytes) || totalBytes <= 0) {
     return `0 ${BYTE_UNITS[0]}`

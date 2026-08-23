@@ -223,7 +223,11 @@ function formatByteCeiling(bytes: number): string {
     value /= 1024
     unit += 1
   }
-  return `${value >= 10 || Number.isInteger(value) ? Math.round(value) : value.toFixed(1)} ${units[unit]}`
+  // Why: rounds up, so a file one byte over the ceiling never renders as the
+  // same figure as the ceiling itself — "is 2 GB, over the 2 GB limit" reads
+  // like a bug in the check rather than an oversized file.
+  const rounded = Math.ceil(value * 10) / 10
+  return `${Number.isInteger(rounded) ? rounded : rounded.toFixed(1)} ${units[unit]}`
 }
 
 function normalizeRelativeUploadPath(path: string): string {
