@@ -55,6 +55,7 @@ export function AiVaultSessionVirtualList({
   getSessionLiveState,
   getWorktreeInfo,
   getSessionResumeState,
+  getSessionContinuationWorkspaceId,
   getSessionResumeActions,
   onToggleGroup,
   onJumpToOriginalPane,
@@ -83,6 +84,7 @@ export function AiVaultSessionVirtualList({
   getWorktreeInfo: (session: AiVaultSession) => AiVaultSessionWorktreeInfo | null
   getSessionResumeState: (session: AiVaultSession) => AiVaultSessionResumeState
   getSessionResumeActions: (session: AiVaultSession) => AiVaultSessionResumeActions
+  getSessionContinuationWorkspaceId: (session: AiVaultSession) => string | null
   onToggleGroup: (key: string) => void
   onJumpToOriginalPane: (session: AiVaultSession) => void
   onJumpToWorktree: (worktreeId: string) => void
@@ -218,6 +220,7 @@ export function AiVaultSessionVirtualList({
               getSessionLiveState={getSessionLiveState}
               getWorktreeInfo={getWorktreeInfo}
               getSessionResumeState={getSessionResumeState}
+              getSessionContinuationWorkspaceId={getSessionContinuationWorkspaceId}
               getSessionResumeActions={getSessionResumeActions}
               onToggleGroup={onToggleGroup}
               onToggleSessionDetails={toggleSessionDetails}
@@ -255,6 +258,7 @@ function AiVaultVirtualRow({
   getWorktreeInfo,
   getSessionResumeState,
   getSessionResumeActions,
+  getSessionContinuationWorkspaceId,
   onToggleGroup,
   onToggleSessionDetails,
   onJumpToOriginalPane,
@@ -283,6 +287,7 @@ function AiVaultVirtualRow({
   getWorktreeInfo: (session: AiVaultSession) => AiVaultSessionWorktreeInfo | null
   getSessionResumeState: (session: AiVaultSession) => AiVaultSessionResumeState
   getSessionResumeActions: (session: AiVaultSession) => AiVaultSessionResumeActions
+  getSessionContinuationWorkspaceId: (session: AiVaultSession) => string | null
   onToggleGroup: (key: string) => void
   onToggleSessionDetails: (sessionId: string) => void
   onJumpToOriginalPane: (session: AiVaultSession) => void
@@ -313,10 +318,14 @@ function AiVaultVirtualRow({
       : null
   const resumeState = row.type === 'session' ? getSessionResumeState(row.session) : null
   const resumeActions = row.type === 'session' ? getSessionResumeActions(row.session) : null
+  // Why: continuation only needs the transcript text, so it is not bound to the
+  // resume target's host; the dialog's picker chooses where it actually lands.
+  const defaultContinuationWorkspaceId =
+    row.type === 'session' ? getSessionContinuationWorkspaceId(row.session) : null
   const continuationWorktreeId =
     row.type === 'session' &&
-    canContinueAiVaultSessionInNewSession(row.session, resumeState?.worktreeId)
-      ? resumeState?.worktreeId
+    canContinueAiVaultSessionInNewSession(row.session, defaultContinuationWorkspaceId)
+      ? defaultContinuationWorkspaceId
       : null
   // Gate resume on real content: a zero-turn transcript would resume into an
   // empty conversation, so it is never offered as normally resumable.

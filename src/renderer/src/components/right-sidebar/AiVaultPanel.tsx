@@ -30,6 +30,7 @@ import {
   resolveAiVaultSessionResumeState
 } from './ai-vault-session-resume'
 import { useAiVaultSessionLaunchActions } from './ai-vault-session-launch-actions'
+import { resolveAiVaultContinuationWorkspaceId } from './ai-vault-session-continuation'
 import {
   useAiVaultSessionWorktreeMap,
   withAiVaultCurrentWorktreeStatus
@@ -273,6 +274,16 @@ export default function AiVaultPanel(): React.JSX.Element {
     [allWorktrees, effectiveActiveWorktreeId, getSessionWorktreeInfo, repos, resumeTargetState]
   )
 
+  const getSessionContinuationWorkspaceId = useCallback(
+    (session: AiVaultSession) =>
+      resolveAiVaultContinuationWorkspaceId({
+        worktreeInfo: getSessionWorktreeInfo(session),
+        activeWorktreeId: effectiveActiveWorktreeId,
+        state: resumeTargetState
+      }),
+    [effectiveActiveWorktreeId, getSessionWorktreeInfo, resumeTargetState]
+  )
+
   const getSessionResumeActions = useCallback(
     (session: AiVaultSession) =>
       resolveAiVaultSessionResumeActions({
@@ -358,6 +369,7 @@ export default function AiVaultPanel(): React.JSX.Element {
         vaultScope={scope}
         buildResumeStartup={launchActions.buildResumeStartup}
         getSessionResumeState={getSessionResumeState}
+        getSessionContinuationWorkspaceId={getSessionContinuationWorkspaceId}
         getSessionResumeActions={getSessionResumeActions}
         getOriginalPaneTarget={getOriginalPaneTarget}
         getSessionLiveState={getSessionLiveState}

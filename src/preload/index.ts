@@ -289,6 +289,10 @@ import type {
   AiVaultDeleteSessionResult
 } from '../shared/ai-vault-session-deletion'
 import type {
+  AiVaultSessionHandoffOutcome,
+  AiVaultSessionHandoffRequest
+} from '../shared/ai-vault-session-handoff'
+import type {
   AiVaultFirstUserPromptArgs,
   AiVaultListArgs,
   AiVaultSubagentListArgs
@@ -4454,6 +4458,10 @@ const api = {
       ipcRenderer.invoke('aiVault:getFirstUserPrompt', args),
     deleteSession: (args: AiVaultDeleteSessionArgs): Promise<AiVaultDeleteSessionResult> =>
       ipcRenderer.invoke('aiVault:deleteSession', args),
+    prepareSessionHandoff: (
+      args: AiVaultSessionHandoffRequest
+    ): Promise<AiVaultSessionHandoffOutcome> =>
+      ipcRenderer.invoke('aiVault:prepareSessionHandoff', args),
     onWindowFocused: (callback: () => void): (() => void) => {
       const listener = (_event: Electron.IpcRendererEvent) => callback()
       ipcRenderer.on('aiVault:windowFocused', listener)

@@ -18,6 +18,10 @@ import type {
   AiVaultPrepareSessionResumeArgs,
   AiVaultPrepareSessionResumeResult
 } from '../../shared/ai-vault-resume-preparation'
+import type {
+  AiVaultSessionHandoffOutcome,
+  AiVaultSessionHandoffRequest
+} from '../../shared/ai-vault-session-handoff'
 
 export type AiVaultApi = {
   listSessions: (args?: AiVaultListArgs) => Promise<AiVaultListResult>
@@ -32,6 +36,10 @@ export type AiVaultApi = {
   getFirstUserPrompt: (args: AiVaultFirstUserPromptArgs) => Promise<AiVaultFirstUserPromptResult>
   /** Moves a deletable session's transcript to the OS trash; local sessions only. */
   deleteSession: (args: AiVaultDeleteSessionArgs) => Promise<AiVaultDeleteSessionResult>
+  /** Places a session's transcript on another host so a new session there can read it. */
+  prepareSessionHandoff: (
+    args: AiVaultSessionHandoffRequest
+  ) => Promise<AiVaultSessionHandoffOutcome>
   /** Fires when any app window regains OS focus; returns an unsubscribe. */
   onWindowFocused: (callback: () => void) => () => void
 }

@@ -6,6 +6,7 @@ import {
   type AiVaultSessionSources
 } from '../ai-vault/cached-session-list'
 import { deleteAiVaultSession, registerAiVaultDeleteHandler } from './ai-vault-delete'
+import { registerAiVaultHandoffHandler } from './ai-vault-handoff'
 import { listAiVaultSubagentSessions } from './ai-vault-subagent-list'
 import {
   aiVaultScanIssueResult,
@@ -312,6 +313,7 @@ export function registerAiVaultHandlers(options: AiVaultHandlerOptions = {}): vo
     handleAiVaultGetFirstUserPrompt(args)
   )
   registerAiVaultDeleteHandler(aiVaultDeleteDeps)
+  registerAiVaultHandoffHandler()
   // DOM focus/visibility events don't fire in the renderer on macOS app
   // activation, so refresh-on-refocus needs this main-process signal.
   app.on('browser-window-focus', (_event, window) => {

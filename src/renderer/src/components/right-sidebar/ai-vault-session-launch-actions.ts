@@ -152,21 +152,19 @@ export function useAiVaultSessionLaunchActions({
 
   const handleContinueInNewSession = useCallback(
     (session: AiVaultSession, targetWorktreeId: string): void => {
-      const targetId = resolveAiVaultSessionLaunchTargetOrNotify({
-        sessionFilePath: session.filePath,
-        sessionExecutionHostId: session.executionHostId,
-        activeWorktreeId: activeWorktreeId ?? activeWorktree?.id ?? null,
-        targetWorktreeId,
-        targetState
-      })
-      if (!targetId) {
+      // Why: unlike resume, continuation carries only transcript text, so it is
+      // not bound to the session's host — the dialog picks the real target.
+      if (!isKnownAiVaultResumeWorkspaceTarget(targetState, targetWorktreeId)) {
+        toast.error(
+          translate(
+            'auto.components.right.sidebar.AiVaultPanel.openWorkspaceBeforeResuming',
+            'Open a workspace before resuming a session.'
+          )
+        )
         return
       }
 
-      const targetWorkspacePath = resolveAiVaultTargetWorkspacePath(
-        targetState,
-        targetId.worktreeId
-      )
+      const targetWorkspacePath = resolveAiVaultTargetWorkspacePath(targetState, targetWorktreeId)
       if (!targetWorkspacePath) {
         toast.error(
           translate(
@@ -179,12 +177,12 @@ export function useAiVaultSessionLaunchActions({
       setContinuationRequest(
         prepareAiVaultSessionContinuation({
           session,
-          targetWorktreeId: targetId.worktreeId,
+          targetWorktreeId,
           targetWorkspacePath
         })
       )
     },
-    [activeWorktree?.id, activeWorktreeId, targetState]
+    [targetState]
   )
 
   const handleContinuationDialogOpenChange = useCallback((open: boolean): void => {
