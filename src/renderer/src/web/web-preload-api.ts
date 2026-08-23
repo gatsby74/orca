@@ -3045,6 +3045,11 @@ function createAgentHooksApi(): NonNullable<Partial<PreloadApi>['agentHooks']> {
       detail: 'Agent hook status is only available on the Orca server.'
     } as const)
   return {
+    // Why: the shim's per-agent answer is a hardcoded 'not_installed' placeholder,
+    // not an observation. Feeding that to the worktree dot would mark every
+    // web-client worktree unverifiable, so report an empty snapshot — "we know
+    // nothing" — and let the dot fall back to the title heuristic.
+    installStatuses: () => Promise.resolve([]),
     claudeStatus: () => status('claude'),
     openClaudeStatus: () => status('openclaude'),
     codexStatus: () => status('codex'),

@@ -11,7 +11,13 @@ import type {
 import type { TuiAgent } from '../../../shared/tui-agent'
 import type { LiveAgentWorktreeStatus } from './worktree-activity-state'
 
-export type WorktreeStatus = 'active' | 'working' | 'permission' | 'done' | 'inactive'
+export type WorktreeStatus =
+  | 'active'
+  | 'working'
+  | 'permission'
+  | 'done'
+  | 'inactive'
+  | 'unverifiable'
 
 type WorktreeStatusHeuristicOptions = {
   liveAgentStatus?: LiveAgentWorktreeStatus
@@ -25,7 +31,8 @@ const STATUS_LABELS: Record<WorktreeStatus, string> = {
   working: 'Working',
   permission: 'Needs permission',
   done: 'Done',
-  inactive: 'Inactive'
+  inactive: 'Inactive',
+  unverifiable: 'Status unavailable — agent hooks not installed'
 }
 
 export function getWorktreeStatus(
@@ -134,6 +141,8 @@ export function resolveWorktreeStatus(args: {
   hasLiveWorking: boolean
   hasLiveDone: boolean
   hasRetainedDone: boolean
+  /** No hook can reach Orca for this worktree's live agents, so no dot state is observed. */
+  hooksUnverifiable?: boolean
 }): WorktreeStatus {
   const heuristic = getWorktreeStatus(
     args.tabs,
@@ -156,6 +165,16 @@ export function resolveWorktreeStatus(args: {
   // Why: restored cards get the hook snapshot before panes mount; trust the explicit working row so they stay yellow on restart.
   if (args.hasLiveWorking || heuristic === 'working') {
     return 'working'
+  }
+  // Why: ranked below every positive signal (a spinner glyph still proves work)
+  // but above 'done'/'active', which share one emerald dot — without this, a
+  // worktree whose hooks were removed renders identically to a finished agent
+  // and the user has no way to tell Orca went blind.
+  // Why: 'inactive' is not a claim about an agent, so there is nothing to be
+  // unverifiable about — a slept worktree stays grey rather than growing a
+  // warning glyph for an agent that is not running.
+  if (args.hooksUnverifiable && heuristic !== 'inactive') {
+    return 'unverifiable'
   }
   if (args.hasLiveDone || args.hasRetainedDone) {
     return 'done'
