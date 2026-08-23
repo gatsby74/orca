@@ -1,5 +1,5 @@
 import { useEffect, useState, useSyncExternalStore } from 'react'
-import { ChevronDownIcon, ChevronUpIcon, FileIcon, UploadIcon, XIcon } from 'lucide-react'
+import { ChevronDownIcon, FileIcon, UploadIcon, XIcon } from 'lucide-react'
 import { Progress } from '@/components/ui/progress'
 import { cn } from '@/lib/utils'
 import { translate } from '@/i18n/i18n'
@@ -112,11 +112,14 @@ export function TerminalDropUploadToast({
           }
           className="flex size-6 shrink-0 items-center justify-center rounded-md text-muted-foreground transition-colors hover:bg-accent hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
         >
-          {collapsed ? (
-            <ChevronDownIcon className="size-4" />
-          ) : (
-            <ChevronUpIcon className="size-4" />
-          )}
+          {/* Why: one icon rotated, not two swapped — swapping replaces the node, so
+              there is nothing to tween and the arrow flips in a single frame. */}
+          <ChevronDownIcon
+            className={cn(
+              'size-4 transition-transform duration-200 ease-out motion-reduce:transition-none',
+              !collapsed && 'rotate-180'
+            )}
+          />
         </button>
       </div>
       {!collapsed && (
