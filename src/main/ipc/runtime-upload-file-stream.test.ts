@@ -1,7 +1,10 @@
-import { mkdtemp, mkdir, rm, symlink, truncate, writeFile } from 'node:fs/promises'
+import { mkdtemp, mkdir, rm, symlink, writeFile } from 'node:fs/promises'
 import { tmpdir } from 'node:os'
 import { join } from 'node:path'
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
+import type * as RuntimeImportLimits from './runtime-import-limits'
+
+type RuntimeImportLimitsModule = typeof RuntimeImportLimits
 
 const callRuntimeEnvironment = vi.fn()
 
@@ -9,6 +12,12 @@ vi.mock('./runtime-environment-transport-routing', () => ({
   callRuntimeEnvironment: (...args: unknown[]) => callRuntimeEnvironment(...args)
 }))
 vi.mock('./filesystem-auth', () => ({ authorizeExternalPath: () => {} }))
+// Why: see filesystem-runtime-upload-staging.test.ts — a real over-limit fixture
+// would allocate gigabytes on Windows.
+vi.mock('./runtime-import-limits', async (importOriginal) => ({
+  ...(await importOriginal<RuntimeImportLimitsModule>()),
+  REMOTE_IMPORT_MAX_FILE_BYTES: 2 * 1024 * 1024
+}))
 
 const { RUNTIME_UPLOAD_SLICE_BYTES, streamExternalFileToRuntime } =
   await import('./runtime-upload-file-stream')
@@ -70,12 +79,10 @@ describe('streamExternalFileToRuntime', () => {
 
   it('refuses a file over the ceiling even when no staged size is supplied', async () => {
     const filePath = join(workDir, 'huge.bin')
-    await writeFile(filePath, '')
-    // Sparse: the ceiling is read from stat(), so no real bytes are written.
-    await truncate(filePath, 3 * 1024 * 1024 * 1024)
+    await writeFile(filePath, Buffer.alloc(3 * 1024 * 1024))
 
     await expect(streamExternalFileToRuntime(baseArgs(filePath))).rejects.toThrow(
-      'over the 2 GB per-file remote import limit'
+      'over the 2 MB per-file remote import limit'
     )
     expect(chunkCalls()).toHaveLength(0)
   })
