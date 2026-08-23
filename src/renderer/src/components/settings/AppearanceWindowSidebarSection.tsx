@@ -3,8 +3,8 @@ import type React from 'react'
 import type { GlobalSettings } from '../../../../shared/global-settings-types'
 import type { StatusBarItem } from '../../../../shared/ui-chrome-types'
 import type { FeatureInteractionId } from '../../../../shared/feature-interaction-catalog'
-import { DEFAULT_FILE_ICON_THEME } from '../../../../shared/file-icon-theme'
 import { SearchableSetting } from './SearchableSetting'
+import { FileIconThemeSetting } from './FileIconThemeSetting'
 import { AppearanceAdvancedDisclosure } from './AppearanceAdvancedDisclosure'
 import { useAppStore } from '../../store'
 import {
@@ -357,45 +357,7 @@ export function AppearanceWindowSidebarSection({
                   )}
                 />
                 <div className="ml-4 divide-y divide-border/40">
-                  <SearchableSetting
-                    title={fileIconThemeEntry?.title}
-                    description={fileIconThemeEntry?.description}
-                    keywords={fileIconThemeEntry?.keywords ?? ['file icons', 'material', 'classic']}
-                  >
-                    <SettingsRow
-                      label={translate(
-                        'auto.components.settings.AppearancePane.fileIconThemeLabel',
-                        'File Icons'
-                      )}
-                      description={fileIconThemeEntry?.description}
-                      control={
-                        <SettingsSegmentedControl
-                          value={settings.fileIconTheme ?? DEFAULT_FILE_ICON_THEME}
-                          onChange={(fileIconTheme) => updateSettings({ fileIconTheme })}
-                          ariaLabel={translate(
-                            'auto.components.settings.AppearancePane.fileIconThemeLabel',
-                            'File Icons'
-                          )}
-                          options={[
-                            {
-                              value: 'classic',
-                              label: translate(
-                                'auto.components.settings.AppearancePane.fileIconThemeClassic',
-                                'Classic'
-                              )
-                            },
-                            {
-                              value: 'material',
-                              label: translate(
-                                'auto.components.settings.AppearancePane.fileIconThemeMaterial',
-                                'Material'
-                              )
-                            }
-                          ]}
-                        />
-                      }
-                    />
-                  </SearchableSetting>
+                  <FileIconThemeSetting settings={settings} updateSettings={updateSettings} />
 
                   <SearchableSetting
                     title={

@@ -35,7 +35,7 @@ function getMaterialFileIconName(filePath: string | undefined | null): string | 
   }
 
   const firstDotIndex = name.indexOf('.')
-  if (firstDotIndex >= 0) {
+  if (firstDotIndex !== -1) {
     const extensionSegments = name
       .slice(firstDotIndex + 1)
       .toLowerCase()
