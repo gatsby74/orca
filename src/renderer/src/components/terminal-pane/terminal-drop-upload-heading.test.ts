@@ -10,7 +10,7 @@ describe('formatTerminalDropUploadHeading', () => {
         doneCount: 0,
         cancelledCount: 1
       })
-    ).toBe('Uploading 2 files')
+    ).toBe('Uploading 2 files to runtime')
   })
 
   it('says cancelled once everything stopped and nothing landed', () => {
@@ -32,7 +32,7 @@ describe('formatTerminalDropUploadHeading', () => {
         doneCount: 1,
         cancelledCount: 2
       })
-    ).toBe('Uploaded 1 of 3')
+    ).toBe('Uploaded 1 of 3 to runtime')
   })
 
   it('reports a clean finish', () => {
@@ -43,7 +43,7 @@ describe('formatTerminalDropUploadHeading', () => {
         doneCount: 2,
         cancelledCount: 0
       })
-    ).toBe('Uploaded 2 files')
+    ).toBe('Uploaded 2 files to runtime')
   })
 
   it('distinguishes a failure from a cancel', () => {
@@ -65,6 +65,6 @@ describe('formatTerminalDropUploadHeading', () => {
         doneCount: 0,
         cancelledCount: 0
       })
-    ).toBe('Uploading 1 file')
+    ).toBe('Uploading 1 file to runtime')
   })
 })

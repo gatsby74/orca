@@ -13,6 +13,11 @@ type HeadingInput = {
  * While the drop is running it counts files; once everything has stopped it
  * states the outcome instead, so a cancelled upload leaves something to read
  * rather than closing on "Uploading 2 files".
+ *
+ * Names the destination, because a drop onto a remote workspace is the only
+ * case that shows this panel and "Uploading 2 files" alone reads local.
+ * The cancelled and failed lines stay short: the destination no longer matters
+ * once nothing landed there.
  */
 export function formatTerminalDropUploadHeading({
   rowCount,
@@ -24,7 +29,7 @@ export function formatTerminalDropUploadHeading({
   if (!settled) {
     return translate(
       'auto.components.terminal.pane.terminal.drop.upload.heading',
-      'Uploading {{value0}} file{{value1}}',
+      'Uploading {{value0}} file{{value1}} to runtime',
       { value0: rowCount, value1: plural }
     )
   }
@@ -43,13 +48,13 @@ export function formatTerminalDropUploadHeading({
   if (doneCount < rowCount) {
     return translate(
       'auto.components.terminal.pane.terminal.drop.upload.heading.partial',
-      'Uploaded {{value0}} of {{value1}}',
+      'Uploaded {{value0}} of {{value1}} to runtime',
       { value0: doneCount, value1: rowCount }
     )
   }
   return translate(
     'auto.components.terminal.pane.terminal.drop.upload.heading.done',
-    'Uploaded {{value0}} file{{value1}}',
+    'Uploaded {{value0}} file{{value1}} to runtime',
     { value0: rowCount, value1: plural }
   )
 }
