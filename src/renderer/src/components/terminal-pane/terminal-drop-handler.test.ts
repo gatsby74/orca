@@ -192,7 +192,10 @@ describe('handleTerminalFileDrop', () => {
     expect(focus).toHaveBeenCalled()
     expect(mocks.recordTerminalUserInputForLeaf).toHaveBeenCalledWith('tab-1', 'leaf-1')
     expect(mocks.toastError).not.toHaveBeenCalled()
-    expect(mocks.toastDismiss).toHaveBeenCalledWith('toast-1')
+    expect(mocks.toastCustom).toHaveBeenCalled()
+    // The panel holds briefly to show the outcome and dismisses itself; cutting
+    // that short here is what made a cancelled drop vanish with nothing to read.
+    expect(mocks.toastDismiss).not.toHaveBeenCalled()
   })
 
   it('does not paste runtime-uploaded paths when the target PTY changed', async () => {
@@ -236,7 +239,30 @@ describe('handleTerminalFileDrop', () => {
     expect(sendInput).not.toHaveBeenCalled()
     expect(focus).not.toHaveBeenCalled()
     expect(mocks.recordTerminalUserInputForLeaf).not.toHaveBeenCalled()
+    expect(mocks.toastDismiss).not.toHaveBeenCalled()
+  })
+
+  it('tears the upload panel down immediately when the import throws', async () => {
+    mocks.importExternalPathsToRuntime.mockImplementation(
+      async (_context: unknown, _paths: unknown, _dest: unknown, options: never) => {
+        startAndFinishRow(options)
+        throw new Error('runtime unreachable')
+      }
+    )
+    const pane = { id: 1, leafId: 'leaf-1', terminal: { focus: vi.fn() } }
+    const manager = { getActivePane: () => pane, getPanes: () => [pane] }
+
+    await handleTerminalFileDrop({
+      manager: manager as never,
+      paneTransports: new Map([[1, createTerminalTransport(vi.fn(() => true))]]) as never,
+      worktreeId: 'wt-1',
+      tabId: 'tab-1',
+      cwd: undefined,
+      data: { paths: ['/Users/me/logo.png'], target: 'terminal' }
+    })
+
     expect(mocks.toastDismiss).toHaveBeenCalledWith('toast-1')
+    expect(mocks.toastError).toHaveBeenCalled()
   })
 
   it('uses Windows shell paths for forward-slash UNC runtime worktrees', async () => {

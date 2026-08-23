@@ -2,6 +2,7 @@ import { afterEach, describe, expect, it, vi } from 'vitest'
 import {
   endRuntimeUploadSession,
   getRuntimeUploadSession,
+  settleRuntimeUploadSession,
   startRuntimeUploadSession,
   subscribeToRuntimeUploadSessions,
   summarizeRuntimeUploadSession,
@@ -79,6 +80,26 @@ describe('runtime upload session state', () => {
     expect(getRuntimeUploadSession('s')).toBeUndefined()
   })
 
+  it('keeps rows when settled so the panel can state the outcome', () => {
+    startRuntimeUploadSession('s', [row({ status: 'cancelled' })])
+    settleRuntimeUploadSession('s')
+
+    const session = getRuntimeUploadSession('s')
+    expect(session?.settled).toBe(true)
+    expect(session?.rows).toHaveLength(1)
+  })
+
+  it('settles only once', () => {
+    startRuntimeUploadSession('s', [row()])
+    settleRuntimeUploadSession('s')
+    const listener = vi.fn()
+    const unsubscribe = subscribeToRuntimeUploadSessions(listener)
+    settleRuntimeUploadSession('s')
+
+    expect(listener).not.toHaveBeenCalled()
+    unsubscribe()
+  })
+
   it('does not notify when nothing actually changed', () => {
     startRuntimeUploadSession('s', [row({ status: 'done' })])
     const listener = vi.fn()
@@ -94,6 +115,7 @@ describe('summarizeRuntimeUploadSession', () => {
   it('averages across rows by bytes, not by row count', () => {
     const summary = summarizeRuntimeUploadSession({
       sessionId: 's',
+      settled: true,
       rows: [
         row({ uploadId: 'a', sentBytes: 10, totalBytes: 10 }),
         row({ uploadId: 'b', sentBytes: 0, totalBytes: 90 })
@@ -106,6 +128,7 @@ describe('summarizeRuntimeUploadSession', () => {
   it('drops cancelled rows from the denominator so the bar can still finish', () => {
     const summary = summarizeRuntimeUploadSession({
       sessionId: 's',
+      settled: true,
       rows: [
         row({ uploadId: 'a', sentBytes: 100, totalBytes: 100, status: 'done' }),
         row({ uploadId: 'b', sentBytes: 20, totalBytes: 900, status: 'cancelled' })
@@ -119,6 +142,7 @@ describe('summarizeRuntimeUploadSession', () => {
   it('counts only rows still moving as active', () => {
     const summary = summarizeRuntimeUploadSession({
       sessionId: 's',
+      settled: true,
       rows: [
         row({ uploadId: 'a', status: 'done' }),
         row({ uploadId: 'b', status: 'uploading' }),
@@ -132,6 +156,7 @@ describe('summarizeRuntimeUploadSession', () => {
   it('is zero percent rather than NaN for an all-empty drop', () => {
     const summary = summarizeRuntimeUploadSession({
       sessionId: 's',
+      settled: true,
       rows: [row({ sentBytes: 0, totalBytes: 0 })]
     })
 

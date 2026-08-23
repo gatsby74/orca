@@ -5,6 +5,7 @@ import { extractIpcErrorMessage } from '@/lib/ipc-error'
 import { importExternalPathsToRuntime } from '@/runtime/runtime-file-client'
 import {
   endRuntimeUploadSession,
+  settleRuntimeUploadSession,
   startRuntimeUploadSession,
   updateRuntimeUploadRow
 } from '@/runtime/runtime-upload-session-state'
@@ -76,7 +77,15 @@ export async function uploadRuntimeDropPaths(
             pending = toast.custom(
               // Why: createElement, not a direct call — the toast body must be its
               // own component or its hooks run outside a component boundary.
-              () => createElement(TerminalDropUploadToast, { sessionId, onCancel: cancelRow }),
+              (toastId) =>
+                createElement(TerminalDropUploadToast, {
+                  sessionId,
+                  onCancel: cancelRow,
+                  onDismiss: () => {
+                    toast.dismiss(toastId)
+                    endRuntimeUploadSession(sessionId)
+                  }
+                }),
               { duration: Infinity, dismissible: false, unstyled: true }
             )
           },
@@ -84,7 +93,7 @@ export async function uploadRuntimeDropPaths(
             updateRuntimeUploadRow(sessionId, uploadId, { sentBytes }),
           onRowSettled: (uploadId, status) =>
             updateRuntimeUploadRow(sessionId, uploadId, { status }),
-          onFinish: () => endRuntimeUploadSession(sessionId)
+          onFinish: () => settleRuntimeUploadSession(sessionId)
         }
       }
     )
@@ -103,11 +112,12 @@ export async function uploadRuntimeDropPaths(
         .filter((result) => !cancelledSourcePaths.has(result.sourcePath))
     )
   } catch (err) {
-    toast.error(extractIpcErrorMessage(err, 'Failed to upload files.'))
-  } finally {
+    // Why: only the error path tears the panel down immediately. On success it
+    // owns its own exit, holding long enough to show how the drop ended.
     endRuntimeUploadSession(sessionId)
     if (pending !== null) {
       toast.dismiss(pending)
     }
+    toast.error(extractIpcErrorMessage(err, 'Failed to upload files.'))
   }
 }

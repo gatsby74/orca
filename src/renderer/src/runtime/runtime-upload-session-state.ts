@@ -12,6 +12,8 @@ export type RuntimeUploadRow = {
 export type RuntimeUploadSession = {
   sessionId: string
   rows: RuntimeUploadRow[]
+  /** Every row has stopped moving; the panel shows its outcome, then leaves. */
+  settled: boolean
 }
 
 type Listener = () => void
@@ -37,7 +39,23 @@ export function getRuntimeUploadSession(sessionId: string): RuntimeUploadSession
 }
 
 export function startRuntimeUploadSession(sessionId: string, rows: RuntimeUploadRow[]): void {
-  sessions.set(sessionId, { sessionId, rows })
+  sessions.set(sessionId, { sessionId, rows, settled: false })
+  emit()
+}
+
+/**
+ * Mark the drop finished without removing it.
+ *
+ * The panel has to outlive the transfer long enough to say how it ended —
+ * deleting the session here is what made a cancelled upload vanish mid-gesture
+ * with nothing to read.
+ */
+export function settleRuntimeUploadSession(sessionId: string): void {
+  const session = sessions.get(sessionId)
+  if (!session || session.settled) {
+    return
+  }
+  sessions.set(sessionId, { ...session, settled: true })
   emit()
 }
 
@@ -77,7 +95,7 @@ export function updateRuntimeUploadRow(
   if (!changed) {
     return
   }
-  sessions.set(sessionId, { sessionId, rows })
+  sessions.set(sessionId, { ...session, rows })
   emit()
 }
 
@@ -86,11 +104,21 @@ export function summarizeRuntimeUploadSession(session: RuntimeUploadSession): {
   totalBytes: number
   percent: number
   activeCount: number
+  doneCount: number
+  cancelledCount: number
 } {
   let sentBytes = 0
   let totalBytes = 0
   let activeCount = 0
+  let doneCount = 0
+  let cancelledCount = 0
   for (const row of session.rows) {
+    if (row.status === 'done') {
+      doneCount += 1
+    }
+    if (row.status === 'cancelled') {
+      cancelledCount += 1
+    }
     // Why: a cancelled row's remaining bytes are never going to move, so leaving
     // them in the denominator would strand the overall bar below 100%.
     if (row.status === 'cancelled' || row.status === 'failed') {
@@ -106,6 +134,8 @@ export function summarizeRuntimeUploadSession(session: RuntimeUploadSession): {
     sentBytes,
     totalBytes,
     percent: totalBytes > 0 ? Math.min(100, Math.floor((sentBytes / totalBytes) * 100)) : 0,
-    activeCount
+    activeCount,
+    doneCount,
+    cancelledCount
   }
 }

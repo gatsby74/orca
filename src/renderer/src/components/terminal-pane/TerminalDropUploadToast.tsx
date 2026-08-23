@@ -1,4 +1,4 @@
-import { useState, useSyncExternalStore } from 'react'
+import { useEffect, useState, useSyncExternalStore } from 'react'
 import { ChevronDownIcon, ChevronUpIcon, FileIcon, UploadIcon, XIcon } from 'lucide-react'
 import { Progress } from '@/components/ui/progress'
 import { cn } from '@/lib/utils'
@@ -10,17 +10,46 @@ import {
   type RuntimeUploadRow
 } from '@/runtime/runtime-upload-session-state'
 import { formatTransferredOfTotal, toPercent } from './terminal-drop-upload-progress'
+import { formatTerminalDropUploadHeading } from './terminal-drop-upload-heading'
+
+// Long enough to read the outcome, short enough not to linger over the terminal.
+const SETTLED_HOLD_MS = 1200
+const EXIT_ANIMATION_MS = 200
 
 type Props = {
   sessionId: string
   onCancel: (uploadId: string) => void
+  /** Closes the toast; the panel owns the timing so the exit is not cut short. */
+  onDismiss: () => void
 }
 
-export function TerminalDropUploadToast({ sessionId, onCancel }: Props): React.JSX.Element | null {
+export function TerminalDropUploadToast({
+  sessionId,
+  onCancel,
+  onDismiss
+}: Props): React.JSX.Element | null {
   const session = useSyncExternalStore(subscribeToRuntimeUploadSessions, () =>
     getRuntimeUploadSession(sessionId)
   )
   const [collapsed, setCollapsed] = useState(false)
+  const [leaving, setLeaving] = useState(false)
+  const settled = session?.settled === true
+
+  useEffect(() => {
+    if (!settled) {
+      return
+    }
+    const reducedMotion =
+      typeof window.matchMedia === 'function' &&
+      window.matchMedia('(prefers-reduced-motion: reduce)').matches
+    const exitMs = reducedMotion ? 0 : EXIT_ANIMATION_MS
+    const startExit = window.setTimeout(() => setLeaving(true), SETTLED_HOLD_MS)
+    const close = window.setTimeout(onDismiss, SETTLED_HOLD_MS + exitMs)
+    return () => {
+      window.clearTimeout(startExit)
+      window.clearTimeout(close)
+    }
+  }, [settled, onDismiss])
 
   // createElement at the call site still yields a valid element, so rendering
   // nothing here is safe once the session has ended.
@@ -28,14 +57,20 @@ export function TerminalDropUploadToast({ sessionId, onCancel }: Props): React.J
     return null
   }
   const summary = summarizeRuntimeUploadSession(session)
-  const heading = translate(
-    'auto.components.terminal.pane.terminal.drop.upload.heading',
-    'Uploading {{value0}} file{{value1}}',
-    { value0: session.rows.length, value1: session.rows.length === 1 ? '' : 's' }
-  )
+  const heading = formatTerminalDropUploadHeading({
+    rowCount: session.rows.length,
+    settled: session.settled,
+    doneCount: summary.doneCount,
+    cancelledCount: summary.cancelledCount
+  })
 
   return (
-    <div className="w-full overflow-hidden rounded-lg border border-border bg-popover text-popover-foreground shadow-[0_10px_24px_rgba(0,0,0,0.18)]">
+    <div
+      className={cn(
+        'w-full overflow-hidden rounded-lg border border-border bg-popover text-popover-foreground shadow-[0_10px_24px_rgba(0,0,0,0.18)]',
+        leaving && 'animate-out fade-out-0 zoom-out-95 duration-200 fill-mode-forwards'
+      )}
+    >
       <div className="flex items-center gap-3 px-3 py-2.5">
         <span className="flex size-7 shrink-0 items-center justify-center rounded-full border border-border">
           <UploadIcon className="size-3.5" aria-hidden />
@@ -43,10 +78,11 @@ export function TerminalDropUploadToast({ sessionId, onCancel }: Props): React.J
         <span className="min-w-0 flex-1 truncate text-sm">{heading}</span>
         {/* Fixed width so the row never reflows as the number gains digits. */}
         <span className="w-9 shrink-0 text-right text-sm tabular-nums text-muted-foreground">
-          {summary.percent}%
+          {session.settled ? '' : `${summary.percent}%`}
         </span>
         <button
           type="button"
+          hidden={session.settled}
           onClick={() => setCollapsed((value) => !value)}
           aria-expanded={!collapsed}
           aria-label={
