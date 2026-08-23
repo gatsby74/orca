@@ -176,6 +176,34 @@ describe('streamExternalFileToRuntime', () => {
     expect(seen).toEqual([RUNTIME_UPLOAD_SLICE_BYTES])
   })
 
+  it('stops between slices when the signal is already aborted', async () => {
+    const filePath = join(workDir, 'aborted.bin')
+    await writeFile(filePath, Buffer.alloc(RUNTIME_UPLOAD_SLICE_BYTES * 2))
+    const controller = new AbortController()
+    controller.abort()
+
+    await expect(
+      streamExternalFileToRuntime({ ...baseArgs(filePath), signal: controller.signal })
+    ).rejects.toThrow('Upload cancelled')
+    expect(chunkCalls()).toHaveLength(0)
+  })
+
+  it('stops mid-file when the signal aborts after the first slice', async () => {
+    const filePath = join(workDir, 'midway.bin')
+    await writeFile(filePath, Buffer.alloc(RUNTIME_UPLOAD_SLICE_BYTES * 4))
+    const controller = new AbortController()
+    callRuntimeEnvironment.mockImplementation(async () => {
+      controller.abort()
+      return { id: 'x', ok: true, result: {}, _meta: {} }
+    })
+
+    await expect(
+      streamExternalFileToRuntime({ ...baseArgs(filePath), signal: controller.signal })
+    ).rejects.toThrow('Upload cancelled')
+    // The first slice was already in flight; the loop stops before the second.
+    expect(chunkCalls()).toHaveLength(1)
+  })
+
   it('refuses a symlinked source', async () => {
     const targetPath = join(workDir, 'secret.txt')
     await writeFile(targetPath, 'secret')

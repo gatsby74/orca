@@ -31,8 +31,9 @@ import { toRuntimeWorktreeSelector } from './runtime-worktree-selector'
 import { createBrowserUuid } from '@/lib/browser-uuid'
 import {
   createRuntimeUploadProgressTracker,
-  sumStagedUploadBytes,
-  type RuntimeUploadProgressReport
+  sumSourceUploadBytes,
+  type RuntimeImportProgressHandlers,
+  type RuntimeImportProgressRow
 } from './runtime-upload-progress-tracker'
 import {
   createEmptyRuntimeFileSearchResult,
@@ -673,7 +674,7 @@ export async function importExternalPathsToRuntime(
   options?: {
     ensureDestinationDir?: boolean
     assertCurrent?: () => void
-    onProgress?: (progress: RuntimeUploadProgressReport) => void
+    progress?: RuntimeImportProgressHandlers
   }
 ): Promise<{ results: RuntimeImportResult[] }> {
   const target = getActiveRuntimeTarget(context.settings)
@@ -705,22 +706,41 @@ export async function importExternalPathsToRuntime(
   assertImportSessionCurrent()
   const staged = await window.api.fs.stageExternalPathsForRuntimeUpload({ sourcePaths })
   assertImportSessionCurrent()
-  const uploadId = options?.onProgress ? createBrowserUuid() : undefined
-  const progress = options?.onProgress
-    ? createRuntimeUploadProgressTracker(
-        sumStagedUploadBytes(staged.sources as StagedRuntimeImportSource[]),
-        options.onProgress
+  const handlers = options?.progress
+  // One id per dropped source: it is both the progress key and the cancel handle,
+  // so cancelling a row stops that source and leaves the rest of the drop running.
+  const uploadIdsBySourcePath = new Map<string, string>()
+  const trackers = new Map<string, ReturnType<typeof createRuntimeUploadProgressTracker>>()
+  if (handlers) {
+    const rows: RuntimeImportProgressRow[] = []
+    for (const source of staged.sources as StagedRuntimeImportSource[]) {
+      if (source.status !== 'staged') {
+        continue
+      }
+      const rowUploadId = createBrowserUuid()
+      uploadIdsBySourcePath.set(source.sourcePath, rowUploadId)
+      const totalBytes = sumSourceUploadBytes(source)
+      trackers.set(
+        rowUploadId,
+        createRuntimeUploadProgressTracker(totalBytes, ({ sentBytes }) =>
+          handlers.onRowProgress(rowUploadId, sentBytes)
+        )
       )
+      rows.push({
+        uploadId: rowUploadId,
+        name: source.name,
+        totalBytes,
+        sourcePath: source.sourcePath
+      })
+    }
+    handlers.onStart(rows)
+  }
+  const unsubscribeProgress = handlers
+    ? window.api.fs.onUploadProgress((event) => {
+        // Why: a concurrent drop in another pane shares this channel.
+        trackers.get(event.uploadId)?.reportFileProgress(event.sentBytes)
+      })
     : null
-  const unsubscribeProgress =
-    progress && uploadId
-      ? window.api.fs.onUploadProgress((event) => {
-          // Why: a concurrent drop in another pane shares this channel.
-          if (event.uploadId === uploadId) {
-            progress.reportFileProgress(event.sentBytes)
-          }
-        })
-      : null
   const results: RuntimeImportResult[] = []
   const reservedNames = new Set<string>()
 
@@ -738,6 +758,7 @@ export async function importExternalPathsToRuntime(
         continue
       }
       let createdDirectoryImportRoot: string | null = null
+      const sourceUploadId = uploadIdsBySourcePath.get(source.sourcePath)
       try {
         const finalName = await deconflictRuntimeImportName(
           context,
@@ -780,9 +801,11 @@ export async function importExternalPathsToRuntime(
                 ? `ssh:${encodeURIComponent(context.expectedSshTargetId)}`
                 : 'local'),
             expectedEnvironmentPairingRevision,
-            uploadId
+            sourceUploadId
           )
-          progress?.completeFile(entry.byteLength)
+          if (sourceUploadId) {
+            trackers.get(sourceUploadId)?.completeFile(entry.byteLength)
+          }
         }
         reservedNames.add(finalName)
         results.push({
@@ -792,6 +815,9 @@ export async function importExternalPathsToRuntime(
           kind: source.kind,
           renamed: finalName !== source.name
         })
+        if (sourceUploadId) {
+          handlers?.onRowSettled(sourceUploadId, 'done')
+        }
       } catch (error) {
         if (createdDirectoryImportRoot) {
           // Why: match local directory imports by removing the no-clobber root
@@ -814,12 +840,21 @@ export async function importExternalPathsToRuntime(
           status: 'failed',
           reason: error instanceof Error ? error.message : String(error)
         })
+        // Why: reported as failed even for a cancel — the store keeps the row's
+        // already-set 'cancelled' state, so the user's own action is not relabelled.
+        if (sourceUploadId) {
+          handlers?.onRowSettled(sourceUploadId, 'failed')
+        }
       }
     }
 
     return { results }
   } finally {
     unsubscribeProgress?.()
+    for (const releasedId of uploadIdsBySourcePath.values()) {
+      void window.api.fs.releaseRuntimeUpload({ uploadId: releasedId })
+    }
+    handlers?.onFinish()
   }
 }
 

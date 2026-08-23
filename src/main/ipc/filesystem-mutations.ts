@@ -24,6 +24,11 @@ import {
   RUNTIME_UPLOAD_PROGRESS_CHANNEL,
   throttleRuntimeUploadProgress
 } from './runtime-upload-progress'
+import {
+  cancelRuntimeUpload,
+  forgetRuntimeUploadCancellation,
+  registerCancellableUpload
+} from './runtime-upload-cancellation'
 
 /**
  * IPC handlers for file/folder creation and renaming.
@@ -235,24 +240,42 @@ export function registerFilesystemMutationHandlers(store: Store): void {
             }
           })
         : null
-      return streamExternalFileToRuntime({
-        userDataPath: app.getPath('userData'),
-        environmentId: args.environmentId,
-        sourceRootPath: args.sourceRootPath,
-        entryRelativePath: args.entryRelativePath,
-        worktree: args.worktree,
-        relativePath: args.relativePath,
-        expectedExecutionHostId: args.expectedExecutionHostId,
-        expectedSshTargetId: args.expectedSshTargetId,
-        expectedSshConnectionGeneration: args.expectedSshConnectionGeneration,
-        expectedEnvironmentPairingRevision: args.expectedEnvironmentPairingRevision,
-        onProgress:
-          emit && uploadId
-            ? ({ sentBytes, totalBytes }) => emit({ uploadId, sentBytes, totalBytes })
-            : undefined
-      })
+      const cancellation = uploadId ? registerCancellableUpload(uploadId) : null
+      try {
+        return await streamExternalFileToRuntime({
+          userDataPath: app.getPath('userData'),
+          environmentId: args.environmentId,
+          sourceRootPath: args.sourceRootPath,
+          entryRelativePath: args.entryRelativePath,
+          worktree: args.worktree,
+          relativePath: args.relativePath,
+          expectedExecutionHostId: args.expectedExecutionHostId,
+          expectedSshTargetId: args.expectedSshTargetId,
+          expectedSshConnectionGeneration: args.expectedSshConnectionGeneration,
+          expectedEnvironmentPairingRevision: args.expectedEnvironmentPairingRevision,
+          signal: cancellation?.signal,
+          onProgress:
+            emit && uploadId
+              ? ({ sentBytes, totalBytes }) => emit({ uploadId, sentBytes, totalBytes })
+              : undefined
+        })
+      } finally {
+        cancellation?.release()
+      }
     }
   )
+
+  // Why: the drop UI cancels a whole dropped source, so the id it sends is the
+  // one every file of that source streams under.
+  ipcMain.handle('fs:cancelRuntimeUpload', (_event, args: { uploadId: string }): void => {
+    cancelRuntimeUpload(args.uploadId)
+  })
+
+  // Why: ids are minted per drop, but a cancel recorded for one must not outlive
+  // it and abort a later upload that happens to reuse the id.
+  ipcMain.handle('fs:releaseRuntimeUpload', (_event, args: { uploadId: string }): void => {
+    forgetRuntimeUploadCancellation(args.uploadId)
+  })
 
   // Why: terminal drag-and-drop resolver. Local worktrees pass paths through
   // unchanged (reference-in-place; preserves zero-latency drop). SSH worktrees

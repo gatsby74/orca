@@ -188,6 +188,8 @@ export type FilesystemApi = {
     onUploadProgress: (
       callback: (progress: { uploadId: string; sentBytes: number; totalBytes: number }) => void
     ) => () => void
+    cancelRuntimeUpload: (args: { uploadId: string }) => Promise<void>
+    releaseRuntimeUpload: (args: { uploadId: string }) => Promise<void>
     resolveDroppedPathsForAgent: (
       args: {
         paths: string[]

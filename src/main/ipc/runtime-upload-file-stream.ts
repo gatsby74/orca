@@ -2,6 +2,7 @@ import { constants } from 'node:fs'
 import { lstat, open, realpath } from 'node:fs/promises'
 import { isAbsolute, join, relative, sep } from 'node:path'
 import { authorizeExternalPath } from './filesystem-auth'
+import { RuntimeUploadCancelledError } from './runtime-upload-cancellation'
 import { callRuntimeEnvironment } from './runtime-environment-transport-routing'
 
 // Why: base64 turns 3 bytes into 4 chars, so a 384 KiB slice lands on the wire
@@ -26,6 +27,8 @@ export type RuntimeUploadFileStreamArgs = {
   expectedEnvironmentPairingRevision?: number
   /** Called after each slice lands, so the drop UI can show how far along the file is. */
   onProgress?: (progress: { sentBytes: number; totalBytes: number }) => void
+  /** Aborts between slices; the destination is a temp path the caller removes. */
+  signal?: AbortSignal
 }
 
 /**
@@ -70,6 +73,7 @@ export async function streamExternalFileToRuntime(
     }
 
     const totalBytes = openedStat.size
+    throwIfCancelled(args.signal)
     // Why: a zero-byte source produces no slices, but the destination still has
     // to exist before commitUpload renames it into place.
     if (totalBytes === 0) {
@@ -81,6 +85,9 @@ export async function streamExternalFileToRuntime(
     const buffer = Buffer.allocUnsafe(Math.min(RUNTIME_UPLOAD_SLICE_BYTES, totalBytes))
     let offset = 0
     while (offset < totalBytes) {
+      // Why: checked between slices rather than mid-flight, so a cancelled upload
+      // still leaves a well-formed partial temp file for the caller to delete.
+      throwIfCancelled(args.signal)
       const { bytesRead } = await handle.read(buffer, 0, buffer.byteLength, offset)
       if (bytesRead === 0) {
         throw new Error(`File truncated during upload: '${displayPath}'`)
@@ -150,5 +157,11 @@ async function assertEntryInsideRoot(
     (relativeToRoot === '..' || relativeToRoot.startsWith(`..${sep}`) || isAbsolute(relativeToRoot))
   ) {
     throw new Error(`Path escaped upload root during upload: '${displayPath}'`)
+  }
+}
+
+function throwIfCancelled(signal: AbortSignal | undefined): void {
+  if (signal?.aborted) {
+    throw new RuntimeUploadCancelledError()
   }
 }

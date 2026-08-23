@@ -3477,6 +3477,10 @@ const api = {
       ipcRenderer.on('fs:uploadProgress', listener)
       return () => ipcRenderer.removeListener('fs:uploadProgress', listener)
     },
+    cancelRuntimeUpload: (args: { uploadId: string }): Promise<void> =>
+      ipcRenderer.invoke('fs:cancelRuntimeUpload', args),
+    releaseRuntimeUpload: (args: { uploadId: string }): Promise<void> =>
+      ipcRenderer.invoke('fs:releaseRuntimeUpload', args),
     resolveDroppedPathsForAgent: (
       args: {
         paths: string[]

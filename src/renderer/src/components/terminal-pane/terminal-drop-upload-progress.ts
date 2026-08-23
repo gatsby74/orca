@@ -1,26 +1,32 @@
-import { formatBytes } from '../status-bar/workspace-space-format'
-import { translate } from '@/i18n/i18n'
+const BYTE_UNITS = ['B', 'KB', 'MB', 'GB', 'TB', 'PB'] as const
 
 /**
- * Label for the in-place drop toast while bytes are moving.
+ * "8.6 / 32.5 MB" — both figures scaled to the total's unit.
  *
- * Falls back to the plain "uploading" wording when the drop has no measurable
- * size — an empty file, or a folder of empty files — because "0 B of 0 B" reads
- * like a failure rather than a fast success.
+ * Formatting each side independently reads as a bug the moment they land in
+ * different units: 900 KB of a 32.5 MB file would render "900 / 32.5" with the
+ * two numbers on different scales.
  */
-export function formatTerminalDropUploadProgress(
-  fileCount: number,
-  sentBytes: number,
-  totalBytes: number
-): string {
-  const uploading = translate(
-    'auto.components.terminal.pane.terminal.drop.handler.29c031b49a',
-    'Uploading {{value0}} file{{value1}} to runtime…',
-    { value0: fileCount, value1: fileCount === 1 ? '' : 's' }
-  )
-  if (totalBytes <= 0) {
-    return uploading
+export function formatTransferredOfTotal(sentBytes: number, totalBytes: number): string {
+  if (!Number.isFinite(totalBytes) || totalBytes <= 0) {
+    return `0 ${BYTE_UNITS[0]}`
   }
-  const percent = Math.min(100, Math.floor((sentBytes / totalBytes) * 100))
-  return `${uploading} ${formatBytes(sentBytes)} / ${formatBytes(totalBytes)} (${percent}%)`
+  let unitIndex = 0
+  let divisor = 1
+  while (totalBytes / divisor >= 1024 && unitIndex < BYTE_UNITS.length - 1) {
+    divisor *= 1024
+    unitIndex += 1
+  }
+  const scaledTotal = totalBytes / divisor
+  const scaledSent = Math.min(Math.max(sentBytes, 0), totalBytes) / divisor
+  const precision = scaledTotal >= 100 || unitIndex === 0 ? 0 : scaledTotal >= 10 ? 1 : 2
+  return `${scaledSent.toFixed(precision)} / ${scaledTotal.toFixed(precision)} ${BYTE_UNITS[unitIndex]}`
+}
+
+export function toPercent(sentBytes: number, totalBytes: number): number {
+  if (totalBytes <= 0) {
+    return 0
+  }
+  // Why: floor, so a bar only reads 100% once the last byte has actually landed.
+  return Math.min(100, Math.max(0, Math.floor((sentBytes / totalBytes) * 100)))
 }

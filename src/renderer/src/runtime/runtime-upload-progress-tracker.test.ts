@@ -1,40 +1,29 @@
 import { describe, expect, it } from 'vitest'
 import {
   createRuntimeUploadProgressTracker,
-  sumStagedUploadBytes
+  sumSourceUploadBytes
 } from './runtime-upload-progress-tracker'
 
-describe('sumStagedUploadBytes', () => {
+describe('sumSourceUploadBytes', () => {
   it('counts file bytes and ignores directory entries', () => {
     expect(
-      sumStagedUploadBytes([
-        {
-          status: 'staged',
-          entries: [
-            { kind: 'directory' },
-            { kind: 'file', byteLength: 10 },
-            { kind: 'directory' },
-            { kind: 'file', byteLength: 32 }
-          ]
-        }
-      ])
+      sumSourceUploadBytes({
+        entries: [
+          { kind: 'directory' },
+          { kind: 'file', byteLength: 10 },
+          { kind: 'directory' },
+          { kind: 'file', byteLength: 32 }
+        ]
+      })
     ).toBe(42)
   })
 
-  it('ignores sources that never staged', () => {
-    expect(
-      sumStagedUploadBytes([
-        { status: 'skipped' },
-        { status: 'failed', entries: [{ kind: 'file', byteLength: 999 }] },
-        { status: 'staged', entries: [{ kind: 'file', byteLength: 7 }] }
-      ])
-    ).toBe(7)
+  it('is zero for a source of only empty files', () => {
+    expect(sumSourceUploadBytes({ entries: [{ kind: 'file', byteLength: 0 }] })).toBe(0)
   })
 
-  it('is zero for a drop of only empty files', () => {
-    expect(
-      sumStagedUploadBytes([{ status: 'staged', entries: [{ kind: 'file', byteLength: 0 }] }])
-    ).toBe(0)
+  it('is zero for a source with no entries at all', () => {
+    expect(sumSourceUploadBytes({})).toBe(0)
   })
 })
 

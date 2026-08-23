@@ -47,19 +47,29 @@ export function createRuntimeUploadProgressTracker(
   }
 }
 
-/** Total bytes a staged drop will move; directory entries contribute nothing. */
-export function sumStagedUploadBytes(
-  sources: { status: string; entries?: { kind: string; byteLength?: number }[] }[]
-): number {
+/** One row in the drop UI: everything the user dropped becomes exactly one. */
+export type RuntimeImportProgressRow = {
+  uploadId: string
+  name: string
+  totalBytes: number
+  sourcePath: string
+}
+
+export type RuntimeImportProgressHandlers = {
+  onStart: (rows: RuntimeImportProgressRow[]) => void
+  onRowProgress: (uploadId: string, sentBytes: number) => void
+  onRowSettled: (uploadId: string, status: 'done' | 'failed') => void
+  onFinish: () => void
+}
+
+/** Bytes one dropped source will move; directory entries contribute nothing. */
+export function sumSourceUploadBytes(source: {
+  entries?: { kind: string; byteLength?: number }[]
+}): number {
   let total = 0
-  for (const source of sources) {
-    if (source.status !== 'staged') {
-      continue
-    }
-    for (const entry of source.entries ?? []) {
-      if (entry.kind === 'file') {
-        total += entry.byteLength ?? 0
-      }
+  for (const entry of source.entries ?? []) {
+    if (entry.kind === 'file') {
+      total += entry.byteLength ?? 0
     }
   }
   return total
