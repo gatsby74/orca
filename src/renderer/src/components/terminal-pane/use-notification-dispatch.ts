@@ -26,6 +26,7 @@ import {
   isOrcaWindowForegroundFocused,
   isVisibleForegroundPaneKey
 } from './terminal-notification-pane-visibility'
+import { isCurrentWebSessionTabsNotificationPaneEvidence } from '@/runtime/web-session-tabs-notification-reconciler'
 
 const AGENT_NOTIFICATION_SNAPSHOT_MAX_AGE_MS = 10_000
 
@@ -121,6 +122,15 @@ export function dispatchTerminalNotification(
   ) {
     return
   }
+  const remotePaneEvidence = eventAgentStatusSnapshot?.remotePaneEvidence
+  const hasCurrentRemotePaneEvidence = Boolean(
+    remotePaneEvidence &&
+    event.paneKey &&
+    isCurrentWebSessionTabsNotificationPaneEvidence(remotePaneEvidence, event.paneKey)
+  )
+  if (remotePaneEvidence && !hasCurrentRemotePaneEvidence) {
+    return
+  }
   const agentNotificationStateStartedAt =
     eventAgentStatusSnapshot?.stateStartedAt ?? freshStoredAgentStatus?.stateStartedAt
   // Why: main-process hook IPC can update inactive/unmounted worktrees before
@@ -148,9 +158,11 @@ export function dispatchTerminalNotification(
       // Why: delayed completion hooks from a closed split pane can arrive while
       // another pane in the tab is still live; stale leaf completions must not
       // create unread state or OS notifications.
-      const isCurrentPane = hasLivePty
-        ? isCurrentLivePaneKey(state, worktreeId, event.paneKey)
-        : isCurrentKnownPaneKey(state, worktreeId, event.paneKey)
+      const isCurrentPane =
+        hasCurrentRemotePaneEvidence ||
+        (hasLivePty
+          ? isCurrentLivePaneKey(state, worktreeId, event.paneKey)
+          : isCurrentKnownPaneKey(state, worktreeId, event.paneKey))
       if (!tabId || !isCurrentPane) {
         return
       }
