@@ -78,7 +78,10 @@ export function TerminalDropUploadToast({
   return (
     <div
       className={cn(
-        'w-full overflow-hidden rounded-lg border border-border bg-popover text-popover-foreground shadow-[0_10px_24px_rgba(0,0,0,0.18)]',
+        // Why: an unstyled toast is content-sized, so collapsing the list shrank the
+        // panel horizontally too and it appeared to jump. Pinned to the Toaster's
+        // own width so both states occupy the same box.
+        'w-[var(--width,26rem)] overflow-hidden rounded-lg border border-border bg-popover text-popover-foreground shadow-[0_10px_24px_rgba(0,0,0,0.18)]',
         leaving && 'animate-out fade-out-0 zoom-out-95 duration-200 fill-mode-forwards'
       )}
     >
@@ -140,7 +143,7 @@ function UploadRowItem({
   return (
     <li className="flex items-center gap-3 px-3 py-2.5">
       <FileIcon className="size-4 shrink-0 text-muted-foreground" aria-hidden />
-      <span className="flex min-w-0 flex-1 flex-col gap-0.5">
+      <span className="flex min-w-0 flex-1 flex-col gap-0.5 overflow-hidden">
         <span className={cn('truncate text-[13px]', inactive && 'text-muted-foreground')}>
           {row.name}
         </span>
