@@ -122,6 +122,60 @@ describe('streamExternalFileToRuntime', () => {
     expect(chunkCalls()).toHaveLength(2)
   })
 
+  it('reports monotonic progress that ends on the file size', async () => {
+    const size = RUNTIME_UPLOAD_SLICE_BYTES * 2 + 500
+    const filePath = join(workDir, 'tracked.bin')
+    await writeFile(filePath, Buffer.alloc(size))
+    const seen: { sentBytes: number; totalBytes: number }[] = []
+
+    await streamExternalFileToRuntime({
+      ...baseArgs(filePath),
+      onProgress: (progress) => seen.push(progress)
+    })
+
+    expect(seen).toHaveLength(3)
+    expect(seen.every((p) => p.totalBytes === size)).toBe(true)
+    expect(seen.map((p) => p.sentBytes)).toEqual([
+      RUNTIME_UPLOAD_SLICE_BYTES,
+      RUNTIME_UPLOAD_SLICE_BYTES * 2,
+      size
+    ])
+  })
+
+  it('reports a zero-byte file as complete rather than never reporting', async () => {
+    const filePath = join(workDir, 'nothing.txt')
+    await writeFile(filePath, '')
+    const seen: { sentBytes: number; totalBytes: number }[] = []
+
+    await streamExternalFileToRuntime({
+      ...baseArgs(filePath),
+      onProgress: (progress) => seen.push(progress)
+    })
+
+    expect(seen).toEqual([{ sentBytes: 0, totalBytes: 0 }])
+  })
+
+  it('stops reporting progress at the chunk that failed', async () => {
+    const filePath = join(workDir, 'halts.bin')
+    await writeFile(filePath, Buffer.alloc(RUNTIME_UPLOAD_SLICE_BYTES * 3))
+    const seen: number[] = []
+    callRuntimeEnvironment.mockResolvedValueOnce({ id: 'x', ok: true, result: {}, _meta: {} })
+    callRuntimeEnvironment.mockResolvedValueOnce({
+      id: 'x',
+      ok: false,
+      error: { code: 'write_failed', message: 'disk full' }
+    })
+
+    await expect(
+      streamExternalFileToRuntime({
+        ...baseArgs(filePath),
+        onProgress: (progress) => seen.push(progress.sentBytes)
+      })
+    ).rejects.toThrow('disk full')
+
+    expect(seen).toEqual([RUNTIME_UPLOAD_SLICE_BYTES])
+  })
+
   it('refuses a symlinked source', async () => {
     const targetPath = join(workDir, 'secret.txt')
     await writeFile(targetPath, 'secret')

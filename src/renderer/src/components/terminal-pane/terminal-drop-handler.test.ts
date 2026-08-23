@@ -153,7 +153,7 @@ describe('handleTerminalFileDrop', () => {
       },
       ['/Users/me/logo.png'],
       '/remote/repo/.orca/drops',
-      { assertCurrent: expect.any(Function) }
+      { assertCurrent: expect.any(Function), onProgress: expect.any(Function) }
     )
     expect(sendInput).toHaveBeenCalledWith(
       wrapTerminalBracketedPasteText('/remote/repo/.orca/drops/logo.png')
@@ -249,7 +249,7 @@ describe('handleTerminalFileDrop', () => {
       },
       ['/Users/me/logo.png'],
       '\\\\server\\share\\repo\\.orca\\drops',
-      { assertCurrent: expect.any(Function) }
+      { assertCurrent: expect.any(Function), onProgress: expect.any(Function) }
     )
     expect(sendInput).toHaveBeenCalledWith(
       wrapTerminalBracketedPasteText('\\\\server\\share\\repo\\.orca\\drops\\logo.png')
@@ -306,7 +306,7 @@ describe('handleTerminalFileDrop', () => {
       },
       ['/Users/me/spec.pdf'],
       '/remote/repo/.orca/drops',
-      { assertCurrent: expect.any(Function) }
+      { assertCurrent: expect.any(Function), onProgress: expect.any(Function) }
     )
     expect(sendInput).toHaveBeenCalledWith('/remote/repo/.orca/drops/spec.pdf ')
   })

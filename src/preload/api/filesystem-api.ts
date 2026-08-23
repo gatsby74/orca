@@ -181,9 +181,13 @@ export type FilesystemApi = {
         entryRelativePath: string
         worktree: string
         relativePath: string
+        uploadId?: string
         expectedEnvironmentPairingRevision?: number
       } & SshMutationExpectation
     ) => Promise<{ byteLength: number }>
+    onUploadProgress: (
+      callback: (progress: { uploadId: string; sentBytes: number; totalBytes: number }) => void
+    ) => () => void
     resolveDroppedPathsForAgent: (
       args: {
         paths: string[]

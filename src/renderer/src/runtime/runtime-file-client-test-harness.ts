@@ -54,6 +54,8 @@ export const fsCancelDownloadedFile: PreloadStub = vi.fn()
 export const fsImportExternalPaths: PreloadStub = vi.fn()
 export const fsStageExternalPathsForRuntimeUpload: PreloadStub = vi.fn()
 export const fsUploadExternalFileToRuntime: PreloadStub = vi.fn()
+/** Returns the unsubscribe the import loop calls in its finally. */
+export const fsOnUploadProgress: PreloadStub = vi.fn()
 export const runtimeEnvironmentCall: RuntimeRpcStub = vi.fn()
 export const runtimeEnvironmentTransportCall: RuntimeRpcStub = vi.fn()
 export const runtimeEnvironmentSubscribe: RuntimeSubscribeStub = vi.fn()
@@ -90,6 +92,8 @@ export function installRuntimeFileClientEnvironment(): void {
     fsStageExternalPathsForRuntimeUpload.mockReset()
     fsUploadExternalFileToRuntime.mockReset()
     fsUploadExternalFileToRuntime.mockResolvedValue({ byteLength: 0 })
+    fsOnUploadProgress.mockReset()
+    fsOnUploadProgress.mockReturnValue(() => {})
     runtimeEnvironmentCall.mockReset()
     runtimeEnvironmentTransportCall.mockReset()
     runtimeEnvironmentSubscribe.mockReset()
@@ -133,7 +137,8 @@ export function installRuntimeFileClientEnvironment(): void {
           cancelDownloadedFile: fsCancelDownloadedFile,
           importExternalPaths: fsImportExternalPaths,
           stageExternalPathsForRuntimeUpload: fsStageExternalPathsForRuntimeUpload,
-          uploadExternalFileToRuntime: fsUploadExternalFileToRuntime
+          uploadExternalFileToRuntime: fsUploadExternalFileToRuntime,
+          onUploadProgress: fsOnUploadProgress
         },
         runtime: { call: runtimeCall },
         runtimeEnvironments: {

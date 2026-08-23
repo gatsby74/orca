@@ -20,6 +20,10 @@ import type {
 import { importOneSource } from './filesystem-import-local'
 import { stageOneSourceForRuntimeUpload } from './filesystem-runtime-upload-staging'
 import { streamExternalFileToRuntime } from './runtime-upload-file-stream'
+import {
+  RUNTIME_UPLOAD_PROGRESS_CHANNEL,
+  throttleRuntimeUploadProgress
+} from './runtime-upload-progress'
 
 /**
  * IPC handlers for file/folder creation and renaming.
@@ -210,17 +214,28 @@ export function registerFilesystemMutationHandlers(store: Store): void {
   ipcMain.handle(
     'fs:uploadExternalFileToRuntime',
     async (
-      _event,
+      event,
       args: {
         environmentId: string
         sourceRootPath: string
         entryRelativePath: string
         worktree: string
         relativePath: string
+        uploadId?: string
         expectedEnvironmentPairingRevision?: number
       } & SshMutationExpectation
-    ): Promise<{ byteLength: number }> =>
-      streamExternalFileToRuntime({
+    ): Promise<{ byteLength: number }> => {
+      const uploadId = args.uploadId
+      // Why: replies to the frame that asked, so a second window's drop cannot
+      // move this one's progress bar.
+      const emit = uploadId
+        ? throttleRuntimeUploadProgress((progress) => {
+            if (!event.sender.isDestroyed()) {
+              event.sender.send(RUNTIME_UPLOAD_PROGRESS_CHANNEL, progress)
+            }
+          })
+        : null
+      return streamExternalFileToRuntime({
         userDataPath: app.getPath('userData'),
         environmentId: args.environmentId,
         sourceRootPath: args.sourceRootPath,
@@ -230,8 +245,13 @@ export function registerFilesystemMutationHandlers(store: Store): void {
         expectedExecutionHostId: args.expectedExecutionHostId,
         expectedSshTargetId: args.expectedSshTargetId,
         expectedSshConnectionGeneration: args.expectedSshConnectionGeneration,
-        expectedEnvironmentPairingRevision: args.expectedEnvironmentPairingRevision
+        expectedEnvironmentPairingRevision: args.expectedEnvironmentPairingRevision,
+        onProgress:
+          emit && uploadId
+            ? ({ sentBytes, totalBytes }) => emit({ uploadId, sentBytes, totalBytes })
+            : undefined
       })
+    }
   )
 
   // Why: terminal drag-and-drop resolver. Local worktrees pass paths through

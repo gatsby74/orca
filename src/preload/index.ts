@@ -3462,10 +3462,21 @@ const api = {
         entryRelativePath: string
         worktree: string
         relativePath: string
+        uploadId?: string
         expectedEnvironmentPairingRevision?: number
       } & SshMutationExpectation
     ): Promise<{ byteLength: number }> =>
       ipcRenderer.invoke('fs:uploadExternalFileToRuntime', args),
+    onUploadProgress: (
+      callback: (progress: { uploadId: string; sentBytes: number; totalBytes: number }) => void
+    ): (() => void) => {
+      const listener = (
+        _event: Electron.IpcRendererEvent,
+        data: { uploadId: string; sentBytes: number; totalBytes: number }
+      ) => callback(data)
+      ipcRenderer.on('fs:uploadProgress', listener)
+      return () => ipcRenderer.removeListener('fs:uploadProgress', listener)
+    },
     resolveDroppedPathsForAgent: (
       args: {
         paths: string[]

@@ -12,6 +12,7 @@ import { isWslUncPath, parseWslUncPath } from '../../../../shared/wsl-paths'
 import type { PtyTransport } from './pty-transport'
 import { recordTerminalUserInputForLeaf } from './terminal-input-activity'
 import { reportTerminalDropUploadSkipsAndFailures } from './terminal-drop-upload-report'
+import { formatTerminalDropUploadProgress } from './terminal-drop-upload-progress'
 import { captureTerminalDropTarget, getCurrentTerminalDropTransport } from './terminal-drop-target'
 import {
   getTerminalTargetShellForWorktreePath,
@@ -178,13 +179,7 @@ async function uploadRuntimeDropPaths(
 ): Promise<void> {
   const targetShell = getTerminalTargetShellForWorktreePath(args.worktreePath)
   const destinationDir = joinRuntimeTerminalDropDir(args.worktreePath)
-  const pending = toast.loading(
-    translate(
-      'auto.components.terminal.pane.terminal.drop.handler.29c031b49a',
-      'Uploading {{value0}} file{{value1}} to runtime…',
-      { value0: args.dataPaths.length, value1: args.dataPaths.length === 1 ? '' : 's' }
-    )
-  )
+  const pending = toast.loading(formatTerminalDropUploadProgress(args.dataPaths.length, 0, 0))
   try {
     const { results } = await importExternalPathsToRuntime(
       {
@@ -199,7 +194,17 @@ async function uploadRuntimeDropPaths(
       },
       args.dataPaths,
       destinationDir,
-      { assertCurrent: args.assertCurrent }
+      {
+        assertCurrent: args.assertCurrent,
+        // Why: reuses the pending toast's id so the drop keeps one row instead of
+        // stacking a new toast per update.
+        onProgress: ({ sentBytes, totalBytes }) => {
+          toast.loading(
+            formatTerminalDropUploadProgress(args.dataPaths.length, sentBytes, totalBytes),
+            { id: pending }
+          )
+        }
+      }
     )
     const imported = results.filter((result) => result.status === 'imported')
     const importedPaths = imported.map((result) =>

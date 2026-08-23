@@ -28,6 +28,12 @@ import {
   relativePathInsideRoot
 } from '../../../shared/cross-platform-path'
 import { toRuntimeWorktreeSelector } from './runtime-worktree-selector'
+import { createBrowserUuid } from '@/lib/browser-uuid'
+import {
+  createRuntimeUploadProgressTracker,
+  sumStagedUploadBytes,
+  type RuntimeUploadProgressReport
+} from './runtime-upload-progress-tracker'
 import {
   createEmptyRuntimeFileSearchResult,
   getRuntimeFileSearchRejectedField
@@ -664,7 +670,11 @@ export async function importExternalPathsToRuntime(
   context: RuntimeFileOperationArgs,
   sourcePaths: string[],
   destinationDir: string,
-  options?: { ensureDestinationDir?: boolean; assertCurrent?: () => void }
+  options?: {
+    ensureDestinationDir?: boolean
+    assertCurrent?: () => void
+    onProgress?: (progress: RuntimeUploadProgressReport) => void
+  }
 ): Promise<{ results: RuntimeImportResult[] }> {
   const target = getActiveRuntimeTarget(context.settings)
   if (target.kind !== 'environment' || !context.worktreeId || !context.worktreePath) {
@@ -695,100 +705,122 @@ export async function importExternalPathsToRuntime(
   assertImportSessionCurrent()
   const staged = await window.api.fs.stageExternalPathsForRuntimeUpload({ sourcePaths })
   assertImportSessionCurrent()
+  const uploadId = options?.onProgress ? createBrowserUuid() : undefined
+  const progress = options?.onProgress
+    ? createRuntimeUploadProgressTracker(
+        sumStagedUploadBytes(staged.sources as StagedRuntimeImportSource[]),
+        options.onProgress
+      )
+    : null
+  const unsubscribeProgress =
+    progress && uploadId
+      ? window.api.fs.onUploadProgress((event) => {
+          // Why: a concurrent drop in another pane shares this channel.
+          if (event.uploadId === uploadId) {
+            progress.reportFileProgress(event.sentBytes)
+          }
+        })
+      : null
   const results: RuntimeImportResult[] = []
   const reservedNames = new Set<string>()
 
-  await ensureRuntimeDirectory(
-    context,
-    destinationDir,
-    assertImportSessionCurrent,
-    expectedEnvironmentPairingRevision
-  )
+  try {
+    await ensureRuntimeDirectory(
+      context,
+      destinationDir,
+      assertImportSessionCurrent,
+      expectedEnvironmentPairingRevision
+    )
 
-  for (const source of staged.sources as StagedRuntimeImportSource[]) {
-    if (source.status !== 'staged') {
-      results.push(source)
-      continue
-    }
-    let createdDirectoryImportRoot: string | null = null
-    try {
-      const finalName = await deconflictRuntimeImportName(
-        context,
-        destinationDir,
-        source.name,
-        reservedNames,
-        expectedEnvironmentPairingRevision
-      )
-      const destPath = joinPath(destinationDir, finalName)
-      const destRelativePath = joinRuntimeRelativePath(destinationArgs.relativePath, finalName)
-      for (const entry of source.entries) {
-        const entryRelativePath = joinRuntimeRelativePath(destRelativePath, entry.relativePath)
-        if (entry.kind === 'directory') {
+    for (const source of staged.sources as StagedRuntimeImportSource[]) {
+      if (source.status !== 'staged') {
+        results.push(source)
+        continue
+      }
+      let createdDirectoryImportRoot: string | null = null
+      try {
+        const finalName = await deconflictRuntimeImportName(
+          context,
+          destinationDir,
+          source.name,
+          reservedNames,
+          expectedEnvironmentPairingRevision
+        )
+        const destPath = joinPath(destinationDir, finalName)
+        const destRelativePath = joinRuntimeRelativePath(destinationArgs.relativePath, finalName)
+        for (const entry of source.entries) {
+          const entryRelativePath = joinRuntimeRelativePath(destRelativePath, entry.relativePath)
+          if (entry.kind === 'directory') {
+            assertImportSessionCurrent()
+            await callRuntimeFileMutation(
+              target,
+              'files.createDirNoClobber',
+              withSshMutationExpectation(context, {
+                worktree: toRuntimeWorktreeSelector(context.worktreeId),
+                relativePath: entryRelativePath
+              }),
+              15_000,
+              expectedEnvironmentPairingRevision
+            )
+            if (source.kind === 'directory' && entry.relativePath === '') {
+              createdDirectoryImportRoot = entryRelativePath
+            }
+            continue
+          }
+          await uploadRuntimeFileWithoutClobber(
+            target,
+            context.worktreeId,
+            entryRelativePath,
+            { sourceRootPath: source.sourcePath, entryRelativePath: entry.relativePath },
+            assertImportSessionCurrent,
+            context.expectedSshConnectionGeneration,
+            context.expectedSshTargetId,
+            context.expectedExecutionHostId ??
+              (context.expectedSshTargetId
+                ? `ssh:${encodeURIComponent(context.expectedSshTargetId)}`
+                : 'local'),
+            expectedEnvironmentPairingRevision,
+            uploadId
+          )
+          progress?.completeFile(entry.byteLength)
+        }
+        reservedNames.add(finalName)
+        results.push({
+          sourcePath: source.sourcePath,
+          status: 'imported',
+          destPath,
+          kind: source.kind,
+          renamed: finalName !== source.name
+        })
+      } catch (error) {
+        if (createdDirectoryImportRoot) {
+          // Why: match local directory imports by removing the no-clobber root
+          // Orca created when a nested runtime upload fails halfway through.
           assertImportSessionCurrent()
           await callRuntimeFileMutation(
             target,
-            'files.createDirNoClobber',
+            'files.delete',
             withSshMutationExpectation(context, {
               worktree: toRuntimeWorktreeSelector(context.worktreeId),
-              relativePath: entryRelativePath
+              relativePath: createdDirectoryImportRoot,
+              recursive: true
             }),
             15_000,
             expectedEnvironmentPairingRevision
-          )
-          if (source.kind === 'directory' && entry.relativePath === '') {
-            createdDirectoryImportRoot = entryRelativePath
-          }
-          continue
+          ).catch(() => {})
         }
-        await uploadRuntimeFileWithoutClobber(
-          target,
-          context.worktreeId,
-          entryRelativePath,
-          { sourceRootPath: source.sourcePath, entryRelativePath: entry.relativePath },
-          assertImportSessionCurrent,
-          context.expectedSshConnectionGeneration,
-          context.expectedSshTargetId,
-          context.expectedExecutionHostId ??
-            (context.expectedSshTargetId
-              ? `ssh:${encodeURIComponent(context.expectedSshTargetId)}`
-              : 'local'),
-          expectedEnvironmentPairingRevision
-        )
+        results.push({
+          sourcePath: source.sourcePath,
+          status: 'failed',
+          reason: error instanceof Error ? error.message : String(error)
+        })
       }
-      reservedNames.add(finalName)
-      results.push({
-        sourcePath: source.sourcePath,
-        status: 'imported',
-        destPath,
-        kind: source.kind,
-        renamed: finalName !== source.name
-      })
-    } catch (error) {
-      if (createdDirectoryImportRoot) {
-        // Why: match local directory imports by removing the no-clobber root
-        // Orca created when a nested runtime upload fails halfway through.
-        assertImportSessionCurrent()
-        await callRuntimeFileMutation(
-          target,
-          'files.delete',
-          withSshMutationExpectation(context, {
-            worktree: toRuntimeWorktreeSelector(context.worktreeId),
-            relativePath: createdDirectoryImportRoot,
-            recursive: true
-          }),
-          15_000,
-          expectedEnvironmentPairingRevision
-        ).catch(() => {})
-      }
-      results.push({
-        sourcePath: source.sourcePath,
-        status: 'failed',
-        reason: error instanceof Error ? error.message : String(error)
-      })
     }
-  }
 
-  return { results }
+    return { results }
+  } finally {
+    unsubscribeProgress?.()
+  }
 }
 
 async function uploadRuntimeFileWithoutClobber(
@@ -800,7 +832,8 @@ async function uploadRuntimeFileWithoutClobber(
   expectedSshConnectionGeneration?: number,
   expectedSshTargetId?: string,
   expectedExecutionHostId?: 'local' | `ssh:${string}`,
-  expectedEnvironmentPairingRevision?: number
+  expectedEnvironmentPairingRevision?: number,
+  uploadId?: string
 ): Promise<void> {
   const tempRelativePath = makeRuntimeUploadTempPath(relativePath)
   try {
@@ -813,6 +846,7 @@ async function uploadRuntimeFileWithoutClobber(
       entryRelativePath: source.entryRelativePath,
       worktree: toRuntimeWorktreeSelector(worktreeId),
       relativePath: tempRelativePath,
+      uploadId,
       expectedSshTargetId,
       expectedSshConnectionGeneration,
       expectedExecutionHostId,

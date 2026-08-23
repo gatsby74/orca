@@ -24,6 +24,8 @@ export type RuntimeUploadFileStreamArgs = {
   expectedSshTargetId?: string
   expectedSshConnectionGeneration?: number
   expectedEnvironmentPairingRevision?: number
+  /** Called after each slice lands, so the drop UI can show how far along the file is. */
+  onProgress?: (progress: { sentBytes: number; totalBytes: number }) => void
 }
 
 /**
@@ -72,6 +74,7 @@ export async function streamExternalFileToRuntime(
     // to exist before commitUpload renames it into place.
     if (totalBytes === 0) {
       await sendChunk(args, '', false)
+      args.onProgress?.({ sentBytes: 0, totalBytes: 0 })
       return { byteLength: 0 }
     }
 
@@ -84,6 +87,9 @@ export async function streamExternalFileToRuntime(
       }
       await sendChunk(args, buffer.subarray(0, bytesRead).toString('base64'), offset > 0)
       offset += bytesRead
+      // Why: reported after the chunk is acknowledged, so the bar tracks bytes the
+      // runtime actually has rather than bytes handed to the socket.
+      args.onProgress?.({ sentBytes: offset, totalBytes })
     }
 
     // Why: the destination is a temp path the caller commits, so a source that
