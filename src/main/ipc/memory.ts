@@ -15,19 +15,24 @@ export type MemorySnapshotRequest = { executionHostId?: string | null }
 const RUNTIME_SNAPSHOT_DEADLINE_MS = 20_000
 
 /**
- * Hard deadline around the transport. Calls to one environment are serialized,
- * so a request that never settles would wedge every later poll behind it and
- * leave a stale reading on screen with no way to learn contact was lost.
+ * Hard deadline around the transport. Calls to one environment are serialized, so
+ * a request that never settles would wedge every later poll behind it — which is
+ * why the deadline aborts the call rather than only rejecting this caller.
  */
-async function withDeadline<T>(work: Promise<T>, timeoutMs: number): Promise<T> {
+async function withDeadline<T>(
+  start: (signal: AbortSignal) => Promise<T>,
+  timeoutMs: number
+): Promise<T> {
+  const controller = new AbortController()
   let timer: NodeJS.Timeout | undefined
+  const expired = new Promise<never>((_resolve, reject) => {
+    timer = setTimeout(() => {
+      controller.abort()
+      reject(new Error('runtime_unreachable'))
+    }, timeoutMs)
+  })
   try {
-    return await Promise.race([
-      work,
-      new Promise<never>((_resolve, reject) => {
-        timer = setTimeout(() => reject(new Error('runtime_unreachable')), timeoutMs)
-      })
-    ])
+    return await Promise.race([start(controller.signal), expired])
   } finally {
     clearTimeout(timer)
   }
@@ -41,7 +46,17 @@ async function withDeadline<T>(work: Promise<T>, timeoutMs: number): Promise<T> 
  */
 async function collectRuntimeSnapshot(environmentId: string): Promise<MemorySnapshot> {
   const response = await withDeadline(
-    callRuntimeEnvironment(app.getPath('userData'), environmentId, 'diagnostics.memory', null),
+    (signal) =>
+      callRuntimeEnvironment(
+        app.getPath('userData'),
+        environmentId,
+        'diagnostics.memory',
+        null,
+        undefined,
+        undefined,
+        undefined,
+        { signal }
+      ),
     RUNTIME_SNAPSHOT_DEADLINE_MS
   )
   if (!response.ok) {

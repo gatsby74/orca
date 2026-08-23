@@ -7,6 +7,7 @@ import {
   isRemoteResourceManagerHost,
   listResourceManagerHosts,
   resolveDefaultResourceManagerHostId,
+  resolveDefaultResourceManagerHostIdFromState,
   resolveSelectedResourceManagerHostId
 } from './resource-manager-hosts'
 
@@ -197,5 +198,46 @@ describe('isRemoteResourceManagerHost', () => {
     expect(isRemoteResourceManagerHost('runtime:env-1')).toBe(true)
     expect(isRemoteResourceManagerHost('local')).toBe(false)
     expect(isRemoteResourceManagerHost('ssh:box')).toBe(false)
+  })
+})
+
+describe('resolveDefaultResourceManagerHostIdFromState', () => {
+  const hosts = [
+    { id: 'local', label: 'Local', kind: 'local' as const },
+    { id: 'runtime:env-1', label: 'Hetzner', kind: 'runtime' as const }
+  ]
+  const worktree = { id: 'wt-1', repoId: 'repo-1', hostId: 'runtime:env-1' } as unknown as Worktree
+
+  // Why: the panel's own slices are empty while it is closed, and the default is
+  // decided on the open edge — reading them there resolved everything to local.
+  it('resolves the focused workspace host from canonical state', () => {
+    expect(
+      resolveDefaultResourceManagerHostIdFromState(
+        {
+          activeWorktreeId: 'wt-1',
+          repos: [],
+          worktreesByRepo: { 'repo-1': [worktree] }
+        },
+        hosts
+      )
+    ).toBe('runtime:env-1')
+  })
+
+  it('falls back to local when nothing is focused', () => {
+    expect(
+      resolveDefaultResourceManagerHostIdFromState(
+        { activeWorktreeId: null, repos: [], worktreesByRepo: { 'repo-1': [worktree] } },
+        hosts
+      )
+    ).toBe('local')
+  })
+
+  it('falls back to local when the workspace is not in state', () => {
+    expect(
+      resolveDefaultResourceManagerHostIdFromState(
+        { activeWorktreeId: 'wt-1', repos: [], worktreesByRepo: {} },
+        hosts
+      )
+    ).toBe('local')
   })
 })

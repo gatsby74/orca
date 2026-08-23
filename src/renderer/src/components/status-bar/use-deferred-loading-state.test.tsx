@@ -47,7 +47,6 @@ describe('useDeferredLoadingState', () => {
     expect(container.textContent).toBe('hidden')
   })
 
-  // Why: a host that answers quickly must never flash a placeholder.
   it('never becomes visible when the wait resolves inside the delay', () => {
     render(true)
     advance(LOADING_AFFORDANCE_DELAY_MS - 50)

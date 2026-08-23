@@ -53,12 +53,12 @@ describe('memory:getSnapshot', () => {
   it('proxies diagnostics.memory to the named runtime host', async () => {
     callRuntimeEnvironmentMock.mockResolvedValue({ ok: true, result: remotePayload })
     const snapshot = await handler()(null, { executionHostId: 'runtime:env-lxc1' })
-    expect(callRuntimeEnvironmentMock).toHaveBeenCalledWith(
+    expect(callRuntimeEnvironmentMock.mock.calls[0].slice(0, 4)).toEqual([
       '/tmp/orca-user-data',
       'env-lxc1',
       'diagnostics.memory',
       null
-    )
+    ])
     expect(snapshot).toMatchObject({ totalMemory: 1234 })
     expect(collectMemorySnapshotMock).not.toHaveBeenCalled()
   })
@@ -110,6 +110,29 @@ describe('memory:getSnapshot', () => {
     callRuntimeEnvironmentMock.mockResolvedValue({ ok: true, result: remotePayload })
     await handler()(null, { executionHostId: 'runtime:env-lxc1' })
     expect(callRuntimeEnvironmentMock.mock.calls[0][4]).toBeUndefined()
+  })
+
+  // Why: rejecting this caller is not enough. Calls to one environment are
+  // serialized, so a request left running would wedge every later poll behind it.
+  it('aborts the transport when the deadline expires', async () => {
+    vi.useFakeTimers()
+    try {
+      let signal: AbortSignal | undefined
+      callRuntimeEnvironmentMock.mockImplementation(
+        (..._args: unknown[]) =>
+          new Promise(() => {
+            signal = (_args[7] as { signal?: AbortSignal } | undefined)?.signal
+          })
+      )
+      const pending = handler()(null, { executionHostId: 'runtime:env-lxc1' })
+      const assertion = expect(pending).rejects.toThrow('runtime_unreachable')
+      expect(signal?.aborted).toBe(false)
+      await vi.advanceTimersByTimeAsync(20_000)
+      await assertion
+      expect(signal?.aborted).toBe(true)
+    } finally {
+      vi.useRealTimers()
+    }
   })
 
   it('rejects an SSH host rather than answering with local numbers', async () => {

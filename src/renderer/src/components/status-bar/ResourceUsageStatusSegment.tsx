@@ -44,7 +44,7 @@ import { getHostDisplayLabelOverrides } from '../../../../shared/host-setting-ov
 import {
   isRemoteResourceManagerHost,
   listResourceManagerHosts,
-  resolveDefaultResourceManagerHostId,
+  resolveDefaultResourceManagerHostIdFromState,
   resolveSelectedResourceManagerHostId
 } from './resource-manager-hosts'
 import { ResourceManagerHostSwitcher } from './ResourceManagerHostSwitcher'
@@ -967,20 +967,14 @@ export function ResourceUsageStatusSegment({
     () => new Map(allWorktrees.map((worktree) => [worktree.id, worktree])),
     [allWorktrees]
   )
-  const repoById = useMemo(() => new Map(repos.map((repo) => [repo.id, repo])), [repos])
-
-  // Why: resolved on the open edge only. Re-resolving as hosts or the active
-  // workspace change would yank the panel off a host the user just switched to.
+  // Why: resolved on the open edge only, and from canonical state — the panel's own
+  // slices are gated on `open`, which is still false here, so reading them would
+  // resolve every workspace to the local host.
   const selectDefaultHost = useCallback((): void => {
     setSelectedHostId(
-      resolveDefaultResourceManagerHostId({
-        hosts: resourceHosts,
-        activeWorktreeId,
-        worktreeById,
-        repoById
-      })
+      resolveDefaultResourceManagerHostIdFromState(useAppStore.getState(), resourceHosts)
     )
-  }, [resourceHosts, activeWorktreeId, worktreeById, repoById])
+  }, [resourceHosts])
 
   // Why: skip the merge when closed; the always-mounted segment recomputing on every keystroke-driven store mutation made the app laggy.
   const unifiedRepos = useMemo(
@@ -1421,7 +1415,7 @@ export function ResourceUsageStatusSegment({
             <AlertTriangle className="size-3 shrink-0 text-yellow-500" />
             <span>
               {translate(
-                'auto.components.status.bar.ResourceUsageStatusSegment.remoteHostUnreachable',
+                'auto.components.status.bar.ResourceUsageStatusSegment.278188cd75',
                 "Can't reach this host. Its usage is unknown, not zero."
               )}
             </span>

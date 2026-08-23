@@ -23,6 +23,7 @@ import {
   isConnectedRuntimeHostState,
   runtimeHostConnectionState
 } from '@/runtime/runtime-host-connection-state'
+import { getAllWorktreesFromState } from '../../store/selectors'
 
 export type ResourceManagerHost = {
   /** Execution host id — `local`, or `runtime:<encoded environment id>`. */
@@ -92,6 +93,35 @@ export function resolveDefaultResourceManagerHostId(args: {
     return LOCAL_EXECUTION_HOST_ID
   }
   return args.hosts.some((host) => host.id === hostId) ? hostId : LOCAL_EXECUTION_HOST_ID
+}
+
+/** State the default-host decision reads, independent of the panel's open-gated slices. */
+export type ResourceManagerHostState = {
+  activeWorktreeId: string | null
+  repos: readonly Repo[]
+  worktreesByRepo: Parameters<typeof getAllWorktreesFromState>[0]['worktreesByRepo']
+}
+
+/**
+ * Why this exists: the panel's own store slices return empty collections while it
+ * is closed, and the default is decided on the open edge — reading them there
+ * resolved every workspace to the local host.
+ */
+export function resolveDefaultResourceManagerHostIdFromState(
+  state: ResourceManagerHostState,
+  hosts: readonly ResourceManagerHost[]
+): string {
+  return resolveDefaultResourceManagerHostId({
+    hosts,
+    activeWorktreeId: state.activeWorktreeId,
+    worktreeById: new Map(
+      getAllWorktreesFromState({ worktreesByRepo: state.worktreesByRepo }).map((worktree) => [
+        worktree.id,
+        worktree
+      ])
+    ),
+    repoById: new Map(state.repos.map((repo) => [repo.id, repo]))
+  })
 }
 
 /** Keeps a selection valid when its host disconnects while the popover is open. */

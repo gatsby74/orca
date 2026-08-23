@@ -6,9 +6,7 @@ export function SkeletonBar({ className }: { className?: string }): React.JSX.El
   return <div className={cn('animate-pulse rounded bg-muted/60', className)} />
 }
 
-// Why: mirror the real row padding and metric column widths so the skeleton
-// occupies the same grid the data will land in — otherwise the content still
-// shifts, just one frame later.
+// Why: mirror the real metric column widths so rows land where the skeleton sat.
 const CPU_COLUMN_CLS = 'w-12'
 const MEM_COLUMN_CLS = 'w-16'
 const TRAILING_GUTTER_CLS = 'w-5'
@@ -53,7 +51,7 @@ const GROUPS = [
   { name: 'w-20', sessions: ['w-20'] }
 ]
 
-/** Stand-in tree shown only once a host's first snapshot is genuinely slow. */
+/** Shown only once a host's first snapshot is genuinely slow. */
 export function ResourceManagerSkeleton(): React.JSX.Element {
   return (
     <div aria-hidden>

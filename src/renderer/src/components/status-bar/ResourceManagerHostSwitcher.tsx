@@ -47,7 +47,7 @@ export function ResourceManagerHostSwitcher({
         variant="outline"
         className="h-7 w-full min-w-max rounded-md border border-sidebar-border bg-sidebar-accent/35 shadow-xs"
         aria-label={translate(
-          'auto.components.status.bar.ResourceManagerHostSwitcher.hostScope',
+          'auto.components.status.bar.ResourceManagerHostSwitcher.1dff89d4e1',
           'Resource Manager host: {{value0}}',
           { value0: selected.label }
         )}
