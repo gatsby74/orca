@@ -57,7 +57,20 @@ describe('stageOneSourceForRuntimeUpload', () => {
     expect(staged.status === 'failed' && staged.reason).toContain('2 GB')
   })
 
-  it('keeps rejecting symlinked sources', async () => {
+  // symlink() needs privileges or Developer Mode on Windows.
+  it('renders a size just over the ceiling as larger than the ceiling', async () => {
+    const filePath = join(workDir, 'edge.bin')
+    await writeFile(filePath, '')
+    await truncate(filePath, 2 * 1024 * 1024 * 1024 + 1)
+
+    const staged = await stageOneSourceForRuntimeUpload(filePath)
+
+    expect(staged).toMatchObject({ status: 'failed' })
+    // "is 2 GB, over the 2 GB limit" reads like a broken check.
+    expect(staged.status === 'failed' && staged.reason).toContain('2.1 GB')
+  })
+
+  it.skipIf(process.platform === 'win32')('keeps rejecting symlinked sources', async () => {
     const targetPath = join(workDir, 'target.txt')
     await writeFile(targetPath, 'data')
     const linkPath = join(workDir, 'link.txt')

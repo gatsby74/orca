@@ -142,6 +142,8 @@ type StagedRuntimeImportEntry =
 type RuntimeUploadSource = {
   sourceRootPath: string
   entryRelativePath: string
+  /** What staging measured; main refuses the upload if the file no longer matches. */
+  byteLength: number
 }
 
 type RuntimeImportResult =
@@ -744,7 +746,11 @@ export async function importExternalPathsToRuntime(
           target,
           context.worktreeId,
           entryRelativePath,
-          { sourceRootPath: source.sourcePath, entryRelativePath: entry.relativePath },
+          {
+            sourceRootPath: source.sourcePath,
+            entryRelativePath: entry.relativePath,
+            byteLength: entry.byteLength
+          },
           assertImportSessionCurrent,
           context.expectedSshConnectionGeneration,
           context.expectedSshTargetId,
@@ -811,6 +817,7 @@ async function uploadRuntimeFileWithoutClobber(
       environmentId: target.environmentId,
       sourceRootPath: source.sourceRootPath,
       entryRelativePath: source.entryRelativePath,
+      expectedByteLength: source.byteLength,
       worktree: toRuntimeWorktreeSelector(worktreeId),
       relativePath: tempRelativePath,
       expectedSshTargetId,

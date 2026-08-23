@@ -181,6 +181,7 @@ export type FilesystemApi = {
         entryRelativePath: string
         worktree: string
         relativePath: string
+        expectedByteLength?: number
         expectedEnvironmentPairingRevision?: number
       } & SshMutationExpectation
     ) => Promise<{ byteLength: number }>

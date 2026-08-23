@@ -17,6 +17,8 @@ export type RuntimeUploadFileStreamArgs = {
   sourceRootPath: string
   /** Path of this file within the dropped directory; empty when the source is a file. */
   entryRelativePath: string
+  /** Size staging measured; a source replaced since then is refused, not streamed. */
+  expectedByteLength?: number
   worktree: string
   /** Destination path on the runtime, relative to the worktree. */
   relativePath: string
@@ -68,6 +70,9 @@ export async function streamExternalFileToRuntime(
     }
 
     const totalBytes = openedStat.size
+    if (args.expectedByteLength !== undefined && totalBytes !== args.expectedByteLength) {
+      throw new Error(`File changed since it was staged: '${displayPath}'`)
+    }
     // Why: a zero-byte source produces no slices, but the destination still has
     // to exist before commitUpload renames it into place.
     if (totalBytes === 0) {
