@@ -19,6 +19,12 @@ describe('getMaterialFileIconAssetUrl', () => {
     expect(getKnownMaterialFileIconAssetUrl('unknown.customtype')).toBeNull()
   })
 
+  it('maps language-id-only extensions that upstream omits from fileExtensions', () => {
+    expect(getKnownMaterialFileIconAssetUrl('index.html')).toContain('/file-icons/html.svg')
+    expect(getKnownMaterialFileIconAssetUrl('workflow.yml')).toContain('/file-icons/yaml.svg')
+    expect(getKnownMaterialFileIconAssetUrl('openapi-spec.yaml')).toContain('/file-icons/yaml.svg')
+  })
+
   it('falls back to the default file asset for unknown files', () => {
     expect(getMaterialFileIconAssetUrl('unknown.customtype', false)).toContain(
       '/file-icons/file.svg'

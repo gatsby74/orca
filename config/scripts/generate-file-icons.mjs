@@ -47,12 +47,15 @@ function createManifest() {
   // so fold common language IDs into extension matches during generation.
   const languageIdExtensionMap = {
     diff: 'diff',
+    html: 'html',
     js: 'javascript',
     m: 'matlab',
     patch: 'diff',
     php: 'php',
     tex: 'tex',
-    ts: 'typescript'
+    ts: 'typescript',
+    yaml: 'yaml',
+    yml: 'yaml'
   }
 
   for (const [ext, icon] of Object.entries(languageIdExtensionMap)) {

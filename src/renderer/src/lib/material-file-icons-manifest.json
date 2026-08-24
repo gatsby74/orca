@@ -3195,11 +3195,14 @@
     "sls": "salt",
     "m2": "macaulay2",
     "diff": "diff",
+    "html": "html",
     "js": "javascript",
     "m": "matlab",
     "php": "php",
     "tex": "tex",
-    "ts": "typescript"
+    "ts": "typescript",
+    "yaml": "yaml",
+    "yml": "yaml"
   },
   "defaultIcon": "file"
 }
