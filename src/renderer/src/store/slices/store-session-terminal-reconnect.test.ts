@@ -96,6 +96,9 @@ describe('reconnectPersistedTerminals', () => {
         ptyIdsByTabId: s.ptyIdsByTabId,
         browserTabsByWorktree: s.browserTabsByWorktree,
         worktreeIdsWithLiveAgent: new Set(),
+        // Why: reconnect has drained this above; a regression that leaves it
+        // populated would wrongly exempt wt2 from the sleeping sweep.
+        pendingReconnectWorktreeIds: new Set(s.pendingReconnectWorktreeIds),
         hideDefaultBranchWorkspace: false,
         hideAutomationGeneratedWorkspaces: false,
         hideCliCreatedWorkspaces: false,
@@ -445,6 +448,9 @@ describe('reconnectPersistedTerminals', () => {
         ptyIdsByTabId: s.ptyIdsByTabId,
         browserTabsByWorktree: s.browserTabsByWorktree,
         worktreeIdsWithLiveAgent: new Set(),
+        // Why: reconnect has drained this above; a regression that leaves it
+        // populated would wrongly exempt wt2 from the sleeping sweep.
+        pendingReconnectWorktreeIds: new Set(s.pendingReconnectWorktreeIds),
         hideDefaultBranchWorkspace: false,
         hideAutomationGeneratedWorkspaces: false,
         hideCliCreatedWorkspaces: false,

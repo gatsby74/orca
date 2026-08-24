@@ -762,6 +762,7 @@ function WorktreeJumpPaletteContent({
   const hideWorkspacesFromOtherDevices = useAppStore((s) => s.hideWorkspacesFromOtherDevices)
   const showSleepingWorkspaces = useAppStore((s) => s.showSleepingWorkspaces)
   const alwaysShowDefaultBranchWorkspace = useAppStore((s) => s.alwaysShowDefaultBranchWorkspace)
+  const pendingReconnectWorktreeIdList = useAppStore((s) => s.pendingReconnectWorktreeIds)
   const lastVisitedAtByWorktreeId = useAppStore((s) => s.lastVisitedAtByWorktreeId)
   const workspacePortScan = useAppStore((s) => s.workspacePortScan?.result ?? null)
   const openNewBrowserTabInActiveWorkspace = useAppStore(
@@ -932,6 +933,12 @@ function WorktreeJumpPaletteContent({
         : EMPTY_PAIRED_DEVICE_IDS_BY_ENVIRONMENT,
     [hideWorkspacesFromOtherDevices, runtimeEnvironments, runtimeStatusByEnvironmentId]
   )
+  // Why: same startup-reconnect exemption the sidebar sweep applies, so Cmd+J opened
+  // during restore lists the same workspaces the sidebar shows. #16247
+  const pendingReconnectWorktreeIds = useMemo(
+    () => new Set(pendingReconnectWorktreeIdList),
+    [pendingReconnectWorktreeIdList]
+  )
 
   // Why: empty-query mirrors sidebar filters so Search opens on the same quiet list; typed search widens to global non-archived scope.
   const emptyQueryVisibleWorktrees = useMemo(
@@ -973,7 +980,8 @@ function WorktreeJumpPaletteContent({
             tabsByWorktree,
             ptyIdsByTabId,
             browserTabsByWorktree,
-            worktreeIdsWithLiveAgent
+            worktreeIdsWithLiveAgent,
+            pendingReconnectWorktreeIds
           )
         ) {
           return false
@@ -994,7 +1002,8 @@ function WorktreeJumpPaletteContent({
       ptyIdsByTabId,
       showSleepingWorkspaces,
       tabsByWorktree,
-      worktreeIdsWithLiveAgent
+      worktreeIdsWithLiveAgent,
+      pendingReconnectWorktreeIds
     ]
   )
 

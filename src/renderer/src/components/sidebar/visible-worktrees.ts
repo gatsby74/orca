@@ -68,6 +68,12 @@ type VisibleWorktreeOptions = {
   ptyIdsByTabId: Record<string, string[]> | null
   browserTabsByWorktree?: Record<string, { id: string }[]> | null
   worktreeIdsWithLiveAgent: ReadonlySet<string>
+  /**
+   * Workspaces whose persisted terminals are still being reattached by startup
+   * reconnect. They were awake at shutdown, so the sleeping sweep must not drop
+   * them while `ptyIdsByTabId` is still filling in. #16247
+   */
+  pendingReconnectWorktreeIds: ReadonlySet<string>
   hideDefaultBranchWorkspace: boolean
   hideAutomationGeneratedWorkspaces: boolean
   hideCliCreatedWorkspaces: boolean
@@ -152,7 +158,8 @@ export function computeVisibleWorktrees(
           opts.tabsByWorktree,
           opts.ptyIdsByTabId,
           opts.browserTabsByWorktree,
-          opts.worktreeIdsWithLiveAgent
+          opts.worktreeIdsWithLiveAgent,
+          opts.pendingReconnectWorktreeIds
         )
     )
   }
@@ -310,6 +317,7 @@ export function getVisibleWorktreeIds(): string[] {
       state.tabsByWorktree,
       Date.now()
     ),
+    pendingReconnectWorktreeIds: new Set(state.pendingReconnectWorktreeIds),
     hideDefaultBranchWorkspace: state.hideDefaultBranchWorkspace,
     hideAutomationGeneratedWorkspaces: state.hideAutomationGeneratedWorkspaces,
     hideCliCreatedWorkspaces: state.hideCliCreatedWorkspaces,
