@@ -11,6 +11,7 @@ import {
 } from 'electron'
 import { join } from 'node:path'
 import { is } from '@electron-toolkit/utils'
+import { resolveEditMenuTarget } from '../menu/edit-menu-focus-target'
 import type { Store } from '../persistence'
 import { getAppIconPath } from '../app-icon'
 import { browserManager } from '../browser/browser-manager'
@@ -843,6 +844,11 @@ export function createMainWindow(
     }
 
     if (isMacAppPasteInput(input)) {
+      // Why: DevTools and browser guest views are real editable surfaces that own
+      // their own paste; only claim Cmd+V when this renderer actually holds focus.
+      if (resolveEditMenuTarget(mainWindow)) {
+        return
+      }
       // Why: chat/terminal panes hold focus without native editable controls, so route Cmd+V through Orca's paste ownership.
       event.preventDefault()
       mainWindow.webContents.send('ui:appMenuPaste')

@@ -279,6 +279,27 @@ describe('registerAppMenu', () => {
     }
   )
 
+  // Why: menu accelerators fire app-wide and getFocusedWindow() still returns the
+  // Orca window while its DevTools console owns the caret — without delegating,
+  // Cmd+V lands in the focused terminal pane instead of the console.
+  it('pastes into DevTools instead of an Orca pane when DevTools holds focus', () => {
+    const send = vi.fn()
+    const hostContents = { send }
+    const devToolsContents = { paste: vi.fn() }
+    getFocusedWindowMock.mockReturnValue({ webContents: hostContents })
+    getFocusedWebContentsMock.mockReturnValue(devToolsContents)
+    registerAppMenu(buildMenuOptions())
+
+    const editSubmenu = getSubmenu(getTemplate(), 'Edit')
+    editSubmenu
+      .find((item) => item.label === 'Paste')
+      ?.click?.({} as never, {} as never, {} as never)
+
+    expect(devToolsContents.paste).toHaveBeenCalledOnce()
+    expect(send).not.toHaveBeenCalled()
+    expect(sendActionToFirstResponderMock).not.toHaveBeenCalled()
+  })
+
   it('keeps selection actions native in a focused guest webview', () => {
     const send = vi.fn()
     const guestContents = { copy: vi.fn(), selectAll: vi.fn() }
