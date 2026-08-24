@@ -68,7 +68,8 @@ export function bindWritePtyOutputToXterm(session: ConnectPanePtySession): void 
     if (synchronizedForegroundOutput && synchronizedOutputStarted) {
       session.synchronizedForegroundFrameInteractive =
         performance.now() - session.lastTerminalInputAt <=
-        FOREGROUND_SYNCHRONIZED_FRAME_INTERACTIVE_WINDOW_MS
+        FOREGROUND_SYNCHRONIZED_FRAME_INTERACTIVE_WINDOW_MS +
+          session.interactiveEchoLatency.allowanceMs()
     } else if (!nextSynchronizedForegroundOutputActive && !synchronizedOutputEnded) {
       session.synchronizedForegroundFrameInteractive = false
     }
@@ -99,6 +100,11 @@ export function bindWritePtyOutputToXterm(session: ConnectPanePtySession): void 
       coalesceForeground: synchronizedForegroundOutput && synchronizedOutputEnded,
       holdForeground: synchronizedForegroundOutput && nextSynchronizedForegroundOutputActive
     })
+    // Why after the write: sampling earlier would let this chunk widen the window it is
+    // itself being judged against. Foreground only — a hidden pane's backlog is not echo.
+    if (foregroundOutput) {
+      session.interactiveEchoLatency.recordOutput(performance.now())
+    }
   }
 
   session.queueAgentIdleTerminalModeReset = (): void => {
