@@ -49,6 +49,28 @@ describe('interactive echo latency', () => {
     expect(tracker.allowanceMs()).toBe(200)
   })
 
+  it('keeps sampling through pipelined typing instead of only the first key', () => {
+    const tracker = createInteractiveEchoLatencyTracker()
+    tracker.recordInput(0)
+    tracker.recordInput(100)
+    tracker.recordOutput(200)
+    tracker.recordOutput(300)
+    // Both keystrokes are paired, so a sustained burst keeps adapting; a single-slot
+    // pending would have dropped the second input and produced no sample at 300.
+    expect(tracker.allowanceMs()).toBe(200)
+  })
+
+  it('bounds the pending queue when typing outruns the echoes', () => {
+    const tracker = createInteractiveEchoLatencyTracker()
+    for (let index = 0; index < 200; index++) {
+      tracker.recordInput(index)
+    }
+    tracker.recordOutput(300)
+    // The oldest inputs are discarded rather than retained without bound, so the sample
+    // reflects a recent keystroke instead of one 300ms stale.
+    expect(tracker.allowanceMs()).toBeLessThan(200)
+  })
+
   it('ignores agent work that is too slow to be an echo', () => {
     const tracker = createInteractiveEchoLatencyTracker()
     tracker.recordInput(0)

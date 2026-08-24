@@ -10,6 +10,8 @@ const MAX_ECHO_LATENCY_SAMPLE_MS = 2_000
 /** Caps how far a slow link may widen the windows, bounding over-classification. */
 export const MAX_ECHO_LATENCY_ALLOWANCE_MS = 500
 const ECHO_LATENCY_SAMPLE_COUNT = 8
+/** Bounds the queue when a burst of typing outruns the echoes coming back. */
+const MAX_PENDING_INPUTS = 32
 
 export type InteractiveEchoLatencyTracker = {
   recordInput: (now: number) => void
@@ -20,21 +22,33 @@ export type InteractiveEchoLatencyTracker = {
 
 export function createInteractiveEchoLatencyTracker(): InteractiveEchoLatencyTracker {
   const samples: number[] = []
-  let pendingInputAt: number | null = null
+  // FIFO: echo is pipelined, so the chunk arriving now answers the oldest keystroke still
+  // outstanding. A single slot would drop every input typed while one is already pending,
+  // which thins sampling to roughly one per burst exactly when typing is most sustained.
+  const pendingInputs: number[] = []
 
   return {
     recordInput(now: number): void {
-      // Why earliest-unmatched: echo is pipelined, so the chunk arriving now answers the
-      // oldest keystroke still outstanding. Measuring from the newest one underestimates.
-      pendingInputAt ??= now
+      pendingInputs.push(now)
+      if (pendingInputs.length > MAX_PENDING_INPUTS) {
+        pendingInputs.shift()
+      }
     },
     recordOutput(now: number): void {
-      if (pendingInputAt === null) {
+      // Drop keystrokes too old to still be awaiting an echo, so one stalled input cannot
+      // poison the pairing for every output behind it.
+      while (
+        pendingInputs.length > 0 &&
+        now - (pendingInputs[0] ?? 0) > MAX_ECHO_LATENCY_SAMPLE_MS
+      ) {
+        pendingInputs.shift()
+      }
+      const inputAt = pendingInputs.shift()
+      if (inputAt === undefined) {
         return
       }
-      const sample = now - pendingInputAt
-      pendingInputAt = null
-      if (!Number.isFinite(sample) || sample < 0 || sample > MAX_ECHO_LATENCY_SAMPLE_MS) {
+      const sample = now - inputAt
+      if (!Number.isFinite(sample) || sample < 0) {
         return
       }
       samples.push(sample)
