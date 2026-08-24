@@ -1,12 +1,8 @@
 import { webContents } from 'electron'
 
 /**
- * The WebContents that owns an Edit-menu action when it is not the window's own
- * renderer — docked/undocked DevTools, or an embedded browser guest view.
- *
- * Why: menu accelerators fire application-wide, and getFocusedWindow() still
- * returns the Orca window while its DevTools holds keyboard focus. Edit items
- * that override a native role must delegate here or they steal the keystroke.
+ * The focused WebContents when it is not the window's own renderer — DevTools or a
+ * guest view owns the Edit action even though the accelerator fired app-wide.
  */
 export function resolveEditMenuTarget(
   focusedWindow: Electron.BrowserWindow

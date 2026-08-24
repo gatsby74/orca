@@ -279,9 +279,6 @@ describe('registerAppMenu', () => {
     }
   )
 
-  // Why: menu accelerators fire app-wide and getFocusedWindow() still returns the
-  // Orca window while its DevTools console owns the caret — without delegating,
-  // Cmd+V lands in the focused terminal pane instead of the console.
   it('pastes into DevTools instead of an Orca pane when DevTools holds focus', () => {
     const send = vi.fn()
     const hostContents = { send }

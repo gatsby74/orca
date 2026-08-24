@@ -20,7 +20,7 @@ export const notificationMock: Mock<(...args: unknown[]) => { show: MainWindowSp
     return { show: notificationShowMock }
   }
 )
-/** Stands in for the real focus lookup: returns the window's own renderer unless a suite overrides it. */
+/** Mock for Electron's focused-WebContents lookup. Defaults to null. */
 export const getFocusedWebContentsMock: MainWindowSpy = vi.fn(() => null)
 export const powerMonitorOnMock: MainWindowSpy = vi.fn()
 export const powerMonitorRemoveListenerMock: MainWindowSpy = vi.fn()

@@ -74,8 +74,7 @@ describe('createMainWindow macOS Cmd+V ownership', () => {
   beforeEach(() => {
     resetMainWindowMocks()
     resetExpectedTeardownStateForTest()
-    // Why: pin darwin — the paste interception is macOS-only, so on a Linux CI
-    // runner an unpinned test would pass without ever entering the branch.
+    // Why: pin darwin — on a Linux CI runner the macOS-only branch is never entered.
     vi.spyOn(process, 'platform', 'get').mockReturnValue('darwin')
   })
 

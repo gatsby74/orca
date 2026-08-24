@@ -192,9 +192,7 @@ function buildAndApplyMenu(options: RegisterAppMenuOptions): void {
           // control, so raw Electron paste cannot know which Orca surface owns it.
           const focusedWindow = BrowserWindow.getFocusedWindow()
           if (focusedWindow) {
-            // Why: this accelerator fires app-wide, and getFocusedWindow() still
-            // returns the Orca window while its DevTools console (or a browser
-            // guest view) owns the caret — paste it there, not into a pane.
+            // Why: DevTools or a guest view can own the caret while this window is "focused".
             const editTarget = resolveEditMenuTarget(focusedWindow)
             if (editTarget) {
               editTarget.paste()

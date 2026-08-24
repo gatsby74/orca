@@ -844,8 +844,7 @@ export function createMainWindow(
     }
 
     if (isMacAppPasteInput(input)) {
-      // Why: DevTools and browser guest views are real editable surfaces that own
-      // their own paste; only claim Cmd+V when this renderer actually holds focus.
+      // Why: DevTools and guest views own their own paste; only claim Cmd+V when focused here.
       if (resolveEditMenuTarget(mainWindow)) {
         return
       }
