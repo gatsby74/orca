@@ -79,7 +79,7 @@ function run() {
   cpSync(LICENSE_SRC, LICENSE_OUT)
   chmodSync(LICENSE_OUT, 0o644)
 
-  let copied = 0
+  const copiedIcons = new Set()
   for (const iconName of referencedIcons) {
     const sourcePath = resolve(ICONS_SRC, `${iconName}.svg`)
     const targetPath = resolve(OUT_DIR, `${iconName}.svg`)
@@ -88,14 +88,32 @@ function run() {
     }
     cpSync(sourcePath, targetPath)
     chmodSync(targetPath, 0o644)
-    copied += 1
+    copiedIcons.add(iconName)
+  }
+
+  // Why: upstream maps some patterns to icons it does not ship. Keeping those
+  // entries would resolve to a 404 and render a blank <img>, which bypasses the
+  // classic-icon fallback that only triggers on an unmapped path.
+  let pruned = 0
+  for (const group of [manifest.fileNames, manifest.fileExtensions]) {
+    for (const [key, iconName] of Object.entries(group)) {
+      if (!copiedIcons.has(iconName)) {
+        delete group[key]
+        pruned += 1
+      }
+    }
+  }
+
+  if (!copiedIcons.has(manifest.defaultIcon)) {
+    throw new Error(`Default icon asset is missing: ${manifest.defaultIcon}.svg`)
   }
 
   writeFileSync(MANIFEST_PATH, `${JSON.stringify(manifest, null, 2)}\n`)
 
   console.log(
     [
-      `Generated file icons: ${copied} SVGs copied`,
+      `Generated file icons: ${copiedIcons.size} SVGs copied`,
+      `${pruned} unshipped mapping(s) pruned`,
       `${Object.keys(manifest.fileNames).length} file names`,
       `${Object.keys(manifest.fileExtensions).length} extensions`
     ].join(', ')

@@ -1,4 +1,7 @@
+import { readdirSync } from 'node:fs'
+import { resolve } from 'node:path'
 import { describe, expect, it } from 'vitest'
+import manifest from './material-file-icons-manifest.json'
 import {
   getKnownMaterialFileIconAssetUrl,
   getMaterialFileIconAssetUrl
@@ -29,5 +32,21 @@ describe('getMaterialFileIconAssetUrl', () => {
     expect(getMaterialFileIconAssetUrl('unknown.customtype', false)).toContain(
       '/file-icons/file.svg'
     )
+  })
+
+  it('never maps a pattern to an icon asset that is not checked in', () => {
+    const onDisk = new Set(
+      readdirSync(resolve(__dirname, '../../public/file-icons'))
+        .filter((file) => file.endsWith('.svg'))
+        .map((file) => file.slice(0, -'.svg'.length))
+    )
+    const referenced = new Set([
+      ...Object.values(manifest.fileNames),
+      ...Object.values(manifest.fileExtensions),
+      manifest.defaultIcon
+    ])
+
+    // A mapping to a missing asset renders a blank <img>, skipping the classic fallback.
+    expect([...referenced].filter((icon) => !onDisk.has(icon))).toEqual([])
   })
 })
