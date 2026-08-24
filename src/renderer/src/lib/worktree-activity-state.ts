@@ -76,9 +76,8 @@ export function hasActiveWorkspaceActivity(
   // Why: a running agent keeps the workspace visible through brief PTY gaps
   // such as an SSH reconnect or an unmounted remote pane. #7197
   const hasLiveAgent = worktreeIdsWithLiveAgent.has(worktreeId)
-  // Why: startup hydrates tabs before reconnect restores their PTYs, so a workspace
-  // that was awake at shutdown reads as asleep for that window and flickers out of
-  // the sidebar and back. reconnectPersistedTerminals drains this set. #16247
+  // Startup hydrates tabs before reconnect restores their ptyIds; without this a
+  // workspace awake at shutdown reads as asleep until then. #16247
   const isReattaching = pendingReconnectWorktreeIds.has(worktreeId)
   return hasLiveTerminal || hasBrowser || hasLiveAgent || isReattaching
 }

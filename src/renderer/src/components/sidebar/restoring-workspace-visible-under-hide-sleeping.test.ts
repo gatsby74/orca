@@ -6,16 +6,9 @@ import type { Worktree } from '../../../../shared/worktree/types'
 import { LOCAL_EXECUTION_HOST_ID } from '../../../../shared/execution-host'
 
 /**
- * Repro for #16247 — the sidebar walks its project list back for seconds after launch.
- *
- * Startup hydrates `tabsByWorktree` from the persisted session but does not publish
- * any `ptyId` until `reconnectPersistedTerminals` finishes. For that window every
- * restored workspace reads as sleeping, so under "Hide sleeping" its row — and its
- * whole project header, if it was the only row — vanishes and then returns.
- *
- * `pendingReconnectWorktreeIds` is the session's own list of workspaces that were
- * awake at shutdown, and reconnect drains it, so it is exactly the set that must
- * survive the sweep while their PTYs are in flight.
+ * Repro for #16247. Startup hydrates tabs before reconnect publishes any ptyId, so
+ * under "Hide sleeping" every restored workspace briefly reads as asleep and its row
+ * — and its project header — vanishes and returns.
  */
 
 function makeRepo(id: string): Repo {
@@ -65,10 +58,7 @@ const sortedIds = ['restoring', 'slept']
 
 type VisibleOptions = Parameters<typeof computeVisibleWorktreeIds>[2]
 
-/**
- * The exact shape startup produces mid-reconnect: session tabs hydrated, no ptyId
- * republished yet, so both rows look identical to the sweep.
- */
+/** Mid-reconnect: tabs hydrated, no ptyId yet, so both rows look alike to the sweep. */
 function midReconnectOptions(overrides: Partial<VisibleOptions> = {}): VisibleOptions {
   return {
     filterRepoIds: [],
@@ -125,8 +115,7 @@ describe('startup reconnect exemption under Hide sleeping', () => {
     )
 
     expect(duringReconnect).toEqual(['restoring'])
-    // Why this is the whole point: the row must not blink out between the exemption
-    // expiring and the real pty arriving.
+    // The row must not blink out between the exemption expiring and the pty landing.
     expect(afterReconnect).toEqual(duringReconnect)
   })
 

@@ -48,8 +48,7 @@ describe('getEmptyProjectPlaceholderRepoIds', () => {
   })
 
   it('treats a missing worktreesByRepo key as empty once startup has settled', () => {
-    // Why: a repo whose scan failed (disconnected SSH, throwing provider) never gets
-    // a key, and must still keep a reachable header rather than vanish. #16247
+    // A failed scan never writes a key; the header must still come back. #16247
     expect(
       Array.from(
         getEmptyProjectPlaceholderRepoIds({
@@ -65,8 +64,7 @@ describe('getEmptyProjectPlaceholderRepoIds', () => {
   })
 
   it('does not placeholder an unscanned repo while startup is still refreshing', () => {
-    // Why: during startup every repo lands before its scan, so reading `undefined`
-    // as empty paints the whole project list and then walks it back. #16247
+    // Repos land before their scans; reading `undefined` as empty paints all of them. #16247
     expect(
       getEmptyProjectPlaceholderRepoIds({
         groupBy: 'repo',
@@ -80,8 +78,7 @@ describe('getEmptyProjectPlaceholderRepoIds', () => {
   })
 
   it('placeholders a scanned-empty repo during startup', () => {
-    // Why: `[]` is a settled answer even mid-startup, so a genuinely empty project
-    // appears as soon as its scan lands instead of waiting for the whole refresh.
+    // `[]` is settled even mid-startup, so an empty project appears as soon as it scans.
     expect(
       Array.from(
         getEmptyProjectPlaceholderRepoIds({
@@ -119,7 +116,7 @@ describe('getEmptyProjectPlaceholderRepoIds', () => {
     })
 
     expect(Array.from(duringStartup)).toEqual([scanned.id])
-    // Why: the list only ever grows — no header is painted and then withdrawn.
+    // The list only grows: no header is painted and then withdrawn.
     for (const id of duringStartup) {
       expect(afterSecondScan.has(id)).toBe(true)
     }

@@ -933,8 +933,7 @@ function WorktreeJumpPaletteContent({
         : EMPTY_PAIRED_DEVICE_IDS_BY_ENVIRONMENT,
     [hideWorkspacesFromOtherDevices, runtimeEnvironments, runtimeStatusByEnvironmentId]
   )
-  // Why: same startup-reconnect exemption the sidebar sweep applies, so Cmd+J opened
-  // during restore lists the same workspaces the sidebar shows. #16247
+  // Same startup-reconnect exemption as the sidebar sweep. #16247
   const pendingReconnectWorktreeIds = useMemo(
     () => new Set(pendingReconnectWorktreeIdList),
     [pendingReconnectWorktreeIdList]

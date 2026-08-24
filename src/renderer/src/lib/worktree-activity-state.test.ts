@@ -125,9 +125,7 @@ describe('worktree activity state', () => {
   })
 
   it('keeps a workspace awake while startup reconnect still owes it a PTY', () => {
-    // Why: startup hydrates tabs before reconnect restores ptyIds, so this exact
-    // shape — tabs present, no live pty — is every restored workspace for a
-    // second. Without the exemption each one flickers out of the sidebar. #16247
+    // Tabs present, no live pty: every restored workspace for a second. #16247
     expect(
       isInactiveWorkspace(
         'wt-1',

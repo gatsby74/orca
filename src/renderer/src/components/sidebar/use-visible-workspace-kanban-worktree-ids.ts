@@ -63,8 +63,7 @@ export function useVisibleWorkspaceKanbanWorktreeIds({
         )
       : EMPTY_WORKTREE_ID_SET
   }, [agentStatusEpoch, showSleepingWorkspaces, tabsByWorktree])
-  // Why: mirrors the sidebar's startup-reconnect exemption so the board does not
-  // disagree about which workspaces are asleep during restore. #16247
+  // Same startup-reconnect exemption as the sidebar, so the two agree. #16247
   const pendingReconnectWorktreeIdList = useAppStore((s) =>
     showSleepingWorkspaces ? null : s.pendingReconnectWorktreeIds
   )

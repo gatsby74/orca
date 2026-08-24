@@ -65,8 +65,7 @@ export function useVisibleSidebarWorktrees(args: {
   const browserTabsByWorktree = useAppStore((s) =>
     !showSleepingWorkspaces ? getVisibleWorktreeBrowserActivityTabs(s.browserTabsByWorktree) : null
   )
-  // Why: startup reconnect drains this list, so it is empty for the whole steady state
-  // and only exempts the workspaces that were provably awake at shutdown. #16247
+  // Drained by startup reconnect, so empty in the steady state. #16247
   const pendingReconnectWorktreeIdList = useAppStore((s) =>
     showSleepingWorkspaces ? null : s.pendingReconnectWorktreeIds
   )

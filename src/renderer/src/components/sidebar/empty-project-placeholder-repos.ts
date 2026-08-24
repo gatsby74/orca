@@ -23,11 +23,8 @@ export function getEmptyProjectPlaceholderRepoIds(args: {
       continue
     }
     const worktrees = args.worktreesByRepo[repo.id]
-    // Why: `undefined` is "not scanned yet", `[]` is "scanned, genuinely empty".
-    // Reading the first as empty paints every repo as a project header at launch,
-    // then walks the whole list back as scans land, twice (#16247). Once startup
-    // settles, fall back to the optimistic read so a repo whose scan failed —
-    // disconnected SSH, a throwing provider — still keeps a reachable header.
+    // `undefined` is "not scanned yet", `[]` is "scanned, empty" (#16247). After
+    // startup, fall back so a repo whose scan failed still keeps a header.
     if (worktrees === undefined && !args.startupWorktreeRefreshCompleted) {
       continue
     }
