@@ -101,8 +101,10 @@ export function bindWritePtyOutputToXterm(session: ConnectPanePtySession): void 
       holdForeground: synchronizedForegroundOutput && nextSynchronizedForegroundOutputActive
     })
     // Why after the write: sampling earlier would let this chunk widen the window it is
-    // itself being judged against. Foreground only — a hidden pane's backlog is not echo.
-    if (foregroundOutput) {
+    // itself being judged against. Gated on `foreground`, not `foregroundOutput`, because
+    // the latter also covers hidden startup parsing (`!foreground`), whose delay is
+    // restore latency rather than echo and would inflate the allowance.
+    if (foreground) {
       session.interactiveEchoLatency.recordOutput(performance.now())
     }
   }

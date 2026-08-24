@@ -48,7 +48,11 @@ export function createInteractiveEchoLatencyTracker(): InteractiveEchoLatencyTra
       }
       // Median, not mean: one stalled chunk must not widen the window for the rest.
       const ordered = [...samples].sort((first, second) => first - second)
-      const median = ordered[Math.floor(ordered.length / 2)] ?? 0
+      const upper = Math.floor(ordered.length / 2)
+      const median =
+        ordered.length % 2 === 0
+          ? ((ordered[upper - 1] ?? 0) + (ordered[upper] ?? 0)) / 2
+          : (ordered[upper] ?? 0)
       return Math.min(median, MAX_ECHO_LATENCY_ALLOWANCE_MS)
     }
   }

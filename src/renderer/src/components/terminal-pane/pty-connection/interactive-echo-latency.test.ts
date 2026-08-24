@@ -72,6 +72,15 @@ describe('interactive echo latency', () => {
     expect(tracker.allowanceMs()).toBe(60)
   })
 
+  it('averages the two middle samples when the count is even', () => {
+    const tracker = createInteractiveEchoLatencyTracker()
+    for (const rtt of [10, 20, 30, 50]) {
+      typeAndEcho(tracker, rtt * 1_000, rtt)
+    }
+    // Ordered [10, 20, 30, 50] -> (20 + 30) / 2, not the upper middle (30).
+    expect(tracker.allowanceMs()).toBe(25)
+  })
+
   it('caps the allowance so a bad link cannot widen the window without bound', () => {
     const tracker = createInteractiveEchoLatencyTracker()
     for (let index = 0; index < 8; index++) {
