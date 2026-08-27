@@ -6,6 +6,8 @@ type StatusState = Parameters<typeof selectWorktreeActivityStatuses>[0]
 
 function makeStatusState(): StatusState {
   return {
+    activeRepoId: null,
+    activeWorktreeId: null,
     tabsByWorktree: {},
     browserTabsByWorktree: {},
     runtimePaneTitlesByTabId: {},
@@ -20,7 +22,9 @@ function makeStatusState(): StatusState {
     worktreesByRepo: {},
     repos: [],
     projectGroups: [],
-    folderWorkspaces: []
+    folderWorkspaces: [],
+    projects: [],
+    settings: null
   }
 }
 

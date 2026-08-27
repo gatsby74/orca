@@ -3,14 +3,7 @@ import { isManagedAgentHookTarget } from '../../../shared/managed-agent-hook-tar
 import { isWslUncPath } from '../../../shared/wsl-paths'
 import type { TuiAgent } from '../../../shared/tui-agent'
 
-/**
- * Install states that leave Orca unable to receive status from an agent.
- *
- * Why `skipped` is absent: it means the user disabled hooks (or the CLI is not
- * installed) — a deliberate opt-out, not a malfunction, and nagging about it on
- * every worktree dot would be noise. `partial` counts because a missing Stop
- * hook strands the dot mid-turn exactly like a missing install.
- */
+// `skipped` is deliberate; `partial` can still strand the dot mid-turn.
 const UNREPORTABLE_HOOK_INSTALL_STATES: ReadonlySet<AgentHookInstallState> = new Set([
   'not_installed',
   'partial',
@@ -26,19 +19,11 @@ export type WorktreeAgentObservabilityInput = {
   /** Null for local repos, an SSH target id for remote ones, undefined before the repo hydrates. */
   connectionId: string | null | undefined
   worktreePath: string | null | undefined
-  /** True when a pane in this worktree has a *fresh* hook-reported row (working/permission/done). */
-  hasLiveHookEvidence: boolean
+  /** True when a pane has a fresh, non-terminal hook row. */
+  hasActiveHookEvidence: boolean
 }
 
-/**
- * Whether the local `~/.claude/settings.json`-style config answers for the host
- * that actually runs this worktree's agents.
- *
- * Why: SSH panes run their agent — and their managed hooks — on the remote host,
- * and WSL panes inside the distro via the hook relay. Reading the local install
- * state would be answering for the wrong machine, so we decline to judge rather
- * than assert something we cannot observe (docs/reference/ssh-execution-boundary.md).
- */
+/** Local hook config cannot answer for SSH, unhydrated, or WSL workspaces. */
 export function localHookConfigOwnsWorktree(
   connectionId: string | null | undefined,
   worktreePath: string | null | undefined
@@ -50,13 +35,7 @@ export function localHookConfigOwnsWorktree(
   return !(worktreePath && isWslUncPath(worktreePath))
 }
 
-/**
- * Hook-target agents running live in this worktree whose managed hooks are not
- * installed, so nothing they do can reach Orca.
- *
- * Agents outside `AGENT_HOOK_TARGETS` (opencode, pi, aider, …) never had hooks;
- * their status legitimately comes from the title heuristic and they are ignored.
- */
+/** Live managed agents whose local hook config cannot report status. */
 export function getUnreportableLiveHookAgents(
   input: WorktreeAgentObservabilityInput
 ): AgentHookTarget[] {
@@ -76,15 +55,9 @@ export function getUnreportableLiveHookAgents(
   return [...seen]
 }
 
-/**
- * True when this worktree runs an agent Orca cannot observe, so neither "done"
- * nor "active" is an honest answer for its dot.
- *
- * Live hook evidence vetoes the verdict: if a pane is reporting right now, the
- * pipeline demonstrably works and a stale install read must not override it.
- */
+/** Active hook evidence outranks a stale install snapshot. */
 export function isWorktreeAgentStatusUnverifiable(input: WorktreeAgentObservabilityInput): boolean {
-  if (input.hasLiveHookEvidence) {
+  if (input.hasActiveHookEvidence) {
     return false
   }
   return getUnreportableLiveHookAgents(input).length > 0

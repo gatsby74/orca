@@ -27,13 +27,22 @@ describe('StatusIndicator unverifiable', () => {
 
   it('explains itself on hover so the state is self-describing', () => {
     expect(render('unverifiable')).toContain(
-      'title="Status unavailable — agent hooks not installed"'
+      'title="Status unavailable — agent hooks are missing or unreadable"'
     )
   })
 
   it('stays visually distinct from every other status', () => {
     const markups = (
-      ['active', 'done', 'working', 'permission', 'inactive', 'unverifiable'] as const
+      [
+        'active',
+        'done',
+        'working',
+        'monitoring',
+        'interrupted',
+        'permission',
+        'inactive',
+        'unverifiable'
+      ] as const
     ).map(render)
 
     expect(new Set(markups).size).toBe(markups.length)

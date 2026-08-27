@@ -14,7 +14,7 @@ function input(
     installStateByTarget: { claude: 'not_installed' },
     connectionId: null,
     worktreePath: '/home/user/repo',
-    hasLiveHookEvidence: false,
+    hasActiveHookEvidence: false,
     ...overrides
   }
 }
@@ -126,7 +126,7 @@ describe('isWorktreeAgentStatusUnverifiable', () => {
   it('is false when a pane is reporting right now', () => {
     // Why: live evidence proves the pipeline works; a stale install read must
     // never override a hook row that just arrived.
-    expect(isWorktreeAgentStatusUnverifiable(input({ hasLiveHookEvidence: true }))).toBe(false)
+    expect(isWorktreeAgentStatusUnverifiable(input({ hasActiveHookEvidence: true }))).toBe(false)
   })
 
   it('is false with no live agents at all', () => {

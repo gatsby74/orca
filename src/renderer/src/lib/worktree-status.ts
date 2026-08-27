@@ -36,7 +36,7 @@ const STATUS_LABELS: Record<WorktreeStatus, string> = {
   interrupted: 'Interrupted',
   done: 'Done',
   inactive: 'Inactive',
-  unverifiable: 'Status unavailable — agent hooks not installed'
+  unverifiable: 'Status unavailable — agent hooks are missing or unreadable'
 }
 
 export function getWorktreeStatus(
@@ -181,13 +181,7 @@ export function resolveWorktreeStatus(args: {
   if (args.hasInterrupted) {
     return 'interrupted'
   }
-  // Why: ranked below every positive signal (a spinner glyph still proves work)
-  // but above 'done'/'active', which share one emerald dot — without this, a
-  // worktree whose hooks were removed renders identically to a finished agent
-  // and the user has no way to tell Orca went blind.
-  // Why: 'inactive' is not a claim about an agent, so there is nothing to be
-  // unverifiable about — a slept worktree stays grey rather than growing a
-  // warning glyph for an agent that is not running.
+  // Positive signals prove activity; inactive makes no agent-status claim.
   if (args.hooksUnverifiable && heuristic !== 'inactive') {
     return 'unverifiable'
   }

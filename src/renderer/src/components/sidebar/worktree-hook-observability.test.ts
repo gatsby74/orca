@@ -1,4 +1,4 @@
-import { describe, expect, it } from 'vitest'
+import { describe, expect, it, vi } from 'vitest'
 import {
   selectWorktreeHooksUnverifiable,
   type WorktreeHookObservabilityState
@@ -6,17 +6,24 @@ import {
 import type { TerminalTab } from '../../../../shared/terminal-tab-types'
 import type { TuiAgent } from '../../../../shared/tui-agent'
 
+vi.mock('@/lib/renderer-app-platform', () => ({ getRendererAppPlatform: () => 'win32' }))
+
 const REPO_ID = 'repo-1'
 const WORKTREE_ID = `${REPO_ID}::/home/user/repo/wt-1`
+const FOLDER_ID = 'folder-1'
+const FOLDER_WORKSPACE_ID = `folder:${FOLDER_ID}`
 
 const NO_EVIDENCE = {
   hasPermission: false,
-  hasLiveWorking: false,
-  hasLiveDone: false
+  hasLiveWorking: false
 }
 
-function makeTab(id: string, launchAgent?: TuiAgent): TerminalTab {
-  return { id, title: 'bash', launchAgent } as TerminalTab
+function makeTab(
+  id: string,
+  launchAgent?: TuiAgent,
+  overrides: Partial<TerminalTab> = {}
+): TerminalTab {
+  return { id, worktreeId: WORKTREE_ID, title: 'bash', launchAgent, ...overrides } as TerminalTab
 }
 
 function makeState(
@@ -27,11 +34,15 @@ function makeState(
     tabsByWorktree: { [WORKTREE_ID]: [makeTab('tab-1', 'claude')] },
     ptyIdsByTabId: { 'tab-1': ['pty-1'] },
     worktreesByRepo: {
-      [REPO_ID]: [{ id: WORKTREE_ID, path: '/home/user/repo/wt-1' }]
+      [REPO_ID]: [{ id: WORKTREE_ID, repoId: REPO_ID, path: '/home/user/repo/wt-1' }]
     },
     repos: [{ id: REPO_ID, path: '/home/user/repo', connectionId: null }],
     projectGroups: [],
     folderWorkspaces: [],
+    activeRepoId: REPO_ID,
+    activeWorktreeId: WORKTREE_ID,
+    projects: [],
+    settings: null,
     ...overrides
   } as unknown as WorktreeHookObservabilityState
 }
@@ -78,6 +89,10 @@ describe('selectWorktreeHooksUnverifiable', () => {
     ).toBe(false)
   })
 
+  it('flags hooks removed after the pane last reported done', () => {
+    expect(selectWorktreeHooksUnverifiable(makeState(), WORKTREE_ID, NO_EVIDENCE)).toBe(true)
+  })
+
   it('declines to judge an SSH worktree from the local hook config', () => {
     const state = makeState({
       repos: [{ id: REPO_ID, path: '/home/user/repo', connectionId: 'ssh-1' }]
@@ -94,6 +109,60 @@ describe('selectWorktreeHooksUnverifiable', () => {
     } as unknown as Partial<WorktreeHookObservabilityState>)
 
     expect(selectWorktreeHooksUnverifiable(state, WORKTREE_ID, NO_EVIDENCE)).toBe(false)
+  })
+
+  it('declines a Windows-path worktree configured to execute in WSL', () => {
+    const state = makeState({
+      projects: [{ id: REPO_ID, localWindowsRuntimePreference: { kind: 'wsl', distro: 'Ubuntu' } }]
+    } as unknown as Partial<WorktreeHookObservabilityState>)
+
+    expect(selectWorktreeHooksUnverifiable(state, WORKTREE_ID, NO_EVIDENCE)).toBe(false)
+  })
+
+  it('declines a pane owned by a remote runtime in a local worktree', () => {
+    const state = makeState({ ptyIdsByTabId: { 'tab-1': ['remote:runtime-1@@pty-1'] } })
+
+    expect(selectWorktreeHooksUnverifiable(state, WORKTREE_ID, NO_EVIDENCE)).toBe(false)
+  })
+
+  it('declines a pane launched from a WSL startup directory', () => {
+    const state = makeState({
+      tabsByWorktree: {
+        [WORKTREE_ID]: [
+          makeTab('tab-1', 'claude', {
+            startupCwd: '\\\\wsl.localhost\\Ubuntu\\home\\user\\repo'
+          })
+        ]
+      }
+    })
+
+    expect(selectWorktreeHooksUnverifiable(state, WORKTREE_ID, NO_EVIDENCE)).toBe(false)
+  })
+
+  it('flags a local folder workspace when its live agent hooks are missing', () => {
+    const state = makeState({
+      tabsByWorktree: { [FOLDER_WORKSPACE_ID]: [makeTab('folder-tab', 'claude')] },
+      ptyIdsByTabId: { 'folder-tab': ['folder-pty'] },
+      folderWorkspaces: [{ id: FOLDER_ID, folderPath: '/home/user/project', connectionId: null }]
+    } as unknown as Partial<WorktreeHookObservabilityState>)
+
+    expect(selectWorktreeHooksUnverifiable(state, FOLDER_WORKSPACE_ID, NO_EVIDENCE)).toBe(true)
+  })
+
+  it('declines to judge a WSL folder workspace from native hook config', () => {
+    const state = makeState({
+      tabsByWorktree: { [FOLDER_WORKSPACE_ID]: [makeTab('folder-tab', 'claude')] },
+      ptyIdsByTabId: { 'folder-tab': ['folder-pty'] },
+      folderWorkspaces: [
+        {
+          id: FOLDER_ID,
+          folderPath: '\\\\wsl$\\Ubuntu\\home\\user\\project',
+          connectionId: null
+        }
+      ]
+    } as unknown as Partial<WorktreeHookObservabilityState>)
+
+    expect(selectWorktreeHooksUnverifiable(state, FOLDER_WORKSPACE_ID, NO_EVIDENCE)).toBe(false)
   })
 
   it('flags when only one of several live agents is blind', () => {

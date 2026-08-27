@@ -85,7 +85,7 @@ describe('resolveWorktreeStatus with unverifiable hooks', () => {
 
   it('labels the state so the dot tooltip explains itself', () => {
     expect(getWorktreeStatusLabel('unverifiable')).toBe(
-      'Status unavailable — agent hooks not installed'
+      'Status unavailable — agent hooks are missing or unreadable'
     )
   })
 })

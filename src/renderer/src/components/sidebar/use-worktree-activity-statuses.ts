@@ -14,6 +14,8 @@ import { selectWorktreeHooksUnverifiable } from './worktree-hook-observability'
 type WorktreeActivityStatusState = Pick<
   AppState,
   | 'tabsByWorktree'
+  | 'activeRepoId'
+  | 'activeWorktreeId'
   | 'browserTabsByWorktree'
   | 'runtimePaneTitlesByTabId'
   | 'ptyIdsByTabId'
@@ -26,7 +28,9 @@ type WorktreeActivityStatusState = Pick<
   | 'agentHookInstallStateByTarget'
   | 'folderWorkspaces'
   | 'projectGroups'
+  | 'projects'
   | 'repos'
+  | 'settings'
   | 'worktreesByRepo'
 >
 
@@ -62,8 +66,7 @@ export function selectWorktreeActivityStatuses(
         hasRetainedDone,
         hooksUnverifiable: selectWorktreeHooksUnverifiable(statusInputs, worktreeId, {
           hasPermission,
-          hasLiveWorking,
-          hasLiveDone
+          hasLiveWorking
         })
       })
     )

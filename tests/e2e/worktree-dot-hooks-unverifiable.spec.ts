@@ -17,13 +17,13 @@ type DotProbe = {
   emeraldDots: number
 }
 
-const UNVERIFIABLE_TITLE = 'Status unavailable — agent hooks not installed'
+const UNVERIFIABLE_TITLE = 'Status unavailable — agent hooks are missing or unreadable'
 
 async function seedLiveClaudePane(
   page: Parameters<typeof waitForActiveWorktree>[0],
   worktreeId: string
-): Promise<void> {
-  await page.evaluate((wtId: string) => {
+): Promise<string> {
+  return page.evaluate((wtId: string) => {
     const store = window.__store
     if (!store) {
       throw new Error('window.__store is unavailable')
@@ -57,7 +57,25 @@ async function seedLiveClaudePane(
       agentStatusByPaneKey: {},
       retainedAgentsByPaneKey: {}
     })
+    return tabId
   }, worktreeId)
+}
+
+async function reportClaudeDone(
+  page: Parameters<typeof waitForActiveWorktree>[0],
+  tabId: string
+): Promise<void> {
+  await page.evaluate((id: string) => {
+    const now = Date.now()
+    window
+      .__store!.getState()
+      .setAgentStatus(
+        `${id}:0`,
+        { state: 'done', prompt: 'Finished the previous turn', agentType: 'claude' },
+        'Claude',
+        { updatedAt: now, stateStartedAt: now }
+      )
+  }, tabId)
 }
 
 async function setClaudeHookState(
@@ -109,4 +127,19 @@ test('surfaces an unverifiable dot when the managed Claude hooks are gone', asyn
   expect(blind.dashedRings).toBeGreaterThan(0)
   // The green dot the bug showed is gone from the card that lost its hooks.
   expect(blind.emeraldDots).toBeLessThan(healthy.emeraldDots)
+})
+
+test('surfaces an unverifiable dot when hooks disappear after a done row', async ({ orcaPage }) => {
+  await waitForSessionReady(orcaPage)
+  const worktreeId = await waitForActiveWorktree(orcaPage)
+  const tabId = await seedLiveClaudePane(orcaPage, worktreeId)
+
+  await setClaudeHookState(orcaPage, 'installed')
+  await reportClaudeDone(orcaPage, tabId)
+  await expect.poll(async () => (await readDots(orcaPage)).unverifiableDots).toBe(0)
+
+  await setClaudeHookState(orcaPage, 'not_installed')
+
+  await expect.poll(async () => (await readDots(orcaPage)).unverifiableDots).toBeGreaterThan(0)
+  expect((await readDots(orcaPage)).dashedRings).toBeGreaterThan(0)
 })
