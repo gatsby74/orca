@@ -8,6 +8,7 @@ import {
 import { resolveCodexPaneSelectionLaneKey } from '@/lib/codex-pane-selection-lane'
 import { isManagedAgentHookTarget } from '../../../../shared/managed-agent-hook-targets'
 import type { TuiAgent } from '../../../../shared/tui-agent'
+import { normalizeDisabledTuiAgents } from '../../../../shared/tui-agent-selection'
 import { parseWorkspaceKey } from '../../../../shared/workspace-scope'
 
 export type WorktreeHookObservabilityState = Pick<
@@ -36,6 +37,10 @@ export function selectWorktreeHooksUnverifiable(
   worktreeId: string,
   evidence: HookEvidence
 ): boolean {
+  if (!state.settings || state.settings.agentStatusHooksEnabled === false) {
+    return false
+  }
+  const disabledAgents = new Set(normalizeDisabledTuiAgents(state.settings.disabledTuiAgents))
   const workspaceScope = parseWorkspaceKey(worktreeId)
   const worktreePath =
     workspaceScope?.type === 'folder'
@@ -52,7 +57,7 @@ export function selectWorktreeHooksUnverifiable(
   }
   const liveAgents: (TuiAgent | undefined)[] = []
   for (const tab of state.tabsByWorktree[worktreeId] ?? []) {
-    if (!isManagedAgentHookTarget(tab.launchAgent)) {
+    if (!isManagedAgentHookTarget(tab.launchAgent) || disabledAgents.has(tab.launchAgent)) {
       continue
     }
     const ptyIds = state.ptyIdsByTabId[tab.id] ?? []

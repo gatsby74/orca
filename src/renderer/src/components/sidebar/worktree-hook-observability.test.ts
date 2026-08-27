@@ -42,7 +42,7 @@ function makeState(
     activeRepoId: REPO_ID,
     activeWorktreeId: WORKTREE_ID,
     projects: [],
-    settings: null,
+    settings: { agentStatusHooksEnabled: true, disabledTuiAgents: [] },
     ...overrides
   } as unknown as WorktreeHookObservabilityState
 }
@@ -62,6 +62,28 @@ describe('selectWorktreeHooksUnverifiable', () => {
 
   it('does not flag before the install snapshot has been read', () => {
     const state = makeState({ agentHookInstallStateByTarget: {} })
+
+    expect(selectWorktreeHooksUnverifiable(state, WORKTREE_ID, NO_EVIDENCE)).toBe(false)
+  })
+
+  it('does not flag before settings have hydrated', () => {
+    const state = makeState({ settings: null })
+
+    expect(selectWorktreeHooksUnverifiable(state, WORKTREE_ID, NO_EVIDENCE)).toBe(false)
+  })
+
+  it('does not flag when managed status hooks are disabled', () => {
+    const state = makeState({
+      settings: { agentStatusHooksEnabled: false, disabledTuiAgents: [] }
+    } as unknown as Partial<WorktreeHookObservabilityState>)
+
+    expect(selectWorktreeHooksUnverifiable(state, WORKTREE_ID, NO_EVIDENCE)).toBe(false)
+  })
+
+  it('does not flag an agent disabled in Settings', () => {
+    const state = makeState({
+      settings: { agentStatusHooksEnabled: true, disabledTuiAgents: ['claude'] }
+    } as unknown as Partial<WorktreeHookObservabilityState>)
 
     expect(selectWorktreeHooksUnverifiable(state, WORKTREE_ID, NO_EVIDENCE)).toBe(false)
   })
