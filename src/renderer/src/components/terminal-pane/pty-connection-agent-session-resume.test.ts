@@ -513,7 +513,16 @@ describe('connectPanePty', () => {
       restoredPtyIdByLeafId: { [LEAF_1]: retainedPtyId }
     })
 
-    connectPanePty(createPane(1) as never, createManager(1) as never, deps as never)
+    const binding = connectPanePty(
+      createPane(1) as never,
+      createManager(1) as never,
+      deps as never
+    ) as unknown as {
+      dispatchKittyShortcutInput: (
+        input: { kitty: string; legacy: string },
+        send: (data: string) => void
+      ) => boolean
+    }
     await flushAsyncTicks(20)
     await new Promise((resolve) => setTimeout(resolve, 70))
 
@@ -523,6 +532,12 @@ describe('connectPanePty', () => {
     expect(transport.connect).not.toHaveBeenCalled()
     expect(deps.clearTabPtyId).not.toHaveBeenCalled()
     expect(mockStoreState.registerAgentLaunchConfig).not.toHaveBeenCalled()
+
+    const send = vi.fn()
+    expect(
+      binding.dispatchKittyShortcutInput({ kitty: '\x1b[13;2u', legacy: '\x1b\r' }, send)
+    ).toBe(true)
+    expect(send).toHaveBeenCalledExactlyOnceWith('\x1b\r')
   })
 
   it('preserves a missing retained legacy worker through direct SSH reconnect', async () => {
