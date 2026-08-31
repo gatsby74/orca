@@ -27,6 +27,27 @@ describe('TerminalOsc52StreamScanner', () => {
     expect(scanner.scan('\\b')).toEqual({ passthrough: 'b', payloads: ['c;Y29weQ=='] })
   })
 
+  it('restores strip state after a peer intentionally omits output', () => {
+    const host = new TerminalOsc52StreamScanner()
+    const client = new TerminalOsc52StreamScanner()
+
+    host.scan('\x1b]52;c;Y2')
+    client.restoreSyncState(host.syncState)
+
+    expect(host.scan('9weQ==\x07visible').payloads).toEqual(['c;Y29weQ=='])
+    expect(client.scan('9weQ==\x07visible').passthrough).toBe('visible')
+  })
+
+  it('does not release a synthetic prefix when synchronized output is not OSC 52', () => {
+    const host = new TerminalOsc52StreamScanner()
+    const client = new TerminalOsc52StreamScanner()
+
+    host.scan('\x1b]5')
+    client.restoreSyncState(host.syncState)
+
+    expect(client.scan('xvisible').passthrough).toBe('xvisible')
+  })
+
   it('supports C1 OSC and ST controls', () => {
     const scanner = new TerminalOsc52StreamScanner()
 

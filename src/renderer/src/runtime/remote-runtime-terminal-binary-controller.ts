@@ -6,6 +6,7 @@ import {
   type TerminalStreamFrame
 } from '../../../shared/terminal-stream-protocol'
 import { deliverTerminalDataWithDeferredCredit } from '@/lib/pane-manager/terminal-delivery-credit'
+import { isTerminalOsc52ScannerSyncState } from '../../../shared/terminal-osc52-stream-scanner'
 import {
   shouldDropE2eRemoteTerminalOutput,
   shouldHoldE2eRemoteTerminalAck
@@ -52,6 +53,13 @@ export abstract class RemoteRuntimeTerminalBinaryController extends RemoteRuntim
     if (frame.opcode === TerminalStreamOpcode.ClipboardWrite) {
       stream.supportsClipboardWrite = true
       stream.callbacks.onOsc52Clipboard?.(decodeTerminalStreamText(frame.payload))
+      return
+    }
+    if (frame.opcode === TerminalStreamOpcode.ClipboardScannerSync) {
+      const syncState = decodeTerminalStreamText(frame.payload)
+      if (stream.supportsClipboardScannerSync && isTerminalOsc52ScannerSyncState(syncState)) {
+        stream.osc52Scanner.restoreSyncState(syncState)
+      }
       return
     }
     if (

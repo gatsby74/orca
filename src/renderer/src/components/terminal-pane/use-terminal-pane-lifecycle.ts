@@ -326,6 +326,7 @@ type UseTerminalPaneLifecycleDeps = {
   clearWorktreeUnread: (worktreeId: string) => void
   clearTerminalTabUnread: (tabId: string) => void
   clearTerminalPaneUnread: (paneKey: string) => void
+  dispatchLiveOsc52Clipboard: (data: string) => void
   onShowSessionRestoredBanner: (paneId: number, reason?: SessionRestoredBannerReason) => void
   dispatchNotification: (event: {
     source: 'terminal-bell' | 'agent-task-complete'
@@ -748,6 +749,7 @@ export function useTerminalPaneLifecycle({
   clearWorktreeUnread,
   clearTerminalTabUnread,
   clearTerminalPaneUnread,
+  dispatchLiveOsc52Clipboard,
   onShowSessionRestoredBanner,
   dispatchNotification,
   setCacheTimerStartedAt,
@@ -969,13 +971,6 @@ export function useTerminalPaneLifecycle({
       startup && setupSplit
         ? { ...startup, waitForSetupSplitDirection: setupSplit.direction }
         : startup
-    const dispatchLiveOsc52Clipboard = createOsc52OscHandler({
-      getSettingEnabled: () => settingsRef.current?.terminalAllowOsc52Clipboard,
-      getReplaying: () => false,
-      writeClipboardText: (text) => window.api.ui.writeTerminalClipboardText(text),
-      showBlockedWriteToast: showOsc52ClipboardBlockedToast,
-      showWriteFailedToast: showOsc52ClipboardFailedToast
-    })
     const ptyDeps = {
       tabId,
       worktreeId,

@@ -62,11 +62,13 @@ export async function publishMultiplexInitialSnapshot(
     seq: layoutSeq,
     ...((stream.ackOutputSourceRanges ||
       stream.supportsOutputPause ||
-      stream.supportsClipboardWrite) && {
+      stream.supportsClipboardWrite ||
+      stream.supportsClipboardScannerSync) && {
       capabilities: {
         ...(stream.ackOutputSourceRanges ? { ackOutputSourceRanges: 1 as const } : {}),
         ...(stream.supportsOutputPause ? { outputPause: 1 as const } : {}),
-        ...(stream.supportsClipboardWrite ? { clipboardWrite: 1 as const } : {})
+        ...(stream.supportsClipboardWrite ? { clipboardWrite: 1 as const } : {}),
+        ...(stream.supportsClipboardScannerSync ? { clipboardScannerSync: 1 as const } : {})
       }
     }),
     ...(stream.ackOutputSourceRanges ? { streamGeneration: stream.streamGeneration } : {}),

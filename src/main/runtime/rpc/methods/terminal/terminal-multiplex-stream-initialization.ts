@@ -61,6 +61,9 @@ export async function initializeMultiplexStream(
     supportsOutputPause: request.capabilities?.outputPause === 1,
     supportsWriteUnavailable: request.capabilities?.writeUnavailable === 1,
     supportsClipboardWrite: request.capabilities?.clipboardWrite === 1,
+    supportsClipboardScannerSync:
+      request.capabilities?.clipboardWrite === 1 &&
+      request.capabilities?.clipboardScannerSync === 1,
     osc52Scanner: new TerminalOsc52StreamScanner(),
     outputPaused: false,
     supportsDesktopViewportClaims: request.capabilities?.desktopViewportClaims === 1,

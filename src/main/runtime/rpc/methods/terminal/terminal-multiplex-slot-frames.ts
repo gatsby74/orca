@@ -2,6 +2,7 @@ import {
   TerminalStreamOpcode,
   decodeTerminalStreamJson,
   decodeTerminalStreamText,
+  encodeTerminalStreamText,
   type TerminalStreamFrame
 } from '../../../../../shared/terminal-stream-protocol'
 import {
@@ -88,6 +89,13 @@ export function installMultiplexSlotFrames(
       const payload = decodeTerminalStreamJson<{ paused?: unknown }>(frame.payload)
       if (typeof payload?.paused !== 'boolean' || stream.outputPaused === payload.paused) {
         return
+      }
+      if (!payload.paused && stream.supportsClipboardScannerSync) {
+        state.sendFrame(
+          stream.streamId,
+          TerminalStreamOpcode.ClipboardScannerSync,
+          encodeTerminalStreamText(stream.osc52Scanner.syncState)
+        )
       }
       stream.outputPaused = payload.paused
       if (stream.outputPaused) {

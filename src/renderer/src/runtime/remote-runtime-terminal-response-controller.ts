@@ -51,6 +51,7 @@ export abstract class RemoteRuntimeTerminalResponseController extends RemoteRunt
               ackOutputSourceRanges?: unknown
               outputPause?: unknown
               clipboardWrite?: unknown
+              clipboardScannerSync?: unknown
             })
           : null
       if (
@@ -63,6 +64,7 @@ export abstract class RemoteRuntimeTerminalResponseController extends RemoteRunt
       }
       stream.supportsOutputPause = capabilities?.outputPause === 1
       stream.supportsClipboardWrite = capabilities?.clipboardWrite === 1
+      stream.supportsClipboardScannerSync = capabilities?.clipboardScannerSync === 1
       if (stream.supportsOutputPause) {
         stream.callbacks.onOutputPauseCapability?.()
       }

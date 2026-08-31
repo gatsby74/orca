@@ -36,6 +36,7 @@ export class RemoteRuntimeTerminalMultiplexer extends RemoteRuntimeTerminalBinar
       acknowledgeOutputSourceRanges: false,
       supportsOutputPause: false,
       supportsClipboardWrite: false,
+      supportsClipboardScannerSync: false,
       outputPaused: false,
       osc52Scanner: new TerminalOsc52StreamScanner(),
       streamGeneration: null,
@@ -147,7 +148,9 @@ export class RemoteRuntimeTerminalMultiplexer extends RemoteRuntimeTerminalBinar
             ackOutputSourceRanges: 1,
             outputPause: 1,
             writeUnavailable: 1,
-            ...(args.callbacks.onOsc52Clipboard ? { clipboardWrite: 1 } : {}),
+            ...(args.callbacks.onOsc52Clipboard
+              ? { clipboardWrite: 1, clipboardScannerSync: 1 }
+              : {}),
             ...(args.client.type === 'desktop' ? { desktopViewportClaims: 1 } : {})
           }
         })

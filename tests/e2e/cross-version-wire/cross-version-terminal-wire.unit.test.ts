@@ -163,7 +163,10 @@ describe('cross-version remote terminal wire', () => {
     expectJourneyActuallyRan(currentReference)
     expectWireCompatible(currentReference)
     for (const event of currentReference.subscribedEvents) {
-      expect(event.capabilities).toMatchObject({ clipboardWrite: 1 })
+      expect(event.capabilities).toMatchObject({
+        clipboardWrite: 1,
+        clipboardScannerSync: 1
+      })
     }
     // Current code's own contract in both roles, so it is safe to state literally.
     expect(currentReference.snapshotStarts).toEqual([

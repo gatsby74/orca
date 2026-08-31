@@ -55,7 +55,8 @@ export const TerminalMultiplexSubscribeFrame = TerminalHandle.extend({
       desktopViewportClaims: z.literal(1).optional(),
       outputPause: z.literal(1).optional(),
       writeUnavailable: z.literal(1).optional(),
-      clipboardWrite: z.literal(1).optional()
+      clipboardWrite: z.literal(1).optional(),
+      clipboardScannerSync: z.literal(1).optional()
     })
     .optional()
 })

@@ -14,7 +14,12 @@ export type TerminalMultiplexEvent =
       type: 'subscribed'
       streamId: number
       streamGeneration?: string
-      capabilities?: { ackOutputSourceRanges?: 1; outputPause?: 1; clipboardWrite?: 1 }
+      capabilities?: {
+        ackOutputSourceRanges?: 1
+        outputPause?: 1
+        clipboardWrite?: 1
+        clipboardScannerSync?: 1
+      }
     }
   | { type: 'end'; streamId: number; verdict?: TerminalStreamEndVerdict }
   | { type: 'error'; streamId: number; message?: string }
@@ -154,6 +159,7 @@ export type RemoteRuntimeMultiplexedTerminalState = {
   acknowledgeOutputSourceRanges: boolean
   supportsOutputPause: boolean
   supportsClipboardWrite: boolean
+  supportsClipboardScannerSync: boolean
   outputPaused: boolean
   osc52Scanner: TerminalOsc52StreamScanner
   streamGeneration: string | null

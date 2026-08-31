@@ -71,6 +71,7 @@ export type TerminalMultiplexStream = {
   supportsOutputPause: boolean
   supportsWriteUnavailable: boolean
   supportsClipboardWrite: boolean
+  supportsClipboardScannerSync: boolean
   osc52Scanner: TerminalOsc52StreamScanner
   outputPaused: boolean
   supportsDesktopViewportClaims: boolean

@@ -48,6 +48,7 @@ class FakeMultiplexServer {
 
   constructor(
     private readonly toClient: (bytes: Uint8Array<ArrayBufferLike>) => void,
+    private readonly toClientResponse: (response: unknown) => void,
     private readonly onServerSideDrop?: () => void
   ) {}
 
@@ -60,6 +61,14 @@ class FakeMultiplexServer {
     if (frame.opcode === TerminalStreamOpcode.Subscribe) {
       const payload = decodeTerminalStreamJson<{ streamId: number }>(frame.payload)
       this.streamId = payload?.streamId ?? 0
+      this.toClientResponse({
+        ok: true,
+        result: {
+          type: 'subscribed',
+          streamId: this.streamId,
+          capabilities: { clipboardWrite: 1, clipboardScannerSync: 1 }
+        }
+      })
       this.sendSnapshot()
       return
     }
@@ -166,6 +175,18 @@ class FakeMultiplexServer {
     )
   }
 
+  clipboardScannerSync(state: string): void {
+    this.send(
+      TerminalStreamOpcode.ClipboardScannerSync,
+      encodeTerminalStreamText(state),
+      this.cursorUnits
+    )
+  }
+
+  unsequencedOutput(text: string): void {
+    this.send(TerminalStreamOpcode.Output, encodeTerminalStreamText(text), 0)
+  }
+
   flushHeldManualSnapshot(): void {
     if (this.heldManualRequestId === null) {
       throw new Error('No manual snapshot is held')
@@ -190,7 +211,10 @@ describe('remote terminal frame-drop resync', () => {
 
     subscribe = vi.fn(async (_args: unknown, callbacks: SubscribeCallbacks) => {
       subscriptionCallbacks = callbacks
-      server = new FakeMultiplexServer((bytes) => callbacks.onBinary?.(bytes))
+      server = new FakeMultiplexServer(
+        (bytes) => callbacks.onBinary?.(bytes),
+        (response) => callbacks.onResponse(response)
+      )
       queueMicrotask(() => callbacks.onResponse({ ok: true, result: { type: 'ready' } }))
       return {
         unsubscribe,
@@ -252,6 +276,18 @@ describe('remote terminal frame-drop resync', () => {
     server.output('\x1b]52;c;bmV4dA==\x07')
 
     expect(clipboardWrites).toEqual(['c;Y29weQ==', 'c;bmV4dA=='])
+  })
+
+  it('aligns OSC 52 stripping after paused output is omitted', async () => {
+    const { clipboardWrites, data } = await subscribeClient()
+
+    server.clipboardWrite('c;aW5pdGlhbA==')
+    server.clipboardScannerSync('payload')
+    server.clipboardWrite('c;c3BsaXQ=')
+    server.unsequencedOutput('aXQ=\x07visible')
+
+    expect(clipboardWrites).toEqual(['c;aW5pdGlhbA==', 'c;c3BsaXQ='])
+    expect(data).toEqual(['visible'])
   })
 
   it('detects a dropped Output frame via the seq gap and resyncs', async () => {
