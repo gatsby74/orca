@@ -21,8 +21,10 @@ export function bindAttachRetainedLegacyPty(session: ConnectPanePtySession): voi
       if (isRemoteRuntimePtyId(attachedPtyId)) {
         session.registerPaneSerializerFor(attachedPtyId)
       }
+      session.kittyShortcutInputSettlement.settle(session.kittyKeyboardModes.flags)
       return true
     } catch (err) {
+      session.kittyShortcutInputSettlement.settle(session.kittyKeyboardModes.flags)
       session.reportError(err instanceof Error ? err.message : String(err))
       return false
     }

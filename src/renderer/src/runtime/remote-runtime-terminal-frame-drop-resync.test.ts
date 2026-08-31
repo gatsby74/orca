@@ -158,6 +158,14 @@ class FakeMultiplexServer {
     this.send(TerminalStreamOpcode.Output, encodeTerminalStreamText(text), this.cursorUnits)
   }
 
+  clipboardWrite(payload: string): void {
+    this.send(
+      TerminalStreamOpcode.ClipboardWrite,
+      encodeTerminalStreamText(payload),
+      this.cursorUnits
+    )
+  }
+
   flushHeldManualSnapshot(): void {
     if (this.heldManualRequestId === null) {
       throw new Error('No manual snapshot is held')
@@ -203,11 +211,13 @@ describe('remote terminal frame-drop resync', () => {
     data: string[]
     metas: { seq?: number; rawLength?: number; transformed?: boolean }[]
     snapshots: string[]
+    clipboardWrites: string[]
     stream: RemoteRuntimeMultiplexedTerminal
   }> {
     const data: string[] = []
     const metas: { seq?: number; rawLength?: number; transformed?: boolean }[] = []
     const snapshots: string[] = []
+    const clipboardWrites: string[] = []
     const multiplexer = getRemoteRuntimeTerminalMultiplexer('env-1')
     const stream = await multiplexer.subscribeTerminal({
       terminal: 'terminal-1',
@@ -217,14 +227,32 @@ describe('remote terminal frame-drop resync', () => {
           data.push(chunk)
           metas.push(meta ?? {})
         },
-        onSnapshot: (chunk) => snapshots.push(chunk)
+        onSnapshot: (chunk) => snapshots.push(chunk),
+        onOsc52Clipboard: (payload) => clipboardWrites.push(payload)
       }
     })
     // Let the initial snapshot round-trip settle.
     await Promise.resolve()
     await Promise.resolve()
-    return { data, metas, snapshots, stream }
+    return { data, metas, snapshots, clipboardWrites, stream }
   }
+
+  it('delivers negotiated OSC 52 outside dropped output and strips the in-band duplicate', async () => {
+    const { clipboardWrites, data } = await subscribeClient()
+    const sequence = '\x1b]52;c;Y29weQ==\x07'
+
+    server.clipboardWrite('c;Y29weQ==')
+    server.output(sequence)
+
+    expect(clipboardWrites).toEqual(['c;Y29weQ=='])
+    expect(data).toEqual([''])
+
+    server.clipboardWrite('c;bmV4dA==')
+    server.dropNextOutput = true
+    server.output('\x1b]52;c;bmV4dA==\x07')
+
+    expect(clipboardWrites).toEqual(['c;Y29weQ==', 'c;bmV4dA=='])
+  })
 
   it('detects a dropped Output frame via the seq gap and resyncs', async () => {
     const { data, snapshots } = await subscribeClient()

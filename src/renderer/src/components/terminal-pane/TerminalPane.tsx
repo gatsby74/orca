@@ -1713,6 +1713,7 @@ function TerminalPane(
         clearWorktreeUnread,
         clearTerminalTabUnread,
         clearTerminalPaneUnread,
+        dispatchLiveOsc52Clipboard: (data) => pane.terminal.write(`\x1b]52;${data}\x07`),
         onShowSessionRestoredBanner: showRestoredSessionBanner,
         dispatchNotification,
         setCacheTimerStartedAt,

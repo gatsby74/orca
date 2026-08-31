@@ -47,7 +47,11 @@ export abstract class RemoteRuntimeTerminalResponseController extends RemoteRunt
     if (event.type === 'subscribed') {
       const capabilities =
         typeof event.capabilities === 'object' && event.capabilities !== null
-          ? (event.capabilities as { ackOutputSourceRanges?: unknown; outputPause?: unknown })
+          ? (event.capabilities as {
+              ackOutputSourceRanges?: unknown
+              outputPause?: unknown
+              clipboardWrite?: unknown
+            })
           : null
       if (
         capabilities?.ackOutputSourceRanges === 1 &&
@@ -58,6 +62,7 @@ export abstract class RemoteRuntimeTerminalResponseController extends RemoteRunt
         stream.streamGeneration = event.streamGeneration
       }
       stream.supportsOutputPause = capabilities?.outputPause === 1
+      stream.supportsClipboardWrite = capabilities?.clipboardWrite === 1
       if (stream.supportsOutputPause) {
         stream.callbacks.onOutputPauseCapability?.()
       }
