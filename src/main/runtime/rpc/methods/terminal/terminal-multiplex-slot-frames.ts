@@ -215,6 +215,7 @@ export function installMultiplexSlotFrames(
         size = runtime.getTerminalSize(stream.ptyId)
         displayMode = runtime.getMobileDisplayMode(stream.ptyId)
         if (stream.pendingOutputOverflowed) {
+          stream.osc52Scanner.reset()
           sendSnapshotFrames(
             (opcode, payload) => state.sendFrame(stream.streamId, opcode, payload),
             {
@@ -233,6 +234,7 @@ export function installMultiplexSlotFrames(
         }
       }
       sentSnapshotOutputSeq = serialized?.seq
+      stream.osc52Scanner.reset()
       sendSnapshotFrames((opcode, payload) => state.sendFrame(stream.streamId, opcode, payload), {
         kind: 'scrollback',
         cols: serialized?.cols ?? size?.cols ?? 80,
@@ -274,6 +276,7 @@ export function installMultiplexSlotFrames(
                 ? chunk
                 : getOutputAfterSnapshotSeq(chunk, sentSnapshotOutputSeq)
             if (uncovered) {
+              stream.osc52Scanner.scan(uncovered.data)
               stream.outputBatcher.push(uncovered.data, uncovered.meta)
             }
           }

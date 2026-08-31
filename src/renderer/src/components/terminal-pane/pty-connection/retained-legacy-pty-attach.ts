@@ -24,7 +24,7 @@ export function bindAttachRetainedLegacyPty(session: ConnectPanePtySession): voi
       session.kittyShortcutInputSettlement.settle(session.kittyKeyboardModes.flags)
       return true
     } catch (err) {
-      session.kittyShortcutInputSettlement.settle(session.kittyKeyboardModes.flags)
+      session.kittyShortcutInputSettlement.settleDiscardingPending(session.kittyKeyboardModes.flags)
       session.reportError(err instanceof Error ? err.message : String(err))
       return false
     }

@@ -49,6 +49,15 @@ export class TerminalKittyShortcutInputSettlement {
     }
   }
 
+  settleDiscardingPending(flags: number): void {
+    if (this.disposed) {
+      return
+    }
+    this.pending = []
+    this.flags = flags
+    this.settled = true
+  }
+
   dispose(): void {
     this.disposed = true
     this.pending = []

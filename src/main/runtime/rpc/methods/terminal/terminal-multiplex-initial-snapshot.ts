@@ -89,6 +89,7 @@ export async function publishMultiplexInitialSnapshot(
           'initial-snapshot'
         )
       : null
+  stream.osc52Scanner.reset()
   const snapshotPublication = sendSnapshotFrames(
     (opcode, payload) => state.sendFrame(request.streamId, opcode, payload),
     {
@@ -135,6 +136,9 @@ export async function publishMultiplexInitialSnapshot(
     for (const chunk of pendingOutput) {
       const uncovered = getOutputAfterSnapshotSeq(chunk, snapshotOutputSeq)
       if (uncovered) {
+        if (stream.supportsClipboardWrite) {
+          stream.osc52Scanner.scan(uncovered.data)
+        }
         stream.outputBatcher.push(uncovered.data, uncovered.meta)
       }
     }

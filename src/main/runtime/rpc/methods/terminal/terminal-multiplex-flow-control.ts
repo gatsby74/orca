@@ -1,4 +1,9 @@
 import {
+  TerminalStreamOpcode,
+  decodeTerminalStreamJson,
+  decodeTerminalStreamText
+} from '../../../../../shared/terminal-stream-protocol'
+import {
   TERMINAL_MULTIPLEX_ACK_STREAM_MAX_WINDOW_BYTES,
   TERMINAL_MULTIPLEX_ACK_TOTAL_MAX_WINDOW_BYTES
 } from '../../../../../shared/terminal-multiplex-flow-control'
@@ -14,6 +19,24 @@ import type {
 } from './terminal-multiplex-connection'
 import type { TerminalMultiplexStream } from './terminal-stream-types'
 import type { RemoteTerminalSourceRangeReplacementReservation } from '../../../remote-terminal-source-range-consumer'
+import type { TerminalOutputFrameChunk } from '../../terminal-output-frame-chunks'
+
+function scanPendingOsc52Output(
+  stream: TerminalMultiplexStream,
+  chunk: TerminalOutputFrameChunk
+): void {
+  if (!stream.supportsClipboardWrite) {
+    return
+  }
+  if (chunk.opcode === TerminalStreamOpcode.OutputSpan) {
+    const span = decodeTerminalStreamJson<{ data?: unknown }>(chunk.bytes)
+    if (typeof span?.data === 'string') {
+      stream.osc52Scanner.scan(span.data)
+    }
+    return
+  }
+  stream.osc52Scanner.scan(decodeTerminalStreamText(chunk.bytes))
+}
 
 export function installMultiplexFlowControl(
   build: TerminalMultiplexFrameDeliveryStage
@@ -30,6 +53,7 @@ export function installMultiplexFlowControl(
       return
     }
     stream.ackRecoverySnapshotInFlight = true
+    stream.outputBatcher.flush()
     let replacement: RemoteTerminalSourceRangeReplacementReservation | null = null
     try {
       const serialized = await serializeBudgetedRequestedSnapshot(runtime, stream.ptyId, 0)
@@ -62,6 +86,7 @@ export function installMultiplexFlowControl(
         stream.sourceRangeReplacement = replacement
       }
       const displayMode = runtime.getMobileDisplayMode(stream.ptyId)
+      stream.osc52Scanner.reset()
       const publication = sendSnapshotFrames(
         (opcode, payload) =>
           !state.closed &&
@@ -120,6 +145,9 @@ export function installMultiplexFlowControl(
           (total, chunk) => total + chunk.bytes.byteLength,
           0
         )
+      }
+      for (const chunk of stream.ackPendingOutput) {
+        scanPendingOsc52Output(stream, chunk)
       }
       stream.ackPendingOutputOverflowed = false
     } catch (error) {

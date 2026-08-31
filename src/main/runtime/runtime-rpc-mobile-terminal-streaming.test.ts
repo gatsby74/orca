@@ -663,6 +663,36 @@ describe('OrcaRuntimeRpcServer', () => {
       })
       binaryFrames.splice(0)
 
+      runtime.onPtyData('multiplex-active-pty', '\x1b]52;c;cGFy', 6)
+      subscription.sendBinary(
+        encodeTerminalStreamFrame({
+          seq: 5,
+          opcode: TerminalStreamOpcode.SnapshotRequest,
+          streamId: 22,
+          payload: encodeTerminalStreamJson({ requestId: 77 })
+        })
+      )
+      await vi.waitFor(() => {
+        const snapshotStarted = binaryFrames
+          .map((frame) => decodeTerminalStreamFrame(frame))
+          .some(
+            (frame) => frame?.opcode === TerminalStreamOpcode.SnapshotStart && frame.streamId === 22
+          )
+        expect(snapshotStarted).toBe(true)
+      })
+      binaryFrames.splice(0)
+      runtime.onPtyData('multiplex-active-pty', 'dGlhbA==\x07after-snapshot', 7)
+      await vi.waitFor(() => {
+        const frames = binaryFrames
+          .map((frame) => decodeTerminalStreamFrame(frame))
+          .filter((frame) => frame?.streamId === 22)
+        expect(frames.some((frame) => frame?.opcode === TerminalStreamOpcode.Output)).toBe(true)
+        expect(frames.some((frame) => frame?.opcode === TerminalStreamOpcode.ClipboardWrite)).toBe(
+          false
+        )
+      })
+      binaryFrames.splice(0)
+
       const backgroundOutput = 'B'.repeat(700 * 1024)
       runtime.onPtyData('multiplex-background-pty', backgroundOutput, 1)
       await vi.waitFor(() => {
@@ -691,7 +721,7 @@ describe('OrcaRuntimeRpcServer', () => {
 
       subscription.sendBinary(
         encodeTerminalStreamFrame({
-          seq: 5,
+          seq: 6,
           opcode: TerminalStreamOpcode.Input,
           streamId: 22,
           payload: encodeTerminalStreamText('still interactive\r')
@@ -710,7 +740,7 @@ describe('OrcaRuntimeRpcServer', () => {
         .reduce((total, frame) => total + (frame?.payload.byteLength ?? 0), 0)
       subscription.sendBinary(
         encodeTerminalStreamFrame({
-          seq: 6,
+          seq: 7,
           opcode: TerminalStreamOpcode.Ack,
           streamId: 21,
           payload: encodeTerminalStreamJson({ bytes: backgroundBytesBeforeAck })

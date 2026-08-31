@@ -46,6 +46,18 @@ describe('TerminalKittyShortcutInputSettlement', () => {
     expect(send).toHaveBeenNthCalledWith(2, '\x1b\r')
   })
 
+  it('drops queued input after a failed attach but settles later shortcuts', () => {
+    const settlement = new TerminalKittyShortcutInputSettlement()
+    const send = vi.fn()
+
+    settlement.dispatch(SHIFT_ENTER, send)
+    settlement.settleDiscardingPending(0)
+
+    expect(send).not.toHaveBeenCalled()
+    expect(settlement.dispatch(SHIFT_ENTER, send)).toBe(true)
+    expect(send).toHaveBeenCalledExactlyOnceWith('\x1b\r')
+  })
+
   it('drops deferred input when the pane is disposed', () => {
     const settlement = new TerminalKittyShortcutInputSettlement()
     const send = vi.fn()
