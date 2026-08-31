@@ -3,6 +3,7 @@ import {
   serializeBudgetedMobileSnapshot
 } from './terminal-snapshot-publication'
 import { getOutputAfterSnapshotSeq } from './terminal-stream-replay'
+import { sendTerminalClipboardScannerSync } from './terminal-clipboard-scanner-synchronization'
 import type {
   MultiplexSubscribeRequest,
   TerminalMultiplexConnection
@@ -89,7 +90,6 @@ export async function publishMultiplexInitialSnapshot(
           'initial-snapshot'
         )
       : null
-  stream.osc52Scanner.reset()
   const snapshotPublication = sendSnapshotFrames(
     (opcode, payload) => state.sendFrame(request.streamId, opcode, payload),
     {
@@ -132,16 +132,20 @@ export async function publishMultiplexInitialSnapshot(
   stream.lastResizeCols = serialized?.cols ?? size?.cols
   stream.buffering = false
   const pendingOutput = stream.pendingOutput.splice(0)
-  if (!initialOutputOverflowed) {
-    for (const chunk of pendingOutput) {
-      const uncovered = getOutputAfterSnapshotSeq(chunk, snapshotOutputSeq)
-      if (uncovered) {
-        if (stream.supportsClipboardWrite) {
-          stream.osc52Scanner.scan(uncovered.data)
-        }
-        stream.outputBatcher.push(uncovered.data, uncovered.meta)
-      }
-    }
+  const uncoveredOutput = initialOutputOverflowed
+    ? []
+    : pendingOutput.flatMap((chunk) => {
+        const uncovered = getOutputAfterSnapshotSeq(chunk, snapshotOutputSeq)
+        return uncovered ? [uncovered] : []
+      })
+  sendTerminalClipboardScannerSync(
+    stream,
+    uncoveredOutput[0]?.osc52StartState ?? stream.osc52Scanner?.syncState ?? 'plain',
+    (opcode, payload) => state.sendFrame(request.streamId, opcode, payload),
+    true
+  )
+  for (const chunk of uncoveredOutput) {
+    stream.outputBatcher.push(chunk.data, chunk.meta)
   }
   stream.pendingOutputBytes = 0
   stream.pendingOutputOverflowed = false

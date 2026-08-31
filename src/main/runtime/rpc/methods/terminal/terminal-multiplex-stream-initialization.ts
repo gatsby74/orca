@@ -65,6 +65,7 @@ export async function initializeMultiplexStream(
       request.capabilities?.clipboardWrite === 1 &&
       request.capabilities?.clipboardScannerSync === 1,
     osc52Scanner: new TerminalOsc52StreamScanner(),
+    osc52DeliveryScanner: new TerminalOsc52StreamScanner(),
     outputPaused: false,
     supportsDesktopViewportClaims: request.capabilities?.desktopViewportClaims === 1,
     desktopClaimTail: Promise.resolve(true),
@@ -112,6 +113,9 @@ export async function initializeMultiplexStream(
     if (state.closed || streams.get(request.streamId) !== stream) {
       return
     }
+    const osc52StartState = stream.supportsClipboardWrite
+      ? stream.osc52Scanner.syncState
+      : undefined
     if (stream.supportsClipboardWrite) {
       const payload = stream.osc52Scanner
         .scan(data)
@@ -129,7 +133,7 @@ export async function initializeMultiplexStream(
       return
     }
     if (stream.buffering) {
-      appendPendingMultiplexOutput(stream, data, meta)
+      appendPendingMultiplexOutput(stream, data, meta, osc52StartState)
       return
     }
     stream.outputBatcher.push(data, meta)

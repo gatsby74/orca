@@ -187,6 +187,12 @@ class FakeMultiplexServer {
     this.send(TerminalStreamOpcode.Output, encodeTerminalStreamText(text), 0)
   }
 
+  snapshotWithClipboardScannerSync(state: string): void {
+    this.snapshotData = 'RECOVERED'
+    this.sendSnapshot()
+    this.clipboardScannerSync(state)
+  }
+
   flushHeldManualSnapshot(): void {
     if (this.heldManualRequestId === null) {
       throw new Error('No manual snapshot is held')
@@ -288,6 +294,20 @@ describe('remote terminal frame-drop resync', () => {
 
     expect(clipboardWrites).toEqual(['c;aW5pdGlhbA==', 'c;c3BsaXQ='])
     expect(data).toEqual(['visible'])
+  })
+
+  it('preserves OSC 52 stripping across a snapshot boundary', async () => {
+    const { clipboardWrites, data, snapshots } = await subscribeClient()
+
+    server.clipboardWrite('c;aW5pdGlhbA==')
+    server.unsequencedOutput('\x1b]52;c;cGFy')
+    server.snapshotWithClipboardScannerSync('payload')
+    server.clipboardWrite('c;cGFydGlhbA==')
+    server.unsequencedOutput('dGlhbA==\x07visible')
+
+    expect(clipboardWrites).toEqual(['c;aW5pdGlhbA==', 'c;cGFydGlhbA=='])
+    expect(data).toEqual(['', 'visible'])
+    expect(snapshots).toEqual(['INITIAL', '\x1b[2J\x1b[3J\x1b[HRECOVERED'])
   })
 
   it('detects a dropped Output frame via the seq gap and resyncs', async () => {

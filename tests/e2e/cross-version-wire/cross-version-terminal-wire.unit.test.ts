@@ -87,7 +87,9 @@ function expectJourneyActuallyRan(record: JourneyRecord): void {
   // The anti-vacuous-pass oracle. A harness that connects and then does nothing
   // fails here, because "nothing threw" is never enough to call a pairing green.
   expect(record.completed).toEqual([...JOURNEY_STEPS])
-  expect(record.frameSequence).toEqual(EXPECTED_JOURNEY_FRAMES)
+  expect(record.frameSequence.filter((frame) => frame !== 'H>C ClipboardScannerSync')).toEqual(
+    EXPECTED_JOURNEY_FRAMES
+  )
   expect(record.subscribedEvents).toHaveLength(2)
   expect(record.snapshotStarts).toHaveLength(3)
   expect(record.missingRuntimeMethods).toEqual([])
@@ -162,6 +164,9 @@ describe('cross-version remote terminal wire', () => {
   it('current client against current server completes the journey, and is the reference for a current host', () => {
     expectJourneyActuallyRan(currentReference)
     expectWireCompatible(currentReference)
+    expect(
+      currentReference.frameSequence.filter((frame) => frame === 'H>C ClipboardScannerSync')
+    ).toHaveLength(3)
     for (const event of currentReference.subscribedEvents) {
       expect(event.capabilities).toMatchObject({
         clipboardWrite: 1,

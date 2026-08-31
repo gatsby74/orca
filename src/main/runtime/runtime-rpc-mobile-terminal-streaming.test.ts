@@ -673,12 +673,16 @@ describe('OrcaRuntimeRpcServer', () => {
         })
       )
       await vi.waitFor(() => {
-        const snapshotStarted = binaryFrames
+        const frames = binaryFrames
           .map((frame) => decodeTerminalStreamFrame(frame))
-          .some(
-            (frame) => frame?.opcode === TerminalStreamOpcode.SnapshotStart && frame.streamId === 22
-          )
-        expect(snapshotStarted).toBe(true)
+          .filter((frame) => frame?.streamId === 22)
+        expect(frames.some((frame) => frame?.opcode === TerminalStreamOpcode.SnapshotEnd)).toBe(
+          true
+        )
+        const scannerSync = frames.find(
+          (frame) => frame?.opcode === TerminalStreamOpcode.ClipboardScannerSync
+        )
+        expect(scannerSync && decodeTerminalStreamText(scannerSync.payload)).toBe('payload')
       })
       binaryFrames.splice(0)
       runtime.onPtyData('multiplex-active-pty', 'dGlhbA==\x07after-snapshot', 7)
@@ -687,9 +691,10 @@ describe('OrcaRuntimeRpcServer', () => {
           .map((frame) => decodeTerminalStreamFrame(frame))
           .filter((frame) => frame?.streamId === 22)
         expect(frames.some((frame) => frame?.opcode === TerminalStreamOpcode.Output)).toBe(true)
-        expect(frames.some((frame) => frame?.opcode === TerminalStreamOpcode.ClipboardWrite)).toBe(
-          false
-        )
+        const clipboardWrites = frames
+          .filter((frame) => frame?.opcode === TerminalStreamOpcode.ClipboardWrite)
+          .map((frame) => (frame ? decodeTerminalStreamText(frame.payload) : ''))
+        expect(clipboardWrites).toEqual(['c;cGFydGlhbA=='])
       })
       binaryFrames.splice(0)
 

@@ -208,14 +208,16 @@ describe('connectPanePty', () => {
     transportFactoryQueue.push(transport)
     const retainedTracker = new TerminalKittyKeyboardModeTracker()
     retainedTracker.scan('\x1b[>1u')
+    const paneKittyKeyboardModesRef = { current: new Map([[92, retainedTracker]]) }
     const deps = createDeps({
       tabId: 'tab-kitty-adopted-spawn',
-      paneKittyKeyboardModesRef: { current: new Map([[92, retainedTracker]]) }
+      paneKittyKeyboardModesRef
     })
 
     connectPanePty(createPane(92) as never, createManager(92) as never, deps as never)
     await flushAsyncTicks()
 
+    expect(paneKittyKeyboardModesRef.current.get(92)).toBe(retainedTracker)
     expect(retainedTracker.flags).toBe(1)
   })
 
